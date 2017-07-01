@@ -1,0 +1,10 @@
+local: go build hyauth.go
+local: scp hyauth scp auth root@HOSTNAME:/usr/local/bin/
+local: scp auth-login root@HOSTNAME:/home/kauth/.k5login
+remote: useradd kauth -m -s /usr/local/bin/hyauth
+remote: enable GSSAPIAuthentication in /etc/ssh/sshd_config
+
+copy ca_user to ca_key on server (and .pub)
+fix permissions so that keys are owned by kauth
+
+to connect: ./req-cert

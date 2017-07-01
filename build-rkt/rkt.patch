@@ -1,0 +1,46 @@
+--- rkt-1.26.0/stage1/usr_from_kvm/qemu.mk	2017-05-15 04:19:46.000000000 -0400
++++ rkt-1.26.0/stage1/usr_from_kvm/qemu.mk	2017-06-28 00:16:03.104844850 -0400
+@@ -1,6 +1,8 @@
+ $(call setup-stamp-file,QEMU_STAMP)
+ QEMU_TMPDIR := $(UFK_TMPDIR)/qemu
+-QEMU_SRCDIR := $(QEMU_TMPDIR)/src
++QEMU_TARBALL := qemu-2.8.1.1.tar.xz
++QEMU_TARGET_FILE := $(QEMU_TMPDIR)/$(QEMU_TARBALL)
++QEMU_SRCDIR := $(QEMU_TMPDIR)/qemu-2.8.1.1
+ QEMU_BINARY := $(QEMU_SRCDIR)/x86_64-softmmu/qemu-system-x86_64
+ QEMU_BIOS_BINARIES := bios-256k.bin \
+     kvmvapic.bin \
+@@ -17,10 +19,6 @@
+     --python=/usr/bin/python2 --disable-werror
+ QEMU_ACI_BINARY := $(HV_ACIROOTFSDIR)/qemu
+
+-# Using 2.7.0 stable release from official repository
+-QEMU_GIT := git://git.qemu-project.org/qemu.git
+-QEMU_GIT_COMMIT := v2.8.0
+-
+ $(call setup-stamp-file,QEMU_BUILD_STAMP,/build)
+ $(call setup-stamp-file,QEMU_BIOS_BUILD_STAMP,/bios_build)
+ $(call setup-stamp-file,QEMU_CONF_STAMP,/conf)
+@@ -63,13 +61,15 @@
+ # Generate clean.mk cleaning qemu directory
+ $(call generate-clean-mk,$(QEMU_DIR_CLEAN_STAMP),$(QEMU_CLEANMK),$(QEMU_DIR_FILELIST),$(QEMU_SRCDIR))
+
+-GCL_REPOSITORY := $(QEMU_GIT)
+-GCL_DIRECTORY := $(QEMU_SRCDIR)
+-GCL_COMMITTISH := $(QEMU_GIT_COMMIT)
+-GCL_EXPECTED_FILE := Makefile
+-GCL_TARGET := $(QEMU_CONF_STAMP)
+-GCL_DO_CHECK :=
++$(call forward-vars,$(QEMU_SRCDIR)/Makefile, \
++	QEMU_SRCDIR QEMU_TMPDIR)
++$(QEMU_SRCDIR)/Makefile: $(QEMU_TARGET_FILE)
++	$(VQ) \
++	set -e; \
++	rm -rf "$(QEMU_SRCDIR)"; \
++	$(call vb,vt,UNTAR,$(call vsp,$<) => $(call vsp,$(QEMU_TMPDIR))) \
++	tar --extract --xz --touch --file="$<" --directory="$(QEMU_TMPDIR)"
+
+-include makelib/git.mk
++$(QEMU_CONF_STAMP): $(QEMU_SRCDIR)/Makefile
+
+ $(call undefine-namespaces,QEMU)

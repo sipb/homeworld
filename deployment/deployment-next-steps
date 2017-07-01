@@ -1,0 +1,27 @@
+packages to install:
+	hyades-rkt_1.26.0-1_amd64.deb
+	hyades-etcd_3.1.7-1_amd64.deb
+	hyades-flannel_0.7.1-2_amd64.deb
+	hyades-hyperkube_1.6.4-1_amd64.deb
+	hyades-services_0.1.0-1_amd64.deb
+
+for kube-apiserver:
+	set up better authorization with abac or rbac (alwaysallow is not secure)
+
+overall:
+	run init-flannel.sh just once
+	run start-services.sh on each server
+	split start-services.sh up into both a master version and a worker version
+	convert things to be based on containers more
+	plan software updates
+	look for other TODOs!
+
+document process:
+ * setup ssh
+ * generate configuration
+ * deploy configurations
+ * generate certificate scripts
+ * run certificate scripts
+ * install packages
+ * someting something start-services.sh
+

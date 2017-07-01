@@ -1,0 +1,11 @@
+[Unit]
+Description=Hyades Kubernetes apiserver
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/lib/hyades/launch-apiserver.sh
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

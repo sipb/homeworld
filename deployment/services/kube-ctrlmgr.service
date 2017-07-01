@@ -1,0 +1,11 @@
+[Unit]
+Description=Hyades Kubernetes Controller Manager
+Requires=network-online.target
+After=network-online.target kubelet.service
+
+[Service]
+ExecStart=/usr/lib/hyades/launch-ctrlmgr.sh
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

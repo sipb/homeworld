@@ -1,0 +1,24 @@
+
+authserver:
+	openssh
+	hyades-authserver (see: /auth in repo)
+	user certificate authority key
+	authorized kerberoses
+	keytab
+
+server side:
+	openssh
+	hyades sshd_config
+	user certificate authority pubkey
+	signed ssh certificates
+
+user side:
+	openssh
+	certificate authority validation
+	req-cert
+
+
+installation process for normal servers:
+
+run admit.sh on admission server (hopefully your trusted machine? or something)
+then follow instructions to run things on the other server and set up its SSH

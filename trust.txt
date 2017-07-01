@@ -1,0 +1,25 @@
+Debian CD signing key:
+
+DF9B 9C49 EAA9 2984 3258  9D76 DA87 E80D 6294 BE9B
+
+08a25863ae2369de462e55b539050dab0adb03262a4aefda208e907ef9ea2fff2158a77f6a6eddb4ac7fbd2fcc9cc64edd34f70e211eceac4bb6f308fefc3f0a  debian-9.0.0-amd64-netinst.iso
+85adf3715cba4a457efea8359ebed34413ac63ee58fe920c5713501dec1e727e167416e9d67a9e2d9430aa9f3a53ad0ac26a4f749984bc5a3f3c37ac504f75de  linux-4.9.2.tar.xz
+
+
+Key fingerprint = 647F 2865 4894 E3BD 4571  99BE 38DB BDC8 6092 693E
+Greg Kroah-Hartman (Linux kernel stable release signing key) <greg@kroah.com>
+
+
+Derek Gonyeo's signing key (NOT THOROUGHLY VERIFIED):
+
+4AAD A27B 5780 CDA6 6664  CC42 4AF8 D948 8458 0913
+
+
+Not thoroughly checked, but probably right:
+
+1862f4c3d3907e59b04a757cfda0ea7aa9ef39274af99a784f5be843c80c6772  go1.8.3.linux-amd64.tar.gz
+
+a330e10d5cb5e53b3a0078326c5731888bb55e32c4abfeb27d9e7f8e5d000250  ruby-2.4.1.tar.gz
+
+10e3fcd515b746be2af55636a6dd9334706cc21ab2bb8b2ba38fe342ca51b072890fd1ae2cd8777006036b0a08122a621769cb5903ab16cfbdcc47c9444aa208  qemu-2.8.1.1.tar.xz
+

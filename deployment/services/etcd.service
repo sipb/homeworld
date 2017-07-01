@@ -1,0 +1,13 @@
+[Unit]
+Description=Hyades etcd server
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+Slice=machine.slice
+ExecStart=/usr/lib/hyades/launch-etcd.sh
+KillMode=mixed
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
