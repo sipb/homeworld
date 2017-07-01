@@ -11,7 +11,7 @@ FPMOPT="$FPMOPT -n hyades-services -v ${VERSION} --iteration 1"
 FPMOPT="$FPMOPT --maintainer 'sipb-hyades-root@mit.edu'"
 # metadata
 # TODO: better metadata
-FPMOPT="$FPMOPT --license unknown -a x86_64 --url https://sipb.mit.edu/"
+FPMOPT="$FPMOPT --license MIT -a x86_64 --url https://sipb.mit.edu/"
 # dependencies
 FPMOPT="$FPMOPT -d hyades-rkt -d hyades-etcd -d hyades-flannel -d hyades-hyperkube"
 # get binary
