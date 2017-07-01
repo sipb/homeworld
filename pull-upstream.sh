@@ -8,4 +8,4 @@ else
 	git clone https://github.com/sipb/homeworld-upstream.git upstream
 fi
 cd upstream
-sha512sum --check ../SHA512SUM.UPSTREAM
+sha512sum --check ../SHA512SUM.UPSTREAM || (echo "CHECKSUM MISMATCH" && false)
