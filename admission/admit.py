@@ -77,17 +77,15 @@ class SecondaryRequestHandler(http.server.BaseHTTPRequestHandler):
 			print(hashlib.sha256(pubkey_to_sign).hexdigest())
 			print("======================= VERIFY ========================")
 			if input("Correct? (y/n) ").strip()[:1].lower() == "y":
-				with tempfile.NamedTemporaryFile(suffix=".pub") as pubkey:
-					pubkey.write(pubkey_to_sign)
-					pubkey.flush()
-					subprocess.check_call(["ssh-keygen", "-s", host_ca, "-h", "-I", "hyades_host_" + hostname, "-Z", hostname, "-V", "-1w:+30w", pubkey.name])
-					# TODO: more secure tempfile handling
-					certname = pubkey.name[:-4] + "-cert.pub"
-					try:
-						with open(certname, "rb") as cert:
-							certdata = cert.read()
-					finally:
-						os.remove(certname)
+				with tempfile.TemporaryDirectory(prefix="hyades-admit-") as tmp:
+					pubkeyname = os.path.join(tmp.name, "key.pub")
+					with open(pubkeyname, "wb") as pubkey:
+						pubkey.write(pubkey_to_sign)
+						pubkey.flush()
+					subprocess.check_call(["ssh-keygen", "-s", host_ca, "-h", "-I", "hyades_host_" + hostname, "-Z", hostname, "-V", "-1w:+30w", pubkeyname])
+					certname = os.path.join(tmp.name, "key-cert.pub")
+					with open(certname, "rb") as cert:
+						certdata = cert.read()
 				self.send_response(200)
 				self.send_header("Content-type", "text/plain")
 				self.send_header("Content-length", len(certdata))
