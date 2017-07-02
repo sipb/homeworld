@@ -1,6 +1,11 @@
-Debian CD signing key:
+Debian CD signing key (stretch):
 
 DF9B 9C49 EAA9 2984 3258  9D76 DA87 E80D 6294 BE9B
+
+Debian Archive Automatic Signing Key (9/stretch):
+
+E1CF 20DD FFE4 B89E 8026  58F1 E0B1 1894 F66A EC98
+
 
 08a25863ae2369de462e55b539050dab0adb03262a4aefda208e907ef9ea2fff2158a77f6a6eddb4ac7fbd2fcc9cc64edd34f70e211eceac4bb6f308fefc3f0a  debian-9.0.0-amd64-netinst.iso
 85adf3715cba4a457efea8359ebed34413ac63ee58fe920c5713501dec1e727e167416e9d67a9e2d9430aa9f3a53ad0ac26a4f749984bc5a3f3c37ac504f75de  linux-4.9.2.tar.xz
