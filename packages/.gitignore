@@ -1,0 +1,6 @@
+binaries/
+*.deb
+*_amd64.build
+*.dsc
+*_source.changes
+homeworld-services_*.tar.gz
