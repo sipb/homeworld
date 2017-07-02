@@ -18,27 +18,12 @@
 
 ## Set up the authentication server
 
-(IF YOU ARE REINITIALIZING AN AUTHSERVER, MAKE SURE TO COPY OFF THE KEYTAB AND SSH CA!)
-
-TODO: automate this process better
-
  * Request a keytab from accounts@, if necessary.
- * Provision yourself a Debian Stretch machine. Choose SSH Server and Standard System Utilities.
-   * Remove irrelevant things like exim4 if necessary.
- * Install krb5-user
- * Stick keytab into /etc/krb5.keytab
- * k5srvutil change
- * Consider backing up new keytab
- * Create user kauth with a homedir
- * Set up the ACL for the authserver in kauth's .k5login.
- * Generate yourself a SSH user CA, if necessary. '/home/kauth/ca_key'.
- * Back up the user CA somewhere, probably?
- * Copy the user CA pubkey off of the server.
- * Setup SSH access via kerberos, or, if you don't have the keytab yet, SSH keys.
- * Turn off PasswordAuthentication.
- * Set up a .k5login in the homedir of any user with shell access, even if empty.
- * Upload hyauth to /usr/local/bin/hyauth
- * Set hyauth as kauth's shell
+ * Provision yourself a Debian Stretch machine. Choose SSH Server.
+ * Establish SSH access somehow (i.e. ssh keys)
+ * Generate ssh user CA locally; save it somewhere safe.
+ * Rotate the keytab locally (k5srvutil -f <keytab> change); save it somewhere safe.
+ * Run auth/deploy.sh on <host> <keytab> auth-login <user-ca>
 
  * Run req-cert and see if it works.
 
@@ -71,6 +56,7 @@ TODO: improve cryptographic strength of keytab (see note on sipb page)
  * Run certificate-upload-certs.sh
  * Run spin-up-all.sh
  * Run pkg-install-all.sh on the latest packages and etcd-current-linux-amd64.aci
+	DO NOT INCLUDE hyades-authserver IN THIS INSTALLATION!
 
 ## Starting everything
 

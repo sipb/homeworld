@@ -3,7 +3,6 @@ set -e -u
 VERSION=3.1.7
 
 cd $(dirname $0)
-HERE=$(pwd)
 HYBIN=$(pwd)/../binaries/
 mkdir -p ${HYBIN}
 

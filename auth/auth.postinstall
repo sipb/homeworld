@@ -1,0 +1,5 @@
+cp -i /etc/ssh/sshd_config.hyades-new /etc/ssh/sshd_config
+adduser --system --shell /usr/bin/hyauth kauth
+touch /home/kauth/.k5login
+touch /root/.k5login
+sed -i -E "s/^(session .+ pam_motd.so .+)$/#\1/g" /etc/pam.d/sshd
