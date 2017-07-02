@@ -26,38 +26,38 @@ contexts:
   name: hyades
 EOCONFIG
 
-KUBEOPT=""
+KUBEOPT=()
 # just use one API server for now -- TODO: BETTER HIGH-AVAILABILITY
-KUBEOPT="$KUBEOPT --kubeconfig=/etc/hyades/kubeconfig --require-kubeconfig"
-if [ "x${SCHEDULE_WORK}" = "xtrue" ]
+KUBEOPT+=(--kubeconfig=/etc/hyades/kubeconfig --require-kubeconfig)
+if [ "${SCHEDULE_WORK}" = "true" ]
 then
 	# register as schedulable (i.e. for a worker node)
-	KUBEOPT="$KUBEOPT --register-schedulable=true"
+	KUBEOPT+=(--register-schedulable=true)
 else
-	if [ "x${SCHEDULE_WORK}" = "xfalse" ]
+	if [ "${SCHEDULE_WORK}" = "false" ]
 	then
 		# don't register as schedulable (i.e. for a master node)
-		KUBEOPT="$KUBEOPT --register-schedulable=false"
+		KUBEOPT+=(--register-schedulable=false)
 	else
 		echo 'SCHEDULE_WORK not set!'
 		exit 1
 	fi
 fi
 # turn off anonymous authentication
-KUBEOPT="$KUBEOPT --anonymous-auth=false"
+KUBEOPT+=(--anonymous-auth=false)
 # add kubelet auth certs
-KUBEOPT="$KUBEOPT --tls-cert-file=/etc/hyades/certs/kube/kube-cert.pem --tls-private-key-file=/etc/hyades/certs/kube/local-key.pem"
+KUBEOPT+=(--tls-cert-file=/etc/hyades/certs/kube/kube-cert.pem --tls-private-key-file=/etc/hyades/certs/kube/local-key.pem)
 # add client certificate authority
-KUBEOPT="$KUBEOPT --client-ca-file=/etc/hyades/certs/kube/kube-ca.pem"
+KUBEOPT+=(--client-ca-file=/etc/hyades/certs/kube/kube-ca.pem)
 # turn off cloud provider detection
-KUBEOPT="$KUBEOPT --cloud-provider="
+KUBEOPT+=(--cloud-provider=)
 # use rkt
-KUBEOPT="$KUBEOPT --container-runtime rkt"
+KUBEOPT+=(--container-runtime rkt)
 # pod manifests
-KUBEOPT="$KUBEOPT --pod-manifest-path=/etc/hyades/manifests/"
+KUBEOPT+=(--pod-manifest-path=/etc/hyades/manifests/)
 # DNS
-KUBEOPT="$KUBEOPT --cluster-dns ${SERVICE_DNS} --cluster-domain ${CLUSTER_DOMAIN}"
+KUBEOPT+=(--cluster-dns "${SERVICE_DNS}" --cluster-domain "${CLUSTER_DOMAIN}")
 # experimental options to better enforce env config
-KUBEOPT="$KUBEOPT --experimental-fail-swap-on"
+KUBEOPT+=(--experimental-fail-swap-on)
 
-exec /usr/bin/hyperkube kubelet $KUBEOPT
+exec /usr/bin/hyperkube kubelet "${KUBEOPT[@]}"

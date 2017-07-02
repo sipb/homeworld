@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e -u
 
-cd $(dirname $0)
+cd "$(dirname "$0")"
 
 rm -rf rkt-1.27.0/
 tar -xf rkt-1.27.0.tar.xz rkt-1.27.0/
@@ -46,4 +46,4 @@ BUILDDIR=rkt-1.27.0/build-rkt-1.27.0/
 BUILDDIR=${BUILDDIR} ./build-pkgs.sh 1.27.0
 
 mkdir -p ../binaries
-cp ${BUILDDIR}/target/bin/hyades-rkt_1.27.0-1_amd64.deb ../binaries/
+cp "${BUILDDIR}/target/bin/hyades-rkt_1.27.0-1_amd64.deb" ../binaries/

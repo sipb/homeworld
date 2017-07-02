@@ -23,17 +23,17 @@ function usage {
     exit 1
 }
 
-if [ ! -d $builddir ]; then
+if [ ! -d "$builddir" ]; then
     echo "could not find build dir $builddir" >&2
     usage
 fi
 
-if [ -z $version ]; then
+if [ -z "$version" ]; then
     echo "version not specified" >&2
     usage
 fi
 
-srcdir=`dirname "$0"`/rkt-${version}/scripts/pkg/
+srcdir=$(dirname "$0")/rkt-${version}/scripts/pkg/
 projectdir=$srcdir/../..
 
 ###################################
@@ -41,14 +41,14 @@ projectdir=$srcdir/../..
 #################################
 workdir=$(mktemp -d /tmp/rkt-pkg.XXXXXX)
 prefix=$workdir/rootfs
-mkdir -p $prefix
+mkdir -p "$prefix"
 
 ## install binary
-install -Dm755 $builddir/target/bin/rkt $prefix/usr/bin/rkt
+install -Dm755 "$builddir/target/bin/rkt" "$prefix/usr/bin/rkt"
 
 ## install stage1s
 for flavor in coreos kvm; do
-    install -Dm644 $builddir/target/bin/stage1-${flavor}.aci $prefix/usr/lib/rkt/stage1-images/stage1-${flavor}.aci
+    install -Dm644 "$builddir/target/bin/stage1-${flavor}.aci" "$prefix/usr/lib/rkt/stage1-images/stage1-${flavor}.aci"
 done
 
 ## manpages & doc
@@ -62,29 +62,29 @@ done
 #     done
 # done
 
-# install -Dm644 $projectdir/dist/bash_completion/rkt.bash $prefix/usr/share/bash-completion/completions/rkt
-install -Dm644 $projectdir/dist/init/systemd/tmpfiles.d/rkt.conf $prefix/usr/lib/tmpfiles.d/rkt.conf
+# install -Dm644 "$projectdir/dist/bash_completion/rkt.bash" "$prefix/usr/share/bash-completion/completions/rkt"
+install -Dm644 "$projectdir/dist/init/systemd/tmpfiles.d/rkt.conf" "$prefix/usr/lib/tmpfiles.d/rkt.conf"
 
 for unit in rkt-gc.{timer,service} rkt-metadata.{socket,service} rkt-api{.service,-tcp.socket}; do
-    install -Dm644 -t $prefix/usr/lib/systemd/system/  $projectdir/dist/init/systemd/${unit}
+    install -Dm644 -t "$prefix/usr/lib/systemd/system/"  "$projectdir/dist/init/systemd/${unit}"
 done
 
 ## Copy before and after-install
-cp $srcdir/*-{install,remove} $workdir/
+cp "$srcdir"/*-{install,remove} "$workdir/"
 
 
 #######################
 ## BUILD THE PACKAGES
 #######################
-cd $builddir/target/bin
+cd "$builddir/target/bin"
 fpm -s dir -t deb \
     -n "hyades-rkt" -v "$version" --iteration "$ITERATION" \
-    --after-install $workdir/after-install \
-    --before-install $workdir/before-install \
-	--after-remove $workdir/after-remove \
-	--before-remove $workdir/before-remove \
-	--after-upgrade $workdir/after-install \
-	--before-upgrade $workdir/before-remove \
+    --after-install "$workdir/after-install" \
+    --before-install "$workdir/before-install" \
+	--after-remove "$workdir/after-remove" \
+	--before-remove "$workdir/before-remove" \
+	--after-upgrade "$workdir/after-install" \
+	--before-upgrade "$workdir/before-remove" \
     --license "$LICENSE" --vendor "$VENDOR" --url "$HOMEPAGE" -m "$MAINTAINER" --category utils \
     -d adduser \
     -d dbus \
@@ -92,6 +92,6 @@ fpm -s dir -t deb \
     -d systemd \
     -d iptables \
     --deb-suggests ca-certificates \
-    -C ${prefix} 
+    -C "${prefix}"
 
-rm -rf $workdir
+rm -rf "$workdir"
