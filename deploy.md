@@ -9,7 +9,7 @@
     git build-essential zlib1g-dev libxml2 libxml2-dev libreadline-dev
     libssl-dev zlibc automake squashfs-tools libacl1-dev libsystemd-dev
     libcap-dev libglib2.0-dev libpcre3-dev libpcrecpp0 libpixman-1-dev
-    pkg-config realpath flex bison
+    pkg-config realpath flex bison ca-certificates
  * For rkt, run ./build.sh.
     You may need to tweak the removal of stage1/usr_from_kvm/kernel/patches/0002-for-debian-gcc.patch if you get '-no-pie' problems.
  * For kubernetes, run ./build.sh
