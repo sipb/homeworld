@@ -45,4 +45,5 @@ cd ..
 BUILDDIR=rkt-1.27.0/build-rkt-1.27.0/
 BUILDDIR=${BUILDDIR} ./build-pkgs.sh 1.27.0
 
+mkdir -p ../binaries
 cp ${BUILDDIR}/target/bin/hyades-rkt_1.27.0-1_amd64.deb ../binaries/
