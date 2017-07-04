@@ -1,0 +1,4 @@
+etcd-*/
+go-bin-*.tgz
+acbuild-bin-*.tgz
+etcd-*.tar.xz

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
+set -e -u
 
 BINARYDIR=${BINARYDIR:-bin}
 BUILDDIR=${BUILDDIR:-bin}
@@ -28,18 +28,11 @@ fi
 
 acbuild --debug begin
 
-TMPHOSTS="$(mktemp)"
-
 acbuildEnd() {
-    rm "$TMPHOSTS"
-    export EXIT=$?
+    EXIT=$?
     acbuild --debug end && exit $EXIT
 }
 trap acbuildEnd EXIT
-
-cat <<DF > $TMPHOSTS
-127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
-DF
 
 acbuild --debug set-name hyades.mit.edu/etcd
 
@@ -55,9 +48,27 @@ acbuild --debug set-exec -- /usr/local/bin/etcd
 acbuild --debug port add client tcp 2379
 acbuild --debug port add peer tcp 2380
 
-acbuild --debug copy "$TMPHOSTS" /etc/hosts
+acbuild --debug copy local-hosts /etc/hosts
 
 # mkdir default data-dir
 mkdir -p .acbuild/currentaci/rootfs/var/lib/etcd
 
-acbuild --debug write --overwrite $BUILDDIR/etcd-${1}-linux-amd64.aci
+GENPATH="$(realpath $BUILDDIR/etcd-${VERSION}-linux-amd64.aci)"
+
+acbuild --debug write --overwrite "${GENPATH}"
+
+THIS="$(realpath $0)"
+TMEXT="$(realpath $BUILDDIR/temp-extract)"
+
+trap - EXIT
+acbuild --debug end
+
+rm -rf "${TMEXT}"
+mkdir "${TMEXT}"
+cd "${TMEXT}"
+tar -xzf "${GENPATH}"
+touch -r "${THIS}" --no-create $(find)
+rm "${GENPATH}"
+tar -cf "${GENPATH}.tar" .
+gzip -n "${GENPATH}.tar"
+mv "${GENPATH}.tar.gz" "${GENPATH}"

@@ -1,0 +1,14 @@
+Source: homeworld-etcd
+Section: misc
+Priority: extra
+Maintainer: Cel Skeggs <cela@mit.edu>
+Build-Depends: debhelper (>= 9), git
+Standards-Version: 3.9.6
+Vcs-Git: https://github.com/sipb/homeworld.git
+Vcs-Browser: https://github.com/sipb/homeworld/
+
+Package: homeworld-etcd
+Architecture: any
+Depends:
+Description: Homeworld etcd package.
+ This package is used for code deployment to Homeworld clusters.

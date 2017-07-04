@@ -4,3 +4,7 @@ binaries/
 *.dsc
 *_source.changes
 homeworld-services_*.tar.gz
+homeworld-etcd_*.tar.gz
+acbuild-bin-*.tgz
+go-bin-*.tgz
+homeworld-etcd_3.1.7.orig.tar.xz
