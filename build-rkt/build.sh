@@ -15,14 +15,14 @@ fi
 
 sha512sum --check <<EOF
 85adf3715cba4a457efea8359ebed34413ac63ee58fe920c5713501dec1e727e167416e9d67a9e2d9430aa9f3a53ad0ac26a4f749984bc5a3f3c37ac504f75de  linux-4.9.2.tar.xz
-10e3fcd515b746be2af55636a6dd9334706cc21ab2bb8b2ba38fe342ca51b072890fd1ae2cd8777006036b0a08122a621769cb5903ab16cfbdcc47c9444aa208  qemu-2.8.1.1.tar.xz
+a7dcf954604b2274dbe9757547ad7fa4f3b12df125c1586bccdf545b88d4b93546502b062ffe4856335216229ad867fe4031ccf020e37c6f3fb08649cb0013e4  qemu-2.8.0.tar.xz
 EOF
 
 cp coreos_restructured.cpio.gz rkt-1.27.0/coreos_production_pxe_image.cpio.gz
 mkdir -p rkt-1.27.0/build-rkt-1.27.0/tmp/usr_from_kvm/kernel/
 cp linux-4.9.2.tar.xz rkt-1.27.0/build-rkt-1.27.0/tmp/usr_from_kvm/kernel/linux-4.9.2.tar.xz
 mkdir -p rkt-1.27.0/build-rkt-1.27.0/tmp/usr_from_kvm/qemu/
-cp qemu-2.8.1.1.tar.xz rkt-1.27.0/build-rkt-1.27.0/tmp/usr_from_kvm/qemu/qemu-2.8.1.1.tar.xz
+cp qemu-2.8.0.tar.xz rkt-1.27.0/build-rkt-1.27.0/tmp/usr_from_kvm/qemu/qemu-2.8.0.tar.xz
 cd rkt-1.27.0/
 
 ./autogen.sh

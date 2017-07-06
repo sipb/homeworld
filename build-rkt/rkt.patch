@@ -4,9 +4,9 @@
  $(call setup-stamp-file,QEMU_STAMP)
  QEMU_TMPDIR := $(UFK_TMPDIR)/qemu
 -QEMU_SRCDIR := $(QEMU_TMPDIR)/src
-+QEMU_TARBALL := qemu-2.8.1.1.tar.xz
++QEMU_TARBALL := qemu-2.8.0.tar.xz
 +QEMU_TARGET_FILE := $(QEMU_TMPDIR)/$(QEMU_TARBALL)
-+QEMU_SRCDIR := $(QEMU_TMPDIR)/qemu-2.8.1.1
++QEMU_SRCDIR := $(QEMU_TMPDIR)/qemu-2.8.0
  QEMU_BINARY := $(QEMU_SRCDIR)/x86_64-softmmu/qemu-system-x86_64
  QEMU_BIOS_BINARIES := bios-256k.bin \
      kvmvapic.bin \
