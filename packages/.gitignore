@@ -3,8 +3,10 @@ binaries/
 *_amd64.build
 *.dsc
 *_source.changes
-homeworld-services_*.tar.gz
-homeworld-etcd_*.tar.gz
 acbuild-bin-*.tgz
 go-bin-*.tgz
+homeworld-services_*.tar.gz
+homeworld-etcd_*.tar.gz
+homeworld-flannel_*.tar.gz
 homeworld-etcd_3.1.7.orig.tar.xz
+homeworld-flannel_0.7.1.orig.tar.xz
