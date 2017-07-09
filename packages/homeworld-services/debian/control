@@ -9,6 +9,6 @@ Vcs-Browser: https://github.com/sipb/homeworld/
 
 Package: homeworld-services
 Architecture: any
-Depends: hyades-rkt, hyades-etcd, hyades-flannel, hyades-hyperkube
+Depends: homeworld-rkt, homeworld-etcd, homeworld-flannel, homeworld-hyperkube
 Description: Homeworld services package.
  This package is used for code deployment to Homeworld clusters.
