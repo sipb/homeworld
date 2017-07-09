@@ -1,3 +1,0 @@
-#!/bin/bash
-
-exec etcdctl --endpoints "$(cat ~/.etcd/etcd.conf)" --ca-file ~/.etcd/ca.pem --key-file ~/.etcd/etcli-key.pem --cert-file ~/.etcd/etcli.pem "$@"
