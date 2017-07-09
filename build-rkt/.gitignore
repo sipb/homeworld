@@ -1,4 +1,0 @@
-rkt-*/
-build/
-rkt-builder-*.aci
-coreos_production_pxe_image.cpio.gz

@@ -1,11 +1,20 @@
 #!/bin/bash
 set -e -u
 
-cd "$(dirname "$0")"
+rm -rf go
+tar -xf go-bin-1.8.3.tgz go/
+export GOROOT=$(pwd)/go/
+export PATH="$PATH:$GOROOT/bin"
+
+if [ "$(go version 2>/dev/null)" != "go version go1.8.3 linux/amd64" ]
+then
+	echo "go version mismatch! expected 1.8.3" 1>&2
+	go version 1>&2
+	exit 1
+fi
 
 rm -rf rkt-1.27.0/
 tar -xf rkt-1.27.0.tar.xz rkt-1.27.0/
-
 patch -p0 <rkt.patch
 
 if gcc --version | grep -q 'Debian 4.9'
@@ -13,16 +22,12 @@ then
 	rm rkt-1.27.0/stage1/usr_from_kvm/kernel/patches/0002-for-debian-gcc.patch
 fi
 
-sha512sum --check <<EOF
-85adf3715cba4a457efea8359ebed34413ac63ee58fe920c5713501dec1e727e167416e9d67a9e2d9430aa9f3a53ad0ac26a4f749984bc5a3f3c37ac504f75de  linux-4.9.2.tar.xz
-a7dcf954604b2274dbe9757547ad7fa4f3b12df125c1586bccdf545b88d4b93546502b062ffe4856335216229ad867fe4031ccf020e37c6f3fb08649cb0013e4  qemu-2.8.0.tar.xz
-EOF
-
 cp coreos_restructured.cpio.gz rkt-1.27.0/coreos_production_pxe_image.cpio.gz
 mkdir -p rkt-1.27.0/build-rkt-1.27.0/tmp/usr_from_kvm/kernel/
-cp linux-4.9.2.tar.xz rkt-1.27.0/build-rkt-1.27.0/tmp/usr_from_kvm/kernel/linux-4.9.2.tar.xz
+cp linux-4.9.2.tar.xz -t rkt-1.27.0/build-rkt-1.27.0/tmp/usr_from_kvm/kernel/
 mkdir -p rkt-1.27.0/build-rkt-1.27.0/tmp/usr_from_kvm/qemu/
-cp qemu-2.8.0.tar.xz rkt-1.27.0/build-rkt-1.27.0/tmp/usr_from_kvm/qemu/qemu-2.8.0.tar.xz
+cp qemu-2.8.0.tar.xz -t rkt-1.27.0/build-rkt-1.27.0/tmp/usr_from_kvm/qemu/
+
 cd rkt-1.27.0/
 
 ./autogen.sh
@@ -36,14 +41,8 @@ cd rkt-1.27.0/
 	--with-stage1-default-images-directory=/usr/lib/rkt/stage1-images \
 	--with-stage1-default-location=/usr/lib/rkt/stage1-images/stage1-kvm.aci
 
-# make manpages
-# make bash-completion
 make -j4
 
 cd ..
 
-BUILDDIR=rkt-1.27.0/build-rkt-1.27.0/
-BUILDDIR=${BUILDDIR} ./build-pkgs.sh 1.27.0
-
-mkdir -p ../binaries
-cp "${BUILDDIR}/target/bin/hyades-rkt_1.27.0-1_amd64.deb" ../binaries/
+echo "rkt built!"

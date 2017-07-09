@@ -1,0 +1,36 @@
+#!/bin/sh
+set -e
+
+case "$1" in
+    install|upgrade)  # I'm pretty sure that this won't go to the first branch in the case of 'upgrade', but who knows!
+        if [ -z "$2" ]
+        then
+            groupadd --force --system rkt-admin
+            groupadd --force --system rkt
+        else
+            if [ -f /usr/bin/rkt ]; then
+                if [ -n "$(/usr/bin/rkt list --no-legend | awk '{print $4}' | grep running)" ]; then
+                    printf "rkt/preinst error: detected running containers.\n"
+                    exit 1
+                fi
+                /usr/bin/rkt gc --grace-period=0s
+                if [ -n "$(grep "/var/lib/rkt/pods/run/" /proc/mounts)" ]; then
+                    printf "rkt/preinst error: detected active mounts in [/var/lib/rkt].\n"
+                    exit 1
+                fi
+            fi
+        fi
+    ;;
+
+    abort-upgrade)
+    ;;
+
+    *)
+        echo "preinst called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+esac
+
+#DEBHELPER#
+
+exit 0

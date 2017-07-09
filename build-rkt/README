@@ -1,8 +1,0 @@
-
-Usage:
-
-	$ ./build.sh
-
-
-restrip-coreos.sh exists because coreos distributions are rather big, and we'd rather just have the crucial parts, rather than everything, especially for storage in git.
-it will take in a production image and spit out a restructured and much, much smaller image

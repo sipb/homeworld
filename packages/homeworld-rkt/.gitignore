@@ -1,0 +1,7 @@
+rkt-*/
+build/
+rkt-builder-*.aci
+coreos_*.cpio.gz
+linux-*.tar.xz
+qemu-*.tar.xz
+rkt-*.tar.xz

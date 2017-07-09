@@ -1,0 +1,26 @@
+#!/bin/sh
+set -e
+
+case "$1" in
+    remove|abort-install)
+        if test `stat -c%d "/var/lib/rkt"` == `stat -c%d "/var/lib"`; then
+            rm -rf /var/lib/rkt
+        else
+            # is a mountpoint, so just delete contents
+            rm -rf /var/lib/rkt/*
+        fi
+        systemctl daemon-reload || true
+    ;;
+
+    purge|upgrade|failed-upgrade|abort-upgrade|disappear)
+    ;;
+
+    *)
+        echo "postrm called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+esac
+
+#DEBHELPER#
+
+exit 0

@@ -1,4 +1,11 @@
 #!/bin/bash
+
+# restrip-coreos.sh exists because coreos distributions are rather big, and
+# we'd rather just have the crucial parts, rather than everything, especially
+# for storage in git.
+# it will take in a production image and spit out a restructured and much, much
+# smaller image.
+
 set -e -u
 cd "$(dirname "$0")"
 find rkt-1.27.0/ -name '*.manifest' -print0 | grep -z amd64 | xargs -0 cat -- | sort -u >coreos-manifest.txt
