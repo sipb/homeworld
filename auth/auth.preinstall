@@ -1,1 +1,0 @@
-dpkg-divert --add --package hyades-authserver --rename --divert /etc/ssh/sshd_config.before-hyades /etc/ssh/sshd_config

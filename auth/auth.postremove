@@ -1,7 +1,0 @@
-sed -i -E "s/^#(session .+ pam_motd.so .+)$/\1/g" /etc/pam.d/sshd
-mv /etc/ssh/sshd_config /etc/ssh/sshd_config.rmtmp
-dpkg-divert --remove --package hyades-authserver --rename /etc/ssh/sshd_config
-if [ ! -e /etc/ssh/sshd_config ]
-then
-	mv /etc/ssh/sshd_config.rmtmp /etc/ssh/sshd_config
-fi

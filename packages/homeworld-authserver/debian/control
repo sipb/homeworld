@@ -1,0 +1,14 @@
+Source: homeworld-authserver
+Section: misc
+Priority: extra
+Maintainer: Cel Skeggs <cela@mit.edu>
+Build-Depends: debhelper (>= 9)
+Standards-Version: 3.9.6
+Vcs-Git: https://github.com/sipb/homeworld.git
+Vcs-Browser: https://github.com/sipb/homeworld/
+
+Package: homeworld-authserver
+Architecture: any
+Depends: krb5-user
+Description: Homeworld authserver package.
+ This package is used for code deployment to Homeworld clusters.
