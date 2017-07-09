@@ -3,12 +3,7 @@ set -e
 
 case "$1" in
     remove|abort-install)
-        if test `stat -c%d "/var/lib/rkt"` == `stat -c%d "/var/lib"`; then
-            rm -rf /var/lib/rkt
-        else
-            # is a mountpoint, so just delete contents
-            rm -rf /var/lib/rkt/*
-        fi
+        rm -rf /var/lib/rkt
         systemctl daemon-reload || true
     ;;
 
