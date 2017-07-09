@@ -5,6 +5,7 @@ set -eu
 
 BIN=../binaries
 UPSTREAM=../../upstream
+DVERSION="$(head -n 1 debian/changelog | cut -d '(' -f 2 | cut -d ')' -f 1)"
 VERSION="$(head -n 1 debian/changelog | cut -d '(' -f 2 | cut -d '-' -f 1)"
 mkdir -p "${BIN}"
 cp "${UPSTREAM}/etcd-${VERSION}.tar.xz" "etcd-${VERSION}.tar.xz"
@@ -22,7 +23,7 @@ cp "../go-bin-1.8.3.tgz" "go-bin-1.8.3.tgz"
 cp "../acbuild-bin-0.4.0.tgz" "acbuild-bin-0.4.0.tgz"
 rm -f "../homeworld-etcd_${VERSION}.orig.tar.xz"
 ln -s "$(basename $(pwd))/etcd-${VERSION}.tar.xz" "../homeworld-etcd_${VERSION}.orig.tar.xz"
-# sudo pbuilder create --distribution stretch
 unset GOROOT
-pdebuild --buildresult "${BIN}"
-#echo "${CHECKSUM}  ${BIN}/homeworld-etcd_${VERSION}_amd64.deb" | sha512sum --check
+sbuild -d stretch
+mv "../homeworld-etcd_${DVERSION}_amd64.deb" -t "${BIN}"
+#echo "${CHECKSUM}  ${BIN}/homeworld-etcd_${DVERSION}_amd64.deb" | sha512sum --check
