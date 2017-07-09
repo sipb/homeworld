@@ -1,0 +1,6 @@
+Types: deb
+URIs: http://web.mit.edu/~hyades/debian/
+Suites: homeworld
+Architectures: amd64
+Components: main
+Signed-By: /usr/share/keyrings/homeworld-archive-keyring.gpg

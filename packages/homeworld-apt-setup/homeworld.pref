@@ -1,0 +1,3 @@
+Package: *
+Pin: origin web.mit.edu
+Pin-Priority: 100
