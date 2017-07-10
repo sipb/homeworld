@@ -123,7 +123,7 @@ with open(os.path.join(output, "pkg-install-all.sh"), "w") as f:
 	f.write("# generated from setup.conf automatically by compile-config.py\n")
 	f.write('cd "$(dirname "$0")"\n')
 	for ismaster, hostname, ip in nodes:
-		f.write('./pkg-install.sh {host} "$@"\n'.format(host=hostname))
+		f.write('./pkg-install.sh {host}\n'.format(host=hostname))
 	f.write("echo 'deployed to all nodes!'\n")
 
 os.chmod(os.path.join(output, "pkg-install-all.sh"), 0o755)
@@ -133,15 +133,9 @@ with open(os.path.join(output, "pkg-install.sh"), "w") as f:
 	f.write("# generated from setup.conf automatically by compile-config.py\n")
 	f.write('cd "$(dirname "$0")"\n')
 	f.write("HOST=$1\n")
-	f.write("shift 1\n")
 	f.write("echo \"deploying to $HOST...\"\n")
-	f.write("ssh \"root@$HOST.{domain}\" 'rm -rf /root/staging-pkg && mkdir /root/staging-pkg && mkdir -p /usr/lib/hyades/images/'\n".format(domain=config["DOMAIN"]))
-	f.write('scp "$@" "root@$HOST.{domain}:/root/staging-pkg/"\n'.format(domain=config["DOMAIN"]))
-	f.write("ssh \"root@$HOST.{domain}\" 'if [ -e /root/staging-pkg/*.deb ]; then dpkg -i /root/staging-pkg/*.deb; fi'\n".format(domain=config["DOMAIN"]))
-	f.write("ssh \"root@$HOST.{domain}\" 'if [ -e /root/staging-pkg/*.aci ]; then cp -f /root/staging-pkg/*.aci /usr/lib/hyades/images/; fi'\n".format(domain=config["DOMAIN"]))
-	f.write("ssh \"root@$HOST.{domain}\" 'rm -rf /root/staging-pkg'\n".format(domain=config["DOMAIN"]))
+	f.write("ssh \"root@$HOST.{domain}\" 'apt-get install homeworld-services'\n".format(domain=config["DOMAIN"]))
 	f.write("echo \"deployed to $HOST!\"\n")
-	f.write("echo 'TODO: START SYSTEMD SERVICES'\n")
 
 os.chmod(os.path.join(output, "pkg-install.sh"), 0o755)
 
