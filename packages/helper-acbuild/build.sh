@@ -3,6 +3,12 @@ set -e
 
 cd "$(dirname $0)"
 
+if [ -e "../acbuild-bin-0.4.0.tgz" ]
+then
+	echo "Already built acbuild!"
+	exit 0
+fi
+
 rm -rf go acbuild
 tar -xf go-bin-1.8.3.tgz go
 tar -xf acbuild-src-0.4.0.tgz acbuild

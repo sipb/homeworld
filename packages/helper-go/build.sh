@@ -1,6 +1,12 @@
 #!/bin/bash
 set -e -u
 
+if [ -e ../go-bin-1.8.3.tgz ]
+then
+	echo "Already built go!"
+	exit 0
+fi
+
 ROOT="$(pwd)"
 rm -rf go go1.4 go1.8.3
 tar -xf go1.4-bootstrap-20170531.tar.xz go
