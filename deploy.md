@@ -3,12 +3,7 @@
 ## Building Software
 
  * Install sbuild and dependencies from debian repositories.
- * Build helpers:
-   - In `packages/helper-go`, run `./build.sh`.
-   - In `packages/helper-acbuild`, run `./build.sh`.
- * Build packages: for each folder named `packages/homeworld-*`, go into it and
-   `./build-packages`. (You may need to allocate additional memory to your
-   build environment for building kubernetes.)
+ * In packages, run `./build-all.sh`.
  * Rebuild and/or update the repository by going into `repository` and running
    `./rebuild.sh`.
 
