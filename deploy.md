@@ -25,19 +25,9 @@
  * Until you've verified that kerberos auth works (below), keep a SSH session
    open continously, just in case.
  * Generate ssh user CA locally; save it somewhere safe.
- * The first time, upgrade the cryptographic strength:
+ * Rotate the keys (and upgrade their cryptographic strength):
 
-       $ cp <keytab> <keytab>-backup
-       $ kadmin -p host/HOSTNAME.mit.edu -k -t <keytab>
-       kadmin:  ktadd -k <keytab> -e aes256-cts:normal host/HOSTNAME.mit.edu
-         # doing the following will invalidate current tickets:
-       kadmin:  ktremove -k <keytab> host/HOSTNAME.mit.edu old
-       $ cp <keytab> <secret-dir>/
-       $ scp <keytab> root@HOSTNAME.mit.edu:/etc/krb5.keytab
-
- * Subsequent times, you can just rotate the keys:
-
-       $ k5srvutil -f <keytab> change
+       $ k5srvutil -f <keytab> change -e aes256-cts:normal,aes128-cts:normal
          # the following will invalidate current tickets:
        $ k5srvutil -f <keytab> delold
        $ cp <keytab> <secret-dir>/
