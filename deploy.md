@@ -22,8 +22,27 @@
 
  * Request a keytab from accounts@, if necessary.
  * Provision a server as above; set up direct SSH key access for now.
+ * Until you've verified that kerberos auth works (below), keep a SSH session
+   open continously, just in case.
  * Generate ssh user CA locally; save it somewhere safe.
- * Rotate the keytab locally (k5srvutil -f <keytab> change); save it somewhere safe.
+ * The first time, upgrade the cryptographic strength:
+
+       $ cp <keytab> <keytab>-backup
+       $ kadmin -p host/HOSTNAME.mit.edu -k -t <keytab>
+       kadmin:  ktadd -k <keytab> -e aes256-cts:normal host/HOSTNAME.mit.edu
+         # doing the following will invalidate current tickets:
+       kadmin:  ktremove -k <keytab> host/HOSTNAME.mit.edu old
+       $ cp <keytab> <secret-dir>/
+       $ scp <keytab> root@HOSTNAME.mit.edu:/etc/krb5.keytab
+
+ * Subsequent times, you can just rotate the keys:
+
+       $ k5srvutil -f <keytab> change
+         # the following will invalidate current tickets:
+       $ k5srvutil -f <keytab> delold
+       $ cp <keytab> <secret-dir>/
+       $ scp <keytab> root@HOSTNAME.mit.edu:/etc/krb5.keytab
+
  * Run `auth/deploy.sh` on `<host> <keytab> auth-login <user-ca>`
  * Run `req-cert` and see if it works.
  * Confirm that you can log into the server with kerberos auth.
