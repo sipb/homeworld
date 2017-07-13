@@ -95,17 +95,50 @@ with open(certificates_in, "r") as fin:
 						ncomp.append("dns:%s.%s" % (hostname, config["DOMAIN"]))
 					fout.write(" ".join(ncomp) + "\n")
 
-with open(os.path.join(output, "spin-up-all.sh"), "w") as f:
+with open(os.path.join(output, "start-all.sh"), "w") as f:
+	f.write("#!/bin/bash\nset -e -u\n")
+	f.write("# generated from setup.conf automatically by compile-config.py\n")
+	f.write('cd "$(dirname "$0")"\n')
+	f.write("echo 'starting etcd on each master node'\n")
+	first_master = None
+	for ismaster, hostname, ip in nodes:
+		if ismaster:
+			if first_master is None:
+				first_master = hostname
+			f.write("echo 'for {host}'\n".format(host=hostname))
+			f.write("ssh root@{host}.{domain} /usr/lib/hyades/start-master-etcd.sh\n".format(host=hostname,domain=config["DOMAIN"]))
+	f.write("sleep 1\n")
+	if first_master is None:
+		f.write("echo 'not initializing flannel config'\n")
+	else:
+		f.write("echo 'initializing flannel config'\n")
+		f.write("ssh root@{host}.{domain} /usr/lib/hyades/init-flannel.sh\n".format(host=hostname,domain=config["DOMAIN"]))
+	f.write("echo 'starting other services on master nodes'\n")
+	for ismaster, hostname, ip in nodes:
+		if ismaster:
+			f.write("echo 'for {host}'\n".format(host=hostname))
+			f.write("ssh root@{host}.{domain} /usr/lib/hyades/start-master.sh\n".format(host=hostname,domain=config["DOMAIN"]))
+	f.write("sleep 1\n")
+	f.write("echo 'starting worker nodes'\n")
+	for ismaster, hostname, ip in nodes:
+		if not ismaster:
+			f.write("echo 'for {host}'\n".format(host=hostname))
+			f.write("ssh root@{host}.{domain} /usr/lib/hyades/start-worker.sh\n".format(host=hostname,domain=config["DOMAIN"]))
+	f.write("echo 'started all nodes!'\n")
+
+os.chmod(os.path.join(output, "start-all.sh"), 0o755)
+
+with open(os.path.join(output, "deploy-config-all.sh"), "w") as f:
 	f.write("#!/bin/bash\nset -e -u\n")
 	f.write("# generated from setup.conf automatically by compile-config.py\n")
 	f.write('cd "$(dirname "$0")"\n')
 	for ismaster, hostname, ip in nodes:
-		f.write("./spin-up.sh {host}\n".format(host=hostname))
-	f.write("echo 'spun up all nodes!'\n")
+		f.write("./deploy-config.sh {host}\n".format(host=hostname))
+	f.write("echo 'configured all nodes!'\n")
 
-os.chmod(os.path.join(output, "spin-up-all.sh"), 0o755)
+os.chmod(os.path.join(output, "deploy-config-all.sh"), 0o755)
 
-with open(os.path.join(output, "spin-up.sh"), "w") as f:
+with open(os.path.join(output, "deploy-config.sh"), "w") as f:
 	f.write("#!/bin/bash\nset -e -u\n")
 	f.write("# generated from setup.conf automatically by compile-config.py\n")
 	f.write('cd "$(dirname "$0")"\n')
@@ -116,7 +149,7 @@ with open(os.path.join(output, "spin-up.sh"), "w") as f:
 	f.write('scp cluster.conf "root@$HOST.{domain}:/etc/hyades/cluster.conf"\n'.format(domain=config["DOMAIN"]))
 	f.write("echo \"uploaded to $HOST!\"\n")
 
-os.chmod(os.path.join(output, "spin-up.sh"), 0o755)
+os.chmod(os.path.join(output, "deploy-config.sh"), 0o755)
 
 with open(os.path.join(output, "pkg-install-all.sh"), "w") as f:
 	f.write("#!/bin/bash\nset -e -u\n")

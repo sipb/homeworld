@@ -57,15 +57,12 @@
  * Run pkg-install-all.sh
  * If this is the first time installing this cluster, run authority-gen.sh
  * Run certify.sh
- * Run spin-up-all.sh
+ * Run deploy-config-all.sh
 
 ## Starting everything
 
- * Manually start etcd on each master node
- * Run init-flannel.sh on one master node
- * Run start-master.sh on all master nodes
- * Run start-worker.sh on all worker nodes
-
+ * Run start-all.sh as generated during the configuration phase
+ * Run etcdctl and make sure things work (you may need to generate certs for this)
  * Run kubectl and make sure things work (you may need to generate certs for this)
 
 ## Core cluster services

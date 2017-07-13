@@ -1,3 +1,9 @@
+homeworld-services (0.1.7) stretch; urgency=medium
+
+  * Updated debian version
+
+ -- Cel Skeggs <cela@mit.edu>  Wed, 12 Jul 2017 23:15:55 -0400
+
 homeworld-services (0.1.6) stretch; urgency=medium
 
   * Updated debian version

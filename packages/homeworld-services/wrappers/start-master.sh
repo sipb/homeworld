@@ -5,8 +5,9 @@ echo "starting master services..."
 
 systemctl daemon-reload
 
-systemctl start etcd
-systemctl enable etcd
+# etcd should already be started by start-master-etcd.sh
+# systemctl start etcd
+# systemctl enable etcd
 systemctl start flannel
 systemctl enable flannel
 systemctl start rkt-api
