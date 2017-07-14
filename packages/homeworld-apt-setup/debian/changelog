@@ -1,3 +1,9 @@
+homeworld-apt-setup (0.1.1) stretch; urgency=medium
+
+  * Updated debian version
+
+ -- Cel Skeggs <cela@mit.edu>  Fri, 14 Jul 2017 00:45:55 -0400
+
 homeworld-apt-setup (0.1.0) stretch; urgency=medium
 
   * Initial debian version
