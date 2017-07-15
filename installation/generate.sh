@@ -18,9 +18,10 @@ gunzip cd/initrd.gz
 PASS=$(pwgen 20 1)
 echo "Password: $PASS"
 sed "s|{{HASH}}|$(echo ${PASS} | mkpasswd -s -m sha-512)|" preseed.cfg.in >preseed.cfg
-cp "../packages/binaries/homeworld-apt-setup_0.1.0_amd64.deb" .
+SETUPVER="$(head -n 1 ../packages/homeworld-apt-setup/debian/changelog | cut -d '(' -f 2 | cut -d ')' -f 1)"
+cp "../packages/binaries/homeworld-apt-setup_${SETUPVER}_amd64.deb" .
 cpio -o -H newc -A -F cd/initrd <<EOF
-homeworld-apt-setup_0.1.0_amd64.deb
+homeworld-apt-setup_${SETUPVER}_amd64.deb
 preseed.cfg
 EOF
 gzip cd/initrd
