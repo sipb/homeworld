@@ -252,7 +252,7 @@ with begin("certificate-upload-certs.sh") as f:
 
 with begin("certify.sh") as f:
 	f.write("echo 'handling all certificate operations (besides creating authorities)...'\n")
-	for cmd in ["authority-check", "authority-upload", "private-gen", "shared-gen", "shared-upload", "certificate-gen-csrs", "certificate-sign-csrs", "certificate-upload-csrs"]:
+	for cmd in ["authority-check", "authority-upload", "private-gen", "shared-gen", "shared-upload", "certificate-gen-csrs", "certificate-sign-csrs", "certificate-upload-certs"]:
 		f.write("./%s.sh\n" % cmd)
 	f.write("echo 'all certificate operations handled!'")
 

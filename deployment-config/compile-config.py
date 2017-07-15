@@ -112,7 +112,7 @@ with open(os.path.join(output, "start-all.sh"), "w") as f:
 		f.write("echo 'not initializing flannel config'\n")
 	else:
 		f.write("echo 'initializing flannel config'\n")
-		f.write("ssh root@{host}.{domain} /usr/lib/hyades/init-flannel.sh\n".format(host=hostname,domain=config["DOMAIN"]))
+		f.write("ssh root@{host}.{domain} /usr/lib/hyades/init-flannel.sh\n".format(host=first_master,domain=config["DOMAIN"]))
 	f.write("echo 'starting other services on master nodes'\n")
 	for ismaster, hostname, ip in nodes:
 		if ismaster:
@@ -145,6 +145,7 @@ with open(os.path.join(output, "deploy-config.sh"), "w") as f:
 	f.write("HOST=$1\n")
 	f.write('if [ ! -e "node-$HOST.conf" ]; then echo "could not find node config for $HOST"; exit 1; fi\n')
 	f.write("echo \"uploading to $HOST...\"\n")
+	f.write('ssh "root@$HOST.{domain}" mkdir -p /etc/hyades\n'.format(domain=config["DOMAIN"]))
 	f.write('scp "node-$HOST.conf" "root@$HOST.{domain}:/etc/hyades/local.conf"\n'.format(domain=config["DOMAIN"]))
 	f.write('scp cluster.conf "root@$HOST.{domain}:/etc/hyades/cluster.conf"\n'.format(domain=config["DOMAIN"]))
 	f.write("echo \"uploaded to $HOST!\"\n")
@@ -167,7 +168,7 @@ with open(os.path.join(output, "pkg-install.sh"), "w") as f:
 	f.write('cd "$(dirname "$0")"\n')
 	f.write("HOST=$1\n")
 	f.write("echo \"deploying to $HOST...\"\n")
-	f.write("ssh \"root@$HOST.{domain}\" 'apt-get install homeworld-services'\n".format(domain=config["DOMAIN"]))
+	f.write("ssh \"root@$HOST.{domain}\" 'apt-get update && apt-get upgrade -y && apt-get install -y homeworld-services'\n".format(domain=config["DOMAIN"]))
 	f.write("echo \"deployed to $HOST!\"\n")
 
 os.chmod(os.path.join(output, "pkg-install.sh"), 0o755)
