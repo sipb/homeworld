@@ -78,12 +78,12 @@ class SecondaryRequestHandler(http.server.BaseHTTPRequestHandler):
 			print("======================= VERIFY ========================")
 			if input("Correct? (y/n) ").strip()[:1].lower() == "y":
 				with tempfile.TemporaryDirectory(prefix="hyades-admit-") as tmp:
-					pubkeyname = os.path.join(tmp.name, "key.pub")
+					pubkeyname = os.path.join(tmp, "key.pub")
 					with open(pubkeyname, "wb") as pubkey:
 						pubkey.write(pubkey_to_sign)
 						pubkey.flush()
 					subprocess.check_call(["ssh-keygen", "-s", host_ca, "-h", "-I", "hyades_host_" + hostname, "-Z", hostname, "-V", "-1w:+30w", pubkeyname])
-					certname = os.path.join(tmp.name, "key-cert.pub")
+					certname = os.path.join(tmp, "key-cert.pub")
 					with open(certname, "rb") as cert:
 						certdata = cert.read()
 				self.send_response(200)
