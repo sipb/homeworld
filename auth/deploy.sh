@@ -16,7 +16,7 @@ CA=$4
 
 for file in "$KEYTAB" "$ACL" "$CA" "$CA.pub"
 do
-	if [ ! -e "$file" ] then echo "Could not find $file." 1>&2; exit 1; fi
+	if [ ! -e "$file" ]; then echo "Could not find $file." 1>&2; exit 1; fi
 done
 
 if ssh "root@${HOST}" test ! -e /etc/krb5.keytab
@@ -29,7 +29,7 @@ fi
 
 scp "${ACL}" "root@${HOST}:/root/.k5login"
 # python3 and openssl are needed by the admission server
-ssh "root@${HOST}" 'apt-get install python3 openssl homeworld-authserver'
+ssh "root@${HOST}" 'apt-get update && apt-get install python3 openssl homeworld-authserver'
 scp "${ACL}" "root@${HOST}:/home/kauth/.k5login"
 scp "${CA}" "root@${HOST}:/home/kauth/ca_key"
 scp "${CA}.pub" "root@${HOST}:/home/kauth/ca_key.pub"
