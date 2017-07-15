@@ -24,7 +24,7 @@
  * Provision a server as above; set up direct SSH key access for now.
  * Until you've verified that kerberos auth works (below), keep a SSH session
    open continously, just in case.
- * Generate ssh user CA locally; save it somewhere safe.
+ * Generate ssh user CA locally; save it in the secrets directory.
  * Rotate the keys (and upgrade their cryptographic strength):
 
        $ k5srvutil -f <keytab> change -e aes256-cts:normal,aes128-cts:normal
@@ -34,6 +34,7 @@
        $ scp <keytab> root@HOSTNAME.mit.edu:/etc/krb5.keytab
 
  * Run `auth/deploy.sh` on `<host> <keytab> auth-login <user-ca>`
+ * Make sure you don't have any stale tickets
  * Run `req-cert` and see if it works.
  * Confirm that you can log into the server with kerberos auth.
  * Remove your direct SSH key access.
@@ -41,6 +42,7 @@
 ## Initial server setup
 
  * Provision a server as above.
+ * Generate a ssh host CA locally; save it in the secrets directory.
  * Launch an admission server from a trusted machine. Copy up the relevant files.
  * Admit the server according to the instructions. Verify all hashes carefully.
  * Make sure to add the CA key for the server into your known_hosts.
@@ -51,13 +53,13 @@
 
 ## Configuration and SSL setup and package installation
 
- * Modify config/setup.conf
+ * Modify deployment-config/setup.conf
  * Run ./compile-config.py
  * Run ./compile-certificates cluster-config/certificates.list <secrets-directory>
  * Run pkg-install-all.sh
+ * Run deploy-config-all.sh
  * If this is the first time installing this cluster, run authority-gen.sh
  * Run certify.sh
- * Run deploy-config-all.sh
 
 ## Starting everything
 
@@ -67,4 +69,6 @@
 
 ## Core cluster services
 
- * kubectl create -f dns-addon.yml
+ * Set up DNS: kubectl create -f dns-addon.yml
+ * Verify DNS: nslookup kubernetes.default.svc.hyades.local 172.28.0.2
+     "Address: 172.28.0.1"
