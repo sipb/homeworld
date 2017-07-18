@@ -5,8 +5,6 @@ echo "starting worker services..."
 
 systemctl daemon-reload
 
-systemctl start flannel
-systemctl enable flannel
 systemctl start rkt-api
 systemctl enable rkt-api
 systemctl start kubelet

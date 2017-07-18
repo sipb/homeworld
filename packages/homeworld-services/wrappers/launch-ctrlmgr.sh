@@ -14,6 +14,8 @@ SRVOPT+=(--cluster-name=hyades)
 
 SRVOPT+=(--leader-elect)
 
+SRVOPT+=(--allocate-node-cidrs)
+
 # granting service tokens
 SRVOPT+=(--service-account-private-key-file=/etc/hyades/certs/kube/serviceaccount.key)
 SRVOPT+=(--root-ca-file=/etc/hyades/certs/kube/kube-ca.pem)

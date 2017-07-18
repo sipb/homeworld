@@ -1,6 +1,5 @@
 #!/bin/bash
 set -e -u
-# VERSION=3.1.7
 
 rm -rf go acbuild
 tar -xf go-bin-1.8.3.tgz go/

@@ -14,8 +14,8 @@ if ! command -v $ACBUILD >/dev/null; then
     exit 1
 fi
 
-if [ ! -x $BINARYDIR/etcd ] ; then
-    echo "$BINARYDIR/etcd not found. Is it compiled?"
+if [ ! -x $BINARYDIR/flanneld ] ; then
+    echo "$BINARYDIR/flanneld not found. Is it compiled?"
     exit 1
 fi
 
@@ -32,26 +32,17 @@ acbuildEnd() {
 }
 trap acbuildEnd EXIT
 
-acbuild --debug set-name hyades.mit.edu/etcd
+acbuild --debug set-name hyades.mit.edu/flannel
 
-acbuild --debug copy $BINARYDIR/etcd /usr/local/bin/etcd
-
-acbuild --debug environment add ETCD_DATA_DIR /var/lib/etcd
-acbuild --debug mount add data-dir /var/lib/etcd
+acbuild --debug copy $BINARYDIR/flanneld /usr/bin/flanneld
+acbuild --debug copy $BINARYDIR/lib /lib/
+acbuild --debug copy $BINARYDIR/lib64 /lib64/
 
 acbuild --debug label add version "$VERSION"
 
-acbuild --debug set-exec -- /usr/local/bin/etcd
+acbuild --debug set-exec -- /usr/bin/flanneld
 
-acbuild --debug port add client tcp 2379
-acbuild --debug port add peer tcp 2380
-
-acbuild --debug copy local-hosts /etc/hosts
-
-# mkdir default data-dir
-mkdir -p .acbuild/currentaci/rootfs/var/lib/etcd
-
-GENPATH="$(realpath $BUILDDIR/etcd-${VERSION}-linux-amd64.aci)"
+GENPATH="$(realpath $BUILDDIR/flannel-${VERSION}-linux-amd64.aci)"
 
 acbuild --debug write --overwrite "${GENPATH}"
 

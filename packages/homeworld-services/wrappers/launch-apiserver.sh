@@ -19,7 +19,7 @@ SRVOPT+=(--secure-port=443)
 # etcd cluster to use
 SRVOPT+=(--etcd-servers="${ETCD_ENDPOINTS}")
 # don't allow privileged containers: don't allow this kind of thing
-SRVOPT+=(--allow-privileged=false)
+SRVOPT+=(--allow-privileged=true)
 # disallow anonymous users
 SRVOPT+=(--anonymous-auth=false)
 # various plugins for limitations and protection
