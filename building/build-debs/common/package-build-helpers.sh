@@ -12,6 +12,7 @@ VERSION="$(echo $DVERSION | cut -d '-' -f 1)"
 BIN=../binaries
 STAGE=..
 UPSTREAM=../../upstream
+HELPERS="../../build-helpers"
 PKGNAME="${PKGBASE}_${DVERSION}_amd64.deb"
 PKOUT="${BIN}/${PKGNAME}"
 ORIGNAME="${PKGBASE}_${VERSION}.orig.tar.xz"
@@ -29,21 +30,21 @@ then
 fi
 
 function importgo() {
-	if [ ! -e "${STAGE}/${GONAME}" ]
+	if [ ! -e "${HELPERS}/${GONAME}" ]
 	then
 		echo "No compiled go binary found." 1>&2
 		exit 1
 	fi
-	cp "${STAGE}/${GONAME}" -T "${GONAME}"
+	cp "${HELPERS}/${GONAME}" -T "${GONAME}"
 }
 
 function importacbuild() {
-	if [ ! -e "${STAGE}/${ACBUILDNAME}" ]
+	if [ ! -e "${HELPERS}/${ACBUILDNAME}" ]
 	then
 		echo "No compiled acbuild binary found." 1>&2
 		exit 1
 	fi
-	cp "${STAGE}/${ACBUILDNAME}" -T "${ACBUILDNAME}"
+	cp "${HELPERS}/${ACBUILDNAME}" -T "${ACBUILDNAME}"
 }
 
 function exportorig() {

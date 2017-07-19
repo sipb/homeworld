@@ -9,4 +9,6 @@ do
 	(cd $x && ./build-package.sh)
 done
 
+./clean.sh
+
 echo "Built all!"
