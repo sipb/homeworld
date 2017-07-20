@@ -1,3 +1,0 @@
-flanneld usr/bin
-flannel-0.8.0-linux-amd64.aci usr/lib/hyades/images
-10-containernet.conf etc/rkt/net.d

@@ -1,2 +1,3 @@
 services/*.service usr/lib/systemd/system
 wrappers/*.sh usr/lib/hyades
+10-containernet.conf etc/rkt/net.d
