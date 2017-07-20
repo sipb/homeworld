@@ -6,8 +6,9 @@ source ../common/container-build-helpers.sh
 FLANNEL_VER="0.8.0"
 REVISION="1"
 VERSION="${FLANNEL_VER}-${REVISION}"
-DEBVER="stretch.2017.07.19.21"
-BUILDVER="stretch.2017.07.19.21"
+DEBVER="stretch.20170719T213259Z"
+BUILDVER="stretch.20170719T213259Z"
+UPDATE_TIMESTAMP="2017-07-20T01:40:32-0400"
 
 common_setup
 

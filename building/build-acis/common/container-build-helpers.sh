@@ -60,9 +60,14 @@ function on_acbuildend() {
 }
 
 function start_acbuild() {
-	if [ "${VERSION}" = "" ]
+	if [ "${VERSION:-}" = "" ]
 	then
 		echo "Version must be defined!" 1>&2
+		exit 1
+	fi
+	if [ "${UPDATE_TIMESTAMP:-}" = "" ]
+	then
+		echo "Update timestamp must be defined!" 1>&2
 		exit 1
 	fi
 	mkdir -p "${OUTPUT_DIR}"
@@ -83,9 +88,28 @@ function start_acbuild_from() {
 }
 
 function finish_acbuild() {
-	$ACBUILD write --overwrite "${OUTPUT_DIR}/homeworld-${ACI_BRIEF}-${VERSION}-linux-amd64.aci"
+	ACI_OUTPUT="${OUTPUT_DIR}/homeworld-${ACI_BRIEF}-${VERSION}-linux-amd64.aci"
+	ACI_IMMD="${ROOT}/homeworld-intermediate.aci"
+	rm -f "${ACI_IMMD}"
+	$ACBUILD write --overwrite "${ACI_IMMD}"
 	trap - EXIT
-	on_acbuildend
+	$ACBUILD end
+	ACI_REBUILD_TMP="${ROOT}/acrebuild-tmp"
+	rm -rf "${ACI_REBUILD_TMP}"
+	mkdir "${ACI_REBUILD_TMP}"
+	tar -C "${ACI_REBUILD_TMP}" -xf "${ACI_IMMD}"
+	rm "${ACI_IMMD}"
+	#find "${ACI_REBUILD_TMP}" -exec touch -d "${UPDATE_TIMESTAMP}" --no-create {} \;
+	tar --mtime="${UPDATE_TIMESTAMP}" -C "${ACI_REBUILD_TMP}" -cf "${ACI_IMMD}.tar" .
+	rm -f "${ACI_IMMD}.tar.gz"
+	gzip -n "${ACI_IMMD}.tar"
+	if [ "${UPDATE_HASH:-}" = "" ]
+	then
+		echo "Warning: no update hash to check against." 1>&2
+	else
+		echo "${UPDATE_HASH}  ${ACI_IMMD}.tar.gz" | sha256sum --check
+	fi
+	mv "${ACI_IMMD}.tar.gz" "${ACI_OUTPUT}"
 }
 
 # rkt builder
