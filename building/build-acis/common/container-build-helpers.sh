@@ -12,7 +12,7 @@ GO_VER=1.8.3
 GO_TGZ="${HELPERS}/go-bin-${GO_VER}.tgz"
 
 ACI_BRIEF="$(basename ${ROOT})"
-ACI_NAME="hyades.mit.edu/homeworld/${ACI_BRIEF}"
+ACI_NAME="homeworld.mit.edu/${ACI_BRIEF}"
 
 function common_setup() {
 	ensure_sudo

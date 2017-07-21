@@ -32,7 +32,7 @@ acbuildEnd() {
 }
 trap acbuildEnd EXIT
 
-acbuild --debug set-name hyades.mit.edu/etcd
+acbuild --debug set-name homeworld.mit.edu/etcd
 
 acbuild --debug copy $BINARYDIR/etcd /usr/local/bin/etcd
 

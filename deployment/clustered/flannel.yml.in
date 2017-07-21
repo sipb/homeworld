@@ -44,7 +44,7 @@ spec:
       serviceAccountName: flannel
       containers:
       - name: kube-flannel
-        image: hyades.mit.edu/flannel:0.8.0
+        image: homeworld.mit.edu/flannel:0.8.0
         command: [ "/usr/bin/flanneld", "--ip-masq", "--kube-subnet-mgr" ]
         imagePullPolicy: Never
         securityContext:
