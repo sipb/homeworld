@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e -u
-cd "$(dirname $0)"
+cd "$(dirname "$0")"
 source ../common/debian.sh
 
 RELEASE="stretch"

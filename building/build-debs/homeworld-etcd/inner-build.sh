@@ -4,7 +4,7 @@ set -e -u
 rm -rf go acbuild
 tar -xf go-bin-1.8.3.tgz go/
 tar -xf acbuild-bin-0.4.0.tgz acbuild/
-export GOROOT=$(pwd)/go/
+export GOROOT="$(pwd)/go/"
 export PATH="$PATH:$GOROOT/bin:$(pwd)/acbuild"
 
 if [ "$(go version 2>/dev/null)" != "go version go1.8.3 linux/amd64" ]

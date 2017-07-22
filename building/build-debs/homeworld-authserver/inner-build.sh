@@ -3,7 +3,7 @@ set -e -u
 
 rm -rf go
 tar -xf go-bin-1.8.3.tgz go/
-export GOROOT=$(pwd)/go/
+export GOROOT="$(pwd)/go/"
 export PATH="$PATH:$GOROOT/bin"
 
 if [ "$(go version 2>/dev/null)" != "go version go1.8.3 linux/amd64" ]

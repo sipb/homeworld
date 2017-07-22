@@ -2,7 +2,7 @@
 
 set -e -u
 
-cd "$(dirname $0)"
+cd "$(dirname "$0")"
 mkdir -p staging
 
 cp ../build-acis/containers/*.aci -t staging
@@ -15,12 +15,12 @@ do
 done
 
 function find_latest() {
-	LATEST="$(ls staging/$1*-linux-amd64.aci | grep -vF latest | sort | tail -n 1)"
+	LATEST="$(ls "staging/$1"*-linux-amd64.aci | grep -vF latest | sort | tail -n 1)"
 	echo "Latest for $1: $LATEST"
-	ln -sf "$(basename $LATEST)" "staging/${1}latest-linux-amd64.aci"
-	ln -sf "$(basename $LATEST.asc)" "staging/${1}latest-linux-amd64.aci.asc"
-	ln -sf "$(basename $LATEST)" "staging/${2}-linux-amd64.aci"
-	ln -sf "$(basename $LATEST.asc)" "staging/${2}-linux-amd64.aci.asc"
+	ln -sf "$(basename "$LATEST")" "staging/${1}latest-linux-amd64.aci"
+	ln -sf "$(basename "$LATEST.asc")" "staging/${1}latest-linux-amd64.aci.asc"
+	ln -sf "$(basename "$LATEST")" "staging/${2}-linux-amd64.aci"
+	ln -sf "$(basename "$LATEST.asc")" "staging/${2}-linux-amd64.aci.asc"
 }
 
 for x in debian-build debian debian-mini debian-micro
@@ -35,9 +35,9 @@ sleep 0.1
 DEST=/mit/hyades/acis/homeworld.mit.edu/
 for x in staging/*.aci staging/*.aci.asc
 do
-	FILENAME="$(basename $x)"
+	FILENAME="$(basename "$x")"
 	echo "checking $x"
-	if [ ! -e "${DEST}/${FILENAME}" ] || [ "$(wc -c <${x})" != "$(wc -c <${DEST}/${FILENAME})" ]
+	if [ ! -e "${DEST}/${FILENAME}" ] || [ "$(wc -c < "${x}")" != "$(wc -c < "${DEST}/${FILENAME}")" ]
 	then
 		echo "copying $x"
 		cp -dfT "$x" "${DEST}/${FILENAME}"

@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e -u
-cd "$(dirname $0)"
+cd "$(dirname "$0")"
 source ../common/container-build-helpers.sh
 
 FLANNEL_VER="0.8.0"

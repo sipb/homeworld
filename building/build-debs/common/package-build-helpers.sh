@@ -1,14 +1,14 @@
 
-PKGBASE="$(basename $(dirname $(realpath $0)))"
+PKGBASE="$(basename "$(dirname "$(realpath "$0")")")"
 
-if [ "$(echo ${PKGBASE} | cut -d '-' -f 1)" != "homeworld" ]
+if [ "$(echo "${PKGBASE}" | cut -d '-' -f 1)" != "homeworld" ]
 then
 	echo "Invalid internal name ${PKGBASE} from $0" 1>&2
 	exit 1
 fi
 
 DVERSION="$(head -n 1 debian/changelog | cut -d '(' -f 2 | cut -d ')' -f 1)"
-VERSION="$(echo $DVERSION | cut -d '-' -f 1)"
+VERSION="$(echo "$DVERSION" | cut -d '-' -f 1)"
 BIN=../binaries
 STAGE=..
 UPSTREAM=../../upstream

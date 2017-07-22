@@ -24,7 +24,7 @@ chmod +w --recursive cd
 gunzip cd/initrd.gz
 PASS=$(pwgen 20 1)
 echo "Password: $PASS"
-sed "s|{{HASH}}|$(echo ${PASS} | mkpasswd -s -m sha-512)|" preseed.cfg.in >preseed.cfg
+sed "s|{{HASH}}|$(echo "${PASS}" | mkpasswd -s -m sha-512)|" preseed.cfg.in >preseed.cfg
 SETUPVER="$(head -n 1 ../build-debs/homeworld-apt-setup/debian/changelog | cut -d '(' -f 2 | cut -d ')' -f 1)"
 ADMITVER="$(head -n 1 ../build-debs/homeworld-admitclient/debian/changelog | cut -d '(' -f 2 | cut -d ')' -f 1)"
 cp "../build-debs/binaries/homeworld-apt-setup_${SETUPVER}_amd64.deb" "."
@@ -39,5 +39,5 @@ admission.conf
 preseed.cfg
 EOF
 gzip cd/initrd
-(cd cd && md5sum $(find -follow -type f) >md5sum.txt)
+(cd cd && find . -follow -type f -print0 | xargs -0 md5sum > md5sum.txt)
 genisoimage -quiet -o preseeded.iso -r -J -no-emul-boot -boot-load-size 4 -boot-info-table -b isolinux.bin -c isolinux.cat ./cd

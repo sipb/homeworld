@@ -9,8 +9,8 @@ fi
 
 rm -f flannel.yml
 
-ADDRESS="$(grep 'CLUSTER_CIDR=' ${1} | sed 's/^\(.*\)=\(.*\)$/\2/g')"
-if [ "$(echo $ADDRESS | tr "./" "\n\n" | wc -l)" != 5 ]
+ADDRESS="$(grep 'CLUSTER_CIDR=' "${1}" | sed 's/^\(.*\)=\(.*\)$/\2/g')"
+if [ "$(echo "$ADDRESS" | tr "./" "\n\n" | wc -l)" != 5 ]
 then
 	echo "Invalid address."
 	exit 1

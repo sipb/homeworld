@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-cd "$(dirname $0)"
+cd "$(dirname "$0")"
 
 if [ -e "../acbuild-bin-0.4.0.tgz" ]
 then

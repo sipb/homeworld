@@ -11,7 +11,7 @@ ACBUILDDIR="${ROOT}/acbuild-tmp"
 GO_VER=1.8.3
 GO_TGZ="${HELPERS}/go-bin-${GO_VER}.tgz"
 
-ACI_BRIEF="$(basename ${ROOT})"
+ACI_BRIEF="$(basename "${ROOT}")"
 ACI_NAME="homeworld.mit.edu/${ACI_BRIEF}"
 
 function common_setup() {
@@ -208,9 +208,9 @@ function run_builder() {
 	for line in "$@"
 	do
 		echo "$line"
-	done) >${BUILDDIR}/inner-build.sh
+	done) > "${BUILDDIR}/inner-build.sh"
 
-	chmod +x ${BUILDDIR}/inner-build.sh
+	chmod +x "${BUILDDIR}/inner-build.sh"
 
 	# stage1 should not be kvm
 	RKT_OPTS=(--stage1-path=/usr/lib/rkt/stage1-images/stage1-coreos.aci)
