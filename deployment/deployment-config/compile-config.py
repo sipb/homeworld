@@ -5,6 +5,8 @@
 
 import os
 import sys
+import shlex
+import contextlib
 
 setup = "setup.conf"
 certificates_in = "certificates.conf"
@@ -22,6 +24,7 @@ def parse_setup(f):
 	lines = [line.strip() for line in f if line.strip()]
 	config = {}
 	nodes = []
+	dns = []
 	for line in lines:
 		if line[0] == '#':
 			continue
@@ -31,9 +34,12 @@ def parse_setup(f):
 		elif line[:7] in ("master ", "worker "):
 			kind, hostname, ip = line.split()
 			nodes.append((kind == "master", hostname, ip))
+		elif line.startswith("bootstrap-dns "):
+			kind, domain, ip = line.split()
+			dns.append((domain, ip))
 		else:
 			raise Exception("Unrecognized line: %s" % line)
-	return config, nodes
+	return config, nodes, dns
 
 def generate_etcd_info(nodes):
 	cluster = []
@@ -45,7 +51,7 @@ def generate_etcd_info(nodes):
 	return ",".join(cluster), ",".join(endpoints)
 
 with open(setup, "r") as f:
-	config, nodes = parse_setup(f)
+	config, nodes, dnses = parse_setup(f)
 
 masters = [(hostname, ip) for ismaster, hostname, ip in nodes if ismaster]
 workers = [(hostname, ip) for ismaster, hostname, ip in nodes if not ismaster]
@@ -95,10 +101,21 @@ with open(certificates_in, "r") as fin:
 						ncomp.append("dns:%s.%s" % (hostname, config["DOMAIN"]))
 					fout.write(" ".join(ncomp) + "\n")
 
-with open(os.path.join(output, "start-all.sh"), "w") as f:
-	f.write("#!/bin/bash\nset -e -u\n")
-	f.write("# generated from setup.conf automatically by compile-config.py\n")
-	f.write('cd "$(dirname "$0")"\n')
+def begin_script(filename):
+	filename = os.path.join(output, filename)
+	out = open(filename, "w")
+	try:
+		os.chmod(filename, 0o755)
+		out.write("#!/bin/bash\nset -e -u\n")
+		out.write("# generated from setup.conf automatically by compile-config.py\n")
+		out.write('cd "$(dirname "$0")"\n')
+	except:
+		out.close()
+		os.remove(filename)
+		raise
+	return out
+
+with begin_script("start-all.sh") as f:
 	f.write("echo 'starting etcd on each master node'\n")
 	first_master = None
 	for ismaster, hostname, ip in nodes:
@@ -126,51 +143,39 @@ with open(os.path.join(output, "start-all.sh"), "w") as f:
 			f.write("ssh root@{host}.{domain} /usr/lib/hyades/start-worker.sh\n".format(host=hostname,domain=config["DOMAIN"]))
 	f.write("echo 'started all nodes!'\n")
 
-os.chmod(os.path.join(output, "start-all.sh"), 0o755)
+@contextlib.contextmanager
+def begin_host_script(stem):
+	with begin_script(stem + "-all.sh") as f:
+		for ismaster, hostname, ip in nodes:
+			f.write("./{stem}.sh {host}\n".format(stem=stem, host=hostname))
+		f.write("echo 'Completed {stem} on all nodes!'\n".format(stem=stem))
+	with begin_script(stem + ".sh") as f:
+		f.write("HOST=$1\n")
+		f.write('echo "Running {stem} on $HOST..."\n'.format(stem=stem))
+		yield f
+		f.write('echo "Finished {stem} on $HOST!"\n'.format(stem=stem))
 
-with open(os.path.join(output, "deploy-config-all.sh"), "w") as f:
-	f.write("#!/bin/bash\nset -e -u\n")
-	f.write("# generated from setup.conf automatically by compile-config.py\n")
-	f.write('cd "$(dirname "$0")"\n')
-	for ismaster, hostname, ip in nodes:
-		f.write("./deploy-config.sh {host}\n".format(host=hostname))
-	f.write("echo 'configured all nodes!'\n")
-
-os.chmod(os.path.join(output, "deploy-config-all.sh"), 0o755)
-
-with open(os.path.join(output, "deploy-config.sh"), "w") as f:
-	f.write("#!/bin/bash\nset -e -u\n")
-	f.write("# generated from setup.conf automatically by compile-config.py\n")
-	f.write('cd "$(dirname "$0")"\n')
-	f.write("HOST=$1\n")
+with begin_host_script("deploy-config") as f:
 	f.write('if [ ! -e "node-$HOST.conf" ]; then echo "could not find node config for $HOST"; exit 1; fi\n')
-	f.write("echo \"uploading to $HOST...\"\n")
 	f.write('ssh "root@$HOST.{domain}" mkdir -p /etc/hyades\n'.format(domain=config["DOMAIN"]))
 	f.write('scp "node-$HOST.conf" "root@$HOST.{domain}:/etc/hyades/local.conf"\n'.format(domain=config["DOMAIN"]))
 	f.write('scp cluster.conf "root@$HOST.{domain}:/etc/hyades/cluster.conf"\n'.format(domain=config["DOMAIN"]))
-	f.write("echo \"uploaded to $HOST!\"\n")
 
-os.chmod(os.path.join(output, "deploy-config.sh"), 0o755)
-
-with open(os.path.join(output, "pkg-install-all.sh"), "w") as f:
-	f.write("#!/bin/bash\nset -e -u\n")
-	f.write("# generated from setup.conf automatically by compile-config.py\n")
-	f.write('cd "$(dirname "$0")"\n')
-	for ismaster, hostname, ip in nodes:
-		f.write('./pkg-install.sh {host}\n'.format(host=hostname))
-	f.write("echo 'deployed to all nodes!'\n")
-
-os.chmod(os.path.join(output, "pkg-install-all.sh"), 0o755)
-
-with open(os.path.join(output, "pkg-install.sh"), "w") as f:
-	f.write("#!/bin/bash\nset -e -u\n")
-	f.write("# generated from setup.conf automatically by compile-config.py\n")
-	f.write('cd "$(dirname "$0")"\n')
-	f.write("HOST=$1\n")
-	f.write("echo \"deploying to $HOST...\"\n")
+with begin_host_script("pkg-install") as f:
 	f.write("ssh \"root@$HOST.{domain}\" 'apt-get update && apt-get upgrade -y && apt-get install -y homeworld-services'\n".format(domain=config["DOMAIN"]))
-	f.write("echo \"deployed to $HOST!\"\n")
 
-os.chmod(os.path.join(output, "pkg-install.sh"), 0o755)
+if dnses:
+	with begin_host_script("dns-bootstrap-add") as f:
+		f.write("./dns-bootstrap-remove.sh \"$HOST\"\n") # make sure we don't double-add
+		for domain, ip in dnses:
+			remote_command = "echo '{ip}\t{domain} # AUTO-HOMEWORLD-BOOTSTRAP' >>/etc/hosts".format(ip=ip, domain=domain)
+			remote_command = shlex.quote(remote_command)
+			f.write('ssh "root@$HOST.{domain}" {command}\n'.format(domain=config["DOMAIN"], command=remote_command))
+
+	with begin_host_script("dns-bootstrap-remove") as f:
+		for domain, ip in dnses:
+			remote_command = "grep -vF 'AUTO-HOMEWORLD-BOOTSTRAP' /etc/hosts >/etc/hosts.new && mv /etc/hosts.new /etc/hosts".format(ip=ip, domain=domain)
+			remote_command = shlex.quote(remote_command)
+			f.write('ssh "root@$HOST.{domain}" {command}\n'.format(domain=config["DOMAIN"], command=remote_command))
 
 print("Generated!")
