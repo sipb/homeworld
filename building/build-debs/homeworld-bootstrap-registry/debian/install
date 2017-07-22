@@ -1,2 +1,3 @@
 homeworld etc/nginx/sites-available
 index.html usr/lib/hyades/registry
+pubkey.asc usr/lib/hyades/registry
