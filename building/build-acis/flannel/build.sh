@@ -4,11 +4,11 @@ cd "$(dirname $0)"
 source ../common/container-build-helpers.sh
 
 FLANNEL_VER="0.8.0"
-REVISION="1"
+REVISION="2"
 VERSION="${FLANNEL_VER}-${REVISION}"
 DEBVER="stretch.20170719T213259Z"
 BUILDVER="stretch.20170719T213259Z"
-UPDATE_TIMESTAMP="2017-07-20T01:40:32-0400"
+UPDATE_TIMESTAMP="2017-07-21T20:30:00-0400"
 
 common_setup
 
@@ -31,8 +31,8 @@ run_builder "go build -o dist/flanneld -ldflags '-X github.com/coreos/flannel/ve
 
 # build container
 
-start_acbuild_from "debian-micro" "${DEBVER}"
+start_acbuild_from "debian-mini" "${DEBVER}"
 $ACBUILD copy "${COREOS}/flannel/dist/flanneld" /usr/bin/flanneld
+add_packages_to_acbuild iptables
 $ACBUILD set-exec -- /usr/bin/flanneld
 finish_acbuild
-
