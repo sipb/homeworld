@@ -248,12 +248,12 @@ with begin("certificate-upload-certs.sh") as f:
 		f.write("echo '    uploading cert for {key} against {authority} on {host}'\n".format(key=kid, host=host, authority=authority))
 		cert_path = "{secretdir}/cert-{host}-{authority}-{key}.pem".format(secretdir=secretdir, host=host, authority=authority, key=kid)
 		f.write("scp {cert_path} root@{host}:{path}\n".format(cert_path=cert_path, path=path, host=host))
-	f.write("echo 'all certs uploaded!'")
+	f.write("echo 'all certs uploaded!'\n")
 
 with begin("certify.sh") as f:
 	f.write("echo 'handling all certificate operations (besides creating authorities)...'\n")
 	for cmd in ["authority-check", "authority-upload", "private-gen", "shared-gen", "shared-upload", "certificate-gen-csrs", "certificate-sign-csrs", "certificate-upload-certs"]:
 		f.write("./%s.sh\n" % cmd)
-	f.write("echo 'all certificate operations handled!'")
+	f.write("echo 'all certificate operations handled!'\n")
 
 print("Certificate scripts generated.")
