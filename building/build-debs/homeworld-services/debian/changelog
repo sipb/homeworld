@@ -1,14 +1,20 @@
+homeworld-services (0.1.19) stretch; urgency=medium
+
+  * Updated debian version
+
+ -- Cel Skeggs <cela@mit.edu>  Fri, 21 Jul 2017 20:16:30 -0400
+
 homeworld-services (0.1.18) stretch; urgency=medium
 
   * Updated debian version
 
- -- Cel Skeggs <cela@mit.edu>  Wed, 18 Jul 2017 21:52:30 -0400
+ -- Cel Skeggs <cela@mit.edu>  Wed, 19 Jul 2017 21:52:30 -0400
 
 homeworld-services (0.1.17) stretch; urgency=medium
 
   * Updated debian version
 
- -- Cel Skeggs <cela@mit.edu>  Tue, 17 Jul 2017 00:36:30 -0400
+ -- Cel Skeggs <cela@mit.edu>  Tue, 18 Jul 2017 00:36:30 -0400
 
 homeworld-services (0.1.16) stretch; urgency=medium
 
