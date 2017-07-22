@@ -23,6 +23,8 @@ export GOPATH="${GODIR}"
 
 (cd "${KUBE}" && tar -xf "${ROOT}/kubernetes-src-v${VERSION}.tar.xz")
 
+(cd "${KUBE}" && patch -p1 <"${ROOT}/kubernetes.patch")
+
 (cd "${KUBE}" && make)
 
 cp "${KUBE}/_output/local/bin/linux/amd64/hyperkube" hyperkube

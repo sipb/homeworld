@@ -35,6 +35,7 @@ spec:
         app: flannel
       annotations:
         rkt.alpha.kubernetes.io/stage1-name-override: /usr/lib/rkt/stage1-images/stage1-coreos.aci
+        homeworld.mit.edu/unsupported-fetch-info: aci
     spec:
       hostNetwork: true
       tolerations:
