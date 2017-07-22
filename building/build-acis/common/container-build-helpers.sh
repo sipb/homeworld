@@ -78,7 +78,7 @@ function start_acbuild() {
 }
 
 function start_acbuild_from() {
-	FROM="${OUTPUT_DIR}/homeworld-$1-$2-linux-amd64.aci"
+	FROM="${OUTPUT_DIR}/$1-$2-linux-amd64.aci"
 	if [ ! -e "${FROM}" ]
 	then
 		echo "Could not find upstream container $1 at version $2" 1>&2
@@ -88,7 +88,7 @@ function start_acbuild_from() {
 }
 
 function finish_acbuild() {
-	ACI_OUTPUT="${OUTPUT_DIR}/homeworld-${ACI_BRIEF}-${VERSION}-linux-amd64.aci"
+	ACI_OUTPUT="${OUTPUT_DIR}/${ACI_BRIEF}-${VERSION}-linux-amd64.aci"
 	ACI_IMMD="${ROOT}/homeworld-intermediate.aci"
 	rm -f "${ACI_IMMD}"
 	$ACBUILD write --overwrite "${ACI_IMMD}"
@@ -115,7 +115,7 @@ function finish_acbuild() {
 # rkt builder
 
 function init_builder() {
-	BUILDENV="${OUTPUT_DIR}/homeworld-debian-build-${BUILDVER}-linux-amd64.aci"
+	BUILDENV="${OUTPUT_DIR}/debian-build-${BUILDVER}-linux-amd64.aci"
 	BUILDDIR="${ROOT}/build"
 	rm -rf "${BUILDDIR}"
 	mkdir "${BUILDDIR}"
