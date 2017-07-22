@@ -2,7 +2,7 @@ source ../common/container-build-helpers.sh
 
 common_setup
 
-ROOTFS="${ROOT}/rootfs"
+ROOTFS="${TMPBUILDDIR}/rootfs"
 VARIANT="minbase"
 COMPONENTS="main"
 EXTRA_PACKAGES=""

@@ -17,7 +17,40 @@ ACI_NAME="homeworld.mit.edu/${ACI_BRIEF}"
 function common_setup() {
 	ensure_sudo
 	ensure_amd64
+	add_exit_condition
+	allocate_tempdir
 	importacbuild
+}
+
+function common_onexit() {
+	export EXIT="$?"
+	if [ "${ISACBUILDING:-}" != "" ]
+	then
+		$ACBUILD end
+	fi
+	if [ "${TMPBUILDDIR:-}" != "" ] && [ -d "${TMPBUILDDIR}" ]
+	then
+		if [ "$EXIT" == 0 ]
+		then
+			rm -rf "${TMPBUILDDIR}"
+		else
+			echo "Not deleting ${TMPBUILDDIR} due to failure."
+		fi
+	fi
+	exit $EXIT
+}
+
+function add_exit_condition() {
+	trap common_onexit EXIT
+}
+
+function allocate_tempdir() {
+	TMPBUILDDIR="$(mktemp -d)"
+	if [ ! -d "${TMPBUILDDIR}" ]
+	then
+		echo "Could not create temporary directory." 1>&2
+		exit 1
+	fi
 }
 
 function ensure_sudo() {
@@ -54,11 +87,6 @@ function importacbuild() {
 	fi
 }
 
-function on_acbuildend() {
-	export EXIT="$?"
-	$ACBUILD end && exit "$EXIT"
-}
-
 function start_acbuild() {
 	if [ "${VERSION:-}" = "" ]
 	then
@@ -72,7 +100,7 @@ function start_acbuild() {
 	fi
 	mkdir -p "${OUTPUT_DIR}"
 	$ACBUILD begin "$@"
-	trap on_acbuildend EXIT
+	ISACBUILDING="yes"
 	$ACBUILD set-name "${ACI_NAME}"
 	$ACBUILD label add version "${VERSION}"
 }
@@ -87,19 +115,24 @@ function start_acbuild_from() {
 	start_acbuild "${FROM}"
 }
 
+function add_packages_to_acbuild() {
+	$ACBUILD run -- apt-get update
+	$ACBUILD run -- apt-get install -y "$@"
+	$ACBUILD run -- rm -rf /var/log/dpkg.log /var/cache/apt /var/lib/apt /var/log/alternatives.log
+}
+
 function finish_acbuild() {
 	ACI_OUTPUT="${OUTPUT_DIR}/${ACI_BRIEF}-${VERSION}-linux-amd64.aci"
-	ACI_IMMD="${ROOT}/homeworld-intermediate.aci"
+	ACI_IMMD="${TMPBUILDDIR}/homeworld-intermediate.aci"
 	rm -f "${ACI_IMMD}"
 	$ACBUILD write --overwrite "${ACI_IMMD}"
-	trap - EXIT
+	ISACBUILDING=""
 	$ACBUILD end
-	ACI_REBUILD_TMP="${ROOT}/acrebuild-tmp"
+	ACI_REBUILD_TMP="${TMPBUILDDIR}/acrebuild-tmp"
 	rm -rf "${ACI_REBUILD_TMP}"
 	mkdir "${ACI_REBUILD_TMP}"
 	tar -C "${ACI_REBUILD_TMP}" -xf "${ACI_IMMD}"
 	rm "${ACI_IMMD}"
-	#find "${ACI_REBUILD_TMP}" -exec touch -d "${UPDATE_TIMESTAMP}" --no-create {} \;
 	tar --mtime="${UPDATE_TIMESTAMP}" -C "${ACI_REBUILD_TMP}" -cf "${ACI_IMMD}.tar" .
 	rm -f "${ACI_IMMD}.tar.gz"
 	gzip -n "${ACI_IMMD}.tar"
@@ -116,7 +149,7 @@ function finish_acbuild() {
 
 function init_builder() {
 	BUILDENV="${OUTPUT_DIR}/debian-build-${BUILDVER}-linux-amd64.aci"
-	BUILDDIR="${ROOT}/build"
+	BUILDDIR="${TMPBUILDDIR}/build"
 	rm -rf "${BUILDDIR}"
 	mkdir "${BUILDDIR}"
 	BUILDSCRIPT_GEN=(gen_base)

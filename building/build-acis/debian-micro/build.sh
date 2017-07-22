@@ -5,7 +5,6 @@ source ../common/debian.sh
 
 RELEASE="stretch"
 DEBVER=20170719T213259Z
-UPDATE_HASH=0cabcba72e46bd0168158e18f9aa7384aa06931bdb3b06e41de8c0e822c2ee33
 
 debian_bootstrap
 
