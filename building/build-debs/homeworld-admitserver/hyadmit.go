@@ -17,8 +17,8 @@ const (
 	keyfile            = "/etc/hyades/admission/admission.key"
 	certfile           = "/etc/hyades/admission/admission.pem"
 	userca             = "/etc/hyades/admission/bootstrap_client_ca.pem"
-	signingca          = "/etc/hyades/admission/ca_host_key"
-	authca             = "/etc/hyades/admission/ca_user_key.pub"
+	signingca          = "/etc/hyades/admission/ssh_host_ca"
+	authca             = "/etc/hyades/admission/ssh_user_ca.pub"
 	validityInterval   = time.Hour * 24 * 7 * 4 // generated certificates are valid for four weeks
 )
 
@@ -115,7 +115,7 @@ func main() {
 		log.Printf("Granted bootstrap token to %v for hostname %v\n", firstCert.Subject.CommonName, hostname)
 		fmt.Fprintf(writer, "Token: %v\n", token)
 	})
-	http.HandleFunc("/config/ca_user_key.pub", func(writer http.ResponseWriter, request *http.Request) {
+	http.HandleFunc("/config/ssh_user_ca.pub", func(writer http.ResponseWriter, request *http.Request) {
 		writer.Write(ca_user_pubkey)
 	})
 	http.HandleFunc("/config/cluster.conf", func(writer http.ResponseWriter, request *http.Request) {

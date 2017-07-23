@@ -155,12 +155,6 @@ def begin_host_script(stem):
 		yield f
 		f.write('echo "Finished {stem} on $HOST!"\n'.format(stem=stem))
 
-with begin_host_script("deploy-config") as f:
-	f.write('if [ ! -e "node-$HOST.conf" ]; then echo "could not find node config for $HOST"; exit 1; fi\n')
-	f.write('ssh "root@$HOST.{domain}" mkdir -p /etc/hyades\n'.format(domain=config["DOMAIN"]))
-	f.write('scp "node-$HOST.conf" "root@$HOST.{domain}:/etc/hyades/local.conf"\n'.format(domain=config["DOMAIN"]))
-	f.write('scp cluster.conf "root@$HOST.{domain}:/etc/hyades/cluster.conf"\n'.format(domain=config["DOMAIN"]))
-
 with begin_host_script("pkg-install") as f:
 	f.write("ssh \"root@$HOST.{domain}\" 'apt-get update && apt-get upgrade -y && apt-get install -y homeworld-services'\n".format(domain=config["DOMAIN"]))
 

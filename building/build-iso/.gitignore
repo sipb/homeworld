@@ -2,3 +2,5 @@ cd/
 preseed.cfg
 preseeded.iso
 homeworld-*.deb
+admission.conf
+admission.pem
