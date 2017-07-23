@@ -1,1 +1,2 @@
 hyadmit usr/bin
+admitserver.service usr/lib/systemd/system

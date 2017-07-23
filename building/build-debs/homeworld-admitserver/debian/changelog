@@ -1,3 +1,9 @@
+homeworld-admitserver (0.1.1) stretch; urgency=medium
+
+  * Updated release
+
+ -- Cel Skeggs <cela@mit.edu>  Sun, 23 Jul 2017 02:51:00 -0400
+
 homeworld-admitserver (0.1.0) stretch; urgency=medium
 
   * Initial release
