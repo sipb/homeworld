@@ -9,16 +9,16 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"strings"
-	"os"
 )
 
 const (
-	cluster_conf       = "/var/lib/hyades/admission/cluster.conf"
-	node_base          = "/var/lib/hyades/admission/node-%s.conf"
+	cluster_conf       = "/etc/hyades/admission/config/cluster.conf"
+	node_base          = "/etc/hyades/admission/config/node-%s.conf"
 	keyfile            = "/etc/hyades/admission/admission.key"
 	certfile           = "/etc/hyades/admission/admission.pem"
 	userca             = "/etc/hyades/admission/bootstrap_client_ca.pem"
 	signingca          = "/etc/hyades/admission/ca_host_key"
+	authca             = "/etc/hyades/admission/ca_user_key.pub"
 	validityInterval   = time.Hour * 24 * 7 * 4 // generated certificates are valid for four weeks
 )
 
@@ -44,19 +44,6 @@ func getKeyFromConfig(config []byte, key string) (string, error) {
 	return "", fmt.Errorf("Cannot find key %v in configuration file", key)
 }
 
-func IsMissing(path string) (bool, error) {
-	_, err := os.Stat(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return true, nil
-		} else {
-			return true, err
-		}
-	} else {
-		return false, nil
-	}
-}
-
 func ServeWithTLS(addr string, client_ca_file string, server_cert string, server_key string) error {
 	server := &http.Server{
 		Addr: addr,
@@ -80,6 +67,12 @@ func ServeWithTLS(addr string, client_ca_file string, server_cert string, server
 
 func main() {
 	handler := NewTokenHandler()
+
+	ca_user_pubkey, err := ioutil.ReadFile(authca)
+
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	cluster_config, err := ioutil.ReadFile(cluster_conf)
 	if err != nil {
@@ -121,6 +114,9 @@ func main() {
 		token := handler.GrantToken(hostname, configuration, firstCert.Subject.CommonName)
 		log.Printf("Granted bootstrap token to %v for hostname %v\n", firstCert.Subject.CommonName, hostname)
 		fmt.Fprintf(writer, "Token: %v\n", token)
+	})
+	http.HandleFunc("/config/ca_user_key.pub", func(writer http.ResponseWriter, request *http.Request) {
+		writer.Write(ca_user_pubkey)
 	})
 	http.HandleFunc("/config/cluster.conf", func(writer http.ResponseWriter, request *http.Request) {
 		writer.Write(cluster_config)

@@ -105,6 +105,7 @@ func (handler *tokenHandler) GrantToken(hostname string, configuration []byte, a
 
 func (handler *tokenHandler) wrapHandler(handlerFunc authedHandlerFunc) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
+		// TODO: verify requester IP address matches hostname
 		token := request.Header.Get("X-Bootstrap-Token")
 		if token == "" {
 			http.Error(writer, "No authentication tokenData", http.StatusForbidden)
