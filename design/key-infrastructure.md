@@ -6,7 +6,7 @@ instance of a Homeworld cluster. Authorization, besides for granting of secrets,
 
 ## Date and revision
 
-This is the first revision of this document, and is the plan as of 2017-07-25 at 22:10 PM. This document
+This is the second revision of this document, and is the plan as of 2017-07-26. This document
 should be considered tentative and not a finalized design.
 
 # Definitions
@@ -43,7 +43,7 @@ Table of certificate authorities and root credentials:
 Cred name          | Type   | Holders of certificates   | Issued by    | Privileges granted by issued certs
 -------------------|--------|---------------------------|--------------|-------------------------------------------------------------------------------------------------------------
 keygranting cert   | TLS CA | Homeworld nodes           | keyserver    | Ability to authenticate as a Homeworld node, but no inherent authorization to receive new and rotated keys.
-SSH user           | SSH CA | Root admins               | keyserver    | Ability to SSH into any cluster node as the local root user.
+SSH user           | SSH CA | Root admins               | keyserver    | Ability to SSH into any Homeworld node as the local root user.
 SSH host           | SSH CA | Homeworld nodes           | keyserver    | Ability to authenticate as the represented server hostname to SSH clients.
 etcd server        | TLS CA | Master nodes              | keyserver    | Ability to authenticate as part of the etcd cluster, including participation in etcd state management.
 etcd client        | TLS CA | Master nodes, root admins | keyserver    | Ability to read and write data in the etcd datastore, and by extension control almost the entire cluster.
@@ -56,6 +56,31 @@ same keyserver process.
 
 All certificates granted to nodes are long-lived, on the order of thirty days, and all certificates
 granted to root admins are short-lived, on the order of four hours.
+
+Since kubernetes certificates and keygranting certificates do not inherently provide authorization, only
+authentication, they do not need to be granted by separate CAs for each level of access.
+
+## Certificate names and comments
+
+Each SSH cert and TLS cert contains one or more fields for the name(s) of the node that it's issued for.
+
+For example, a master node might have its kubernetes cert contain the following entries:
+
+  * 172.28.0.1 (internal load-balanced IP on kube-proxy layer)
+  * 18.181.0.97 (direct IP)
+  * kubernetes (internal DNS)
+  * kubernetes.default (internal DNS)
+  * kubernetes.default.svc (internal DNS)
+  * kubernetes.default.svc.hyades.local (internal DNS)
+  * eggs-benedict (local DNS)
+  * eggs-benedict.mit.edu (global DNS)
+
+(This list is exemplary, and not formally part of the design.)
+
+A worker node wouldn't have any of the "cluster-global" names, just the names specific to itself.
+
+A node named "eggs-benedict" might have a SSH host cert with the name "eggs-benedict.mit.edu" in its
+principal field, which limits it to authenicating itself as that particular server to clients.
 
 ## Processes
 
@@ -79,6 +104,17 @@ The following processes run on systems in the cluster:
 When a new server is installed, it will be given a token during the install process (through small
 modifications to that process) that was issued by the keyserver (when asked by a root admin) and that
 allows a server to obtain particular keys for itself, with permissions as granted by the root admin.
+
+## Logging into the cluster as root
+
+Since access to Homeworld nodes via SSH is gated by a SSH certificate, root admins need to request a
+short-lived SSH certificate, which will be done through a dedicated script. This will connect to the
+kerberos gateway using the root admin's /root instance, and request a new certificate from the keyserver,
+by sending a SSH public key.
+
+Assuming appropriate authentication and authorization, the short-lived certificate will be returned back
+over the same connection, and will be able to be used, in conjunction with the root admin's SSH private
+key, to access nodes in the cluster over SSH.
 
 ## Policy
 
