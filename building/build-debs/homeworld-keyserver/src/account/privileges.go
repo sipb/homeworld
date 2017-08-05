@@ -5,10 +5,9 @@ import (
 	"time"
 	"fmt"
 	"token"
-	"strings"
 )
 
-type Privilege func(param string) (string, error)
+type Privilege func(ctx *OperationContext, param string) (string, error)
 
 type TLSSignPrivilege struct {
 	authority  *authorities.TLSAuthority
@@ -26,7 +25,7 @@ func NewTLSGrantPrivilege(authority authorities.Authority, ishost bool, lifespan
 	if tauth == nil {
 		return nil, fmt.Errorf("TLS granting privilege expects a TLS authority.")
 	}
-	return func(signing_request string) (string, error) {
+	return func(_ *OperationContext, signing_request string) (string, error) {
 		return tauth.Sign(signing_request, ishost, lifespan, commonname, dnsnames)
 	}, nil
 }
@@ -39,7 +38,7 @@ func NewSSHGrantPrivilege(authority authorities.Authority, ishost bool, lifespan
 	if tauth == nil {
 		return nil, fmt.Errorf("SSH granting privilege expects a SSH authority.")
 	}
-	return func(signing_request string) (string, error) {
+	return func(_ *OperationContext, signing_request string) (string, error) {
 		return tauth.Sign(signing_request, ishost, lifespan, keyid, principals)
 	}, nil
 }
@@ -57,7 +56,7 @@ func NewBootstrapPrivilege(allowed_principals []string, lifespan time.Duration, 
 	if allowed_principals == nil || lifespan < time.Second {
 		return nil, fmt.Errorf("Missing parameter to token granting privilege.")
 	}
-	return func(encoded_principal string) (string, error) {
+	return func(_ *OperationContext, encoded_principal string) (string, error) {
 		principal := string(encoded_principal)
 		if !stringInList(principal, allowed_principals) {
 			return "", fmt.Errorf("Principal not allowed to be bootstrapped: %s", encoded_principal)
@@ -67,31 +66,25 @@ func NewBootstrapPrivilege(allowed_principals []string, lifespan time.Duration, 
 	}, nil
 }
 
-func NewDelegateAuthorityPrivilege(getAccount func(string) (*Account, error), authority authorities.Authority) (Privilege, error) {
-	if authority == nil {
+func NewDelegateAuthorityPrivilege(getAccount func(string) (*Account, error), scope authorities.Authority) (Privilege, error) {
+	if scope == nil {
 		return nil, fmt.Errorf("Missing parameter to authority delegation privilege.")
 	}
-	return func(request string) (string, error) {
-		parts := strings.SplitN(request, "\n", 3)
-		if len(parts) != 3 {
-			return "", fmt.Errorf("Malformed delegation request (%d parts).", len(parts))
-		}
-		new_principal := string(parts[0])
-		new_api_request := string(parts[1])
-		request = parts[2]
+	return func(ctx *OperationContext, new_principal string) (string, error) {
 		account, err := getAccount(new_principal)
 		if err != nil {
 			return "", err
 		}
-		if account.GrantingAuthority != authority {
+		if account.GrantingAuthority != scope {
 			return "", fmt.Errorf("Attempt to delegate outside of allowed authority.")
 		}
-		return account.InvokeAPIOperation(new_api_request, request)
+		ctx.Account = account
+		return "", nil
 	}, nil
 }
 
 func NewConfigurationPrivilege(contents string) (Privilege, error) {
-	return func(request string) (string, error) {
+	return func(_ *OperationContext, request string) (string, error) {
 		if len(request) != 0 {
 			return "", fmt.Errorf("Expected empty request to configuration endpoint.")
 		}

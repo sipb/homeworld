@@ -26,8 +26,12 @@ type Grant struct {
 	Privilege Privilege
 }
 
+type OperationContext struct {
+	Account *Account
+}
+
 type Operation struct {
-	API string
+	API  string
 	body string
 }
 
@@ -43,14 +47,15 @@ func (g *Group) AllMembers() []string {
 }
 
 func (a *Account) InvokeAPIOperationSet(requestBody []byte) ([]byte, error) {
-	operations := make([]Operation, 0)
-	err := json.Unmarshal(requestBody, operations)
+	ops := []Operation{}
+	err := json.Unmarshal(requestBody, &ops)
 	if err != nil {
 		return nil, err
 	}
-	results := make([]string, len(operations))
-	for i, operation := range operations {
-		result, err := a.InvokeAPIOperation(operation.API, operation.body)
+	ctx := &OperationContext{a}
+	results := make([]string, len(ops))
+	for i, operation := range ops {
+		result, err := ctx.InvokeAPIOperation(operation.API, operation.body)
 		if err != nil {
 			return nil, err
 		}
@@ -59,17 +64,18 @@ func (a *Account) InvokeAPIOperationSet(requestBody []byte) ([]byte, error) {
 	return json.Marshal(results)
 }
 
-func (a *Account) InvokeAPIOperation(API string, requestBody string) (string, error) {
-	grant, found := a.Grants[API]
+func (ctx *OperationContext) InvokeAPIOperation(API string, requestBody string) (string, error) {
+	grant, found := ctx.Account.Grants[API]
 	if !found {
 		return "", fmt.Errorf("Could not find API request %s", grant)
 	}
-	log.Println("Attempting to perform API operation %s for %s", API, a.Principal)
-	response, err := grant.Privilege(requestBody)
+	princ := ctx.Account.Principal
+	log.Println("Attempting to perform API operation %s for %s", API, princ)
+	response, err := grant.Privilege(ctx, requestBody)
 	if err != nil {
-		log.Println("Operation %s for %s failed with error: %s.", API, a.Principal, err)
+		log.Println("Operation %s for %s failed with error: %s.", API, princ, err)
 		return "", err
 	}
-	log.Println("Operation %s for %s succeeded.", API, a.Principal)
+	log.Println("Operation %s for %s succeeded.", API, princ)
 	return response, nil
 }

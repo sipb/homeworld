@@ -11,7 +11,7 @@ import (
 func ParseRemoteAddress(remote_addr string) (net.IP, error) {
 	parts := strings.Split(remote_addr, ":")
 	if len(parts) != 2 {
-		return nil, fmt.Errorf("Invalid request address (colon count mismatch of %d)", len(parts) - 1)
+		return nil, fmt.Errorf("Invalid request address (colon count mismatch of %d)", len(parts)-1)
 	}
 	ip := net.ParseIP(parts[0])
 	if ip == nil {

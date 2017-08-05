@@ -9,7 +9,7 @@ import (
 )
 
 type SSHAuthority struct {
-	key ssh.Signer
+	key    ssh.Signer
 	pubkey []byte
 }
 
@@ -81,4 +81,3 @@ func (d *SSHAuthority) Sign(request string, ishost bool, lifespan time.Duration,
 
 	return marshalSSHCert(cert), nil
 }
-

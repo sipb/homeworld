@@ -92,7 +92,7 @@ func TestExpiry(t *testing.T) {
 }
 
 func TestCanClaimTrivialToken(t *testing.T) {
-	tok := GenerateToken("", time.Millisecond * 500)
+	tok := GenerateToken("", time.Millisecond*500)
 	err := tok.Claim()
 	if err != nil {
 		t.Errorf("Should not have gotten error: %v", err)
@@ -100,7 +100,7 @@ func TestCanClaimTrivialToken(t *testing.T) {
 }
 
 func TestCannotClaimExpiredToken(t *testing.T) {
-	tok := GenerateToken("", time.Millisecond * 100)
+	tok := GenerateToken("", time.Millisecond*100)
 	time.Sleep(time.Millisecond * 100)
 	if !tok.HasExpired() {
 		t.Errorf("Token should have expired now, but has not")
@@ -114,7 +114,7 @@ func TestCannotClaimExpiredToken(t *testing.T) {
 }
 
 func TestCannotClaimTwice(t *testing.T) {
-	tok := GenerateToken("", time.Millisecond * 500)
+	tok := GenerateToken("", time.Millisecond*500)
 	err := tok.Claim()
 	if err != nil {
 		t.Errorf("Should have claimed token the first time")
@@ -128,9 +128,9 @@ func TestCannotClaimTwice(t *testing.T) {
 }
 
 func TestGenerateToken(t *testing.T) {
-	token := GenerateToken("my-subject", time.Minute * 90)
+	token := GenerateToken("my-subject", time.Minute*90)
 	delta := token.expires.Sub(time.Now())
-	if math.Abs(delta.Minutes() - 90) >= 0.1 {
+	if math.Abs(delta.Minutes()-90) >= 0.1 {
 		t.Errorf("Inaccurately represented expiration time (delta is %s)", delta.Minutes())
 	}
 	if token.claimed == nil {

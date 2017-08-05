@@ -19,14 +19,14 @@ type StaticFile struct {
 }
 
 type Context struct {
-	Authorities map[string]authorities.Authority
-	Groups map[string]*account.Group
-	GroupGrants map[string][]ConfigGrant
-	Accounts map[string]*account.Account
+	Authorities   map[string]authorities.Authority
+	Groups        map[string]*account.Group
+	GroupGrants   map[string][]ConfigGrant
+	Accounts      map[string]*account.Account
 	TokenRegistry *token.TokenRegistry
 	Authenticator *authorities.TLSAuthority
-	ServerTLS *authorities.TLSAuthority
-	StaticFiles map[string]StaticFile
+	ServerTLS     *authorities.TLSAuthority
+	StaticFiles   map[string]StaticFile
 }
 
 func (ctx *Context) GetAccount(principal string) (*account.Account, error) {
@@ -209,7 +209,7 @@ func CompileGrants(group *account.Group, principal string, metadata map[string]s
 
 func SubstituteVars(within string, vars map[string]string) (string, error) {
 	parts := strings.Split(within, "(")
-	snippets := []string { parts[0] }
+	snippets := []string{parts[0] }
 	for _, part := range parts[1:] {
 		subparts := strings.Split(part, ")")
 		if len(subparts) < 2 {

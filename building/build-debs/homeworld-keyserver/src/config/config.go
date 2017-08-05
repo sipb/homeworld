@@ -8,15 +8,15 @@ import (
 type ConfigAuthority struct {
 	Name string
 	Type string
-	Key string
+	Key  string
 	Cert string
 }
 
 type ConfigAccount struct {
 	Principal string
-	Realm string
-	Group string
-	Metadata map[string]string
+	Realm     string
+	Group     string
+	Metadata  map[string]string
 }
 
 type ConfigGrant struct {
@@ -32,20 +32,20 @@ type ConfigGrant struct {
 }
 
 type ConfigGroup struct {
-	Name string
+	Name    string
 	Inherit string
-	Grants []ConfigGrant
+	Grants  []ConfigGrant
 }
 
 type Config struct {
-	AuthorityDir string
-	StaticDir string
+	AuthorityDir  string
+	StaticDir     string
 	Authenticator string
-	ServerTLS string
-	Authorities []ConfigAuthority
-	StaticFiles []string
-	Accounts []ConfigAccount
-	Groups []ConfigGroup
+	ServerTLS     string
+	Authorities   []ConfigAuthority
+	StaticFiles   []string
+	Accounts      []ConfigAccount
+	Groups        []ConfigGroup
 }
 
 func ParseConfigFromBytes(data []byte) (*Config, error) {

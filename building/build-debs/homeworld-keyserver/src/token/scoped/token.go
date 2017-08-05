@@ -9,10 +9,10 @@ import (
 )
 
 type ScopedToken struct {
-	Token    string
-	Subject  string
-	expires  time.Time
-	claimed  *util.OnceFlag
+	Token   string
+	Subject string
+	expires time.Time
+	claimed *util.OnceFlag
 }
 
 func (t ScopedToken) HasExpired() bool {

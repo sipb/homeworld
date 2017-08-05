@@ -18,8 +18,8 @@ import (
 
 type TLSAuthority struct {
 	// TODO: also support ECDSA or other newer algorithms
-	key  *rsa.PrivateKey
-	cert *x509.Certificate
+	key      *rsa.PrivateKey
+	cert     *x509.Certificate
 	certData []byte
 }
 
@@ -90,7 +90,7 @@ func (t *TLSAuthority) GetPublicKey() []byte {
 }
 
 func (t *TLSAuthority) ToHTTPSCert() tls.Certificate {
-	return tls.Certificate{Certificate: [][]byte { t.certData }, PrivateKey: t.key }
+	return tls.Certificate{Certificate: [][]byte{t.certData }, PrivateKey: t.key }
 }
 
 func (t *TLSAuthority) Verify(request *http.Request) (string, error) {

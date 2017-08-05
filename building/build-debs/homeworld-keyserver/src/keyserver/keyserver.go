@@ -96,7 +96,7 @@ func handlePubRequest(context *config.Context, writer http.ResponseWriter, reque
 }
 
 func handleStaticRequest(context *config.Context, writer http.ResponseWriter, request *http.Request) error {
-	staticName := request.URL.Path[len("/pub/"):]
+	staticName := request.URL.Path[len("/static/"):]
 	file, found := context.StaticFiles[staticName]
 	if !found || file.Filepath == "" {
 		return fmt.Errorf("No such static file %s", staticName)
@@ -129,7 +129,7 @@ func Run(configfile string) error {
 		err := handlePubRequest(context, writer, request)
 		if err != nil {
 			log.Println("Public request failed with error: %s", err)
-			http.Error(writer, "Request processing failed: " + err.Error(), http.StatusBadRequest)
+			http.Error(writer, "Request processing failed: "+err.Error(), http.StatusBadRequest)
 		}
 	})
 
@@ -137,17 +137,17 @@ func Run(configfile string) error {
 		err := handleStaticRequest(context, writer, request)
 		if err != nil {
 			log.Println("Static request failed with error: %s", err)
-			http.Error(writer, "Request processing failed: " + err.Error(), http.StatusBadRequest)
+			http.Error(writer, "Request processing failed: "+err.Error(), http.StatusBadRequest)
 		}
 	})
 
 	server := &http.Server{
-		Addr: ":20557",
+		Addr:    ":20557",
 		Handler: mux,
 		TLSConfig: &tls.Config{
-			ClientAuth: tls.VerifyClientCertIfGiven,
-			ClientCAs:  x509.NewCertPool(),
-			Certificates: []tls.Certificate { context.ServerTLS.ToHTTPSCert() },
+			ClientAuth:   tls.VerifyClientCertIfGiven,
+			ClientCAs:    x509.NewCertPool(),
+			Certificates: []tls.Certificate{context.ServerTLS.ToHTTPSCert() },
 		},
 	}
 
