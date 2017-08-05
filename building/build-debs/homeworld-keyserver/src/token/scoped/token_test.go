@@ -71,7 +71,7 @@ func TestExpiry(t *testing.T) {
 	if !tok.HasExpired() {
 		t.Errorf("Unix epoch should have passed by now")
 	}
-	tok.expires = time.Now()
+	tok.expires = time.Now().Add(-time.Nanosecond)
 	if !tok.HasExpired() {
 		t.Errorf("Token should immediately expire")
 	}
@@ -162,7 +162,7 @@ func TestParallelFlags(t *testing.T) {
 	for i := 0; i < 1000; i++ {
 		go func() {
 			time.Sleep(time.Millisecond * 10)
-			for j := 0; j < 3000; j++ {
+			for j := 0; j < 300; j++ {
 				idx := rand.Intn(len(boxes))
 				if boxes[idx].Claim() == nil {
 					countsync.Lock()
