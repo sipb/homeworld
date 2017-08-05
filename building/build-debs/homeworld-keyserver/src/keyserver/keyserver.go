@@ -85,8 +85,7 @@ func handleAPIRequest(context *config.Context, writer http.ResponseWriter, reque
 	return err
 }
 
-func handlePubRequest(context *config.Context, writer http.ResponseWriter, request *http.Request) error {
-	authorityName := request.URL.Path[len("/pub/"):]
+func handlePubRequest(context *config.Context, writer http.ResponseWriter, authorityName string) error {
 	authority := context.Authorities[authorityName]
 	if authority == nil {
 		return fmt.Errorf("No such authority %s", authorityName)
@@ -95,8 +94,7 @@ func handlePubRequest(context *config.Context, writer http.ResponseWriter, reque
 	return err
 }
 
-func handleStaticRequest(context *config.Context, writer http.ResponseWriter, request *http.Request) error {
-	staticName := request.URL.Path[len("/static/"):]
+func handleStaticRequest(context *config.Context, writer http.ResponseWriter, staticName string) error {
 	file, found := context.StaticFiles[staticName]
 	if !found || file.Filepath == "" {
 		return fmt.Errorf("No such static file %s", staticName)
@@ -126,7 +124,7 @@ func Run(configfile string) error {
 	})
 
 	mux.HandleFunc("/pub/", func(writer http.ResponseWriter, request *http.Request) {
-		err := handlePubRequest(context, writer, request)
+		err := handlePubRequest(context, writer, request.URL.Path[len("/pub/"):])
 		if err != nil {
 			log.Println("Public request failed with error: %s", err)
 			http.Error(writer, "Request processing failed: "+err.Error(), http.StatusBadRequest)
@@ -134,7 +132,7 @@ func Run(configfile string) error {
 	})
 
 	mux.HandleFunc("/static/", func(writer http.ResponseWriter, request *http.Request) {
-		err := handleStaticRequest(context, writer, request)
+		err := handleStaticRequest(context, writer, request.URL.Path[len("/static/"):])
 		if err != nil {
 			log.Println("Static request failed with error: %s", err)
 			http.Error(writer, "Request processing failed: "+err.Error(), http.StatusBadRequest)
@@ -151,7 +149,7 @@ func Run(configfile string) error {
 		},
 	}
 
-	context.Authenticator.Register(server.TLSConfig.ClientCAs)
+	context.Authenticator.RegisterInto(server.TLSConfig.ClientCAs)
 
 	return server.ListenAndServeTLS("", "")
 }

@@ -81,7 +81,7 @@ func LoadTLSAuthority(keydata []byte, pubkeydata []byte) (Authority, error) {
 	return &TLSAuthority{key: privkey, cert: cert, certData: certblock}, nil
 }
 
-func (t *TLSAuthority) Register(pool *x509.CertPool) {
+func (t *TLSAuthority) RegisterInto(pool *x509.CertPool) {
 	pool.AddCert(t.cert)
 }
 
