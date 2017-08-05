@@ -6,6 +6,8 @@ import (
 	"time"
 	"strings"
 	"math"
+	"sync"
+	"math/rand"
 )
 
 func TestTokensAreDistinct(t *testing.T) {
@@ -136,7 +138,9 @@ func TestGenerateToken(t *testing.T) {
 	if token.claimed == nil {
 		t.Errorf("Inaccurately used nil claim")
 	}
-	if !token.claimed.Set() {
+	pass := false
+	token.claimed.Do(func() { pass = true })
+	if !pass {
 		t.Errorf("Already set claimed flag")
 	}
 	if token.Subject != "my-subject" {
@@ -144,5 +148,35 @@ func TestGenerateToken(t *testing.T) {
 	}
 	if len(token.Token) != 20 {
 		t.Errorf("Used invalid token name in generated token")
+	}
+}
+
+func TestParallelFlags(t *testing.T) {
+	boxes := make([]ScopedToken, 1000)
+	for i := 0; i < len(boxes); i++ {
+		boxes[i] = GenerateToken("subject", time.Minute)
+	}
+	count := 0
+	countsync := sync.Mutex{}
+	done := make(chan int)
+	for i := 0; i < 1000; i++ {
+		go func() {
+			time.Sleep(time.Millisecond * 10)
+			for j := 0; j < 3000; j++ {
+				idx := rand.Intn(len(boxes))
+				if boxes[idx].Claim() == nil {
+					countsync.Lock()
+					count++
+					countsync.Unlock()
+				}
+			}
+			done <- 0
+		}()
+	}
+	for i := 0; i < 1000; i++ {
+		_ = <-done
+	}
+	if count != len(boxes) {
+		t.Errorf("Got a count besides %s: %s", len(boxes), count)
 	}
 }

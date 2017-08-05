@@ -4,15 +4,15 @@ import (
 	"time"
 	"encoding/base64"
 	"crypto/rand"
-	"util"
 	"errors"
+	"sync"
 )
 
 type ScopedToken struct {
 	Token   string
 	Subject string
 	expires time.Time
-	claimed *util.OnceFlag
+	claimed *sync.Once
 }
 
 func (t ScopedToken) HasExpired() bool {
@@ -23,7 +23,9 @@ func (t ScopedToken) Claim() error {
 	if t.HasExpired() {
 		return errors.New("Cannot claim expired token")
 	}
-	if !t.claimed.Set() {
+	has_claimed := false
+	t.claimed.Do(func() { has_claimed = true })
+	if !has_claimed {
 		return errors.New("Token already claimed")
 	}
 	return nil
@@ -39,5 +41,5 @@ func generateTokenID() string {
 }
 
 func GenerateToken(subject string, duration time.Duration) ScopedToken {
-	return ScopedToken{generateTokenID(), subject, time.Now().Add(duration), util.NewOnceFlag()}
+	return ScopedToken{generateTokenID(), subject, time.Now().Add(duration), &sync.Once{}}
 }

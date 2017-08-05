@@ -6,7 +6,6 @@ import (
 	"log"
 	"io/ioutil"
 	"crypto/tls"
-	"crypto/x509"
 	"authorities"
 	"config"
 	"account"
@@ -144,12 +143,10 @@ func Run(configfile string) error {
 		Handler: mux,
 		TLSConfig: &tls.Config{
 			ClientAuth:   tls.VerifyClientCertIfGiven,
-			ClientCAs:    x509.NewCertPool(),
-			Certificates: []tls.Certificate{context.ServerTLS.ToHTTPSCert() },
+			ClientCAs:    context.Authenticator.ToCertPool(),
+			Certificates: []tls.Certificate{context.ServerTLS.ToHTTPSCert()},
 		},
 	}
-
-	context.Authenticator.RegisterInto(server.TLSConfig.ClientCAs)
 
 	return server.ListenAndServeTLS("", "")
 }
