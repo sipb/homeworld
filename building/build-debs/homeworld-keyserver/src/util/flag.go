@@ -1,13 +1,16 @@
 package util
 
-import "sync"
+import (
+	"sync"
+)
 
-type BooleanFlag struct {
+type OnceFlag struct {
 	mut   sync.Mutex
 	value bool
 }
 
-func (f *BooleanFlag) Set() bool {
+// returns true if we were the first, false otherwise
+func (f *OnceFlag) Set() bool {
 	f.mut.Lock()
 	defer f.mut.Unlock()
 	if f.value {
@@ -18,17 +21,6 @@ func (f *BooleanFlag) Set() bool {
 	}
 }
 
-func (f *BooleanFlag) Unset() bool {
-	f.mut.Lock()
-	defer f.mut.Unlock()
-	if f.value {
-		f.value = false
-		return true
-	} else {
-		return false
-	}
-}
-
-func NewBooleanFlag() *BooleanFlag {
-	return &BooleanFlag{value: false}
+func NewOnceFlag() *OnceFlag {
+	return &OnceFlag{value: false}
 }

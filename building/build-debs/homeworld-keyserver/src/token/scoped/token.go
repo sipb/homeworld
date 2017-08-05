@@ -13,7 +13,7 @@ type ScopedToken struct {
 	Token    string
 	Subject  string
 	expires  time.Time
-	claimed  *util.BooleanFlag
+	claimed  *util.OnceFlag
 	sourceIP net.IP
 }
 
@@ -44,5 +44,5 @@ func generateTokenID() string {
 }
 
 func GenerateToken(subject string, duration time.Duration, limitIP net.IP) ScopedToken {
-	return ScopedToken{generateTokenID(), subject, time.Now().Add(duration), util.NewBooleanFlag(), limitIP}
+	return ScopedToken{generateTokenID(), subject, time.Now().Add(duration), util.NewOnceFlag(), limitIP}
 }
