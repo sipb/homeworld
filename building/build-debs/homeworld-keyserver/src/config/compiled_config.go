@@ -6,19 +6,12 @@ import (
 	"fmt"
 	"strings"
 	"authorities"
-	"privileges"
 	"time"
 	"strconv"
 	"token"
 	"account"
 	"os"
 )
-
-type Group struct {
-	Members []string
-	Grants []ConfigGrant
-	Inherit *Group
-}
 
 type StaticFile struct {
 	Filename string
@@ -27,34 +20,21 @@ type StaticFile struct {
 
 type Context struct {
 	Authorities map[string]authorities.Authority
-	Groups map[string]*Group
-	Accounts map[string]account.Account
+	Groups map[string]*account.Group
+	GroupGrants map[string][]ConfigGrant
+	Accounts map[string]*account.Account
 	TokenRegistry *token.TokenRegistry
 	Authenticator authorities.Authority
 	ServerTLS authorities.Authority
 	StaticFiles map[string]StaticFile
 }
 
-func (g *Group) AllGrants() []ConfigGrant {
-	grants := make([]ConfigGrant, 0, 10)
-	for g != nil {
-		for _, grant := range g.Grants {
-			grants = append(grants, grant)
-		}
-		g = g.Inherit
+func (ctx *Context) GetAccount(principal string) (*account.Account, error) {
+	ac, found := ctx.Accounts[principal]
+	if !found {
+		return nil, fmt.Errorf("Cannot find account for principal %s.", principal)
 	}
-	return grants
-}
-
-func (g *Group) AllMembers() []string {
-	members := make([]string, 0, 10)
-	for g != nil {
-		for _, member := range g.Members {
-			members = append(members, member)
-		}
-		g = g.Inherit
-	}
-	return members
+	return ac, nil
 }
 
 func (config *Config) Compile() (*Context, error) {
@@ -77,16 +57,17 @@ func (config *Config) Compile() (*Context, error) {
 	if !found {
 		return nil, fmt.Errorf("ServerTLS not found: %s", config.ServerTLS)
 	}
-	groups, err := CompileGroups(config.Groups)
+	groups, grants, err := CompileGroups(config.Groups)
 	if err != nil {
 		return nil, err
 	}
 	registry := token.NewTokenRegistry()
-	accounts, err := CompileAccounts(config.Accounts, authorities, groups, registry)
+	ctx := &Context{authorities, groups, grants, nil, registry, authenticator, servertls, staticfiles}
+	ctx.Accounts, err = CompileAccounts(config.Accounts, ctx)
 	if err != nil {
 		return nil, err
 	}
-	return &Context{authorities, groups, accounts, registry, authenticator, servertls, staticfiles}, nil
+	return ctx, nil
 }
 
 func CompileStaticFiles(dir string, files []string) (map[string]StaticFile, error) {
@@ -103,26 +84,30 @@ func CompileStaticFiles(dir string, files []string) (map[string]StaticFile, erro
 	return out, nil
 }
 
-func CompileGroups(groups []ConfigGroup) (map[string]*Group, error) {
-	out := make(map[string]*Group)
+func CompileGroups(groups []ConfigGroup) (map[string]*account.Group, map[string][]ConfigGrant, error) {
+	groupout := make(map[string]*account.Group)
+	grantout := make(map[string][]ConfigGrant)
 	for _, group := range groups {
 		if group.Name == "" {
-			return nil, fmt.Errorf("A group name is required.")
+			return nil, nil, fmt.Errorf("A group name is required.")
 		}
-		_, found := out[group.Name]
+		_, found := groupout[group.Name]
 		if found {
-			return nil, fmt.Errorf("Duplicate group: %s", group.Name)
+			return nil, nil, fmt.Errorf("Duplicate group: %s", group.Name)
 		}
-		var inherit *Group
+		grants := append([]ConfigGrant{}, group.Grants...)
+		var inherit *account.Group
 		if group.Inherit != "" {
-			inherit = out[group.Inherit]
+			inherit = groupout[group.Inherit]
 			if inherit == nil {
-				return nil, fmt.Errorf("Cannot find group %s to inherit in %s (out of order?)", group.Inherit, group.Name)
+				return nil, nil, fmt.Errorf("Cannot find group %s to inherit in %s (out of order?)", group.Inherit, group.Name)
 			}
+			grants = append(grants, grantout[group.Inherit]...)
 		}
-		out[group.Name] = &Group{Inherit: inherit, Grants: group.Grants, Members: make([]string, 0)}
+		groupout[group.Name] = &account.Group{Inherit: inherit, Members: make([]string, 0)}
+		grantout[group.Name] = grants
 	}
-	return out, nil
+	return groupout, grantout, nil
 }
 
 func CompileAuthorities(directory string, certauthorities []ConfigAuthority) (map[string]authorities.Authority, error) {
@@ -163,38 +148,38 @@ func CompileAuthorities(directory string, certauthorities []ConfigAuthority) (ma
 	return out, nil
 }
 
-func CompileAccounts(accounts []ConfigAccount, authorities map[string]authorities.Authority, groups map[string]*Group, registry *token.TokenRegistry) (map[string]account.Account, error) {
-	out := make(map[string]account.Account)
-	for _, account := range accounts {
-		if account.Principal == "" {
+func CompileAccounts(accounts []ConfigAccount, ctx *Context) (map[string]*account.Account, error) {
+	out := make(map[string]*account.Account)
+	for _, ac := range accounts {
+		if ac.Principal == "" {
 			return nil, fmt.Errorf("An account name is required.")
 		}
-		_, found := out[account.Principal]
+		_, found := out[ac.Principal]
 		if found {
-			return nil, fmt.Errorf("Duplicate account %s", account.Principal)
+			return nil, fmt.Errorf("Duplicate account %s", ac.Principal)
 		}
-		group := groups[account.Group]
+		group := ctx.Groups[ac.Group]
 		if group == nil {
-			return nil, fmt.Errorf("No such group %s (in account %s)", account.Group, account.Principal)
+			return nil, fmt.Errorf("No such group %s (in account %s)", ac.Group, ac.Principal)
 		}
-		authority, found := authorities[account.Realm]
+		authority, found := ctx.Authorities[ac.Realm]
 		if !found {
-			return nil, fmt.Errorf("No such authority %s (in account %s)", account.Realm, account.Principal)
+			return nil, fmt.Errorf("No such authority %s (in account %s)", ac.Realm, ac.Principal)
 		}
-		grants, err := CompileGrants(group, account.Principal, account.Metadata, groups, authorities, registry)
+		grants, err := CompileGrants(group, ac.Principal, ac.Metadata, ctx)
 		if err != nil {
 			return nil, err
 		}
-		out[account.Principal] = account.Account{account.Principal, group, authority, grants}
-		group.Members = append(group.Members, account.Principal)
+		out[ac.Principal] = &account.Account{ac.Principal, group, authority, grants}
+		group.Members = append(group.Members, ac.Principal)
 	}
 	return out, nil
 }
 
-func CompileGrants(group *Group, principal string, metadata map[string]string, groups map[string]*Group, authorities map[string]authorities.Authority, registry *token.TokenRegistry) (map[string]account.Grant, error) {
+func CompileGrants(group *account.Group, principal string, metadata map[string]string, ctx *Context) (map[string]*account.Grant, error) {
 	metadata["principal"] = principal // TODO: break encapsulation less?
-	grants := make(map[string]account.Grant)
-	for _, grant := range group.AllGrants() {
+	grants := make(map[string]*account.Grant)
+	for _, grant := range ctx.GroupGrants[group.Name] {
 		if grant.API == "" {
 			return nil, fmt.Errorf("An API name is required.")
 		}
@@ -202,7 +187,7 @@ func CompileGrants(group *Group, principal string, metadata map[string]string, g
 		if found {
 			return nil, fmt.Errorf("Duplicate grant %s (in account %s)", grant.API, principal)
 		}
-		cgrant, err := CompileGrant(grant, metadata, groups, authorities, registry)
+		cgrant, err := CompileGrant(grant, metadata, ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -245,14 +230,14 @@ func SubstituteAllVars(within []string, vars map[string]string) ([]string, error
 	return out, nil
 }
 
-func CompileGrant(grant ConfigGrant, vars map[string]string, groups map[string]*Group, authorities map[string]authorities.Authority, registry *token.TokenRegistry) (account.Grant, error) {
-	var privilege privileges.Privilege
+func CompileGrant(grant ConfigGrant, vars map[string]string, ctx *Context) (*account.Grant, error) {
+	var privilege account.Privilege
 	switch grant.Privilege {
 	case "bootstrap-account":
 		if grant.CommonName != "" || len(grant.AllowedNames) != 0 || grant.IsHost != "" || grant.Contents != "" {
 			return nil, fmt.Errorf("Extraneous parameters provided to bootstrap-account in %s", grant.API)
 		}
-		scope := groups[grant.Scope]
+		scope := ctx.Groups[grant.Scope]
 		if scope == nil {
 			return nil, fmt.Errorf("No such group %s in grant %s", grant.Scope, grant.API)
 		}
@@ -260,7 +245,7 @@ func CompileGrant(grant ConfigGrant, vars map[string]string, groups map[string]*
 		if err != nil {
 			return nil, err
 		}
-		privilege, err = privileges.NewBootstrapPrivilege(scope.AllMembers(), lifespan, registry)
+		privilege, err = account.NewBootstrapPrivilege(scope.AllMembers(), lifespan, ctx.TokenRegistry)
 		if err != nil {
 			return nil, err
 		}
@@ -268,7 +253,7 @@ func CompileGrant(grant ConfigGrant, vars map[string]string, groups map[string]*
 		if grant.Scope != "" || grant.Contents != "" {
 			return nil, fmt.Errorf("Extraneous parameters provided to Sign-ssh in %s", grant.API)
 		}
-		authority := authorities[grant.Authority]
+		authority := ctx.Authorities[grant.Authority]
 		if authority == nil {
 			return nil, fmt.Errorf("No such authority %s in grant %s", grant.Authority, grant.API)
 		}
@@ -288,7 +273,7 @@ func CompileGrant(grant ConfigGrant, vars map[string]string, groups map[string]*
 		if err != nil {
 			return nil, err
 		}
-		privilege, err = privileges.NewSSHGrantPrivilege(authority, ishost, lifespan, keyid, principals)
+		privilege, err = account.NewSSHGrantPrivilege(authority, ishost, lifespan, keyid, principals)
 		if err != nil {
 			return nil, err
 		}
@@ -296,7 +281,7 @@ func CompileGrant(grant ConfigGrant, vars map[string]string, groups map[string]*
 		if grant.Scope != "" || grant.Contents != "" {
 			return nil, fmt.Errorf("Extraneous parameters provided to Sign-tls in %s", grant.API)
 		}
-		authority := authorities[grant.Authority]
+		authority := ctx.Authorities[grant.Authority]
 		if authority == nil {
 			return nil, fmt.Errorf("No such authority %s in grant %s", grant.Authority, grant.API)
 		}
@@ -316,7 +301,7 @@ func CompileGrant(grant ConfigGrant, vars map[string]string, groups map[string]*
 		if err != nil {
 			return nil, err
 		}
-		privilege, err = privileges.NewTLSGrantPrivilege(authority, ishost, lifespan, commonname, altnames)
+		privilege, err = account.NewTLSGrantPrivilege(authority, ishost, lifespan, commonname, altnames)
 		if err != nil {
 			return nil, err
 		}
@@ -324,12 +309,12 @@ func CompileGrant(grant ConfigGrant, vars map[string]string, groups map[string]*
 		if grant.Scope != "" || grant.CommonName != "" || len(grant.AllowedNames) != 0 || grant.Lifespan != "" || grant.IsHost != "" || grant.Contents != "" {
 			return nil, fmt.Errorf("Extraneous parameters provided to delegate-authority in %s", grant.API)
 		}
-		authority := authorities[grant.Authority]
+		authority := ctx.Authorities[grant.Authority]
 		if authority == nil {
 			return nil, fmt.Errorf("No such authority %s in grant %s", grant.Authority, grant.API)
 		}
 		var err error
-		privilege, err = privileges.NewDelegateAuthorityPrivilege(authority)
+		privilege, err = account.NewDelegateAuthorityPrivilege(ctx.GetAccount, authority)
 		if err != nil {
 			return nil, err
 		}
@@ -341,7 +326,7 @@ func CompileGrant(grant ConfigGrant, vars map[string]string, groups map[string]*
 		if err != nil {
 			return nil, err
 		}
-		privilege, err = privileges.NewConfigurationPrivilege(contents)
+		privilege, err = account.NewConfigurationPrivilege(contents)
 		if err != nil {
 			return nil, err
 		}
@@ -351,5 +336,5 @@ func CompileGrant(grant ConfigGrant, vars map[string]string, groups map[string]*
 	if privilege == nil {
 		return nil, fmt.Errorf("Internal error: privilege is nil.")
 	}
-	return account.Grant{API: grant.API, Privilege: privilege}, nil
+	return &account.Grant{API: grant.API, Privilege: privilege}, nil
 }

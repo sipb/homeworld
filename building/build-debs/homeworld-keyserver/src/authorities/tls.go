@@ -42,7 +42,7 @@ func LoadTLSAuthority(keydata []byte, pubkeydata []byte) (Authority, error) {
 		return nil, err
 	}
 
-	keyblock, err := loadSinglePEMBlock(pubkeydata, "RSA PRIVATE KEY")
+	keyblock, err := loadSinglePEMBlock(keydata, "RSA PRIVATE KEY")
 	if err != nil {
 		return nil, err
 	}
@@ -111,22 +111,22 @@ func (t *TLSAuthority) Verify(request *http.Request) (string, error) {
 func (d *TLSAuthority) Sign(request string, ishost bool, lifespan time.Duration, commonname string, names []string) (string, error) {
 	pemBlock, err := loadSinglePEMBlock([]byte(request), "CERTIFICATE REQUEST")
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	csr, err := x509.ParseCertificateRequest(pemBlock)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	err = csr.CheckSignature()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	issue_at := time.Now()
 
 	serialNumber, err := rand.Int(rand.Reader, (&big.Int{}).Exp(big.NewInt(2), big.NewInt(159), nil))
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	extKeyUsage := x509.ExtKeyUsageClientAuth
@@ -158,7 +158,7 @@ func (d *TLSAuthority) Sign(request string, ishost bool, lifespan time.Duration,
 
 	signed_cert, err := x509.CreateCertificate(rand.Reader, &certTemplate, d.cert, d.cert.PublicKey, d.key)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	return string(pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: signed_cert})), nil
 }

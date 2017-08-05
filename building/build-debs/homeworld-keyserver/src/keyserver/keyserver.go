@@ -14,7 +14,7 @@ import (
 	"errors"
 )
 
-func attemptAuthentication(context *config.Context, request *http.Request) (account.Account, error) {
+func attemptAuthentication(context *config.Context, request *http.Request) (*account.Account, error) {
 	var authorityUsed authorities.Authority
 	// First, try with a token.
 	principal, err := context.TokenRegistry.Verify(request)
@@ -30,17 +30,17 @@ func attemptAuthentication(context *config.Context, request *http.Request) (acco
 	} else if err != nil { // some error besides lacking a token, which should actually cause this to fail.
 		return nil, err
 	}
-	account, found := context.Accounts[principal]
+	ac, found := context.Accounts[principal]
 	if !found {
-		return nil, fmt.Errorf("No such principal in database: %s", account)
+		return nil, fmt.Errorf("No such principal in database: %s", ac)
 	}
-	if authorityUsed != nil && account.GrantingAuthority != authorityUsed {
+	if authorityUsed != nil && ac.GrantingAuthority != authorityUsed {
 		return nil, fmt.Errorf("Mismatched authority during authentication")
 	}
-	if account.Principal != principal {
+	if ac.Principal != principal {
 		return nil, fmt.Errorf("Mismatched principal during authentication")
 	}
-	return account, nil
+	return ac, nil
 }
 
 func handleAPIRequest(context *config.Context, writer http.ResponseWriter, request *http.Request) error {
@@ -52,7 +52,7 @@ func handleAPIRequest(context *config.Context, writer http.ResponseWriter, reque
 	if err != nil {
 		return err
 	}
-	response, err := account.InvokeAPIOperationSet(context, requestBody)
+	response, err := account.InvokeAPIOperationSet(requestBody)
 	if err != nil {
 		return err
 	}
@@ -84,8 +84,8 @@ func handleStaticRequest(context *config.Context, writer http.ResponseWriter, re
 	return err
 }
 
-func run() error {
-	context, err := config.LoadDefaultConfig()
+func Run(configfile string) error {
+	context, err := config.LoadConfig(configfile)
 	if err != nil {
 		return err
 	}
@@ -138,8 +138,4 @@ func run() error {
 	authenticator.Register(server.TLSConfig.ClientCAs)
 
 	return server.ListenAndServeTLS("", "")
-}
-
-func main() {
-	log.Fatal(run())
 }

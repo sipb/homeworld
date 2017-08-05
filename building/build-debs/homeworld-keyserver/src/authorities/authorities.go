@@ -2,7 +2,6 @@ package authorities
 
 import (
 	"net/http"
-	"time"
 )
 
 type Authority interface {

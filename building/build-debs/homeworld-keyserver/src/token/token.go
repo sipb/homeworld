@@ -9,7 +9,6 @@ import (
 	"crypto/rand"
 	"net"
 	"strings"
-	"errors"
 )
 
 type tokenData struct {

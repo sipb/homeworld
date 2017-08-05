@@ -6,7 +6,6 @@ import (
 	"time"
 	"fmt"
 	"net/http"
-	"bytes"
 	"crypto/rand"
 )
 
@@ -64,11 +63,11 @@ func marshalSSHCert(cert *ssh.Certificate) string {
 func (d *SSHAuthority) Sign(request string, ishost bool, lifespan time.Duration, name string, othernames []string) (string, error) {
 	pubkey, err := parseSingleSSHKey([]byte(request))
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	if lifespan < time.Second {
-		return nil, fmt.Errorf("Lifespan is too short (or nonpositive) for certificate signature.")
+		return "", fmt.Errorf("Lifespan is too short (or nonpositive) for certificate signature.")
 	}
 
 	cert := &ssh.Certificate{
@@ -82,7 +81,7 @@ func (d *SSHAuthority) Sign(request string, ishost bool, lifespan time.Duration,
 
 	err = cert.SignCert(rand.Reader, d.key)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	return marshalSSHCert(cert), nil

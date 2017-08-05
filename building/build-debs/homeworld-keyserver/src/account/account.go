@@ -2,24 +2,27 @@ package account
 
 import (
 	"authorities"
-	"config"
-	"privileges"
 	"fmt"
 	"log"
 	"encoding/json"
-	"context"
 )
 
 type Account struct {
 	Principal         string
-	Group             *config.Group
+	Group             *Group
 	GrantingAuthority authorities.Authority
-	Grants            map[string]Grant
+	Grants            map[string]*Grant
+}
+
+type Group struct {
+	Name    string
+	Members []string
+	Inherit *Group
 }
 
 type Grant struct {
 	API       string
-	Privilege privileges.Privilege
+	Privilege Privilege
 }
 
 type Operation struct {
@@ -27,7 +30,18 @@ type Operation struct {
 	body string
 }
 
-func (a *Account) InvokeAPIOperationSet(context *config.Context, requestBody []byte) ([]byte, error) {
+func (g *Group) AllMembers() []string {
+	members := make([]string, 0, 10)
+	for g != nil {
+		for _, member := range g.Members {
+			members = append(members, member)
+		}
+		g = g.Inherit
+	}
+	return members
+}
+
+func (a *Account) InvokeAPIOperationSet(requestBody []byte) ([]byte, error) {
 	operations := make([]Operation, 0)
 	err := json.Unmarshal(requestBody, operations)
 	if err != nil {
@@ -35,7 +49,7 @@ func (a *Account) InvokeAPIOperationSet(context *config.Context, requestBody []b
 	}
 	results := make([]string, len(operations))
 	for i, operation := range operations {
-		result, err := a.InvokeAPIOperation(context, operation.API, operation.body)
+		result, err := a.InvokeAPIOperation(operation.API, operation.body)
 		if err != nil {
 			return nil, err
 		}
@@ -44,16 +58,16 @@ func (a *Account) InvokeAPIOperationSet(context *config.Context, requestBody []b
 	return json.Marshal(results)
 }
 
-func (a *Account) InvokeAPIOperation(context *config.Context, API string, requestBody string) (string, error) {
+func (a *Account) InvokeAPIOperation(API string, requestBody string) (string, error) {
 	grant, found := a.Grants[API]
 	if !found {
-		return nil, fmt.Errorf("Could not find API request %s", grant)
+		return "", fmt.Errorf("Could not find API request %s", grant)
 	}
 	log.Println("Attempting to perform API operation %s for %s", API, a.Principal)
-	response, err := grant.Privilege(context, requestBody)
+	response, err := grant.Privilege(requestBody)
 	if err != nil {
 		log.Println("Operation %s for %s failed with error: %s.", API, a.Principal, err)
-		return nil, err
+		return "", err
 	}
 	log.Println("Operation %s for %s succeeded.", API, a.Principal)
 	return response, nil

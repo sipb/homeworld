@@ -5,10 +5,6 @@ import (
 	"io/ioutil"
 )
 
-const (
-	defaultConfigFile = "/etc/hyades/keyserver/keyserver.conf"
-)
-
 type ConfigAuthority struct {
 	Name string
 	Type string
@@ -75,8 +71,4 @@ func LoadConfig(filename string) (*Context, error) {
 		return nil, err
 	}
 	return LoadConfigFromBytes(contents)
-}
-
-func LoadDefaultConfig() (*Context, error) {
-	return LoadConfig(defaultConfigFile)
 }
