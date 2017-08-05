@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"time"
 	"fmt"
-	"net/http"
 	"crypto/rand"
 )
 
@@ -42,10 +41,6 @@ func LoadSSHAuthority(keydata []byte, pubkeydata []byte) (Authority, error) {
 
 func (d *SSHAuthority) GetPublicKey() []byte {
 	return d.pubkey
-}
-
-func (d *SSHAuthority) Verify(r *http.Request) (string, error) {
-	return "", fmt.Errorf("Authentication against SSH authorities not yet implemented.")
 }
 
 func certType(ishost bool) uint32 {

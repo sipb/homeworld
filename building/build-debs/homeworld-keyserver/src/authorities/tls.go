@@ -13,6 +13,7 @@ import (
 	"crypto/x509/pkix"
 	"net"
 	"crypto/tls"
+	"bytes"
 )
 
 type TLSAuthority struct {
@@ -20,6 +21,10 @@ type TLSAuthority struct {
 	key  *rsa.PrivateKey
 	cert *x509.Certificate
 	certData []byte
+}
+
+func (t *TLSAuthority) Equal(authority *TLSAuthority) bool {
+	return bytes.Equal(t.certData, authority.certData)
 }
 
 func loadSinglePEMBlock(data []byte, expected_type string) ([]byte, error) {

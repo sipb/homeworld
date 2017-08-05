@@ -3,7 +3,6 @@ package auth
 import (
 	"net/http"
 	"errors"
-	"util"
 	"token"
 )
 
@@ -14,19 +13,15 @@ func HasTokenAuthHeader(request *http.Request) bool {
 }
 
 func Authenticate(registry *token.TokenRegistry, request *http.Request) (string, error) {
-	token := request.Header.Get(authheader)
-	if token == "" {
+	tokens := request.Header.Get(authheader)
+	if tokens == "" {
 		return "", errors.New("No token authentication header provided")
 	}
-	tok, err := registry.LookupToken(token)
+	tok, err := registry.LookupToken(tokens)
 	if err != nil {
 		return "", err
 	}
-	ip, err := util.ParseRemoteAddressFromRequest(request)
-	if err != nil {
-		return "", err
-	}
-	err = tok.Claim(ip)
+	err = tok.Claim()
 	if err != nil {
 		return "", err
 	}

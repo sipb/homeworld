@@ -24,8 +24,8 @@ type Context struct {
 	GroupGrants map[string][]ConfigGrant
 	Accounts map[string]*account.Account
 	TokenRegistry *token.TokenRegistry
-	Authenticator authorities.Authority
-	ServerTLS authorities.Authority
+	Authenticator *authorities.TLSAuthority
+	ServerTLS *authorities.TLSAuthority
 	StaticFiles map[string]StaticFile
 }
 
@@ -33,6 +33,9 @@ func (ctx *Context) GetAccount(principal string) (*account.Account, error) {
 	ac, found := ctx.Accounts[principal]
 	if !found {
 		return nil, fmt.Errorf("Cannot find account for principal %s.", principal)
+	}
+	if ac.Principal != principal {
+		return nil, fmt.Errorf("Mismatched principal during lookup")
 	}
 	return ac, nil
 }
@@ -42,27 +45,35 @@ func (config *Config) Compile() (*Context, error) {
 	if err != nil {
 		return nil, err
 	}
-	authorities, err := CompileAuthorities(config.AuthorityDir, config.Authorities)
+	authority_map, err := CompileAuthorities(config.AuthorityDir, config.Authorities)
 	if err != nil {
 		return nil, err
 	}
 	if config.Authenticator == "" {
 		return nil, fmt.Errorf("No authenticator specified.")
 	}
-	authenticator, found := authorities[config.Authenticator]
+	authenticator_i, found := authority_map[config.Authenticator]
 	if !found {
 		return nil, fmt.Errorf("Authenticator not found: %s", config.Authenticator)
 	}
-	servertls, found := authorities[config.ServerTLS]
+	authenticator, ok := authenticator_i.(*authorities.TLSAuthority)
+	if !ok {
+		return nil, fmt.Errorf("Authenticator is not a TLS authority.")
+	}
+	servertls_i, found := authority_map[config.ServerTLS]
 	if !found {
 		return nil, fmt.Errorf("ServerTLS not found: %s", config.ServerTLS)
+	}
+	servertls, ok := servertls_i.(*authorities.TLSAuthority)
+	if !ok {
+		return nil, fmt.Errorf("ServerTLS is not a TLS authority.")
 	}
 	groups, grants, err := CompileGroups(config.Groups)
 	if err != nil {
 		return nil, err
 	}
 	registry := token.NewTokenRegistry()
-	ctx := &Context{authorities, groups, grants, nil, registry, authenticator, servertls, staticfiles}
+	ctx := &Context{authority_map, groups, grants, nil, registry, authenticator, servertls, staticfiles}
 	ctx.Accounts, err = CompileAccounts(config.Accounts, ctx)
 	if err != nil {
 		return nil, err
@@ -170,7 +181,7 @@ func CompileAccounts(accounts []ConfigAccount, ctx *Context) (map[string]*accoun
 		if err != nil {
 			return nil, err
 		}
-		out[ac.Principal] = &account.Account{ac.Principal, group, authority, grants}
+		out[ac.Principal] = &account.Account{ac.Principal, group, authority, grants, ac.Metadata}
 		group.Members = append(group.Members, ac.Principal)
 	}
 	return out, nil
@@ -249,7 +260,7 @@ func CompileGrant(grant ConfigGrant, vars map[string]string, ctx *Context) (*acc
 		if err != nil {
 			return nil, err
 		}
-	case "Sign-ssh":
+	case "sign-ssh":
 		if grant.Scope != "" || grant.Contents != "" {
 			return nil, fmt.Errorf("Extraneous parameters provided to Sign-ssh in %s", grant.API)
 		}
@@ -277,7 +288,7 @@ func CompileGrant(grant ConfigGrant, vars map[string]string, ctx *Context) (*acc
 		if err != nil {
 			return nil, err
 		}
-	case "Sign-tls":
+	case "sign-tls":
 		if grant.Scope != "" || grant.Contents != "" {
 			return nil, fmt.Errorf("Extraneous parameters provided to Sign-tls in %s", grant.API)
 		}

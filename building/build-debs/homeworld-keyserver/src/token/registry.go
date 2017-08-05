@@ -4,7 +4,6 @@ import (
 	"sync"
 	"fmt"
 	"time"
-	"net"
 	"token/scoped"
 )
 
@@ -45,9 +44,9 @@ func (r *TokenRegistry) expireOldEntries() {
 	}
 }
 
-func (r *TokenRegistry) GrantToken(subject string, lifespan time.Duration, limitIP net.IP) string {
+func (r *TokenRegistry) GrantToken(subject string, lifespan time.Duration) string {
 	r.expireOldEntries()
-	token := scoped.GenerateToken(subject, lifespan, limitIP)
+	token := scoped.GenerateToken(subject, lifespan)
 	r.addToken(token)
 	return token.Token
 }

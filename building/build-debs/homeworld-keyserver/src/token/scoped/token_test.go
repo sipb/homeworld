@@ -4,7 +4,6 @@ import (
 	"testing"
 	"unicode"
 	"time"
-	"net"
 	"strings"
 	"math"
 )
@@ -93,22 +92,20 @@ func TestExpiry(t *testing.T) {
 }
 
 func TestCanClaimTrivialToken(t *testing.T) {
-	localhost := net.IPv4(127, 0, 0, 1)
-	tok := GenerateToken("", time.Millisecond * 500, localhost)
-	err := tok.Claim(localhost)
+	tok := GenerateToken("", time.Millisecond * 500)
+	err := tok.Claim()
 	if err != nil {
 		t.Errorf("Should not have gotten error: %v", err)
 	}
 }
 
 func TestCannotClaimExpiredToken(t *testing.T) {
-	localhost := net.IPv4(127, 0, 0, 1)
-	tok := GenerateToken("", time.Millisecond * 100, localhost)
+	tok := GenerateToken("", time.Millisecond * 100)
 	time.Sleep(time.Millisecond * 100)
 	if !tok.HasExpired() {
 		t.Errorf("Token should have expired now, but has not")
 	}
-	err := tok.Claim(localhost)
+	err := tok.Claim()
 	if err == nil {
 		t.Errorf("Should have failed to claim expired token")
 	} else if !strings.Contains(err.Error(), "expired") {
@@ -116,26 +113,13 @@ func TestCannotClaimExpiredToken(t *testing.T) {
 	}
 }
 
-func TestCannotClaimFromWrongIP(t *testing.T) {
-	localhost := net.IPv4(127, 0, 0, 1)
-	nonlocalhost := net.IPv4(10, 15, 40, 2)
-	tok := GenerateToken("", time.Millisecond * 500, localhost)
-	err := tok.Claim(nonlocalhost)
-	if err == nil {
-		t.Errorf("Should have failed to claim improperly accessed token")
-	} else if !strings.Contains(err.Error(), "IP") {
-		t.Errorf("Error message '%s' should have contained the word 'IP'", err)
-	}
-}
-
 func TestCannotClaimTwice(t *testing.T) {
-	localhost := net.IPv4(127, 0, 0, 1)
-	tok := GenerateToken("", time.Millisecond * 500, localhost)
-	err := tok.Claim(localhost)
+	tok := GenerateToken("", time.Millisecond * 500)
+	err := tok.Claim()
 	if err != nil {
 		t.Errorf("Should have claimed token the first time")
 	}
-	err = tok.Claim(localhost)
+	err = tok.Claim()
 	if err == nil {
 		t.Errorf("Should have failed to claim token the second time")
 	} else if !strings.Contains(err.Error(), "already claimed") {
@@ -144,14 +128,10 @@ func TestCannotClaimTwice(t *testing.T) {
 }
 
 func TestGenerateToken(t *testing.T) {
-	nonlocalhost := net.IPv4(10, 15, 40, 2)
-	token := GenerateToken("my-subject", time.Minute * 90, nonlocalhost)
+	token := GenerateToken("my-subject", time.Minute * 90)
 	delta := token.expires.Sub(time.Now())
 	if math.Abs(delta.Minutes() - 90) >= 0.1 {
 		t.Errorf("Inaccurately represented expiration time (delta is %s)", delta.Minutes())
-	}
-	if !token.sourceIP.Equal(nonlocalhost) {
-		t.Errorf("Inaccurately represented source IP")
 	}
 	if token.claimed == nil {
 		t.Errorf("Inaccurately used nil claim")

@@ -8,39 +8,64 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"authorities"
-	"token"
 	"config"
 	"account"
-	"errors"
+	"token/auth"
+	"util"
+	"net"
 )
 
+func verifyAccountIP(account *account.Account, request *http.Request) error {
+	ip, err := util.ParseRemoteAddressFromRequest(request)
+	if err != nil {
+		return err
+	}
+	allowed_ip_str, found := account.Metadata["ip"]
+	if !found {
+		return fmt.Errorf("No allowed IP for bootstrap target.")
+	}
+	allowed_ip := net.ParseIP(allowed_ip_str)
+	if allowed_ip == nil {
+		return fmt.Errorf("IP address malformed for bootstrap target.")
+	}
+	if !allowed_ip.Equal(ip) {
+		return fmt.Errorf("Attempt to use bootstrap token from wrong IP address.")
+	}
+	return nil
+}
+
 func attemptAuthentication(context *config.Context, request *http.Request) (*account.Account, error) {
-	var authorityUsed authorities.Authority
-	// First, try with a token.
-	principal, err := context.TokenRegistry.Verify(request)
-	if token.IsNoTokenError(err) { // Nope -- they didn't try to authenticate with a token.
-		principal, err = context.Authenticator.Verify(request) // Try the main authentication authority
+	if auth.HasTokenAuthHeader(request) {
+		// Auth with a token.
+		principal, err := auth.Authenticate(context.TokenRegistry, request)
 		if err != nil {
 			return nil, err
 		}
-		authorityUsed = context.Authenticator
-		if authorityUsed == nil {
-			return nil, fmt.Errorf("Missing authenticator in internal struct.")
+		ac, err := context.GetAccount(principal)
+		if err != nil {
+			return nil, err
 		}
-	} else if err != nil { // some error besides lacking a token, which should actually cause this to fail.
-		return nil, err
+		err = verifyAccountIP(ac, request)
+		if err != nil {
+			return nil, err
+		}
+		return ac, nil
+	} else {
+		// Auth with a cert.
+		principal, err := context.Authenticator.Verify(request) // Try the main authentication authority
+		if err != nil {
+			return nil, err
+		}
+		ac, err := context.GetAccount(principal)
+		if err != nil {
+			return nil, err
+		}
+		authority, ok := ac.GrantingAuthority.(*authorities.TLSAuthority)
+		if !ok || !authority.Equal(context.Authenticator) {
+			return nil, fmt.Errorf("Mismatched authority during authentication")
+		}
+		return ac, nil
 	}
-	ac, found := context.Accounts[principal]
-	if !found {
-		return nil, fmt.Errorf("No such principal in database: %s", ac)
-	}
-	if authorityUsed != nil && ac.GrantingAuthority != authorityUsed {
-		return nil, fmt.Errorf("Mismatched authority during authentication")
-	}
-	if ac.Principal != principal {
-		return nil, fmt.Errorf("Mismatched principal during authentication")
-	}
-	return ac, nil
 }
 
 func handleAPIRequest(context *config.Context, writer http.ResponseWriter, request *http.Request) error {
@@ -48,11 +73,11 @@ func handleAPIRequest(context *config.Context, writer http.ResponseWriter, reque
 	if err != nil {
 		return err
 	}
-	account, err := attemptAuthentication(context, request)
+	ac, err := attemptAuthentication(context, request)
 	if err != nil {
 		return err
 	}
-	response, err := account.InvokeAPIOperationSet(requestBody)
+	response, err := ac.InvokeAPIOperationSet(requestBody)
 	if err != nil {
 		return err
 	}
@@ -116,26 +141,17 @@ func Run(configfile string) error {
 		}
 	})
 
-	authenticator := context.Authenticator.(*authorities.TLSAuthority)
-	if authenticator == nil {
-		return errors.New("Authenticator is not a TLS authority!")
-	}
-	servertls := context.ServerTLS.(*authorities.TLSAuthority)
-	if authenticator == nil {
-		return errors.New("ServerTLS is not a TLS authority!")
-	}
-
 	server := &http.Server{
 		Addr: ":20557",
 		Handler: mux,
 		TLSConfig: &tls.Config{
 			ClientAuth: tls.VerifyClientCertIfGiven,
 			ClientCAs:  x509.NewCertPool(),
-			Certificates: []tls.Certificate { servertls.ToHTTPSCert() },
+			Certificates: []tls.Certificate { context.ServerTLS.ToHTTPSCert() },
 		},
 	}
 
-	authenticator.Register(server.TLSConfig.ClientCAs)
+	context.Authenticator.Register(server.TLSConfig.ClientCAs)
 
 	return server.ListenAndServeTLS("", "")
 }

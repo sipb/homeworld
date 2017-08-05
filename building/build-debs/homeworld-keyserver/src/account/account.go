@@ -12,6 +12,7 @@ type Account struct {
 	Group             *Group
 	GrantingAuthority authorities.Authority
 	Grants            map[string]*Grant
+	Metadata          map[string]string
 }
 
 type Group struct {
