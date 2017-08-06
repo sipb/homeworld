@@ -1,0 +1,247 @@
+# stored in /etc/hyades/keyserver/keyserver.conf
+
+authoritydir: /etc/hyades/keyserver/authorities/
+staticdir: /etc/hyades/keyserver/static/
+authenticator: keygranting
+servertls: servertls
+
+staticfiles:
+  - cluster.conf
+
+authorities:
+  - name: keygranting
+    type: TLS
+    key: keygrant.key
+    cert: keygrant.pem
+
+  - name: servertls
+    type: TLS
+    key: keyserver.key
+    cert: keyserver.pem
+
+  - name: ssh-user
+    type: SSH
+    key: ssh_user_ca
+    cert: ssh_user_ca.pub
+
+  - name: ssh-host
+    type: SSH
+    key: ssh_host_ca
+    cert: ssh_host_ca.pub
+
+  - name: etcd-server
+    type: TLS
+    key: etcd-server.key
+    cert: etcd-server.pem
+
+  - name: etcd-client
+    type: TLS
+    key: etcd-client.key
+    cert: etcd-client.pem
+
+  - name: kubernetes
+    type: TLS
+    key: kubernetes.key
+    cert: kubernetes.pem
+
+  - name: athena-kerberos
+    type: delegated
+
+accounts:
+  - principal: eggs-benedict.mit.edu
+    realm: keygranting
+    group: master-nodes
+    metadata:
+      ip: 18.181.0.97
+      hostname: eggs-benedict
+
+  - principal: huevos-rancheros.mit.edu
+    realm: keygranting
+    group: master-nodes
+    metadata:
+      ip: 18.181.0.104
+      hostname: huevos-rancheros
+
+  - principal: ole-miss.mit.edu
+    realm: keygranting
+    group: master-nodes
+    metadata:
+      ip: 18.181.0.106
+      hostname: ole-miss
+
+  - principal: grilled-cheese.mit.edu
+    realm: keygranting
+    group: worker-nodes
+    metadata:
+      ip: 18.181.0.128
+      hostname: grilled-cheese
+
+  - principal: avocado-burger.mit.edu
+    realm: keygranting
+    group: worker-nodes
+    metadata:
+      ip: 18.181.0.129
+      hostname: avocado-burger
+
+  - principal: french-toast.mit.edu
+    realm: keygranting
+    group: worker-nodes
+    metadata:
+      ip: 18.181.2.232
+      hostname: french-toast
+
+  - principal: egg-sandwich.mit.edu
+    realm: keygranting
+    group: supervisor-nodes
+    metadata:
+      ip: 18.181.0.253
+      hostname: egg-sandwich
+
+  - principal: cela@ATHENA.MIT.EDU
+    realm: athena-kerberos
+    group: root-admins
+
+  - principal: dukhovni@ATHENA.MIT.EDU
+    realm: athena-kerberos
+    group: root-admins
+
+  - principal: ikdc@ATHENA.MIT.EDU
+    realm: athena-kerberos
+    group: root-admins
+
+groups:
+  - name: root-admins
+    grants:
+    - api: bootstrap
+      privilege: bootstrap-account
+      scope: nodes
+      lifespan: 1 hour
+
+    - api: access-ssh
+      privilege: sign-ssh
+      authority: ssh-user
+      lifespan: 4 hours
+      ishost: false
+      common-name: temporary-ssh-grant-(principal)
+      allowed-names:
+      - root
+
+    - api: access-etcd
+      privilege: sign-tls
+      authority: etcd-client
+      lifespan: 4 hours
+      ishost: false
+      common-name: temporary-etcd-grant-(principal)
+
+    - api: access-kubernetes
+      privilege: sign-tls
+      authority: kubernetes
+      lifespan: 4 hours
+      ishost: false
+      common-name: temporary-kube-grant-(principal)
+
+  - name: nodes
+    grants:
+    - api: renew-keygrant
+      privilege: sign-tls
+      authority: keygranting
+      lifespan: 40 days
+      ishost: false
+      common-name: (principal)
+
+    - api: grant-ssh-host
+      privilege: sign-ssh
+      authority: ssh-host
+      lifespan: 60 days
+      ishost: false
+      common-name: admitted-(principal)
+      allowed-names:
+      - (hostname).mit.edu
+      - (hostname)
+      - (ip)
+
+  - name: supervisor-nodes
+    inherit: nodes
+
+    grants:
+    - api: auth-to-kerberos
+      privilege: delegate-authority
+      scope: athena-kerberos
+
+  - name: kubernetes-nodes
+    inherit: nodes
+
+    grants:
+    - api: grant-kubernetes-worker
+      privilege: sign-tls
+      authority: kubernetes
+      common-name: kube-master-(hostname)
+      ishost: false
+      allowed-names:
+      - (hostname).mit.edu
+      - (hostname)
+      - (ip)
+
+  - name: worker-nodes
+    inherit: kubernetes-nodes
+
+    grants:
+    - api: get-local-config
+      privilege: construct-configuration
+      contents: |
+        # generated automatically by keyserver
+        HOST_NODE=(hostname)
+        HOST_DNS=(hostname).mit.edu
+        HOST_IP=(ip)
+        SCHEDULE_WORK=true
+
+  - name: master-nodes
+    inherit: kubernetes-nodes
+
+    grants:
+    - api: get-local-config
+      privilege: construct-configuration
+      contents: |
+        # generated automatically by keyserver
+        HOST_NODE=(hostname)
+        HOST_DNS=(hostname).mit.edu
+        HOST_IP=(ip)
+        SCHEDULE_WORK=true
+
+    - api: grant-etcd-server
+      privilege: sign-tls
+      authority: etcd-server
+      lifespan: 30 days
+      ishost: true
+      common-name: etcd-server-(hostname)
+      allowed-names:
+      - (hostname).mit.edu
+      - (hostname)
+      - (ip)
+
+    - api: grant-etcd-client
+      privilege: sign-tls
+      authority: etcd-client
+      lifespan: 30 days
+      ishost: false
+      common-name: etcd-client-(hostname)
+      allowed-names:
+      - (hostname).mit.edu
+      - (hostname)
+      - (ip)
+
+    - api: grant-kubernetes-master
+      privilege: sign-tls
+      authority: kubernetes
+      lifespan: 30 days
+      ishost: true
+      common-name: kube-master-(hostname)
+      allowed-names:
+      - (hostname).mit.edu
+      - (hostname)
+      - kubernetes
+      - kubernetes.default
+      - kubernetes.default.svc
+      - kubernetes.default.svc.hyades.local
+      - (ip)
+      - 172.28.0.1
