@@ -10,7 +10,7 @@ import (
 type Account struct {
 	Principal         string
 	Group             *Group
-	GrantingAuthority authorities.Authority
+	GrantingAuthority authorities.Authority  // the authority that can authenticate a user as being this particular account
 	Grants            map[string]*Grant
 	Metadata          map[string]string
 }
@@ -35,6 +35,7 @@ type Operation struct {
 	body string
 }
 
+// order not guaranteed
 func (g *Group) AllMembers() []string {
 	members := make([]string, 0, 10)
 	for g != nil {
@@ -44,6 +45,18 @@ func (g *Group) AllMembers() []string {
 		g = g.Inherit
 	}
 	return members
+}
+
+func (g *Group) HasMember(user string) bool {
+	for g != nil {
+		for _, member := range g.Members {
+			if member == user {
+				return true
+			}
+		}
+		g = g.Inherit
+	}
+	return false
 }
 
 func (a *Account) InvokeAPIOperationSet(requestBody []byte) ([]byte, error) {

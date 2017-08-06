@@ -316,16 +316,16 @@ func CompileGrant(grant ConfigGrant, vars map[string]string, ctx *Context) (*acc
 		if err != nil {
 			return nil, err
 		}
-	case "delegate-authority":
+	case "impersonate":
 		if grant.Scope != "" || grant.CommonName != "" || len(grant.AllowedNames) != 0 || grant.Lifespan != "" || grant.IsHost != "" || grant.Contents != "" {
-			return nil, fmt.Errorf("Extraneous parameters provided to delegate-authority in %s", grant.API)
+			return nil, fmt.Errorf("Extraneous parameters provided to impersonate in %s", grant.API)
 		}
-		authority := ctx.Authorities[grant.Authority]
-		if authority == nil {
-			return nil, fmt.Errorf("No such authority %s in grant %s", grant.Authority, grant.API)
+		group := ctx.Groups[grant.Scope]
+		if group == nil {
+			return nil, fmt.Errorf("No such group %s in grant %s", grant.Scope, grant.API)
 		}
 		var err error
-		privilege, err = account.NewDelegateAuthorityPrivilege(ctx.GetAccount, authority)
+		privilege, err = account.NewImpersonatePrivilege(ctx.GetAccount, group)
 		if err != nil {
 			return nil, err
 		}

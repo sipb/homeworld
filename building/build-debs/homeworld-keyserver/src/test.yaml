@@ -44,9 +44,6 @@ authorities:
     key: kubernetes.key
     cert: kubernetes.pem
 
-  - name: athena-kerberos
-    type: delegated
-
 accounts:
   - principal: eggs-benedict.mit.edu
     realm: keygranting
@@ -98,15 +95,12 @@ accounts:
       hostname: egg-sandwich
 
   - principal: cela@ATHENA.MIT.EDU
-    realm: athena-kerberos
     group: root-admins
 
   - principal: dukhovni@ATHENA.MIT.EDU
-    realm: athena-kerberos
     group: root-admins
 
   - principal: ikdc@ATHENA.MIT.EDU
-    realm: athena-kerberos
     group: root-admins
 
 groups:
@@ -165,8 +159,8 @@ groups:
 
     grants:
     - api: auth-to-kerberos
-      privilege: delegate-authority
-      scope: athena-kerberos
+      privilege: impersonate
+      scope: root-admins
 
   - name: kubernetes-nodes
     inherit: nodes
