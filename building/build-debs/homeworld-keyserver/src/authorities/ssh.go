@@ -6,6 +6,8 @@ import (
 	"time"
 	"fmt"
 	"crypto/rand"
+	"bytes"
+	"math/big"
 )
 
 type SSHAuthority struct {
@@ -24,6 +26,14 @@ func parseSingleSSHKey(data []byte) (ssh.PublicKey, error) {
 	return pubkey, nil
 }
 
+func arePublicKeysEqual(pk1 ssh.PublicKey, pk2 ssh.PublicKey) bool {
+	if pk1.Type() != pk2.Type() {
+		return false
+	} else {
+		return bytes.Equal(pk1.Marshal(), pk2.Marshal())
+	}
+}
+
 func LoadSSHAuthority(keydata []byte, pubkeydata []byte) (Authority, error) {
 	pubkey, err := parseSingleSSHKey(pubkeydata)
 	if err != nil {
@@ -33,8 +43,8 @@ func LoadSSHAuthority(keydata []byte, pubkeydata []byte) (Authority, error) {
 	if err != nil {
 		return nil, err
 	}
-	if pubkey != key.PublicKey() {
-		return nil, fmt.Errorf("Public SSH key does not match private SSH key")
+	if !arePublicKeysEqual(pubkey, key.PublicKey()) {
+		return nil, fmt.Errorf("Public SSH key does not match private SSH key: %s versus %s", pubkey.Marshal(), key.PublicKey().Marshal())
 	}
 	return &SSHAuthority{key: key, pubkey: pubkeydata}, nil
 }
@@ -65,9 +75,15 @@ func (d *SSHAuthority) Sign(request string, ishost bool, lifespan time.Duration,
 		return "", fmt.Errorf("Lifespan is too short (or nonpositive) for certificate signature.")
 	}
 
+	serialNumber, err := rand.Int(rand.Reader, (&big.Int{}).Exp(big.NewInt(2), big.NewInt(64), nil))
+	if err != nil {
+		return "", err
+	}
+
 	cert := &ssh.Certificate{
 		Key:             pubkey,
 		KeyId:           name,
+		Serial:          serialNumber.Uint64(),
 		CertType:        certType(ishost),
 		ValidAfter:      uint64(time.Now().Unix()),
 		ValidBefore:     uint64(time.Now().Add(lifespan).Unix()),

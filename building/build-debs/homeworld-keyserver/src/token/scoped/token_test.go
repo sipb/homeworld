@@ -158,10 +158,11 @@ func TestParallelFlags(t *testing.T) {
 	}
 	count := 0
 	countsync := sync.Mutex{}
-	done := make(chan int)
+	var wg sync.WaitGroup
 	for i := 0; i < 1000; i++ {
+		wg.Add(1)
 		go func() {
-			time.Sleep(time.Millisecond * 10)
+			defer wg.Done()
 			for j := 0; j < 300; j++ {
 				idx := rand.Intn(len(boxes))
 				if boxes[idx].Claim() == nil {
@@ -170,12 +171,9 @@ func TestParallelFlags(t *testing.T) {
 					countsync.Unlock()
 				}
 			}
-			done <- 0
 		}()
 	}
-	for i := 0; i < 1000; i++ {
-		_ = <-done
-	}
+	wg.Wait()
 	if count != len(boxes) {
 		t.Errorf("Got a count besides %s: %s", len(boxes), count)
 	}
