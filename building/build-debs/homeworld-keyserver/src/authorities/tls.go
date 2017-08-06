@@ -18,22 +18,32 @@ import (
 
 type TLSAuthority struct {
 	// TODO: also support ECDSA or other newer algorithms
-	key      *rsa.PrivateKey
-	cert     *x509.Certificate
-	certData []byte
+	key         *rsa.PrivateKey
+	cert        *x509.Certificate
+	certData    []byte
+	certEncoded []byte
 }
 
 func (t *TLSAuthority) Equal(authority *TLSAuthority) bool {
 	return bytes.Equal(t.certData, authority.certData)
 }
 
-func loadSinglePEMBlock(data []byte, expected_type string) ([]byte, error) {
+func loadSinglePEMBlock(data []byte, expected_types []string) ([]byte, error) {
+	if !bytes.HasPrefix(data, []byte("-----BEGIN ")) {
+		return nil, errors.New("Missing expected PEM header")
+	}
 	pemBlock, remain := pem.Decode(data)
 	if pemBlock == nil {
 		return nil, errors.New("Could not parse PEM data")
 	}
-	if pemBlock.Type != expected_type {
-		return nil, fmt.Errorf("Found PEM block of type \"%s\" instead of type \"%s\"", pemBlock.Type, expected_type)
+	found := false
+	for _, expected_type := range expected_types {
+		if pemBlock.Type == expected_type {
+			found = true
+		}
+	}
+	if !found {
+		return nil, fmt.Errorf("Found PEM block of type \"%s\" instead of types %s", pemBlock.Type, expected_types)
 	}
 	if remain != nil && len(remain) > 0 {
 		return nil, errors.New("Trailing data found after PEM data")
@@ -42,12 +52,12 @@ func loadSinglePEMBlock(data []byte, expected_type string) ([]byte, error) {
 }
 
 func LoadTLSAuthority(keydata []byte, pubkeydata []byte) (Authority, error) {
-	certblock, err := loadSinglePEMBlock(pubkeydata, "CERTIFICATE")
+	certblock, err := loadSinglePEMBlock(pubkeydata, []string{"CERTIFICATE"})
 	if err != nil {
 		return nil, err
 	}
 
-	keyblock, err := loadSinglePEMBlock(keydata, "RSA PRIVATE KEY")
+	keyblock, err := loadSinglePEMBlock(keydata, []string{"RSA PRIVATE KEY", "PRIVATE KEY"})
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +88,7 @@ func LoadTLSAuthority(keydata []byte, pubkeydata []byte) (Authority, error) {
 		return nil, errors.New("mismatched RSA public and private keys")
 	}
 
-	return &TLSAuthority{key: privkey, cert: cert, certData: certblock}, nil
+	return &TLSAuthority{key: privkey, cert: cert, certData: certblock, certEncoded: pubkeydata}, nil
 }
 
 func (t *TLSAuthority) ToCertPool() *x509.CertPool {
@@ -88,7 +98,7 @@ func (t *TLSAuthority) ToCertPool() *x509.CertPool {
 }
 
 func (t *TLSAuthority) GetPublicKey() []byte {
-	return t.certData
+	return t.certEncoded
 }
 
 func (t *TLSAuthority) ToHTTPSCert() tls.Certificate {
@@ -97,12 +107,12 @@ func (t *TLSAuthority) ToHTTPSCert() tls.Certificate {
 
 func (t *TLSAuthority) Verify(request *http.Request) (string, error) {
 	if len(request.TLS.VerifiedChains) == 0 || len(request.TLS.VerifiedChains[0]) == 0 {
-		return "", fmt.Errorf("Valid certificate required for generating bootstrap tokens")
+		return "", fmt.Errorf("Client certificate must be present")
 	}
 	firstCert := request.TLS.VerifiedChains[0][0]
 	err := firstCert.CheckSignatureFrom(t.cert) // duplicate effort? probably. do it anyway, so we're certain it's *THIS* authority.
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("Certificate not valid under this authority: %s", err)
 	}
 	principal := firstCert.Subject.CommonName
 	now := time.Now()
@@ -116,7 +126,7 @@ func (t *TLSAuthority) Verify(request *http.Request) (string, error) {
 }
 
 func (d *TLSAuthority) Sign(request string, ishost bool, lifespan time.Duration, commonname string, names []string) (string, error) {
-	pemBlock, err := loadSinglePEMBlock([]byte(request), "CERTIFICATE REQUEST")
+	pemBlock, err := loadSinglePEMBlock([]byte(request), []string{"CERTIFICATE REQUEST"})
 	if err != nil {
 		return "", err
 	}
@@ -136,23 +146,21 @@ func (d *TLSAuthority) Sign(request string, ishost bool, lifespan time.Duration,
 		return "", err
 	}
 
-	extKeyUsage := x509.ExtKeyUsageClientAuth
+	extKeyUsage := []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}
 	if ishost {
-		extKeyUsage |= x509.ExtKeyUsageServerAuth
+		extKeyUsage = append(extKeyUsage, x509.ExtKeyUsageServerAuth)
 	}
 
 	dns_names, IPs := partitionDNSNamesAndIPs(names)
 
 	certTemplate := x509.Certificate{
-		PublicKey:          csr.PublicKey,
-		SignatureAlgorithm: csr.SignatureAlgorithm,
+		SignatureAlgorithm: x509.SHA256WithRSA,
 
 		KeyUsage:    x509.KeyUsageDigitalSignature,
-		ExtKeyUsage: []x509.ExtKeyUsage{extKeyUsage},
+		ExtKeyUsage: extKeyUsage,
 
 		BasicConstraintsValid: true,
 		IsCA:                  false,
-		MaxPathLen:            1, // TODO: figure out the correct value for this
 		SerialNumber:          serialNumber,
 
 		NotBefore: issue_at,
@@ -163,7 +171,7 @@ func (d *TLSAuthority) Sign(request string, ishost bool, lifespan time.Duration,
 		IPAddresses: IPs,
 	}
 
-	signed_cert, err := x509.CreateCertificate(rand.Reader, &certTemplate, d.cert, d.cert.PublicKey, d.key)
+	signed_cert, err := x509.CreateCertificate(rand.Reader, &certTemplate, d.cert, csr.PublicKey, d.key)
 	if err != nil {
 		return "", err
 	}
