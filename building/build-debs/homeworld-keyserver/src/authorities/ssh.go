@@ -49,6 +49,10 @@ func LoadSSHAuthority(keydata []byte, pubkeydata []byte) (Authority, error) {
 	return &SSHAuthority{key: key, pubkey: pubkeydata}, nil
 }
 
+func (d *SSHAuthority) AsVerifier() Verifier {
+	return nil
+}
+
 func (d *SSHAuthority) GetPublicKey() []byte {
 	return d.pubkey
 }

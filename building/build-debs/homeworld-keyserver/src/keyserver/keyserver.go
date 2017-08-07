@@ -9,9 +9,7 @@ import (
 	"authorities"
 	"config"
 	"account"
-	"token/auth"
 	"util"
-	"net"
 )
 
 func verifyAccountIP(account *account.Account, request *http.Request) error {
@@ -19,52 +17,37 @@ func verifyAccountIP(account *account.Account, request *http.Request) error {
 	if err != nil {
 		return err
 	}
-	allowed_ip_str, found := account.Metadata["ip"]
-	if !found {
-		return fmt.Errorf("No allowed IP for bootstrap target.")
-	}
-	allowed_ip := net.ParseIP(allowed_ip_str)
-	if allowed_ip == nil {
-		return fmt.Errorf("IP address malformed for bootstrap target.")
-	}
-	if !allowed_ip.Equal(ip) {
+	allowed_ip := account.LimitIP
+	if allowed_ip != nil && !allowed_ip.Equal(ip) {
 		return fmt.Errorf("Attempt to use bootstrap token from wrong IP address.")
 	}
 	return nil
 }
 
 func attemptAuthentication(context *config.Context, request *http.Request) (*account.Account, error) {
-	if auth.HasTokenAuthHeader(request) {
-		// Auth with a token.
-		principal, err := auth.Authenticate(context.TokenRegistry, request)
-		if err != nil {
-			return nil, err
+	verifiers := []authorities.Verifier {context.TokenVerifier, context.AuthenticationAuthority.AsVerifier()}
+
+	for _, verifier := range verifiers {
+		if verifier.HasAttempt(request) {
+			principal, err := verifier.Verify(request)
+			if err != nil {
+				return nil, err
+			}
+			ac, err := context.GetAccount(principal)
+			if err != nil {
+				return nil, err
+			}
+			if ac.DisableDirectAuth {
+				return nil, fmt.Errorf("Account has disabled direct authentication: %s", principal)
+			}
+			err = verifyAccountIP(ac, request)
+			if err != nil {
+				return nil, err
+			}
+			return ac, nil
 		}
-		ac, err := context.GetAccount(principal)
-		if err != nil {
-			return nil, err
-		}
-		err = verifyAccountIP(ac, request)
-		if err != nil {
-			return nil, err
-		}
-		return ac, nil
-	} else {
-		// Auth with a cert.
-		principal, err := context.Authenticator.Verify(request) // Try the main authentication authority
-		if err != nil {
-			return nil, err
-		}
-		ac, err := context.GetAccount(principal)
-		if err != nil {
-			return nil, err
-		}
-		authority, ok := ac.GrantingAuthority.(*authorities.TLSAuthority)
-		if !ok || !authority.Equal(context.Authenticator) {
-			return nil, fmt.Errorf("Mismatched authority during authentication")
-		}
-		return ac, nil
 	}
+	return nil, fmt.Errorf("No authentication method found in request.")
 }
 
 func handleAPIRequest(context *config.Context, writer http.ResponseWriter, request *http.Request) error {
@@ -143,7 +126,7 @@ func Run(configfile string) error {
 		Handler: mux,
 		TLSConfig: &tls.Config{
 			ClientAuth:   tls.VerifyClientCertIfGiven,
-			ClientCAs:    context.Authenticator.ToCertPool(),
+			ClientCAs:    context.AuthenticationAuthority.ToCertPool(),
 			Certificates: []tls.Certificate{context.ServerTLS.ToHTTPSCert()},
 		},
 	}

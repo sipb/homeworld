@@ -13,10 +13,11 @@ type ConfigAuthority struct {
 }
 
 type ConfigAccount struct {
-	Principal string
-	Realm     string
-	Group     string
-	Metadata  map[string]string
+	Principal            string
+	Group                string
+	LimitIP              bool
+	DisableDirectAuth    bool
+	Metadata             map[string]string
 }
 
 type ConfigGrant struct {
@@ -38,14 +39,14 @@ type ConfigGroup struct {
 }
 
 type Config struct {
-	AuthorityDir  string
-	StaticDir     string
-	Authenticator string
-	ServerTLS     string
-	Authorities   []ConfigAuthority
-	StaticFiles   []string
-	Accounts      []ConfigAccount
-	Groups        []ConfigGroup
+	AuthorityDir            string
+	StaticDir               string
+	AuthenticationAuthority string
+	ServerTLS               string
+	Authorities             []ConfigAuthority
+	StaticFiles             []string
+	Accounts                []ConfigAccount
+	Groups                  []ConfigGroup
 }
 
 func ParseConfigFromBytes(data []byte) (*Config, error) {

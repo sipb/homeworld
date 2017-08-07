@@ -2,7 +2,7 @@
 
 authoritydir: /etc/hyades/keyserver/authorities/
 staticdir: /etc/hyades/keyserver/static/
-authenticator: keygranting
+authentication-authority: keygranting
 servertls: servertls
 
 staticfiles:
@@ -16,8 +16,8 @@ authorities:
 
   - name: servertls
     type: TLS
-    key: keyserver.key
-    cert: keyserver.pem
+    key: server.key
+    cert: server.pem
 
   - name: ssh-user
     type: SSH
@@ -46,61 +46,64 @@ authorities:
 
 accounts:
   - principal: eggs-benedict.mit.edu
-    realm: keygranting
     group: master-nodes
+    limit-ip: true
     metadata:
       ip: 18.181.0.97
       hostname: eggs-benedict
 
   - principal: huevos-rancheros.mit.edu
-    realm: keygranting
     group: master-nodes
+    limit-ip: true
     metadata:
       ip: 18.181.0.104
       hostname: huevos-rancheros
 
   - principal: ole-miss.mit.edu
-    realm: keygranting
     group: master-nodes
+    limit-ip: true
     metadata:
       ip: 18.181.0.106
       hostname: ole-miss
 
   - principal: grilled-cheese.mit.edu
-    realm: keygranting
     group: worker-nodes
+    limit-ip: true
     metadata:
       ip: 18.181.0.128
       hostname: grilled-cheese
 
   - principal: avocado-burger.mit.edu
-    realm: keygranting
     group: worker-nodes
+    limit-ip: true
     metadata:
       ip: 18.181.0.129
       hostname: avocado-burger
 
   - principal: french-toast.mit.edu
-    realm: keygranting
     group: worker-nodes
+    limit-ip: true
     metadata:
       ip: 18.181.2.232
       hostname: french-toast
 
   - principal: egg-sandwich.mit.edu
-    realm: keygranting
     group: supervisor-nodes
+    limit-ip: true
     metadata:
       ip: 18.181.0.253
       hostname: egg-sandwich
 
   - principal: cela@ATHENA.MIT.EDU
+    disable-direct-auth: true
     group: root-admins
 
   - principal: dukhovni@ATHENA.MIT.EDU
+    disable-direct-auth: true
     group: root-admins
 
   - principal: ikdc@ATHENA.MIT.EDU
+    disable-direct-auth: true
     group: root-admins
 
 groups:

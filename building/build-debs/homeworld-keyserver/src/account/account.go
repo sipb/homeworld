@@ -1,18 +1,18 @@
 package account
 
 import (
-	"authorities"
 	"fmt"
 	"log"
 	"encoding/json"
+	"net"
 )
 
 type Account struct {
 	Principal         string
 	Group             *Group
-	GrantingAuthority authorities.Authority  // the authority that can authenticate a user as being this particular account
+	DisableDirectAuth bool
 	Grants            map[string]*Grant
-	Metadata          map[string]string
+	LimitIP           net.IP
 }
 
 type Group struct {

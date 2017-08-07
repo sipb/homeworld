@@ -101,12 +101,20 @@ func (t *TLSAuthority) GetPublicKey() []byte {
 	return t.certEncoded
 }
 
+func (t *TLSAuthority) AsVerifier() Verifier {
+	return t
+}
+
 func (t *TLSAuthority) ToHTTPSCert() tls.Certificate {
 	return tls.Certificate{Certificate: [][]byte{t.certData }, PrivateKey: t.key }
 }
 
+func (t *TLSAuthority) HasAttempt(request *http.Request) bool {
+	return len(request.TLS.VerifiedChains) > 0 && len(request.TLS.VerifiedChains[0]) > 0
+}
+
 func (t *TLSAuthority) Verify(request *http.Request) (string, error) {
-	if len(request.TLS.VerifiedChains) == 0 || len(request.TLS.VerifiedChains[0]) == 0 {
+	if !t.HasAttempt(request) {
 		return "", fmt.Errorf("Client certificate must be present")
 	}
 	firstCert := request.TLS.VerifiedChains[0][0]

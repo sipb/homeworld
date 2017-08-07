@@ -1,4 +1,4 @@
-package auth
+package authorities
 
 import (
 	"net/http"
@@ -8,16 +8,25 @@ import (
 
 const authheader = "X-Bootstrap-Token"
 
-func HasTokenAuthHeader(request *http.Request) bool {
+type TokenVerifier struct {
+	Registry *token.TokenRegistry
+}
+
+func NewTokenVerifier() TokenVerifier {
+	reg := token.NewTokenRegistry()
+	return TokenVerifier{reg}
+}
+
+func (v TokenVerifier) HasAttempt(request *http.Request) bool {
 	return request.Header.Get(authheader) != ""
 }
 
-func Authenticate(registry *token.TokenRegistry, request *http.Request) (string, error) {
+func (v TokenVerifier) Verify(request *http.Request) (principal string, err error) {
 	tokens := request.Header.Get(authheader)
 	if tokens == "" {
 		return "", errors.New("No token authentication header provided")
 	}
-	tok, err := registry.LookupToken(tokens)
+	tok, err := v.Registry.LookupToken(tokens)
 	if err != nil {
 		return "", err
 	}

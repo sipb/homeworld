@@ -1,4 +1,4 @@
-package auth
+package authorities
 
 import (
 	"testing"
@@ -18,21 +18,23 @@ func getTestRequest(token string) *http.Request {
 }
 
 func TestCheckHasTokenHeader(t *testing.T) {
-	if HasTokenAuthHeader(getTestRequest("")) {
+	verifier := NewTokenVerifier()
+	if verifier.HasAttempt(getTestRequest("")) {
 		t.Error("Should not have header.")
 	}
 }
 
 func TestCheckHasNoTokenHeader(t *testing.T) {
-	if !HasTokenAuthHeader(getTestRequest("header")) {
+	verifier := NewTokenVerifier()
+	if !verifier.HasAttempt(getTestRequest("header")) {
 		t.Error("Should have header.")
 	}
 }
 
 func TestSimpleAuthenticate(t *testing.T) {
-	registry := token.NewTokenRegistry()
-	tok := registry.GrantToken("my-local-subject", time.Minute)
-	subject, err := Authenticate(registry, getTestRequest(tok))
+	verifier := NewTokenVerifier()
+	tok := verifier.Registry.GrantToken("my-local-subject", time.Minute)
+	subject, err := verifier.Verify(getTestRequest(tok))
 	if err != nil {
 		t.Errorf("Expected token to work: %s", err)
 	} else if subject != "my-local-subject" {
@@ -41,9 +43,9 @@ func TestSimpleAuthenticate(t *testing.T) {
 }
 
 func TestFailAuthenticate(t *testing.T) {
-	registry := token.NewTokenRegistry()
-	_ = registry.GrantToken("my-local-subject", time.Minute)
-	subject, err := Authenticate(registry, getTestRequest(""))
+	verifier := NewTokenVerifier()
+	_ = verifier.Registry.GrantToken("my-local-subject", time.Minute)
+	subject, err := verifier.Verify(getTestRequest(""))
 	if err == nil {
 		t.Errorf("Expected token to fail: %s", subject)
 	} else if !strings.Contains(err.Error(), "header") {
@@ -52,15 +54,15 @@ func TestFailAuthenticate(t *testing.T) {
 }
 
 func TestLimitedAuthentication(t *testing.T) {
-	registry := token.NewTokenRegistry()
-	tok := registry.GrantToken("my-local-subject", time.Minute)
-	subject, err := Authenticate(registry, getTestRequest(tok))
+	verifier := NewTokenVerifier()
+	tok := verifier.Registry.GrantToken("my-local-subject", time.Minute)
+	subject, err := verifier.Verify(getTestRequest(tok))
 	if err != nil {
 		t.Errorf("Expected token to work: %s", err)
 	} else if subject != "my-local-subject" {
 		t.Errorf("Incorrect subject retrieved: %s", subject)
 	}
-	_, err = Authenticate(registry, getTestRequest(tok))
+	_, err = verifier.Verify(getTestRequest(tok))
 	if err == nil {
 		t.Error("Expected token to fail")
 	} else if !strings.Contains(err.Error(), "already") {
@@ -69,16 +71,16 @@ func TestLimitedAuthentication(t *testing.T) {
 }
 
 func TestIndependentAuthentication(t *testing.T) {
-	registry := token.NewTokenRegistry()
-	tok1 := registry.GrantToken("my-local-subject", time.Minute)
-	tok2 := registry.GrantToken("my-local-subject-2", time.Minute)
-	subject1, err := Authenticate(registry, getTestRequest(tok1))
+	verifier := NewTokenVerifier()
+	tok1 := verifier.Registry.GrantToken("my-local-subject", time.Minute)
+	tok2 := verifier.Registry.GrantToken("my-local-subject-2", time.Minute)
+	subject1, err := verifier.Verify(getTestRequest(tok1))
 	if err != nil {
 		t.Errorf("Expected token to work: %s", err)
 	} else if subject1 != "my-local-subject" {
 		t.Errorf("Incorrect subject retrieved: %s", subject1)
 	}
-	subject2, err := Authenticate(registry, getTestRequest(tok2))
+	subject2, err := verifier.Verify(getTestRequest(tok2))
 	if err != nil {
 		t.Errorf("Expected token to work: %s", err)
 	} else if subject2 != "my-local-subject-2" {
@@ -87,10 +89,10 @@ func TestIndependentAuthentication(t *testing.T) {
 }
 
 func TestExpiredAuthentication(t *testing.T) {
-	registry := token.NewTokenRegistry()
-	tok := registry.GrantToken("my-local-subject", time.Nanosecond)
+	verifier := NewTokenVerifier()
+	tok := verifier.Registry.GrantToken("my-local-subject", time.Nanosecond)
 	time.Sleep(time.Nanosecond)
-	_, err := Authenticate(registry, getTestRequest(tok))
+	_, err := verifier.Verify(getTestRequest(tok))
 	if err == nil {
 		t.Error("Expected token to fail")
 	} else if !strings.Contains(err.Error(), "expired") {
@@ -100,9 +102,9 @@ func TestExpiredAuthentication(t *testing.T) {
 
 func TestInvalidToken(t *testing.T) {
 	fake_token := token.NewTokenRegistry().GrantToken("my-local-subject", time.Minute)
-	registry := token.NewTokenRegistry()
-	_ = registry.GrantToken("my-local-subject", time.Minute)
-	_, err := Authenticate(registry, getTestRequest(fake_token))
+	verifier := NewTokenVerifier()
+	_ = verifier.Registry.GrantToken("my-local-subject", time.Minute)
+	_, err := verifier.Verify(getTestRequest(fake_token))
 	if err == nil {
 		t.Error("Expected token to fail")
 	} else if !strings.Contains(err.Error(), "Unrecognized") {

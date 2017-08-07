@@ -1,5 +1,7 @@
 package authorities
 
+import "net/http"
+
 /*
  * Roughly speaking, the point of this package is to abstract away the details of how different kinds of certificate
  * authorities actually work.
@@ -29,4 +31,10 @@ package authorities
 
 type Authority interface {
 	GetPublicKey() []byte
+	AsVerifier() Verifier // might return nil if this isn't a verifier
+}
+
+type Verifier interface {
+	HasAttempt(request *http.Request) bool
+	Verify(request *http.Request) (principal string, err error)
 }

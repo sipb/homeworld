@@ -8,9 +8,9 @@ import (
 	"authorities"
 	"time"
 	"strconv"
-	"token"
 	"account"
 	"os"
+	"net"
 )
 
 type StaticFile struct {
@@ -19,14 +19,14 @@ type StaticFile struct {
 }
 
 type Context struct {
-	Authorities   map[string]authorities.Authority
-	Groups        map[string]*account.Group
-	GroupGrants   map[string][]ConfigGrant
-	Accounts      map[string]*account.Account
-	TokenRegistry *token.TokenRegistry
-	Authenticator *authorities.TLSAuthority
-	ServerTLS     *authorities.TLSAuthority
-	StaticFiles   map[string]StaticFile
+	Authorities             map[string]authorities.Authority
+	Groups                  map[string]*account.Group
+	GroupGrants             map[string][]ConfigGrant
+	Accounts                map[string]*account.Account
+	TokenVerifier           authorities.TokenVerifier
+	AuthenticationAuthority *authorities.TLSAuthority
+	ServerTLS               *authorities.TLSAuthority
+	StaticFiles             map[string]StaticFile
 }
 
 func (ctx *Context) GetAccount(principal string) (*account.Account, error) {
@@ -49,16 +49,16 @@ func (config *Config) Compile() (*Context, error) {
 	if err != nil {
 		return nil, err
 	}
-	if config.Authenticator == "" {
-		return nil, fmt.Errorf("No authenticator specified.")
+	if config.AuthenticationAuthority == "" {
+		return nil, fmt.Errorf("No AuthenticationAuthority specified.")
 	}
-	authenticator_i, found := authority_map[config.Authenticator]
+	authenticator_i, found := authority_map[config.AuthenticationAuthority]
 	if !found {
-		return nil, fmt.Errorf("Authenticator not found: %s", config.Authenticator)
+		return nil, fmt.Errorf("AuthenticationAuthority not found: %s", config.AuthenticationAuthority)
 	}
-	authenticator, ok := authenticator_i.(*authorities.TLSAuthority)
+	authentication_authority, ok := authenticator_i.(*authorities.TLSAuthority)
 	if !ok {
-		return nil, fmt.Errorf("Authenticator is not a TLS authority.")
+		return nil, fmt.Errorf("AuthenticationAuthority is not a TLS authority.")
 	}
 	servertls_i, found := authority_map[config.ServerTLS]
 	if !found {
@@ -72,8 +72,8 @@ func (config *Config) Compile() (*Context, error) {
 	if err != nil {
 		return nil, err
 	}
-	registry := token.NewTokenRegistry()
-	ctx := &Context{authority_map, groups, grants, nil, registry, authenticator, servertls, staticfiles}
+	verifier := authorities.NewTokenVerifier()
+	ctx := &Context{authority_map, groups, grants, nil, verifier, authentication_authority, servertls, staticfiles}
 	ctx.Accounts, err = CompileAccounts(config.Accounts, ctx)
 	if err != nil {
 		return nil, err
@@ -127,13 +127,6 @@ func CompileAuthorities(directory string, certauthorities []ConfigAuthority) (ma
 		if authority.Name == "" {
 			return nil, fmt.Errorf("An authority name is required.")
 		}
-		if authority.Type == "delegated" {
-			if authority.Key != "" || authority.Cert != "" {
-				return nil, fmt.Errorf("Extraneous key or cert in delegated authority %s", authority.Name)
-			}
-			out[authority.Name] = authorities.NewDelegatedAuthority(authority.Name)
-			continue
-		}
 		if authority.Type != "SSH" && authority.Type != "TLS" {
 			return nil, fmt.Errorf("Unknown authority type: %s", authority.Type)
 		}
@@ -173,15 +166,18 @@ func CompileAccounts(accounts []ConfigAccount, ctx *Context) (map[string]*accoun
 		if group == nil {
 			return nil, fmt.Errorf("No such group %s (in account %s)", ac.Group, ac.Principal)
 		}
-		authority, found := ctx.Authorities[ac.Realm]
-		if !found {
-			return nil, fmt.Errorf("No such authority %s (in account %s)", ac.Realm, ac.Principal)
+		var limitIP net.IP
+		if ac.LimitIP {
+			limitIP = net.ParseIP(ac.Metadata["ip"])
+			if limitIP == nil {
+				return nil, fmt.Errorf("Invalid IP address: %s", ac.Metadata["ip"])
+			}
 		}
 		grants, err := CompileGrants(group, ac.Principal, ac.Metadata, ctx)
 		if err != nil {
 			return nil, err
 		}
-		out[ac.Principal] = &account.Account{ac.Principal, group, authority, grants, ac.Metadata}
+		out[ac.Principal] = &account.Account{ac.Principal, group, ac.DisableDirectAuth, grants, limitIP}
 		group.Members = append(group.Members, ac.Principal)
 	}
 	return out, nil
@@ -256,7 +252,7 @@ func CompileGrant(grant ConfigGrant, vars map[string]string, ctx *Context) (*acc
 		if err != nil {
 			return nil, err
 		}
-		privilege, err = account.NewBootstrapPrivilege(scope.AllMembers(), lifespan, ctx.TokenRegistry)
+		privilege, err = account.NewBootstrapPrivilege(scope.AllMembers(), lifespan, ctx.TokenVerifier.Registry)
 		if err != nil {
 			return nil, err
 		}
