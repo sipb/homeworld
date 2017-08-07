@@ -6,10 +6,10 @@ import (
 	"log"
 	"io/ioutil"
 	"crypto/tls"
-	"authorities"
 	"config"
 	"account"
 	"util"
+	"verifier"
 )
 
 func verifyAccountIP(account *account.Account, request *http.Request) error {
@@ -25,7 +25,7 @@ func verifyAccountIP(account *account.Account, request *http.Request) error {
 }
 
 func attemptAuthentication(context *config.Context, request *http.Request) (*account.Account, error) {
-	verifiers := []authorities.Verifier {context.TokenVerifier, context.AuthenticationAuthority.AsVerifier()}
+	verifiers := []verifier.Verifier {context.TokenVerifier, context.AuthenticationAuthority.AsVerifier()}
 
 	for _, verifier := range verifiers {
 		if verifier.HasAttempt(request) {

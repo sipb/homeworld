@@ -1,4 +1,4 @@
-package authorities
+package verifier
 
 import (
 	"testing"

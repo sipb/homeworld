@@ -14,6 +14,7 @@ import (
 	"net"
 	"crypto/tls"
 	"bytes"
+	"verifier"
 )
 
 type TLSAuthority struct {
@@ -101,7 +102,8 @@ func (t *TLSAuthority) GetPublicKey() []byte {
 	return t.certEncoded
 }
 
-func (t *TLSAuthority) AsVerifier() Verifier {
+// This exists to make sure that the type errors happen here.
+func (t *TLSAuthority) AsVerifier() verifier.Verifier {
 	return t
 }
 
