@@ -275,7 +275,7 @@ func TestSSHGrantPrivilege_WithSSH(t *testing.T) {
 
 func TestBootstrapPrivilege(t *testing.T) {
 	registry := token.NewTokenRegistry()
-	priv, err := NewBootstrapPrivilege([]string {"princ1", "princ2", "princ3"}, time.Millisecond * 13, registry)
+	priv, err := NewBootstrapPrivilege([]string{"princ1", "princ2", "princ3"}, time.Millisecond*13, registry)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -288,7 +288,7 @@ func TestBootstrapPrivilege(t *testing.T) {
 		t.Error(err)
 	}
 	for i := 0; i < 5; i++ {
-		for _, princ := range []string {"princ3", "princ2", "princ1"} {
+		for _, princ := range []string{"princ3", "princ2", "princ1"} {
 			tok, err := priv(nil, princ)
 			if err != nil {
 				t.Error(err)
@@ -333,7 +333,7 @@ func TestBootstrapPrivilege_NoPrincipals(t *testing.T) {
 	} else if !strings.Contains(err.Error(), "parameter") {
 		t.Error("Expected error about bad parameter, not", err)
 	}
-	_, err = NewBootstrapPrivilege([]string {}, time.Hour, registry)
+	_, err = NewBootstrapPrivilege([]string{}, time.Hour, registry)
 	if err == nil {
 		t.Error("Expected error about bad parameter")
 	} else if !strings.Contains(err.Error(), "parameter") {
@@ -363,7 +363,7 @@ func TestBootstrapPrivilege_NoRegistry(t *testing.T) {
 func TestImpersonatePrivilege(t *testing.T) {
 	test_account := &Account{Principal: "testy-tester"}
 	broken_account := &Account{Principal: "wrong-name"}
-	scope := &Group{Members: []string {"testy-tester", "missing-account", "broken-account"}}
+	scope := &Group{Members: []string{"testy-tester", "missing-account", "broken-account"}}
 	get_account := func(name string) (*Account, error) {
 		if name == "testy-tester" {
 			return test_account, nil
@@ -417,7 +417,7 @@ func TestDelegateAuthorityPrivilege_NoScope(t *testing.T) {
 }
 
 func TestDelegateAuthorityPrivilege_NoAccessor(t *testing.T) {
-	scope := &Group{Members: []string {"testy-tester"}}
+	scope := &Group{Members: []string{"testy-tester"}}
 	_, err := NewImpersonatePrivilege(nil, scope)
 	if err == nil || !strings.Contains(err.Error(), "Missing parameter") {
 		t.Errorf("Expected bad parameter error, not %v", err)

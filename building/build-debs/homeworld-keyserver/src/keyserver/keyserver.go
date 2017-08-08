@@ -10,6 +10,7 @@ import (
 	"account"
 	"util"
 	"verifier"
+	"operation"
 )
 
 func verifyAccountIP(account *account.Account, request *http.Request) error {
@@ -25,11 +26,11 @@ func verifyAccountIP(account *account.Account, request *http.Request) error {
 }
 
 func attemptAuthentication(context *config.Context, request *http.Request) (*account.Account, error) {
-	verifiers := []verifier.Verifier {context.TokenVerifier, context.AuthenticationAuthority.AsVerifier()}
+	verifiers := []verifier.Verifier{context.TokenVerifier, context.AuthenticationAuthority.AsVerifier()}
 
-	for _, verifier := range verifiers {
-		if verifier.HasAttempt(request) {
-			principal, err := verifier.Verify(request)
+	for _, verif := range verifiers {
+		if verif.HasAttempt(request) {
+			principal, err := verif.Verify(request)
 			if err != nil {
 				return nil, err
 			}
@@ -59,7 +60,7 @@ func handleAPIRequest(context *config.Context, writer http.ResponseWriter, reque
 	if err != nil {
 		return err
 	}
-	response, err := ac.InvokeAPIOperationSet(requestBody)
+	response, err := operation.InvokeAPIOperationSet(ac, context, requestBody)
 	if err != nil {
 		return err
 	}

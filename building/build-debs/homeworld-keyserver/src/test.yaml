@@ -51,6 +51,7 @@ accounts:
     metadata:
       ip: 18.181.0.97
       hostname: eggs-benedict
+      schedule: false
 
   - principal: huevos-rancheros.mit.edu
     group: master-nodes
@@ -58,6 +59,7 @@ accounts:
     metadata:
       ip: 18.181.0.104
       hostname: huevos-rancheros
+      schedule: false
 
   - principal: ole-miss.mit.edu
     group: master-nodes
@@ -65,6 +67,7 @@ accounts:
     metadata:
       ip: 18.181.0.106
       hostname: ole-miss
+      schedule: false
 
   - principal: grilled-cheese.mit.edu
     group: worker-nodes
@@ -72,6 +75,7 @@ accounts:
     metadata:
       ip: 18.181.0.128
       hostname: grilled-cheese
+      schedule: true
 
   - principal: avocado-burger.mit.edu
     group: worker-nodes
@@ -79,6 +83,7 @@ accounts:
     metadata:
       ip: 18.181.0.129
       hostname: avocado-burger
+      schedule: true
 
   - principal: french-toast.mit.edu
     group: worker-nodes
@@ -86,6 +91,7 @@ accounts:
     metadata:
       ip: 18.181.2.232
       hostname: french-toast
+      schedule: true
 
   - principal: egg-sandwich.mit.edu
     group: supervisor-nodes
@@ -93,6 +99,7 @@ accounts:
     metadata:
       ip: 18.181.0.253
       hostname: egg-sandwich
+      schedule: false
 
   - principal: cela@ATHENA.MIT.EDU
     disable-direct-auth: true
@@ -108,137 +115,143 @@ accounts:
 
 groups:
   - name: root-admins
-    grants:
-    - api: bootstrap
-      privilege: bootstrap-account
-      scope: nodes
-      lifespan: 1 hour
-
-    - api: access-ssh
-      privilege: sign-ssh
-      authority: ssh-user
-      lifespan: 4 hours
-      ishost: false
-      common-name: temporary-ssh-grant-(principal)
-      allowed-names:
-      - root
-
-    - api: access-etcd
-      privilege: sign-tls
-      authority: etcd-client
-      lifespan: 4 hours
-      ishost: false
-      common-name: temporary-etcd-grant-(principal)
-
-    - api: access-kubernetes
-      privilege: sign-tls
-      authority: kubernetes
-      lifespan: 4 hours
-      ishost: false
-      common-name: temporary-kube-grant-(principal)
-
   - name: nodes
-    grants:
-    - api: renew-keygrant
-      privilege: sign-tls
-      authority: keygranting
-      lifespan: 40 days
-      ishost: false
-      common-name: (principal)
-
-    - api: grant-ssh-host
-      privilege: sign-ssh
-      authority: ssh-host
-      lifespan: 60 days
-      ishost: false
-      common-name: admitted-(principal)
-      allowed-names:
-      - (hostname).mit.edu
-      - (hostname)
-      - (ip)
-
   - name: supervisor-nodes
     inherit: nodes
-
-    grants:
-    - api: auth-to-kerberos
-      privilege: impersonate
-      scope: root-admins
-
   - name: kubernetes-nodes
     inherit: nodes
-
-    grants:
-    - api: grant-kubernetes-worker
-      privilege: sign-tls
-      authority: kubernetes
-      common-name: kube-master-(hostname)
-      ishost: false
-      allowed-names:
-      - (hostname).mit.edu
-      - (hostname)
-      - (ip)
-
   - name: worker-nodes
     inherit: kubernetes-nodes
-
-    grants:
-    - api: get-local-config
-      privilege: construct-configuration
-      contents: |
-        # generated automatically by keyserver
-        HOST_NODE=(hostname)
-        HOST_DNS=(hostname).mit.edu
-        HOST_IP=(ip)
-        SCHEDULE_WORK=true
-
   - name: master-nodes
     inherit: kubernetes-nodes
 
-    grants:
-    - api: get-local-config
-      privilege: construct-configuration
-      contents: |
-        # generated automatically by keyserver
-        HOST_NODE=(hostname)
-        HOST_DNS=(hostname).mit.edu
-        HOST_IP=(ip)
-        SCHEDULE_WORK=true
+grants:
 
-    - api: grant-etcd-server
-      privilege: sign-tls
-      authority: etcd-server
-      lifespan: 30 days
-      ishost: true
-      common-name: etcd-server-(hostname)
-      allowed-names:
-      - (hostname).mit.edu
-      - (hostname)
-      - (ip)
+  # ADMIN ACCESS TO THE RUNNING CLUSTER
 
-    - api: grant-etcd-client
-      privilege: sign-tls
-      authority: etcd-client
-      lifespan: 30 days
-      ishost: false
-      common-name: etcd-client-(hostname)
-      allowed-names:
-      - (hostname).mit.edu
-      - (hostname)
-      - (ip)
+  - api: access-ssh
+    group: root-admins
+    privilege: sign-ssh
+    authority: ssh-user
+    lifespan: 4 hours
+    ishost: false
+    common-name: temporary-ssh-grant-(principal)
+    allowed-names:
+    - root
 
-    - api: grant-kubernetes-master
-      privilege: sign-tls
-      authority: kubernetes
-      lifespan: 30 days
-      ishost: true
-      common-name: kube-master-(hostname)
-      allowed-names:
-      - (hostname).mit.edu
-      - (hostname)
-      - kubernetes
-      - kubernetes.default
-      - kubernetes.default.svc
-      - kubernetes.default.svc.hyades.local
-      - (ip)
-      - 172.28.0.1
+  - api: access-etcd
+    group: root-admins
+    privilege: sign-tls
+    authority: etcd-client
+    lifespan: 4 hours
+    ishost: false
+    common-name: temporary-etcd-grant-(principal)
+
+  - api: access-kubernetes
+    group: root-admins
+    privilege: sign-tls
+    authority: kubernetes
+    lifespan: 4 hours
+    ishost: false
+    common-name: temporary-kube-grant-(principal)
+
+  # MEMBERSHIP IN THE CLUSTER
+
+  - api: bootstrap
+    group: root-admins
+    privilege: bootstrap-account
+    scope: nodes
+    lifespan: 1 hour
+
+  - api: renew-keygrant
+    group: nodes
+    privilege: sign-tls
+    authority: keygranting
+    lifespan: 40 days
+    ishost: false
+    common-name: (principal)
+
+  - api: auth-to-kerberos
+    group: supervisor-nodes
+    privilege: impersonate
+    scope: root-admins
+
+  # CONFIGURATION ENDPOINT
+
+  - api: get-local-config
+    group: nodes
+    privilege: construct-configuration
+    contents: |
+      # generated automatically by keyserver
+      HOST_NODE=(hostname)
+      HOST_DNS=(hostname).mit.edu
+      HOST_IP=(ip)
+      SCHEDULE_WORK=(schedule)
+
+  # SERVER CERTIFICATES
+
+  - api: grant-ssh-host
+    group: nodes
+    privilege: sign-ssh
+    authority: ssh-host
+    lifespan: 60 days
+    ishost: false
+    common-name: admitted-(principal)
+    allowed-names:
+    - (hostname).mit.edu
+    - (hostname)
+    - (ip)
+
+  - api: grant-kubernetes-master
+    group: master-nodes
+    privilege: sign-tls
+    authority: kubernetes
+    lifespan: 30 days
+    ishost: true
+    common-name: kube-master-(hostname)
+    allowed-names:
+    - (hostname).mit.edu
+    - (hostname)
+    - kubernetes
+    - kubernetes.default
+    - kubernetes.default.svc
+    - kubernetes.default.svc.hyades.local
+    - (ip)
+    - 172.28.0.1
+
+  - api: grant-etcd-server
+    group: master-nodes
+    privilege: sign-tls
+    authority: etcd-server
+    lifespan: 30 days
+    ishost: true
+    common-name: etcd-server-(hostname)
+    allowed-names:
+    - (hostname).mit.edu
+    - (hostname)
+    - (ip)
+
+  # CLIENT CERTIFICATES
+
+  - api: grant-kubernetes-worker
+    group: kubernetes-nodes
+    privilege: sign-tls
+    authority: kubernetes
+    common-name: kube-worker-(hostname)
+    ishost: false
+    allowed-names:
+    - (hostname).mit.edu
+    - (hostname)
+    - (ip)
+
+  - api: grant-etcd-client
+    group: master-nodes
+    privilege: sign-tls
+    authority: etcd-client
+    lifespan: 30 days
+    ishost: false
+    common-name: etcd-client-(hostname)
+    allowed-names:
+    - (hostname).mit.edu
+    - (hostname)
+    - (ip)

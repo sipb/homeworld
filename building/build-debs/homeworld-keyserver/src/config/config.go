@@ -13,15 +13,16 @@ type ConfigAuthority struct {
 }
 
 type ConfigAccount struct {
-	Principal            string
-	Group                string
-	LimitIP              bool
-	DisableDirectAuth    bool
-	Metadata             map[string]string
+	Principal         string
+	Group             string
+	LimitIP           bool
+	DisableDirectAuth bool
+	Metadata          map[string]string
 }
 
 type ConfigGrant struct {
 	API          string
+	Group        string
 	Privilege    string
 	Scope        string
 	Authority    string
@@ -35,8 +36,9 @@ type ConfigGrant struct {
 type ConfigGroup struct {
 	Name    string
 	Inherit string
-	Grants  []ConfigGrant
 }
+
+type ConfigStatic string
 
 type Config struct {
 	AuthorityDir            string
@@ -44,9 +46,10 @@ type Config struct {
 	AuthenticationAuthority string
 	ServerTLS               string
 	Authorities             []ConfigAuthority
-	StaticFiles             []string
+	StaticFiles             []ConfigStatic
 	Accounts                []ConfigAccount
 	Groups                  []ConfigGroup
+	Grants                  []ConfigGrant
 }
 
 func ParseConfigFromBytes(data []byte) (*Config, error) {

@@ -1,5 +1,9 @@
 package authorities
 
+import (
+	"fmt"
+)
+
 /*
  * Roughly speaking, the point of this package is to abstract away the details of how different kinds of certificate
  * authorities actually work.
@@ -20,4 +24,15 @@ package authorities
 
 type Authority interface {
 	GetPublicKey() []byte
+}
+
+func LoadAuthority(kind string, keydata []byte, certdata []byte) (Authority, error) {
+	switch kind {
+	case "SSH":
+		return LoadSSHAuthority(keydata, certdata)
+	case "TLS":
+		return LoadTLSAuthority(keydata, certdata)
+	default:
+		return nil, fmt.Errorf("Unrecognized kind of authority: %s", kind)
+	}
 }

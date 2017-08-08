@@ -1,9 +1,6 @@
 package account
 
 import (
-	"fmt"
-	"log"
-	"encoding/json"
 	"net"
 )
 
@@ -11,7 +8,7 @@ type Account struct {
 	Principal         string
 	Group             *Group
 	DisableDirectAuth bool
-	Grants            map[string]*Grant
+	Metadata          map[string]string
 	LimitIP           net.IP
 }
 
@@ -19,20 +16,6 @@ type Group struct {
 	Name    string
 	Members []string
 	Inherit *Group
-}
-
-type Grant struct {
-	API       string
-	Privilege Privilege
-}
-
-type OperationContext struct {
-	Account *Account
-}
-
-type Operation struct {
-	API  string
-	body string
 }
 
 // order not guaranteed
@@ -57,38 +40,4 @@ func (g *Group) HasMember(user string) bool {
 		g = g.Inherit
 	}
 	return false
-}
-
-func (a *Account) InvokeAPIOperationSet(requestBody []byte) ([]byte, error) {
-	ops := []Operation{}
-	err := json.Unmarshal(requestBody, &ops)
-	if err != nil {
-		return nil, err
-	}
-	ctx := &OperationContext{a}
-	results := make([]string, len(ops))
-	for i, operation := range ops {
-		result, err := ctx.InvokeAPIOperation(operation.API, operation.body)
-		if err != nil {
-			return nil, err
-		}
-		results[i] = result
-	}
-	return json.Marshal(results)
-}
-
-func (ctx *OperationContext) InvokeAPIOperation(API string, requestBody string) (string, error) {
-	grant, found := ctx.Account.Grants[API]
-	if !found {
-		return "", fmt.Errorf("Could not find API request %s", grant)
-	}
-	princ := ctx.Account.Principal
-	log.Println("Attempting to perform API operation %s for %s", API, princ)
-	response, err := grant.Privilege(ctx, requestBody)
-	if err != nil {
-		log.Println("Operation %s for %s failed with error: %s.", API, princ, err)
-		return "", err
-	}
-	log.Println("Operation %s for %s succeeded.", API, princ)
-	return response, nil
 }

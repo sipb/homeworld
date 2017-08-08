@@ -68,7 +68,7 @@ func (f FakeConnMetadata) LocalAddr() net.Addr {
 
 func TestSignSSHUserCertificate(t *testing.T) {
 	a := getSSHAuthority(t)
-	s, err := a.Sign(SSH_TEST2_PUBKEY, false, time.Minute, "first-name", []string {"principal1", "principal2", "principal3" })
+	s, err := a.Sign(SSH_TEST2_PUBKEY, false, time.Minute, "first-name", []string{"principal1", "principal2", "principal3" })
 	if err != nil {
 		t.Error(err)
 	} else if !strings.HasPrefix(s, "ssh-rsa-cert-v01@openssh.com ") || !strings.HasSuffix(s, "\n") {
@@ -89,7 +89,7 @@ func TestSignSSHUserCertificate(t *testing.T) {
 						return arePublicKeysEqual(auth, a.key.PublicKey())
 					},
 				}
-				for _, princ := range []string {"principal1", "principal2", "principal3"} {
+				for _, princ := range []string{"principal1", "principal2", "principal3"} {
 					_, err := checker.Authenticate(FakeConnMetadata{princ}, cert)
 					if err != nil {
 						t.Error(err)
@@ -108,7 +108,7 @@ func TestSignSSHUserCertificate(t *testing.T) {
 				if cert.KeyId != "first-name" {
 					t.Error("Mismatch on keyid")
 				}
-				if cert.Serial == 0 || len(cert.Nonce) < 16 || bytes.Count(cert.Nonce, []byte { 0 }) > 4 {
+				if cert.Serial == 0 || len(cert.Nonce) < 16 || bytes.Count(cert.Nonce, []byte{0 }) > 4 {
 					t.Error("Lacking populated fields: %d %s", cert.Serial, cert.Nonce)
 				}
 			}
@@ -118,7 +118,7 @@ func TestSignSSHUserCertificate(t *testing.T) {
 
 func TestSignSSHHostCertificate(t *testing.T) {
 	a := getSSHAuthority(t)
-	s, err := a.Sign(SSH_TEST2_PUBKEY, true, time.Minute, "first-name", []string {"host1", "host2", "host3" })
+	s, err := a.Sign(SSH_TEST2_PUBKEY, true, time.Minute, "first-name", []string{"host1", "host2", "host3" })
 	if err != nil {
 		t.Error(err)
 	} else if !strings.HasPrefix(s, "ssh-rsa-cert-v01@openssh.com ") || !strings.HasSuffix(s, "\n") {
@@ -139,7 +139,7 @@ func TestSignSSHHostCertificate(t *testing.T) {
 						return arePublicKeysEqual(auth, a.key.PublicKey())
 					},
 				}
-				for _, princ := range []string {"host1:22", "host2:22", "host3:22"} {
+				for _, princ := range []string{"host1:22", "host2:22", "host3:22"} {
 					err := checker.CheckHostKey(princ, nil, cert)
 					if err != nil {
 						t.Error(err)
@@ -158,7 +158,7 @@ func TestSignSSHHostCertificate(t *testing.T) {
 				if cert.KeyId != "first-name" {
 					t.Error("Mismatch on keyid")
 				}
-				if cert.Serial == 0 || len(cert.Nonce) < 16 || bytes.Count(cert.Nonce, []byte { 0 }) > 4 {
+				if cert.Serial == 0 || len(cert.Nonce) < 16 || bytes.Count(cert.Nonce, []byte{0 }) > 4 {
 					t.Error("Lacking populated fields: %d %s", cert.Serial, cert.Nonce)
 				}
 			}
@@ -168,17 +168,17 @@ func TestSignSSHHostCertificate(t *testing.T) {
 
 func TestSSHNegativeLifespan(t *testing.T) {
 	a := getSSHAuthority(t)
-	_, err := a.Sign(SSH_TEST2_PUBKEY, false, time.Hour, "name", []string {"princ" })
+	_, err := a.Sign(SSH_TEST2_PUBKEY, false, time.Hour, "name", []string{"princ" })
 	if err != nil {
 		t.Error("Positive lifespan should have signed")
 	}
-	_, err = a.Sign(SSH_TEST2_PUBKEY, false, 0, "name", []string {"princ" })
+	_, err = a.Sign(SSH_TEST2_PUBKEY, false, 0, "name", []string{"princ" })
 	if err == nil {
 		t.Error("Zero lifespan should have failed to sign")
 	} else if !strings.Contains(err.Error(), "Lifespan") {
 		t.Error("Error should have talked about lifespans")
 	}
-	_, err = a.Sign(SSH_TEST2_PUBKEY, false, -time.Hour, "name", []string {"princ" })
+	_, err = a.Sign(SSH_TEST2_PUBKEY, false, -time.Hour, "name", []string{"princ" })
 	if err == nil {
 		t.Error("Negative lifespan should have failed to sign")
 	} else if !strings.Contains(err.Error(), "Lifespan") {
@@ -211,7 +211,7 @@ func (f *FakeSigner) Sign(rand io.Reader, data []byte) (*ssh.Signature, error) {
 
 func TestSSHSigningFailed(t *testing.T) {
 	a := &SSHAuthority{key: &FakeSigner{}, pubkey: []byte("fake")}
-	_, err := a.Sign(SSH_TEST2_PUBKEY, false, time.Minute, "name", []string {"princ" })
+	_, err := a.Sign(SSH_TEST2_PUBKEY, false, time.Minute, "name", []string{"princ" })
 	if err == nil || err.Error() != "Mocked failure" {
 		t.Errorf("Expected mocked failure error, but got: %s", err)
 	}
@@ -219,11 +219,11 @@ func TestSSHSigningFailed(t *testing.T) {
 
 func TestSSHInvalidSSHKeyToSign(t *testing.T) {
 	a := getSSHAuthority(t)
-	_, err := a.Sign("invalid key", false, time.Minute, "name", []string { "princ" })
+	_, err := a.Sign("invalid key", false, time.Minute, "name", []string{"princ" })
 	if err == nil || err.Error() != "ssh: no key found" {
 		t.Errorf("Expected no key found failure error, but got: %s", err)
 	}
-	_, err = a.Sign(SSH_TEST2_PUBKEY+ "\nbad suffix", false, time.Minute, "name", []string {"princ" })
+	_, err = a.Sign(SSH_TEST2_PUBKEY+"\nbad suffix", false, time.Minute, "name", []string{"princ" })
 	if err == nil || !strings.Contains(err.Error(), "Trailing data") {
 		t.Errorf("Expected no key found failure error, but got: %s", err)
 	}
@@ -260,7 +260,7 @@ func TestMalformedSSHKey(t *testing.T) {
 	if err != nil {
 		t.Errorf("Should be able to create normal authority")
 	}
-	_, err = LoadSSHAuthority([]byte("." +SSH_TEST_PRIVKEY), []byte(SSH_TEST_PUBKEY))
+	_, err = LoadSSHAuthority([]byte("."+SSH_TEST_PRIVKEY), []byte(SSH_TEST_PUBKEY))
 	if err == nil {
 		t.Errorf("Should not be able to create malformed authority")
 	}

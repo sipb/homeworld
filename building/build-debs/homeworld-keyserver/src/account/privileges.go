@@ -7,6 +7,10 @@ import (
 	"token"
 )
 
+type OperationContext struct {
+	Account *Account
+}
+
 type Privilege func(ctx *OperationContext, param string) (string, error)
 
 type TLSSignPrivilege struct {

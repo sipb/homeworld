@@ -6,14 +6,14 @@ import (
 )
 
 func TestGroup_AllMembers(t *testing.T) {
-	g1 := &Group{Members: []string {"a", "b", "c"}}
-	g2 := &Group{Members: []string {"d"}, Inherit: g1}
-	g3 := &Group{Members: []string {}, Inherit: g2}
-	g4a := &Group{Members: []string {"efghiateounth"}, Inherit: g3}
-	g4b := &Group{Members: []string {"kc", "kd", "ke", "kf"}, Inherit: g3}
+	g1 := &Group{Members: []string{"a", "b", "c"}}
+	g2 := &Group{Members: []string{"d"}, Inherit: g1}
+	g3 := &Group{Members: []string{}, Inherit: g2}
+	g4a := &Group{Members: []string{"efghiateounth"}, Inherit: g3}
+	g4b := &Group{Members: []string{"kc", "kd", "ke", "kf"}, Inherit: g3}
 
-	groups := []*Group { g1, g2, g3, g4a, g4b }
-	expects := [][]string {
+	groups := []*Group{g1, g2, g3, g4a, g4b }
+	expects := [][]string{
 		{"a", "b", "c"},
 		{"a", "b", "c", "d"},
 		{"a", "b", "c", "d"},
@@ -40,16 +40,16 @@ func TestGroup_AllMembers(t *testing.T) {
 }
 
 func TestGroup_HasMember(t *testing.T) {
-	options := []string {"a", "b", "c", "d", "efghiateounth", "kc", "kd", "ke", "kf", "kg"}
+	options := []string{"a", "b", "c", "d", "efghiateounth", "kc", "kd", "ke", "kf", "kg"}
 
-	g1 := &Group{Members: []string {"a", "b", "c"}}
-	g2 := &Group{Members: []string {"d"}, Inherit: g1}
-	g3 := &Group{Members: []string {}, Inherit: g2}
-	g4a := &Group{Members: []string {"efghiateounth"}, Inherit: g3}
-	g4b := &Group{Members: []string {"kc", "kd", "ke", "kf"}, Inherit: g3}
+	g1 := &Group{Members: []string{"a", "b", "c"}}
+	g2 := &Group{Members: []string{"d"}, Inherit: g1}
+	g3 := &Group{Members: []string{}, Inherit: g2}
+	g4a := &Group{Members: []string{"efghiateounth"}, Inherit: g3}
+	g4b := &Group{Members: []string{"kc", "kd", "ke", "kf"}, Inherit: g3}
 
-	groups := []*Group { g1, g2, g3, g4a, g4b }
-	expects := [][]string {
+	groups := []*Group{g1, g2, g3, g4a, g4b }
+	expects := [][]string{
 		{"a", "b", "c"},
 		{"a", "b", "c", "d"},
 		{"a", "b", "c", "d"},
