@@ -1,13 +1,13 @@
 package scoped
 
 import (
-	"testing"
-	"unicode"
-	"time"
-	"strings"
 	"math"
-	"sync"
 	"math/rand"
+	"strings"
+	"sync"
+	"testing"
+	"time"
+	"unicode"
 )
 
 func TestTokensAreDistinct(t *testing.T) {

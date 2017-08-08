@@ -1,8 +1,8 @@
 package verifier
 
 import (
-	"net/http"
 	"errors"
+	"net/http"
 	"token"
 )
 

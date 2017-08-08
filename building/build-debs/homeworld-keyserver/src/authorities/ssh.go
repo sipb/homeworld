@@ -1,13 +1,13 @@
 package authorities
 
 import (
-	"golang.org/x/crypto/ssh"
-	"encoding/base64"
-	"time"
-	"fmt"
-	"crypto/rand"
 	"bytes"
+	"crypto/rand"
+	"encoding/base64"
+	"fmt"
+	"golang.org/x/crypto/ssh"
 	"math/big"
+	"time"
 )
 
 type SSHAuthority struct {

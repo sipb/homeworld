@@ -1,16 +1,16 @@
 package keyserver
 
 import (
-	"fmt"
-	"net/http"
-	"log"
-	"io/ioutil"
-	"crypto/tls"
-	"config"
 	"account"
+	"config"
+	"crypto/tls"
+	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"operation"
 	"util"
 	"verifier"
-	"operation"
 )
 
 func verifyAccountIP(account *account.Account, request *http.Request) error {

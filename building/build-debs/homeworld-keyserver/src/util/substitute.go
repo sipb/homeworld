@@ -8,7 +8,7 @@ import (
 // substitutes variable references of the form "(VAR)". As in: "(hostname).mit.edu"
 func SubstituteVars(within string, vars map[string]string) (string, error) {
 	parts := strings.Split(within, "(")
-	snippets := []string{parts[0] }
+	snippets := []string{parts[0]}
 	for _, part := range parts[1:] {
 		subparts := strings.Split(part, ")")
 		if len(subparts) < 2 {

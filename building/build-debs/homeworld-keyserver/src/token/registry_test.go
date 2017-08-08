@@ -1,11 +1,11 @@
 package token
 
 import (
-	"token/scoped"
-	"time"
-	"testing"
-	"strings"
 	"fmt"
+	"strings"
+	"testing"
+	"time"
+	"token/scoped"
 )
 
 func TestNonexistentTokens(t *testing.T) {

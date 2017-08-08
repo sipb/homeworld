@@ -1,8 +1,8 @@
 package token
 
 import (
-	"sync"
 	"fmt"
+	"sync"
 	"time"
 	"token/scoped"
 )

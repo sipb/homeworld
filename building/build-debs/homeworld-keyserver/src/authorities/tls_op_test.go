@@ -1,19 +1,19 @@
 package authorities
 
 import (
-	"testing"
-	"net/http"
 	"context"
 	"crypto/tls"
-	"net"
-	"io/ioutil"
-	"fmt"
-	"math/rand"
-	"strings"
 	"crypto/x509"
-	"time"
 	"errors"
+	"fmt"
+	"io/ioutil"
 	"math"
+	"math/rand"
+	"net"
+	"net/http"
+	"strings"
+	"testing"
+	"time"
 )
 
 const (
@@ -56,7 +56,7 @@ func launchFakeTLSServerExt(t *testing.T, handler http.Handler, clientCA *TLSAut
 			ClientAuth:   tls.VerifyClientCertIfGiven,
 			ClientCAs:    pool,
 			Certificates: []tls.Certificate{cert},
-			NextProtos:   []string{"http/1.1", "h2" },
+			NextProtos:   []string{"http/1.1", "h2"},
 		},
 	}
 
@@ -86,7 +86,7 @@ func launchFakeTLSServerExt(t *testing.T, handler http.Handler, clientCA *TLSAut
 
 	certs := []tls.Certificate{}
 	if clientCert.PrivateKey != nil {
-		certs = []tls.Certificate{clientCert }
+		certs = []tls.Certificate{clientCert}
 	}
 
 	client := &http.Client{Transport: &http.Transport{

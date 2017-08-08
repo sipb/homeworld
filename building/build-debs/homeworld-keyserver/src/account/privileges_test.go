@@ -1,16 +1,16 @@
 package account
 
 import (
-	"testing"
 	"authorities"
-	"time"
-	"crypto/tls"
-	"strings"
-	"golang.org/x/crypto/ssh"
 	"bytes"
+	"crypto/tls"
 	"encoding/base64"
-	"net"
 	"fmt"
+	"golang.org/x/crypto/ssh"
+	"net"
+	"strings"
+	"testing"
+	"time"
 	"token"
 )
 
@@ -42,7 +42,7 @@ func getSSHAuthority(t *testing.T) authorities.Authority {
 
 func TestTLSGrantPrivilege(t *testing.T) {
 	authority := getTLSAuthority(t)
-	priv, err := NewTLSGrantPrivilege(authority, false, time.Hour, "test-cert", []string{"localhost" })
+	priv, err := NewTLSGrantPrivilege(authority, false, time.Hour, "test-cert", []string{"localhost"})
 	if err != nil {
 		t.Error(err)
 	} else {
@@ -60,7 +60,7 @@ func TestTLSGrantPrivilege(t *testing.T) {
 
 func TestTLSGrantPrivilege_ShortLifetime(t *testing.T) {
 	authority := getTLSAuthority(t)
-	_, err := NewTLSGrantPrivilege(authority, false, time.Millisecond*500, "test-cert", []string{"localhost" })
+	_, err := NewTLSGrantPrivilege(authority, false, time.Millisecond*500, "test-cert", []string{"localhost"})
 	if err == nil {
 		t.Error("Expected error about bad parameter")
 	} else if !strings.Contains(err.Error(), "parameter") {
@@ -69,7 +69,7 @@ func TestTLSGrantPrivilege_ShortLifetime(t *testing.T) {
 }
 
 func TestTLSGrantPrivilege_NoAuthority(t *testing.T) {
-	_, err := NewTLSGrantPrivilege(nil, false, time.Hour, "test-cert", []string{"localhost" })
+	_, err := NewTLSGrantPrivilege(nil, false, time.Hour, "test-cert", []string{"localhost"})
 	if err == nil {
 		t.Error("Expected error about bad parameter")
 	} else if !strings.Contains(err.Error(), "parameter") {
@@ -95,7 +95,7 @@ func TestTLSGrantPrivilege_NoNames(t *testing.T) {
 
 func TestTLSGrantPrivilege_NoKeyID(t *testing.T) {
 	authority := getSSHAuthority(t)
-	_, err := NewTLSGrantPrivilege(authority, false, time.Hour, "", []string{"localhost" })
+	_, err := NewTLSGrantPrivilege(authority, false, time.Hour, "", []string{"localhost"})
 	if err == nil {
 		t.Error("Expected error about bad parameter")
 	} else if !strings.Contains(err.Error(), "parameter") {
@@ -105,7 +105,7 @@ func TestTLSGrantPrivilege_NoKeyID(t *testing.T) {
 
 func TestTLSGrantPrivilege_WithSSH(t *testing.T) {
 	authority := getSSHAuthority(t)
-	_, err := NewTLSGrantPrivilege(authority, false, time.Hour, "test-cert", []string{"localhost" })
+	_, err := NewTLSGrantPrivilege(authority, false, time.Hour, "test-cert", []string{"localhost"})
 	if err == nil {
 		t.Error("Expected error about wrong authority type")
 	} else if !strings.Contains(err.Error(), "expects a TLS authority") {
@@ -166,7 +166,7 @@ func checkSSHCert(t *testing.T, authorityPubkeyStr []byte, certstr string, pubst
 	if !strings.HasPrefix(certstr, "ssh-rsa-cert-v01@openssh.com ") || !strings.HasSuffix(certstr, "\n") {
 		t.Fatal("Invalid wrapping on certificate")
 	}
-	bin_str := certstr[len("ssh-rsa-cert-v01@openssh.com "):len(certstr)-1]
+	bin_str := certstr[len("ssh-rsa-cert-v01@openssh.com ") : len(certstr)-1]
 	bin, err := base64.StdEncoding.DecodeString(bin_str)
 	if err != nil {
 		t.Fatalf("Failed to parse base64 data (%s): %s", err, bin_str)
@@ -205,7 +205,7 @@ func checkSSHCert(t *testing.T, authorityPubkeyStr []byte, certstr string, pubst
 
 func TestSSHGrantPrivilege(t *testing.T) {
 	authority := getSSHAuthority(t)
-	priv, err := NewSSHGrantPrivilege(authority, false, time.Hour, "test-cert", []string{"principal1", "principal2", "principal3" })
+	priv, err := NewSSHGrantPrivilege(authority, false, time.Hour, "test-cert", []string{"principal1", "principal2", "principal3"})
 	if err != nil {
 		t.Error(err)
 	} else {

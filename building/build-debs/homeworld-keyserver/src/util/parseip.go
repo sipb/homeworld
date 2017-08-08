@@ -1,12 +1,12 @@
 package util
 
 import (
-	"net"
-	"strings"
+	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"strconv"
-	"errors"
+	"strings"
 )
 
 // returns IP address
@@ -21,7 +21,7 @@ func ParseRemoteAddress(remote_addr string) (net.IP, error) {
 	}
 	var ip net.IP
 	if remote_addr[0] == '[' && remote_addr[index-1] == ']' {
-		ip = net.ParseIP(remote_addr[1:index-1])
+		ip = net.ParseIP(remote_addr[1 : index-1])
 		if ip == nil {
 			return nil, fmt.Errorf("Invalid request address (invalid IP in '%s')", remote_addr)
 		}

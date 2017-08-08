@@ -1,8 +1,8 @@
 package account
 
 import (
-	"testing"
 	"sort"
+	"testing"
 )
 
 func TestGroup_AllMembers(t *testing.T) {
@@ -12,7 +12,7 @@ func TestGroup_AllMembers(t *testing.T) {
 	g4a := &Group{Members: []string{"efghiateounth"}, Inherit: g3}
 	g4b := &Group{Members: []string{"kc", "kd", "ke", "kf"}, Inherit: g3}
 
-	groups := []*Group{g1, g2, g3, g4a, g4b }
+	groups := []*Group{g1, g2, g3, g4a, g4b}
 	expects := [][]string{
 		{"a", "b", "c"},
 		{"a", "b", "c", "d"},
@@ -48,7 +48,7 @@ func TestGroup_HasMember(t *testing.T) {
 	g4a := &Group{Members: []string{"efghiateounth"}, Inherit: g3}
 	g4b := &Group{Members: []string{"kc", "kd", "ke", "kf"}, Inherit: g3}
 
-	groups := []*Group{g1, g2, g3, g4a, g4b }
+	groups := []*Group{g1, g2, g3, g4a, g4b}
 	expects := [][]string{
 		{"a", "b", "c"},
 		{"a", "b", "c", "d"},

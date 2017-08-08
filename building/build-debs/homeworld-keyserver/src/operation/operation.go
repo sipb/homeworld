@@ -1,11 +1,11 @@
 package operation
 
 import (
+	"account"
+	"config"
 	"encoding/json"
 	"fmt"
 	"log"
-	"account"
-	"config"
 )
 
 type Operation struct {

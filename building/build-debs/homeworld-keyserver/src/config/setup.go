@@ -1,16 +1,16 @@
 package config
 
 import (
-	"path"
-	"os"
-	"authorities"
-	"fmt"
 	"account"
+	"authorities"
 	"errors"
+	"fmt"
 	"net"
+	"os"
+	"path"
 )
 
-var setup_steps = []SetupStep{CompileStaticFiles, CompileAuthorities, CompileGlobalAuthorities, CompileGroups, CompileAccounts, CompileGrants }
+var setup_steps = []SetupStep{CompileStaticFiles, CompileAuthorities, CompileGlobalAuthorities, CompileGroups, CompileAccounts, CompileGrants}
 
 func CompileStaticFiles(context *Context, config *Config) error {
 	context.StaticFiles = make(map[string]StaticFile)
@@ -76,7 +76,7 @@ func CompileAccounts(context *Context, config *Config) error {
 				return fmt.Errorf("Invalid IP address: %s", ac.Metadata["ip"])
 			}
 		}
-		metadata := map[string]string { "principal": ac.Principal }
+		metadata := map[string]string{"principal": ac.Principal}
 		for k, v := range ac.Metadata {
 			metadata[k] = v
 		}

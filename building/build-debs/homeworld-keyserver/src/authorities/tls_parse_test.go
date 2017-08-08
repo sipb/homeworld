@@ -1,11 +1,11 @@
 package authorities
 
 import (
-	"testing"
 	"bytes"
-	"strings"
-	"crypto/tls"
 	"crypto/rsa"
+	"crypto/tls"
+	"strings"
+	"testing"
 )
 
 const (

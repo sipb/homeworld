@@ -1,11 +1,11 @@
 package scoped
 
 import (
-	"time"
-	"encoding/base64"
 	"crypto/rand"
+	"encoding/base64"
 	"errors"
 	"sync"
+	"time"
 )
 
 type ScopedToken struct {

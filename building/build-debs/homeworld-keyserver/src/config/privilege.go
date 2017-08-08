@@ -1,12 +1,12 @@
 package config
 
 import (
-	"time"
 	"account"
-	"fmt"
-	"strconv"
 	"authorities"
 	"errors"
+	"fmt"
+	"strconv"
+	"time"
 	"util"
 )
 
@@ -22,7 +22,7 @@ type CompiledGrant struct {
 }
 
 func (grant *ConfigGrant) CompileGrant(vars map[string]string, ctx *Context) (*CompiledGrant, error) {
-	g := &CompiledGrant{ Privilege: grant.Privilege }
+	g := &CompiledGrant{Privilege: grant.Privilege}
 	if grant.Scope != "" {
 		scope, found := ctx.Groups[grant.Scope]
 		if !found {

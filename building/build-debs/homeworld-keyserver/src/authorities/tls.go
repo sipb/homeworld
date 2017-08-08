@@ -1,19 +1,19 @@
 package authorities
 
 import (
-	"net/http"
-	"fmt"
-	"crypto/x509"
-	"time"
+	"bytes"
+	"crypto/rand"
 	"crypto/rsa"
+	"crypto/tls"
+	"crypto/x509"
+	"crypto/x509/pkix"
 	"encoding/pem"
 	"errors"
-	"crypto/rand"
+	"fmt"
 	"math/big"
-	"crypto/x509/pkix"
 	"net"
-	"crypto/tls"
-	"bytes"
+	"net/http"
+	"time"
 	"verifier"
 )
 
@@ -108,7 +108,7 @@ func (t *TLSAuthority) AsVerifier() verifier.Verifier {
 }
 
 func (t *TLSAuthority) ToHTTPSCert() tls.Certificate {
-	return tls.Certificate{Certificate: [][]byte{t.certData }, PrivateKey: t.key }
+	return tls.Certificate{Certificate: [][]byte{t.certData}, PrivateKey: t.key}
 }
 
 func (t *TLSAuthority) HasAttempt(request *http.Request) bool {
@@ -170,8 +170,8 @@ func (d *TLSAuthority) Sign(request string, ishost bool, lifespan time.Duration,
 		ExtKeyUsage: extKeyUsage,
 
 		BasicConstraintsValid: true,
-		IsCA:                  false,
-		SerialNumber:          serialNumber,
+		IsCA:         false,
+		SerialNumber: serialNumber,
 
 		NotBefore: issue_at,
 		NotAfter:  issue_at.Add(lifespan),

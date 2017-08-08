@@ -1,13 +1,13 @@
 package util
 
 import (
-	"testing"
+	"context"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"net"
 	"net/http"
-	"encoding/json"
-	"context"
-	"io/ioutil"
-	"fmt"
+	"testing"
 )
 
 func TestParseSimpleAddresses(t *testing.T) {
