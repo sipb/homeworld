@@ -1,13 +1,14 @@
 package keyserver
 
 import (
-	"account"
-	"config"
 	"crypto/tls"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+
+	"account"
+	"config"
 	"operation"
 	"util"
 	"verifier"
@@ -26,7 +27,7 @@ func verifyAccountIP(account *account.Account, request *http.Request) error {
 }
 
 func attemptAuthentication(context *config.Context, request *http.Request) (*account.Account, error) {
-	verifiers := []verifier.Verifier{context.TokenVerifier, context.AuthenticationAuthority.AsVerifier()}
+	verifiers := []verifier.Verifier{context.TokenVerifier, context.AuthenticationAuthority}
 
 	for _, verif := range verifiers {
 		if verif.HasAttempt(request) {
@@ -101,7 +102,7 @@ func Run(configfile string) error {
 	mux.HandleFunc("/apirequest", func(writer http.ResponseWriter, request *http.Request) {
 		err := handleAPIRequest(context, writer, request)
 		if err != nil {
-			log.Println("API request failed with error: %s", err)
+			log.Printf("API request failed with error: %s", err)
 			http.Error(writer, "Request processing failed. See server logs for details.", http.StatusBadRequest)
 		}
 	})
@@ -109,7 +110,7 @@ func Run(configfile string) error {
 	mux.HandleFunc("/pub/", func(writer http.ResponseWriter, request *http.Request) {
 		err := handlePubRequest(context, writer, request.URL.Path[len("/pub/"):])
 		if err != nil {
-			log.Println("Public request failed with error: %s", err)
+			log.Printf("Public request failed with error: %s", err)
 			http.Error(writer, "Request processing failed: "+err.Error(), http.StatusBadRequest)
 		}
 	})
@@ -117,7 +118,7 @@ func Run(configfile string) error {
 	mux.HandleFunc("/static/", func(writer http.ResponseWriter, request *http.Request) {
 		err := handleStaticRequest(context, writer, request.URL.Path[len("/static/"):])
 		if err != nil {
-			log.Println("Static request failed with error: %s", err)
+			log.Printf("Static request failed with error: %s", err)
 			http.Error(writer, "Request processing failed: "+err.Error(), http.StatusBadRequest)
 		}
 	})
@@ -129,6 +130,7 @@ func Run(configfile string) error {
 			ClientAuth:   tls.VerifyClientCertIfGiven,
 			ClientCAs:    context.AuthenticationAuthority.ToCertPool(),
 			Certificates: []tls.Certificate{context.ServerTLS.ToHTTPSCert()},
+			MinVersion:   tls.VersionTLS12,
 		},
 	}
 

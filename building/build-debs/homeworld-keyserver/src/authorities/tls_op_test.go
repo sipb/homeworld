@@ -205,7 +205,7 @@ func TestExpiredTLSAuthority(t *testing.T) {
 	defer stop()
 
 	errstr := request("")
-	if string(errstr) != "Certificate for /CN=client-test has expired" {
+	if !strings.Contains(string(errstr), "has expired") {
 		t.Errorf("Mismatch on expected error; did not expect %s", errstr)
 	}
 }
@@ -238,7 +238,7 @@ func TestUnissuedTLSAuthority(t *testing.T) {
 	defer stop()
 
 	errstr := request("")
-	if string(errstr) != "Certificate for /CN=client-test is not yet valid" {
+	if !strings.Contains(string(errstr), "not yet valid") {
 		t.Errorf("Mismatch on expected error; did not expect %s", errstr)
 	}
 }
@@ -262,9 +262,8 @@ func checkClientCertValidity(t *testing.T, clientCertData []byte, key []byte) (s
 	principal := string(request(""))
 	if principal[0] == 'E' {
 		return "", errors.New(principal[1:])
-	} else {
-		return principal[1:], nil
 	}
+	return principal[1:], nil
 }
 
 func TestTLSAuthority_Sign_UserCert(t *testing.T) {
@@ -430,7 +429,7 @@ func TestTLSAuthority_Sign_CheckNames(t *testing.T) {
 
 func TestTLSAuthority_Sign_MalformedPEM(t *testing.T) {
 	a := getTLSAuthority(t)
-	_, err := a.Sign(strings.Replace("I'm literally not a PEM file", "Z", "Y", -1), false, time.Hour, "common-name-tc", []string{"dns1.mit.edu", "18.181.123.456", "dns2.mit.edu", "18.181.123.789"})
+	_, err := a.Sign("I'm literally not a PEM file", false, time.Hour, "common-name-tc", []string{"dns1.mit.edu", "18.181.123.456", "dns2.mit.edu", "18.181.123.789"})
 	if err == nil {
 		t.Error("Expected error while signing malformed CSR")
 	} else if !strings.Contains(err.Error(), "PEM header") {

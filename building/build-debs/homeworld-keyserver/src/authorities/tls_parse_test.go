@@ -41,7 +41,7 @@ func TestTLSEqual(t *testing.T) {
 func TestGetTLSPublicKey(t *testing.T) {
 	pubkey := getTLSAuthority(t).GetPublicKey()
 	if !bytes.Equal(pubkey, []byte(TLS_TEST_CERT)) {
-		t.Error("Mismatch between pubkey and cert: %s versus %s", string(pubkey), TLS_TEST_CERT)
+		t.Errorf("Mismatch between pubkey and cert: %s versus %s", string(pubkey), TLS_TEST_CERT)
 	}
 }
 
@@ -153,7 +153,7 @@ func TestLoadPKCS8Key(t *testing.T) {
 		t.Error("PKCS8 authority is different from PKCS1 authority")
 	}
 	if !privateKeysEqual(authority1.key, authority2.key) {
-		t.Error("PKCS8 key is different from PKCS1 key: %v versus %v", authority1.key, authority2.key)
+		t.Errorf("PKCS8 key is different from PKCS1 key: %v versus %v", authority1.key, authority2.key)
 	}
 }
 

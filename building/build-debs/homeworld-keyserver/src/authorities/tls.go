@@ -14,6 +14,7 @@ import (
 	"net"
 	"net/http"
 	"time"
+
 	"verifier"
 )
 
@@ -41,6 +42,7 @@ func loadSinglePEMBlock(data []byte, expected_types []string) ([]byte, error) {
 	for _, expected_type := range expected_types {
 		if pemBlock.Type == expected_type {
 			found = true
+			break
 		}
 	}
 	if !found {
@@ -82,7 +84,7 @@ func LoadTLSAuthority(keydata []byte, pubkeydata []byte) (Authority, error) {
 		return nil, err
 	}
 	pub, ok := cert.PublicKey.(*rsa.PublicKey)
-	if !ok {
+	if cert.PublicKeyAlgorithm != x509.RSA || !ok {
 		return nil, errors.New("expected RSA public key in certificate")
 	}
 	if pub.N.Cmp(privkey.N) != 0 {
@@ -102,14 +104,12 @@ func (t *TLSAuthority) GetPublicKey() []byte {
 	return t.certEncoded
 }
 
-// This exists to make sure that the type errors happen here.
-func (t *TLSAuthority) AsVerifier() verifier.Verifier {
-	return t
-}
-
 func (t *TLSAuthority) ToHTTPSCert() tls.Certificate {
 	return tls.Certificate{Certificate: [][]byte{t.certData}, PrivateKey: t.key}
 }
+
+// Ensure *TLSAuthority implements Verifier
+var _ verifier.Verifier = (*TLSAuthority)(nil)
 
 func (t *TLSAuthority) HasAttempt(request *http.Request) bool {
 	return len(request.TLS.VerifiedChains) > 0 && len(request.TLS.VerifiedChains[0]) > 0
@@ -120,22 +120,18 @@ func (t *TLSAuthority) Verify(request *http.Request) (string, error) {
 		return "", fmt.Errorf("Client certificate must be present")
 	}
 	firstCert := request.TLS.VerifiedChains[0][0]
-	err := firstCert.CheckSignatureFrom(t.cert) // duplicate effort? probably. do it anyway, so we're certain it's *THIS* authority.
-	if err != nil {
+	chains, err := firstCert.Verify(x509.VerifyOptions{
+		Roots:     t.ToCertPool(),
+		KeyUsages: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
+	})
+	if len(chains) == 0 || err != nil {
 		return "", fmt.Errorf("Certificate not valid under this authority: %s", err)
 	}
 	principal := firstCert.Subject.CommonName
-	now := time.Now()
-	if now.Before(firstCert.NotBefore) {
-		return "", fmt.Errorf("Certificate for /CN=%s is not yet valid", principal)
-	}
-	if now.After(firstCert.NotAfter) {
-		return "", fmt.Errorf("Certificate for /CN=%s has expired", principal)
-	}
 	return principal, nil
 }
 
-func (d *TLSAuthority) Sign(request string, ishost bool, lifespan time.Duration, commonname string, names []string) (string, error) {
+func (t *TLSAuthority) Sign(request string, ishost bool, lifespan time.Duration, commonname string, names []string) (string, error) {
 	pemBlock, err := loadSinglePEMBlock([]byte(request), []string{"CERTIFICATE REQUEST"})
 	if err != nil {
 		return "", err
@@ -170,7 +166,10 @@ func (d *TLSAuthority) Sign(request string, ishost bool, lifespan time.Duration,
 		ExtKeyUsage: extKeyUsage,
 
 		BasicConstraintsValid: true,
-		IsCA:         false,
+		IsCA:           false,
+		MaxPathLen:     0,
+		MaxPathLenZero: true,
+
 		SerialNumber: serialNumber,
 
 		NotBefore: issue_at,
@@ -181,7 +180,7 @@ func (d *TLSAuthority) Sign(request string, ishost bool, lifespan time.Duration,
 		IPAddresses: IPs,
 	}
 
-	signed_cert, err := x509.CreateCertificate(rand.Reader, &certTemplate, d.cert, csr.PublicKey, d.key)
+	signed_cert, err := x509.CreateCertificate(rand.Reader, &certTemplate, t.cert, csr.PublicKey, t.key)
 	if err != nil {
 		return "", err
 	}
