@@ -26,7 +26,7 @@ type ConfigGrant struct {
 	Authority    string
 	IsHost       string
 	Lifespan     string
-	CommonName   string `yaml:"common-name"`
+	CommonName   string   `yaml:"common-name"`
 	AllowedNames []string `yaml:"allowed-names"`
 	Contents     string
 }

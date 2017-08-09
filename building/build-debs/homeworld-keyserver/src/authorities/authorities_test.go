@@ -1,9 +1,9 @@
 package authorities
 
 import (
-	"testing"
 	"bytes"
 	"strings"
+	"testing"
 )
 
 func TestLoadAuthority(t *testing.T) {

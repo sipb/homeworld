@@ -1,29 +1,32 @@
 package util
 
 import (
-	"testing"
 	"strings"
+	"testing"
 )
 
 func TestSubstituteVars(t *testing.T) {
-	vars := map[string]string {
-		"ruby": "red",
+	vars := map[string]string{
+		"ruby":     "red",
 		"sapphire": "blue",
-		"quartz": "rose",
-		"pearl": "white",
+		"quartz":   "rose",
+		"pearl":    "white",
 		"amethyst": "purple",
-		"peridot": "green",
+		"peridot":  "green",
 	}
-	for _, test := range []struct { input string; output string } {
-		{ "with those we (sapphire) (ruby)", "with those we blue red" },
-		{ "with those we sapphire (ruby)", "with those we sapphire red" },
-		{ "(amethyst) world network: business (sapphire) online", "purple world network: business blue online" },
-		{ "(peridot) shrine", "green shrine" },
-		{ "exe(quartz)", "exerose" },
-		{ "(peridot).haze", "green.haze" },
-		{ "(pearl)", "white" },
-		{ "pearl", "pearl" },
-		{ "", "" },
+	for _, test := range []struct {
+		input  string
+		output string
+	}{
+		{"with those we (sapphire) (ruby)", "with those we blue red"},
+		{"with those we sapphire (ruby)", "with those we sapphire red"},
+		{"(amethyst) world network: business (sapphire) online", "purple world network: business blue online"},
+		{"(peridot) shrine", "green shrine"},
+		{"exe(quartz)", "exerose"},
+		{"(peridot).haze", "green.haze"},
+		{"(pearl)", "white"},
+		{"pearl", "pearl"},
+		{"", ""},
 	} {
 		out, err := SubstituteVars(test.input, vars)
 		if err != nil {
@@ -35,15 +38,15 @@ func TestSubstituteVars(t *testing.T) {
 }
 
 func TestSubstituteVars_MismatchParens(t *testing.T) {
-	vars := map[string]string {
-		"ruby": "red",
+	vars := map[string]string{
+		"ruby":     "red",
 		"sapphire": "blue",
-		"quartz": "rose",
-		"pearl": "white",
+		"quartz":   "rose",
+		"pearl":    "white",
 		"amethyst": "purple",
-		"peridot": "green",
+		"peridot":  "green",
 	}
-	for _, test := range []string {
+	for _, test := range []string{
 		"with those we (sapphire) (ruby",
 		"with those we (sapphire) ruby)",
 		"with those we (sapphire) )ruby(",
@@ -78,7 +81,7 @@ func TestSubstituteVars_MismatchParens(t *testing.T) {
 }
 
 func TestSubstituteVars_MissingVars(t *testing.T) {
-	_, err := SubstituteVars("(principal)", map[string]string {})
+	_, err := SubstituteVars("(principal)", map[string]string{})
 	if err == nil {
 		t.Error("Expected error.")
 	} else if !strings.Contains(err.Error(), "principal") {
@@ -87,15 +90,15 @@ func TestSubstituteVars_MissingVars(t *testing.T) {
 }
 
 func TestSubstituteAllVars(t *testing.T) {
-	vars := map[string]string {
-		"ruby": "red",
+	vars := map[string]string{
+		"ruby":     "red",
 		"sapphire": "blue",
-		"quartz": "rose",
-		"pearl": "white",
+		"quartz":   "rose",
+		"pearl":    "white",
 		"amethyst": "purple",
-		"peridot": "green",
+		"peridot":  "green",
 	}
-	tests := []string { "(pearl): a history of sapphic (quartz)", "howling (amethyst)", "their (sapphire) understanding", "frolic (ruby)" }
+	tests := []string{"(pearl): a history of sapphic (quartz)", "howling (amethyst)", "their (sapphire) understanding", "frolic (ruby)"}
 	result, err := SubstituteAllVars(tests, vars)
 	if err != nil {
 		t.Error(err)
@@ -108,15 +111,15 @@ func TestSubstituteAllVars(t *testing.T) {
 }
 
 func TestSubstituteAllVars_Fail(t *testing.T) {
-	vars := map[string]string {
-		"ruby": "red",
+	vars := map[string]string{
+		"ruby":     "red",
 		"sapphire": "blue",
-		"quartz": "rose",
-		"pearl": "white",
+		"quartz":   "rose",
+		"pearl":    "white",
 		"amethyst": "purple",
-		"peridot": "green",
+		"peridot":  "green",
 	}
-	tests := []string { "(pearl): a history of sapphic (quartz)", "howling (missingvar)", "their (sapphire) understanding", "frolic (ruby)" }
+	tests := []string{"(pearl): a history of sapphic (quartz)", "howling (missingvar)", "their (sapphire) understanding", "frolic (ruby)"}
 	_, err := SubstituteAllVars(tests, vars)
 	if err == nil {
 		t.Error("Expected failure!")
