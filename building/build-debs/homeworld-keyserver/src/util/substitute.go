@@ -8,6 +8,9 @@ import (
 // substitutes variable references of the form "(VAR)". As in: "(hostname).mit.edu"
 func SubstituteVars(within string, vars map[string]string) (string, error) {
 	parts := strings.Split(within, "(")
+	if strings.Contains(parts[0], ")") {
+		return "", fmt.Errorf("Extraneous close parenthesis in substitution string '%s'", within)
+	}
 	snippets := []string{parts[0]}
 	for _, part := range parts[1:] {
 		subparts := strings.Split(part, ")")
@@ -20,7 +23,7 @@ func SubstituteVars(within string, vars map[string]string) (string, error) {
 		varname, text := subparts[0], subparts[1]
 		value := vars[varname]
 		if value == "" {
-			return "", fmt.Errorf("Undefined metadata variable %s in substitution string '%s'", varname, within)
+			return "", fmt.Errorf("Undefined variable %s in substitution string '%s'", varname, within)
 		}
 		snippets = append(snippets, value)
 		snippets = append(snippets, text)
