@@ -9,37 +9,37 @@ staticfiles:
   - cluster.conf
 
 authorities:
-  - name: keygranting
+  keygranting:
     type: TLS
     key: keygrant.key
     cert: keygrant.pem
 
-  - name: servertls
+  servertls:
     type: TLS
     key: server.key
     cert: server.pem
 
-  - name: ssh-user
+  ssh-user:
     type: SSH
     key: ssh_user_ca
     cert: ssh_user_ca.pub
 
-  - name: ssh-host
+  ssh-host:
     type: SSH
     key: ssh_host_ca
     cert: ssh_host_ca.pub
 
-  - name: etcd-server
+  etcd-server:
     type: TLS
     key: etcd-server.key
     cert: etcd-server.pem
 
-  - name: etcd-client
+  etcd-client:
     type: TLS
     key: etcd-client.key
     cert: etcd-client.pem
 
-  - name: kubernetes
+  kubernetes:
     type: TLS
     key: kubernetes.key
     cert: kubernetes.pem
@@ -114,22 +114,22 @@ accounts:
     group: root-admins
 
 groups:
-  - name: root-admins
-  - name: nodes
-  - name: supervisor-nodes
+  root-admins:
+  nodes:
+  supervisor-nodes:
     inherit: nodes
-  - name: kubernetes-nodes
+  kubernetes-nodes:
     inherit: nodes
-  - name: worker-nodes
+  worker-nodes:
     inherit: kubernetes-nodes
-  - name: master-nodes
-    inherit: kubernetes-nodes
+  master-nodes:
+    inherit: master-nodes
 
 grants:
 
   # ADMIN ACCESS TO THE RUNNING CLUSTER
 
-  - api: access-ssh
+  access-ssh:
     group: root-admins
     privilege: sign-ssh
     authority: ssh-user
@@ -139,7 +139,7 @@ grants:
     allowed-names:
     - root
 
-  - api: access-etcd
+  access-etcd:
     group: root-admins
     privilege: sign-tls
     authority: etcd-client
@@ -147,7 +147,7 @@ grants:
     ishost: false
     common-name: temporary-etcd-grant-(principal)
 
-  - api: access-kubernetes
+  access-kubernetes:
     group: root-admins
     privilege: sign-tls
     authority: kubernetes
@@ -157,13 +157,13 @@ grants:
 
   # MEMBERSHIP IN THE CLUSTER
 
-  - api: bootstrap
+  bootstrap:
     group: root-admins
     privilege: bootstrap-account
     scope: nodes
     lifespan: 1 hour
 
-  - api: renew-keygrant
+  renew-keygrant:
     group: nodes
     privilege: sign-tls
     authority: keygranting
@@ -171,14 +171,14 @@ grants:
     ishost: false
     common-name: (principal)
 
-  - api: auth-to-kerberos
+  auth-to-kerberos:
     group: supervisor-nodes
     privilege: impersonate
     scope: root-admins
 
   # CONFIGURATION ENDPOINT
 
-  - api: get-local-config
+  get-local-config:
     group: nodes
     privilege: construct-configuration
     contents: |
@@ -190,7 +190,7 @@ grants:
 
   # SERVER CERTIFICATES
 
-  - api: grant-ssh-host
+  grant-ssh-host:
     group: nodes
     privilege: sign-ssh
     authority: ssh-host
@@ -202,7 +202,7 @@ grants:
     - (hostname)
     - (ip)
 
-  - api: grant-kubernetes-master
+  grant-kubernetes-master:
     group: master-nodes
     privilege: sign-tls
     authority: kubernetes
@@ -219,7 +219,7 @@ grants:
     - (ip)
     - 172.28.0.1
 
-  - api: grant-etcd-server
+  grant-etcd-server:
     group: master-nodes
     privilege: sign-tls
     authority: etcd-server
@@ -233,7 +233,7 @@ grants:
 
   # CLIENT CERTIFICATES
 
-  - api: grant-kubernetes-worker
+  grant-kubernetes-worker:
     group: kubernetes-nodes
     privilege: sign-tls
     authority: kubernetes
@@ -244,7 +244,7 @@ grants:
     - (hostname)
     - (ip)
 
-  - api: grant-etcd-client
+  grant-etcd-client:
     group: master-nodes
     privilege: sign-tls
     authority: etcd-client

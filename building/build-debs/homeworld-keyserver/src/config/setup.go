@@ -28,15 +28,15 @@ func CompileStaticFiles(context *Context, config *Config) error {
 
 func CompileAuthorities(context *Context, config *Config) error {
 	context.Authorities = make(map[string]authorities.Authority)
-	for _, authority := range config.Authorities {
-		if authority.Name == "" {
+	for name, authority := range config.Authorities {
+		if name == "" {
 			return fmt.Errorf("An authority name is required.")
 		}
 		loaded, err := authority.Load(config.AuthorityDir)
 		if err != nil {
 			return err
 		}
-		context.Authorities[authority.Name] = loaded
+		context.Authorities[name] = loaded
 	}
 	return nil
 }
@@ -88,39 +88,31 @@ func CompileAccounts(context *Context, config *Config) error {
 
 func CompileGroups(context *Context, config *Config) error {
 	context.Groups = make(map[string]*account.Group)
-	for _, group := range config.Groups {
-		if group.Name == "" {
+	for name, group := range config.Groups {
+		if name == "" {
 			return fmt.Errorf("A group name is required.")
-		}
-		_, found := context.Groups[group.Name]
-		if found {
-			return fmt.Errorf("Duplicate group: %s", group.Name)
 		}
 		var inherit *account.Group
 		if group.Inherit != "" {
 			inherit = context.Groups[group.Inherit]
 			if inherit == nil {
-				return fmt.Errorf("Cannot find group %s to inherit in %s (out of order?)", group.Inherit, group.Name)
+				return fmt.Errorf("Cannot find group %s to inherit in %s (out of order?)", group.Inherit, name)
 			}
 		}
-		context.Groups[group.Name] = &account.Group{Inherit: inherit, Members: make([]string, 0)}
+		context.Groups[name] = &account.Group{Inherit: inherit, Members: make([]string, 0)}
 	}
 	return nil
 }
 
 func CompileGrants(context *Context, config *Config) error {
 	context.Grants = make(map[string]Grant)
-	for _, grant := range config.Grants {
-		if grant.API == "" {
+	for api, grant := range config.Grants {
+		if api == "" {
 			return fmt.Errorf("An API name is required.")
-		}
-		_, found := context.Grants[grant.API]
-		if found {
-			return fmt.Errorf("Duplicate grant %s", grant.API)
 		}
 		group, found := context.Groups[grant.Group]
 		if !found {
-			return fmt.Errorf("Could not find group %s for grant %s", grant.Group, grant.API)
+			return fmt.Errorf("Could not find group %s for grant %s", grant.Group, api)
 		}
 		privileges := make(map[string]account.Privilege)
 		for _, accountname := range group.AllMembers() {
@@ -138,11 +130,11 @@ func CompileGrants(context *Context, config *Config) error {
 			}
 			priv, err := cgrant.CompileToPrivilege(context)
 			if err != nil {
-				return fmt.Errorf("%s (in grant %s for account %s)", err, grant.API, accountname)
+				return fmt.Errorf("%s (in grant %s for account %s)", err, api, accountname)
 			}
 			privileges[accountname] = priv
 		}
-		context.Grants[grant.API] = Grant{grant.API, group, privileges}
+		context.Grants[api] = Grant{api, group, privileges}
 	}
 	return nil
 }

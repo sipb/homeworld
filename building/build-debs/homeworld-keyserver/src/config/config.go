@@ -6,7 +6,6 @@ import (
 )
 
 type ConfigAuthority struct {
-	Name string
 	Type string
 	Key  string
 	Cert string
@@ -15,26 +14,24 @@ type ConfigAuthority struct {
 type ConfigAccount struct {
 	Principal         string
 	Group             string
-	LimitIP           bool
-	DisableDirectAuth bool
+	LimitIP           bool `yaml:"limit-ip"`
+	DisableDirectAuth bool `yaml:"disable-direct-auth"`
 	Metadata          map[string]string
 }
 
 type ConfigGrant struct {
-	API          string
 	Group        string
 	Privilege    string
 	Scope        string
 	Authority    string
 	IsHost       string
 	Lifespan     string
-	CommonName   string
-	AllowedNames []string
+	CommonName   string `yaml:"common-name"`
+	AllowedNames []string `yaml:"allowed-names"`
 	Contents     string
 }
 
 type ConfigGroup struct {
-	Name    string
 	Inherit string
 }
 
@@ -43,18 +40,18 @@ type ConfigStatic string
 type Config struct {
 	AuthorityDir            string
 	StaticDir               string
-	AuthenticationAuthority string
+	AuthenticationAuthority string `yaml:"authentication-authority"`
 	ServerTLS               string
-	Authorities             []ConfigAuthority
+	Authorities             map[string]ConfigAuthority
 	StaticFiles             []ConfigStatic
 	Accounts                []ConfigAccount
-	Groups                  []ConfigGroup
-	Grants                  []ConfigGrant
+	Groups                  map[string]ConfigGroup
+	Grants                  map[string]ConfigGrant
 }
 
-func ParseConfigFromBytes(data []byte) (*Config, error) {
+func parseConfigFromBytes(data []byte) (*Config, error) {
 	config := new(Config)
-	err := yaml.Unmarshal(data, config)
+	err := yaml.UnmarshalStrict(data, config)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +59,7 @@ func ParseConfigFromBytes(data []byte) (*Config, error) {
 }
 
 func LoadConfigFromBytes(data []byte) (*Context, error) {
-	config, err := ParseConfigFromBytes(data)
+	config, err := parseConfigFromBytes(data)
 	if err != nil {
 		return nil, err
 	}
