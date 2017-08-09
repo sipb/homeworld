@@ -1,11 +1,12 @@
 package operation
 
 import (
-	"account"
-	"config"
 	"encoding/json"
 	"fmt"
 	"log"
+
+	"account"
+	"config"
 )
 
 type Operation struct {
@@ -41,12 +42,12 @@ func InvokeAPIOperation(ctx *account.OperationContext, gctx *config.Context, API
 	if !found {
 		return "", fmt.Errorf("Account %s does not have access to API call %s", princ, API)
 	}
-	log.Println("Attempting to perform API operation %s for %s", API, princ)
+	log.Printf("Attempting to perform API operation %s for %s", API, princ)
 	response, err := priv(ctx, requestBody)
 	if err != nil {
-		log.Println("Operation %s for %s failed with error: %s.", API, princ, err)
+		log.Printf("Operation %s for %s failed with error: %s.", API, princ, err)
 		return "", err
 	}
-	log.Println("Operation %s for %s succeeded.", API, princ)
+	log.Printf("Operation %s for %s succeeded.", API, princ)
 	return response, nil
 }

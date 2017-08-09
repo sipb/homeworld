@@ -105,7 +105,7 @@ func TestSubstituteAllVars(t *testing.T) {
 	} else {
 		expected := "white: a history of sapphic rose//howling purple//their blue understanding//frolic red"
 		if strings.Join(result, "//") != expected {
-			t.Error("Result mismatch: expected %v, not %v", strings.Split(expected, "//"), result)
+			t.Errorf("Result mismatch: expected %v, not %v", strings.Split(expected, "//"), result)
 		}
 	}
 }

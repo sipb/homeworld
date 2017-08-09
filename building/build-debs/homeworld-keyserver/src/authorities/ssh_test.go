@@ -109,7 +109,7 @@ func TestSignSSHUserCertificate(t *testing.T) {
 					t.Error("Mismatch on keyid")
 				}
 				if cert.Serial == 0 || len(cert.Nonce) < 16 || bytes.Count(cert.Nonce, []byte{0}) > 4 {
-					t.Error("Lacking populated fields: %d %s", cert.Serial, cert.Nonce)
+					t.Errorf("Lacking populated fields: %d %s", cert.Serial, cert.Nonce)
 				}
 			}
 		}
@@ -159,7 +159,7 @@ func TestSignSSHHostCertificate(t *testing.T) {
 					t.Error("Mismatch on keyid")
 				}
 				if cert.Serial == 0 || len(cert.Nonce) < 16 || bytes.Count(cert.Nonce, []byte{0}) > 4 {
-					t.Error("Lacking populated fields: %d %s", cert.Serial, cert.Nonce)
+					t.Errorf("Lacking populated fields: %d %s", cert.Serial, cert.Nonce)
 				}
 			}
 		}

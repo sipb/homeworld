@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 	"time"
+
 	"token/scoped"
 )
 
@@ -30,7 +31,7 @@ func TestTokenExpiration(t *testing.T) {
 		}
 	}
 	if len(registry.by_token) != 1 {
-		t.Error("Expiration process did not work properly (%d)", len(registry.by_token))
+		t.Errorf("Expiration process did not work properly (%d)", len(registry.by_token))
 	}
 }
 
@@ -40,7 +41,7 @@ func TestTokenNoExpiration(t *testing.T) {
 		registry.GrantToken("subject", time.Minute)
 	}
 	if len(registry.by_token) != 1000 {
-		t.Error("Non-expiration process did not work properly (%d)", len(registry.by_token))
+		t.Errorf("Non-expiration process did not work properly (%d)", len(registry.by_token))
 	}
 }
 
