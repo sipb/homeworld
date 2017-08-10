@@ -1,9 +1,10 @@
 package account
 
 import (
-	"authorities"
 	"fmt"
 	"time"
+
+	"authorities"
 	"token"
 )
 
@@ -22,7 +23,7 @@ type TLSSignPrivilege struct {
 }
 
 func NewTLSGrantPrivilege(authority authorities.Authority, ishost bool, lifespan time.Duration, commonname string, dnsnames []string) (Privilege, error) {
-	if authority == nil || lifespan < time.Second || commonname == "" || dnsnames == nil || len(dnsnames) == 0 {
+	if authority == nil || lifespan < time.Second || commonname == "" || len(dnsnames) == 0 {
 		return nil, fmt.Errorf("Missing parameter to TLS granting privilege.")
 	}
 	tauth, ok := authority.(*authorities.TLSAuthority)
@@ -35,7 +36,7 @@ func NewTLSGrantPrivilege(authority authorities.Authority, ishost bool, lifespan
 }
 
 func NewSSHGrantPrivilege(authority authorities.Authority, ishost bool, lifespan time.Duration, keyid string, principals []string) (Privilege, error) {
-	if authority == nil || lifespan < time.Second || keyid == "" || principals == nil || len(principals) == 0 {
+	if authority == nil || lifespan < time.Second || keyid == "" || len(principals) == 0 {
 		return nil, fmt.Errorf("Missing parameter to SSH granting privilege.")
 	}
 	tauth, ok := authority.(*authorities.SSHAuthority)
@@ -57,7 +58,7 @@ func stringInList(value string, within []string) bool {
 }
 
 func NewBootstrapPrivilege(allowed_principals []string, lifespan time.Duration, registry *token.TokenRegistry) (Privilege, error) {
-	if allowed_principals == nil || len(allowed_principals) == 0 || lifespan < time.Millisecond || registry == nil {
+	if len(allowed_principals) == 0 || lifespan < time.Millisecond || registry == nil {
 		return nil, fmt.Errorf("Missing parameter to token granting privilege.")
 	}
 	return func(_ *OperationContext, encoded_principal string) (string, error) {

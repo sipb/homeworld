@@ -186,6 +186,16 @@ func TestSSHNegativeLifespan(t *testing.T) {
 	}
 }
 
+func TestSSHWildcard(t *testing.T) {
+	a := getSSHAuthority(t)
+	_, err := a.Sign(SSH_TEST2_PUBKEY, false, time.Minute, "name", []string{})
+	if err == nil {
+		t.Error("Wildcard cert should have failed to sign")
+	} else if !strings.Contains(err.Error(), "wildcard") {
+		t.Error("Error should have talked about wildcards")
+	}
+}
+
 type FakeSigner struct {
 }
 

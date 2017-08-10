@@ -65,7 +65,7 @@ func marshalSSHCert(cert *ssh.Certificate) string {
 	return fmt.Sprintf("%s %s\n", cert.Type(), base64.StdEncoding.EncodeToString(cert.Marshal()))
 }
 
-func (d *SSHAuthority) Sign(request string, ishost bool, lifespan time.Duration, name string, othernames []string) (string, error) {
+func (d *SSHAuthority) Sign(request string, ishost bool, lifespan time.Duration, keyid string, principals []string) (string, error) {
 	pubkey, err := parseSingleSSHKey([]byte(request))
 	if err != nil {
 		return "", err
@@ -75,6 +75,10 @@ func (d *SSHAuthority) Sign(request string, ishost bool, lifespan time.Duration,
 		return "", fmt.Errorf("Lifespan is too short (or nonpositive) for certificate signature.")
 	}
 
+	if len(principals) == 0 {
+		return "", fmt.Errorf("Refusing to sign wildcard certificate")
+	}
+
 	serialNumber, err := rand.Int(rand.Reader, (&big.Int{}).Exp(big.NewInt(2), big.NewInt(64), nil))
 	if err != nil {
 		return "", err
@@ -82,12 +86,12 @@ func (d *SSHAuthority) Sign(request string, ishost bool, lifespan time.Duration,
 
 	cert := &ssh.Certificate{
 		Key:             pubkey,
-		KeyId:           name,
+		KeyId:           keyid,
 		Serial:          serialNumber.Uint64(),
 		CertType:        certType(ishost),
 		ValidAfter:      uint64(time.Now().Unix()),
 		ValidBefore:     uint64(time.Now().Add(lifespan).Unix()),
-		ValidPrincipals: othernames,
+		ValidPrincipals: principals,
 	}
 
 	err = cert.SignCert(rand.Reader, d.key)
