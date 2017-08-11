@@ -16,6 +16,7 @@ func CompileStaticFiles(context *Context, config *Config) error {
 	context.StaticFiles = make(map[string]StaticFile)
 	for _, file := range config.StaticFiles {
 		fullpath := path.Join(config.StaticDir, string(file))
+		// check for existence
 		openfile, err := os.Open(fullpath)
 		if err != nil {
 			return err
@@ -88,18 +89,20 @@ func CompileAccounts(context *Context, config *Config) error {
 
 func CompileGroups(context *Context, config *Config) error {
 	context.Groups = make(map[string]*account.Group)
-	for name, group := range config.Groups {
+	for name, _ := range config.Groups {
 		if name == "" {
 			return fmt.Errorf("A group name is required.")
 		}
-		var inherit *account.Group
+		context.Groups[name] = &account.Group{Name: name, Members: make([]string, 0)}
+	}
+	for name, group := range config.Groups {
 		if group.Inherit != "" {
-			inherit = context.Groups[group.Inherit]
+			inherit := context.Groups[group.Inherit]
 			if inherit == nil {
-				return fmt.Errorf("Cannot find group %s to inherit in %s (out of order?)", group.Inherit, name)
+				return fmt.Errorf("Cannot find group %s to inherit in %s", group.Inherit, name)
 			}
+			context.Groups[name].Inherit = inherit
 		}
-		context.Groups[name] = &account.Group{Inherit: inherit, Members: make([]string, 0)}
 	}
 	return nil
 }

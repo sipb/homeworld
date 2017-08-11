@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"path"
 	"verifier"
+	"errors"
 )
 
 type StaticFile struct {
@@ -56,6 +57,9 @@ func (config *Config) Compile() (*Context, error) {
 }
 
 func (a *ConfigAuthority) Load(dir string) (authorities.Authority, error) {
+	if dir == "" {
+		return nil, errors.New("Empty directory path.")
+	}
 	keydata, err := ioutil.ReadFile(path.Join(dir, a.Key))
 	if err != nil {
 		return nil, err

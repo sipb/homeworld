@@ -1,0 +1,26 @@
+authoritydir: testdir
+staticdir: testdir
+authentication-authority: granting
+servertls: granting   # don't do this in production please
+
+staticfiles:
+  - test.txt
+
+authorities:
+  granting:
+    type: TLS
+    key: granting.key
+    cert: granting.pem
+
+accounts:
+  - principal: example
+    group: examples
+
+groups:
+  examples:
+
+grants:
+  test-1:
+    group: root-admins
+    privilege: construct-configuration
+    contents: "this is a test"

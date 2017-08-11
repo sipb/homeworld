@@ -133,7 +133,7 @@ grants:
     group: root-admins
     privilege: sign-ssh
     authority: ssh-user
-    lifespan: 4 hours
+    lifespan: 4h
     ishost: false
     common-name: temporary-ssh-grant-(principal)
     allowed-names:
@@ -143,7 +143,7 @@ grants:
     group: root-admins
     privilege: sign-tls
     authority: etcd-client
-    lifespan: 4 hours
+    lifespan: 4h
     ishost: false
     common-name: temporary-etcd-grant-(principal)
 
@@ -151,7 +151,7 @@ grants:
     group: root-admins
     privilege: sign-tls
     authority: kubernetes
-    lifespan: 4 hours
+    lifespan: 4h
     ishost: false
     common-name: temporary-kube-grant-(principal)
 
@@ -161,13 +161,13 @@ grants:
     group: root-admins
     privilege: bootstrap-account
     scope: nodes
-    lifespan: 1 hour
+    lifespan: 1h
 
   renew-keygrant:
     group: nodes
     privilege: sign-tls
     authority: keygranting
-    lifespan: 40 days
+    lifespan: 40d
     ishost: false
     common-name: (principal)
 
@@ -194,7 +194,7 @@ grants:
     group: nodes
     privilege: sign-ssh
     authority: ssh-host
-    lifespan: 60 days
+    lifespan: 60d
     ishost: false
     common-name: admitted-(principal)
     allowed-names:
@@ -206,7 +206,7 @@ grants:
     group: master-nodes
     privilege: sign-tls
     authority: kubernetes
-    lifespan: 30 days
+    lifespan: 30d
     ishost: true
     common-name: kube-master-(hostname)
     allowed-names:
@@ -223,7 +223,7 @@ grants:
     group: master-nodes
     privilege: sign-tls
     authority: etcd-server
-    lifespan: 30 days
+    lifespan: 30d
     ishost: true
     common-name: etcd-server-(hostname)
     allowed-names:
@@ -248,7 +248,7 @@ grants:
     group: master-nodes
     privilege: sign-tls
     authority: etcd-client
-    lifespan: 30 days
+    lifespan: 30d
     ishost: false
     common-name: etcd-client-(hostname)
     allowed-names:

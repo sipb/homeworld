@@ -51,7 +51,7 @@ grants:
     privilege: sign-ssh
     scope: creep
     authority: ssh-user
-    lifespan: 4 hours
+    lifespan: 4h
     ishost: false
     common-name: temporary-ssh-grant-(principal)
     allowed-names:
@@ -200,7 +200,7 @@ func TestParseConfig(t *testing.T) {
 				if grant.Authority != "ssh-user" {
 					t.Error("Wrong authority.")
 				}
-				if grant.Lifespan != "4 hours" {
+				if grant.Lifespan != "4h" {
 					t.Error("Wrong lifespan.")
 				}
 				if grant.IsHost != "false" {
@@ -236,3 +236,16 @@ func TestParseConfig_Fail(t *testing.T) {
 		t.Error("Expected yaml failure.")
 	}
 }
+
+/* TODO
+func TestParseConfig(t *testing.T) {
+	ctx, err := LoadConfig("testdir/smalltest.yaml")
+	if err != nil {
+		t.Error(err)
+	} else {
+		if len(ctx.Grants) != 1 {
+			t.Error("Wrong number of grants.")
+		}
+	}
+}
+*/

@@ -1,0 +1,2 @@
+goodbye world
+I will no longer be a static file

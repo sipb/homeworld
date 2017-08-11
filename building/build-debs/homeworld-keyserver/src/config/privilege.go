@@ -23,6 +23,9 @@ type CompiledGrant struct {
 
 func (grant *ConfigGrant) CompileGrant(vars map[string]string, ctx *Context) (*CompiledGrant, error) {
 	g := &CompiledGrant{Privilege: grant.Privilege}
+	if grant.Privilege == "" {
+		return nil, errors.New("Expected privilege to be specified")
+	}
 	if grant.Scope != "" {
 		scope, found := ctx.Groups[grant.Scope]
 		if !found {
