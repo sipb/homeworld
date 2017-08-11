@@ -9,6 +9,7 @@ import (
 	"account"
 	"fmt"
 	"net"
+	"verifier"
 )
 
 func TestCompileStaticFiles(t *testing.T) {
@@ -406,5 +407,66 @@ func TestCompileGroups_Fail(t *testing.T) {
 		},
 	}); err == nil || !strings.Contains(err.Error(), "Cannot find group") {
 		t.Error("Missing or wrong error.")
+	}
+}
+
+func TestCompileGrants(t *testing.T) {
+	admins := &account.Group{Name:"admins", Members:[]string {}}
+	root_admins := &account.Group{Name:"root-admins", Members:[]string {"my-admin"}}
+	servers := &account.Group{Name:"servers"}
+	testservers := &account.Group{Name:"test-servers", Inherit: servers, Members:[]string{"my-server"}}
+	ctx := Context{
+		TokenVerifier: verifier.NewTokenVerifier(),
+		Groups: map[string]*account.Group {
+			"admins": admins,
+			"root-admins": root_admins,
+			"servers": servers,
+			"test-servers": testservers,
+		},
+		Accounts: map[string]*account.Account {
+			"my-admin": {Group: root_admins},
+			"my-server": {Group: testservers},
+		},
+	}
+	err := CompileGrants(&ctx, &Config{
+		Grants: map[string]ConfigGrant{
+			"test-grant": {
+				Privilege: "bootstrap-account",
+				Group:     "admins",
+				Scope:     "servers",
+				Lifespan:  "4h",
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	} else {
+		if len(ctx.Grants) != 1 {
+			t.Fatal("Wrong number of grants.")
+		}
+		grant := ctx.Grants["test-grant"]
+		if grant.Group != admins {
+			t.Error("Wrong admin group.")
+		}
+		if grant.API != "test-grant" {
+			t.Error("Wrong API name.")
+		}
+		if len(grant.PrivilegeByAccount) != 1 {
+			t.Fatalf("Wrong number of privileges: expected one, not %d.", len(grant.PrivilegeByAccount))
+		}
+		priv := grant.PrivilegeByAccount["my-admin"]
+		tok, err := priv(nil, "my-server")
+		if err != nil {
+			t.Error(err)
+		} else {
+			princ, err := ctx.TokenVerifier.Registry.LookupToken(tok)
+			if err != nil {
+				t.Error(err)
+			} else if princ.Subject != "my-server" {
+				t.Error("Wrong principal.")
+			} else if princ.Claim() != nil {
+				t.Error("Cannot claim.")
+			}
+		}
 	}
 }
