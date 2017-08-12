@@ -1,9 +1,9 @@
 package config
 
 import (
-	"keyserver/authorities"
 	"bytes"
 	"io/ioutil"
+	"keyserver/authorities"
 	"strings"
 	"testing"
 	"time"

@@ -1,17 +1,17 @@
 package keyapi
 
 import (
-	"keyserver/config"
-	"net/http"
-	"io/ioutil"
-	"keyserver/operation"
-	"fmt"
-	"log"
-	"keyserver/account"
-	"keyserver/verifier"
-	"keyserver/util"
-	"crypto/x509"
 	"crypto/tls"
+	"crypto/x509"
+	"fmt"
+	"io/ioutil"
+	"keyserver/account"
+	"keyserver/config"
+	"keyserver/operation"
+	"keyserver/util"
+	"keyserver/verifier"
+	"log"
+	"net/http"
 )
 
 type Keyserver interface {
@@ -24,7 +24,7 @@ type Keyserver interface {
 
 type ConfiguredKeyserver struct {
 	Context *config.Context
-	Logger *log.Logger
+	Logger  *log.Logger
 }
 
 func verifyAccountIP(account *account.Account, request *http.Request) error {

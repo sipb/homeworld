@@ -1,10 +1,10 @@
 package config
 
 import (
-	"keyserver/account"
-	"keyserver/authorities"
 	"bytes"
 	"io/ioutil"
+	"keyserver/account"
+	"keyserver/authorities"
 	"strings"
 	"testing"
 	"time"

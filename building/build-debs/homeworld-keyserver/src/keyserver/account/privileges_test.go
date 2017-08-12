@@ -1,17 +1,17 @@
 package account
 
 import (
-	"keyserver/authorities"
 	"bytes"
 	"crypto/tls"
 	"encoding/base64"
 	"fmt"
 	"golang.org/x/crypto/ssh"
+	"keyserver/authorities"
+	"keyserver/token"
 	"net"
 	"strings"
 	"testing"
 	"time"
-	"keyserver/token"
 )
 
 const (

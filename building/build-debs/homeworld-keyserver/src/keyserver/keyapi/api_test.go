@@ -1,23 +1,23 @@
 package keyapi
 
 import (
-	"testing"
+	"bytes"
+	"crypto/tls"
+	"crypto/x509"
+	"encoding/pem"
+	"errors"
+	"io/ioutil"
 	"keyserver/account"
-	"net/http/httptest"
-	"net"
-	"strings"
+	"keyserver/authorities"
 	"keyserver/config"
 	"keyserver/verifier"
-	"keyserver/authorities"
-	"time"
-	"encoding/pem"
-	"crypto/x509"
-	"crypto/tls"
-	"net/http"
-	"bytes"
-	"io/ioutil"
 	"log"
-	"errors"
+	"net"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+	"time"
 )
 
 func TestVerifyAccountIP_NoLimit(t *testing.T) {
@@ -87,7 +87,7 @@ func TestAttemptAuthentication_NoAuthentication(t *testing.T) {
 		t.Fatal(err)
 	}
 	gctx := config.Context{
-		TokenVerifier: verifier.NewTokenVerifier(),
+		TokenVerifier:           verifier.NewTokenVerifier(),
 		AuthenticationAuthority: authority.(*authorities.TLSAuthority),
 	}
 	_, err = attemptAuthentication(&gctx, request)
@@ -104,10 +104,10 @@ func TestAttemptAuthentication_TokenAuth(t *testing.T) {
 		t.Fatal(err)
 	}
 	gctx := config.Context{
-		TokenVerifier: verifier.NewTokenVerifier(),
+		TokenVerifier:           verifier.NewTokenVerifier(),
 		AuthenticationAuthority: authority.(*authorities.TLSAuthority),
-		Accounts: map[string]*account.Account {
-			"test-user": {Principal:"test-user"},
+		Accounts: map[string]*account.Account{
+			"test-user": {Principal: "test-user"},
 		},
 	}
 	request := httptest.NewRequest("GET", "/test", nil)
@@ -126,10 +126,10 @@ func TestAttemptAuthentication_TokenAuth_Fail(t *testing.T) {
 		t.Fatal(err)
 	}
 	gctx := config.Context{
-		TokenVerifier: verifier.NewTokenVerifier(),
+		TokenVerifier:           verifier.NewTokenVerifier(),
 		AuthenticationAuthority: authority.(*authorities.TLSAuthority),
-		Accounts: map[string]*account.Account {
-			"test-user": {Principal:"test-user"},
+		Accounts: map[string]*account.Account{
+			"test-user": {Principal: "test-user"},
 		},
 	}
 	request := httptest.NewRequest("GET", "/test", nil)
@@ -148,10 +148,9 @@ func TestAttemptAuthentication_MissingAccount_Token(t *testing.T) {
 		t.Fatal(err)
 	}
 	gctx := config.Context{
-		TokenVerifier: verifier.NewTokenVerifier(),
+		TokenVerifier:           verifier.NewTokenVerifier(),
 		AuthenticationAuthority: authority.(*authorities.TLSAuthority),
-		Accounts: map[string]*account.Account {
-		},
+		Accounts:                map[string]*account.Account{},
 	}
 	request := httptest.NewRequest("GET", "/test", nil)
 	request.Header.Set(verifier.TokenHeader, gctx.TokenVerifier.Registry.GrantToken("test-user", time.Minute))
@@ -169,10 +168,10 @@ func TestAttemptAuthentication_NoDirectAuth_Token(t *testing.T) {
 		t.Fatal(err)
 	}
 	gctx := config.Context{
-		TokenVerifier: verifier.NewTokenVerifier(),
+		TokenVerifier:           verifier.NewTokenVerifier(),
 		AuthenticationAuthority: authority.(*authorities.TLSAuthority),
-		Accounts: map[string]*account.Account {
-			"test-user": {Principal:"test-user", DisableDirectAuth: true},
+		Accounts: map[string]*account.Account{
+			"test-user": {Principal: "test-user", DisableDirectAuth: true},
 		},
 	}
 	request := httptest.NewRequest("GET", "/test", nil)
@@ -191,10 +190,10 @@ func TestAttemptAuthentication_InvalidIP_Token(t *testing.T) {
 		t.Fatal(err)
 	}
 	gctx := config.Context{
-		TokenVerifier: verifier.NewTokenVerifier(),
+		TokenVerifier:           verifier.NewTokenVerifier(),
 		AuthenticationAuthority: authority.(*authorities.TLSAuthority),
-		Accounts: map[string]*account.Account {
-			"test-user": {Principal:"test-user", LimitIP: net.IPv4(192, 168, 0, 16)},
+		Accounts: map[string]*account.Account{
+			"test-user": {Principal: "test-user", LimitIP: net.IPv4(192, 168, 0, 16)},
 		},
 	}
 	request := httptest.NewRequest("GET", "/test", nil)
@@ -207,7 +206,6 @@ func TestAttemptAuthentication_InvalidIP_Token(t *testing.T) {
 		t.Errorf("Wrong error: %s", err)
 	}
 }
-
 
 const (
 	TLS_CLIENT_CSR = "-----BEGIN CERTIFICATE REQUEST-----\nMIIBVTCBvwIBADAWMRQwEgYDVQQDDAtjbGllbnQtdGVzdDCBnzANBgkqhkiG9w0B\nAQEFAAOBjQAwgYkCgYEAtKukT2LT/PJ/i1pbqfe4Vm9iN2yMFoiKj0em7FFOrAeU\n/5onq8fZEXhUruN+OhjMr+K1c2qy7noqbzD3Fz/vi2frB9DUFMA9rkj3teRIEXKB\nBDzb1cbDSTL0HxH47/tURxzxzGCVfTCc1xUY+dqMsd8SvowxuEptU4SO9H8CR2MC\nAwEAAaAAMA0GCSqGSIb3DQEBCwUAA4GBALCOKX+QHmNLGrrSCWB8p2iMuS+aPOcW\nYI9c1VaaTSQ43HOjF1smvGIa1iicM2L5zTBOEG36kI+sKFDOF2cXclhQF1WfLcxC\nIi/JSV+W7hbS6zWvJOnmoi15hzvVa1MRk8HZH+TpiMxO5uqQdDiEkV1sJ50v0ZtR\nTMuSBjdmmJ1t\n-----END CERTIFICATE REQUEST-----"
@@ -230,7 +228,7 @@ func prepCertAuth(t *testing.T, gctx *config.Context) *http.Request {
 		t.Fatal(err)
 	}
 	request := httptest.NewRequest("GET", "/test", nil)
-	request.TLS = &tls.ConnectionState{ VerifiedChains: [][]*x509.Certificate { { cert } } }
+	request.TLS = &tls.ConnectionState{VerifiedChains: [][]*x509.Certificate{{cert}}}
 	return request
 }
 
@@ -240,10 +238,10 @@ func TestAttemptAuthentication_CertAuth(t *testing.T) {
 		t.Fatal(err)
 	}
 	gctx := config.Context{
-		TokenVerifier: verifier.NewTokenVerifier(),
+		TokenVerifier:           verifier.NewTokenVerifier(),
 		AuthenticationAuthority: authority.(*authorities.TLSAuthority),
-		Accounts: map[string]*account.Account {
-			"test-user": {Principal:"test-user"},
+		Accounts: map[string]*account.Account{
+			"test-user": {Principal: "test-user"},
 		},
 	}
 	acnt, err := attemptAuthentication(&gctx, prepCertAuth(t, &gctx))
@@ -264,10 +262,10 @@ func TestAttemptAuthentication_CertAuth_Fail(t *testing.T) {
 		t.Fatal(err)
 	}
 	gctx := config.Context{
-		TokenVerifier: verifier.NewTokenVerifier(),
+		TokenVerifier:           verifier.NewTokenVerifier(),
 		AuthenticationAuthority: authority.(*authorities.TLSAuthority),
-		Accounts: map[string]*account.Account {
-			"test-user": {Principal:"test-user"},
+		Accounts: map[string]*account.Account{
+			"test-user": {Principal: "test-user"},
 		},
 	}
 	request := prepCertAuth(t, &gctx)
@@ -286,10 +284,9 @@ func TestAttemptAuthentication_MissingAccount_Cert(t *testing.T) {
 		t.Fatal(err)
 	}
 	gctx := config.Context{
-		TokenVerifier: verifier.NewTokenVerifier(),
+		TokenVerifier:           verifier.NewTokenVerifier(),
 		AuthenticationAuthority: authority.(*authorities.TLSAuthority),
-		Accounts: map[string]*account.Account {
-		},
+		Accounts:                map[string]*account.Account{},
 	}
 	_, err = attemptAuthentication(&gctx, prepCertAuth(t, &gctx))
 	if err == nil {
@@ -305,10 +302,10 @@ func TestAttemptAuthentication_NoDirectAuth_Cert(t *testing.T) {
 		t.Fatal(err)
 	}
 	gctx := config.Context{
-		TokenVerifier: verifier.NewTokenVerifier(),
+		TokenVerifier:           verifier.NewTokenVerifier(),
 		AuthenticationAuthority: authority.(*authorities.TLSAuthority),
-		Accounts: map[string]*account.Account {
-			"test-user": {Principal:"test-user", DisableDirectAuth: true},
+		Accounts: map[string]*account.Account{
+			"test-user": {Principal: "test-user", DisableDirectAuth: true},
 		},
 	}
 	_, err = attemptAuthentication(&gctx, prepCertAuth(t, &gctx))
@@ -325,10 +322,10 @@ func TestAttemptAuthentication_InvalidIP_Cert(t *testing.T) {
 		t.Fatal(err)
 	}
 	gctx := config.Context{
-		TokenVerifier: verifier.NewTokenVerifier(),
+		TokenVerifier:           verifier.NewTokenVerifier(),
 		AuthenticationAuthority: authority.(*authorities.TLSAuthority),
-		Accounts: map[string]*account.Account {
-			"test-user": {Principal:"test-user", LimitIP: net.IPv4(192, 168, 0, 16)},
+		Accounts: map[string]*account.Account{
+			"test-user": {Principal: "test-user", LimitIP: net.IPv4(192, 168, 0, 16)},
 		},
 	}
 	request := prepCertAuth(t, &gctx)
@@ -385,7 +382,7 @@ func TestConfiguredKeyserver_GetServerCert(t *testing.T) {
 
 func TestConfiguredKeyserver_HandleStaticRequest(t *testing.T) {
 	ks := &ConfiguredKeyserver{Context: &config.Context{StaticFiles: map[string]config.StaticFile{
-		"testa.txt": {Filename:"testa.txt", Filepath: "../config/testdir/testa.txt"},
+		"testa.txt": {Filename: "testa.txt", Filepath: "../config/testdir/testa.txt"},
 	}}}
 	recorder := httptest.NewRecorder()
 	err := ks.HandleStaticRequest(recorder, "testa.txt")
@@ -421,7 +418,7 @@ func TestConfiguredKeyserver_HandleStaticRequest_NonexistentEntry(t *testing.T) 
 
 func TestConfiguredKeyserver_HandleStaticRequest_NonexistentFile(t *testing.T) {
 	ks := &ConfiguredKeyserver{Context: &config.Context{StaticFiles: map[string]config.StaticFile{
-		"testa.txt": {Filename:"testa.txt", Filepath: "../config/testdir/nonexistent.txt"},
+		"testa.txt": {Filename: "testa.txt", Filepath: "../config/testdir/nonexistent.txt"},
 	}}}
 	err := ks.HandleStaticRequest(nil, "testa.txt")
 	if err == nil {
@@ -481,15 +478,15 @@ func TestConfiguredKeyserver_HandleAPIRequest(t *testing.T) {
 	ks := &ConfiguredKeyserver{
 		Context: &config.Context{
 			TokenVerifier: verifier.NewTokenVerifier(),
-			Accounts: map[string]*account.Account {
+			Accounts: map[string]*account.Account{
 				"test-account": {
 					Principal: "test-account",
 				},
 			},
-			Grants: map[string]config.Grant {
+			Grants: map[string]config.Grant{
 				"test-api": {
 					API: "test-api",
-					PrivilegeByAccount: map[string]account.Privilege {
+					PrivilegeByAccount: map[string]account.Privilege{
 						"test-account": priv,
 					},
 				},
@@ -570,7 +567,7 @@ func TestConfiguredKeyserver_HandleAPIRequest_NoSuchGrant(t *testing.T) {
 	ks := &ConfiguredKeyserver{
 		Context: &config.Context{
 			TokenVerifier: verifier.NewTokenVerifier(),
-			Accounts: map[string]*account.Account {
+			Accounts: map[string]*account.Account{
 				"test-account": {
 					Principal: "test-account",
 				},

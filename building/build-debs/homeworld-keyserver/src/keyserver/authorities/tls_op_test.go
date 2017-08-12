@@ -11,10 +11,10 @@ import (
 	"math/rand"
 	"net"
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
-	"net/http/httptest"
 )
 
 const (
@@ -477,7 +477,7 @@ func TestTLSAuthority_HasAttempt_PartialExists(t *testing.T) {
 func TestTLSAuthority_HasAttempt_MostlyExists(t *testing.T) {
 	a := getTLSAuthority(t)
 	req := httptest.NewRequest("GET", "/test", nil)
-	req.TLS = &tls.ConnectionState{VerifiedChains: [][]*x509.Certificate { {} }}
+	req.TLS = &tls.ConnectionState{VerifiedChains: [][]*x509.Certificate{{}}}
 	if a.HasAttempt(req) {
 		t.Error("Should be no attempt.")
 	}
@@ -494,7 +494,7 @@ func TestTLSAuthority_HasAttempt_Exists(t *testing.T) {
 		t.Fatal(err)
 	}
 	req := httptest.NewRequest("GET", "/test", nil)
-	req.TLS = &tls.ConnectionState{VerifiedChains: [][]*x509.Certificate { { cert } }}
+	req.TLS = &tls.ConnectionState{VerifiedChains: [][]*x509.Certificate{{cert}}}
 	if !a.HasAttempt(req) {
 		t.Error("Should be an attempt.")
 	}

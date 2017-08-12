@@ -1,23 +1,23 @@
 package operation
 
 import (
-	"testing"
-	"keyserver/account"
-	"keyserver/config"
+	"bytes"
 	"errors"
 	"fmt"
+	"keyserver/account"
+	"keyserver/config"
 	"log"
-	"bytes"
 	"strings"
+	"testing"
 )
 
 func TestInvokeAPIOperation(t *testing.T) {
 	opctx := account.OperationContext{}
 	gctx := config.Context{
-		Grants: map[string]config.Grant {
+		Grants: map[string]config.Grant{
 			"test-api": {
 				API: "test-api",
-				PrivilegeByAccount: map[string]account.Privilege {
+				PrivilegeByAccount: map[string]account.Privilege{
 					"test-account": func(iopctx *account.OperationContext, param string) (string, error) {
 						if iopctx != &opctx {
 							return "", errors.New("Mismatched opctx.")
@@ -36,25 +36,25 @@ func TestInvokeAPIOperation(t *testing.T) {
 	}
 	buf := bytes.NewBuffer(nil)
 	logger := log.New(buf, "", 0)
-	opctx.Account = &account.Account{Principal:"test-account"}
+	opctx.Account = &account.Account{Principal: "test-account"}
 	result, err := InvokeAPIOperation(&opctx, &gctx, "test-api", "gemstone", logger)
 	if err != nil {
 		t.Error(err)
 	} else if result != "cheap plastic gemstone, made in china" {
 		t.Error("Wrong result.")
 	}
-	opctx.Account = &account.Account{Principal:"test-account-2"}
+	opctx.Account = &account.Account{Principal: "test-account-2"}
 	_, err = InvokeAPIOperation(&opctx, &gctx, "test-api", "gemstone", logger)
 	if err == nil {
 		t.Error("Expected error.")
 	} else if err.Error() != "A testing error." {
 		t.Error("Wrong error.")
 	}
-	lines := []string { "Attempting to perform API operation test-api for test-account",
-                        "Operation test-api for test-account succeeded.",
-						"Attempting to perform API operation test-api for test-account-2",
-						"Operation test-api for test-account-2 failed with error: A testing error.",
-						""}
+	lines := []string{"Attempting to perform API operation test-api for test-account",
+		"Operation test-api for test-account succeeded.",
+		"Attempting to perform API operation test-api for test-account-2",
+		"Operation test-api for test-account-2 failed with error: A testing error.",
+		""}
 	found := strings.Split(buf.String(), "\n")
 	if len(lines) != len(found) {
 		t.Error("Wrong number of log lines.")
@@ -68,7 +68,7 @@ func TestInvokeAPIOperation(t *testing.T) {
 }
 
 func TestInvokeAPIOperation_NoAPI(t *testing.T) {
-	opctx := account.OperationContext{Account: &account.Account{Principal:"test-account"}}
+	opctx := account.OperationContext{Account: &account.Account{Principal: "test-account"}}
 	gctx := config.Context{}
 	buf := bytes.NewBuffer(nil)
 	logger := log.New(buf, "", 0)
@@ -86,7 +86,7 @@ func TestInvokeAPIOperation_NoAPI(t *testing.T) {
 func TestInvokeAPIOperation_NoAccount(t *testing.T) {
 	opctx := account.OperationContext{}
 	gctx := config.Context{
-		Grants: map[string]config.Grant {
+		Grants: map[string]config.Grant{
 			"test-api": {
 				API: "test-api",
 			},
@@ -106,9 +106,9 @@ func TestInvokeAPIOperation_NoAccount(t *testing.T) {
 }
 
 func TestInvokeAPIOperation_NoAccess(t *testing.T) {
-	opctx := account.OperationContext{Account: &account.Account{Principal:"test-account"}}
+	opctx := account.OperationContext{Account: &account.Account{Principal: "test-account"}}
 	gctx := config.Context{
-		Grants: map[string]config.Grant {
+		Grants: map[string]config.Grant{
 			"test-api": {
 				API: "test-api",
 			},
@@ -129,10 +129,10 @@ func TestInvokeAPIOperation_NoAccess(t *testing.T) {
 
 func TestInvokeAPIOperationSet(t *testing.T) {
 	gctx := config.Context{
-		Grants: map[string]config.Grant {
+		Grants: map[string]config.Grant{
 			"test-api": {
 				API: "test-api",
-				PrivilegeByAccount: map[string]account.Privilege {
+				PrivilegeByAccount: map[string]account.Privilege{
 					"test-account": func(iopctx *account.OperationContext, param string) (string, error) {
 						return fmt.Sprintf("cheap 3d-printed %s, made in our basement", param), nil
 					},
@@ -140,7 +140,7 @@ func TestInvokeAPIOperationSet(t *testing.T) {
 			},
 			"test-api-2": {
 				API: "test-api-2",
-				PrivilegeByAccount: map[string]account.Privilege {
+				PrivilegeByAccount: map[string]account.Privilege{
 					"test-account": func(iopctx *account.OperationContext, param string) (string, error) {
 						return fmt.Sprintf("cheap plastic %s, made in china", param), nil
 					},
@@ -158,11 +158,11 @@ func TestInvokeAPIOperationSet(t *testing.T) {
 	} else if string(result) != "[\"cheap plastic arm, made in china\",\"cheap 3d-printed leg, made in our basement\"]" {
 		t.Errorf("Wrong result %s", string(result))
 	}
-	lines := []string { "Attempting to perform API operation test-api-2 for test-account",
-						"Operation test-api-2 for test-account succeeded.",
-						"Attempting to perform API operation test-api for test-account",
-						"Operation test-api for test-account succeeded.",
-						""}
+	lines := []string{"Attempting to perform API operation test-api-2 for test-account",
+		"Operation test-api-2 for test-account succeeded.",
+		"Attempting to perform API operation test-api for test-account",
+		"Operation test-api for test-account succeeded.",
+		""}
 	found := strings.Split(buf.String(), "\n")
 	if len(lines) != len(found) {
 		t.Error("Wrong number of log lines.")
@@ -181,21 +181,21 @@ func TestInvokeAPIOperationSet_Delegate(t *testing.T) {
 			return &account.Account{Principal: "test-account-2"}, nil
 		}
 		return nil, fmt.Errorf("No such account %s", name)
-	}, &account.Group{Name: "test-group", AllMembers: []string { "test-account-2" }})
+	}, &account.Group{Name: "test-group", AllMembers: []string{"test-account-2"}})
 	if err != nil {
 		t.Fatal(err)
 	}
 	gctx := config.Context{
-		Grants: map[string]config.Grant {
+		Grants: map[string]config.Grant{
 			"test-api": {
 				API: "test-api",
-				PrivilegeByAccount: map[string]account.Privilege {
+				PrivilegeByAccount: map[string]account.Privilege{
 					"test-account": impersonate,
 				},
 			},
 			"test-api-2": {
 				API: "test-api-2",
-				PrivilegeByAccount: map[string]account.Privilege {
+				PrivilegeByAccount: map[string]account.Privilege{
 					"test-account-2": func(iopctx *account.OperationContext, param string) (string, error) {
 						return fmt.Sprintf("cheap 3d-printed %s, made in our basement", param), nil
 					},
@@ -213,11 +213,11 @@ func TestInvokeAPIOperationSet_Delegate(t *testing.T) {
 	} else if string(result) != "[\"\",\"cheap 3d-printed head, made in our basement\"]" {
 		t.Errorf("Wrong result %s", string(result))
 	}
-	lines := []string { "Attempting to perform API operation test-api for test-account",
-						"Operation test-api for test-account succeeded.",
-						"Attempting to perform API operation test-api-2 for test-account-2",
-						"Operation test-api-2 for test-account-2 succeeded.",
-						""}
+	lines := []string{"Attempting to perform API operation test-api for test-account",
+		"Operation test-api for test-account succeeded.",
+		"Attempting to perform API operation test-api-2 for test-account-2",
+		"Operation test-api-2 for test-account-2 succeeded.",
+		""}
 	found := strings.Split(buf.String(), "\n")
 	if len(lines) != len(found) {
 		t.Error("Wrong number of log lines.")
@@ -285,7 +285,6 @@ func TestInvokeAPIOperationSet_Empty(t *testing.T) {
 		t.Error("Expected no logging.")
 	}
 }
-
 
 func TestInvokeAPIOperationSet_FailOperation(t *testing.T) {
 	buf := bytes.NewBuffer(nil)

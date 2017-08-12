@@ -1,15 +1,15 @@
 package config
 
 import (
-	"keyserver/account"
-	"keyserver/authorities"
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"keyserver/account"
+	"keyserver/authorities"
+	"keyserver/verifier"
 	"net"
 	"strings"
 	"testing"
-	"keyserver/verifier"
 )
 
 func TestCompileStaticFiles(t *testing.T) {

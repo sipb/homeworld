@@ -1,19 +1,19 @@
 package keyapi
 
 import (
-	"testing"
 	"bytes"
-	"log"
-	"net/http/httptest"
-	"io/ioutil"
-	"strings"
-	"keyserver/verifier"
-	"time"
-	"net/http"
 	"crypto/tls"
-	"keyserver/config"
-	"keyserver/authorities"
 	"encoding/json"
+	"io/ioutil"
+	"keyserver/authorities"
+	"keyserver/config"
+	"keyserver/verifier"
+	"log"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+	"time"
 )
 
 func TestLoadConfiguredKeyserver(t *testing.T) {
@@ -271,7 +271,7 @@ func TestRun_Static(t *testing.T) {
 
 	client := &http.Client{Transport: &http.Transport{
 		TLSClientConfig: &tls.Config{
-			RootCAs:      serverCertAsCA.(*authorities.TLSAuthority).ToCertPool(),
+			RootCAs: serverCertAsCA.(*authorities.TLSAuthority).ToCertPool(),
 		},
 	}}
 
@@ -318,7 +318,7 @@ func TestRun_Pub(t *testing.T) {
 
 	client := &http.Client{Transport: &http.Transport{
 		TLSClientConfig: &tls.Config{
-			RootCAs:      serverCertAsCA.(*authorities.TLSAuthority).ToCertPool(),
+			RootCAs: serverCertAsCA.(*authorities.TLSAuthority).ToCertPool(),
 		},
 	}}
 
@@ -370,7 +370,7 @@ func TestRun_API(t *testing.T) {
 
 	client := &http.Client{Transport: &http.Transport{
 		TLSClientConfig: &tls.Config{
-			Certificates: []tls.Certificate { keypair },
+			Certificates: []tls.Certificate{keypair},
 			RootCAs:      serverCertAsCA.(*authorities.TLSAuthority).ToCertPool(),
 		},
 	}}
@@ -400,7 +400,7 @@ func TestRun_API(t *testing.T) {
 
 	client = &http.Client{Transport: &http.Transport{
 		TLSClientConfig: &tls.Config{
-			RootCAs:      serverCertAsCA.(*authorities.TLSAuthority).ToCertPool(),
+			RootCAs: serverCertAsCA.(*authorities.TLSAuthority).ToCertPool(),
 		},
 	}}
 

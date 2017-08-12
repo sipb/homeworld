@@ -5,8 +5,8 @@ import (
 	"log"
 	"net/http"
 
-	"keyserver/config"
 	"context"
+	"keyserver/config"
 	"net"
 )
 

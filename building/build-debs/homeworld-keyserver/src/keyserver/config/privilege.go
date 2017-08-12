@@ -1,13 +1,13 @@
 package config
 
 import (
-	"keyserver/account"
-	"keyserver/authorities"
 	"errors"
 	"fmt"
+	"keyserver/account"
+	"keyserver/authorities"
+	"keyserver/util"
 	"strconv"
 	"time"
-	"keyserver/util"
 )
 
 type CompiledGrant struct {

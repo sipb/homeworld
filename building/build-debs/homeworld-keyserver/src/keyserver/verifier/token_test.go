@@ -1,12 +1,12 @@
 package verifier
 
 import (
+	"keyserver/token"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
-	"keyserver/token"
 )
 
 func getTestRequest(token string) *http.Request {

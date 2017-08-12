@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"log"
 
+	"errors"
 	"keyserver/account"
 	"keyserver/config"
-	"errors"
 )
 
 func InvokeAPIOperationSet(a *account.Account, context *config.Context, requestBody []byte, logger *log.Logger) ([]byte, error) {

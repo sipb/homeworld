@@ -1,10 +1,10 @@
 package config
 
 import (
-	"keyserver/account"
-	"keyserver/authorities"
 	"errors"
 	"fmt"
+	"keyserver/account"
+	"keyserver/authorities"
 	"net"
 	"os"
 	"path"

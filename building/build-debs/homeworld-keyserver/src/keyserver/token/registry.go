@@ -2,9 +2,9 @@ package token
 
 import (
 	"fmt"
+	"keyserver/token/scoped"
 	"sync"
 	"time"
-	"keyserver/token/scoped"
 )
 
 type TokenRegistry struct {
