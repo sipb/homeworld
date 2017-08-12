@@ -1,0 +1,13 @@
+[Unit]
+Description=Homeworld Kerberos Gateway
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+Environment="KRB5_KTNAME=/etc/krb5.keytab"
+ExecStart=/usr/bin/knc -l 20575 /usr/bin/keygateway
+Restart=always
+RestartSec=10s
+
+[Install]
+WantedBy=multi-user.target

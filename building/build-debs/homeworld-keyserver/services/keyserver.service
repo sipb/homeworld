@@ -1,0 +1,12 @@
+[Unit]
+Description=Homeworld Keyserver
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/bin/keyserver
+Restart=always
+RestartSec=10s
+
+[Install]
+WantedBy=multi-user.target
