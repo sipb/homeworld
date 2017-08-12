@@ -82,7 +82,9 @@ func CompileAccounts(context *Context, config *Config) error {
 			metadata[k] = v
 		}
 		context.Accounts[ac.Principal] = &account.Account{ac.Principal, group, ac.DisableDirectAuth, metadata, limitIP}
-		group.Members = append(group.Members, ac.Principal)
+		for curgroup := group; curgroup != nil; curgroup = curgroup.SubgroupOf {
+			curgroup.AllMembers = append(curgroup.AllMembers, ac.Principal)
+		}
 	}
 	return nil
 }
@@ -93,15 +95,15 @@ func CompileGroups(context *Context, config *Config) error {
 		if name == "" {
 			return fmt.Errorf("A group name is required.")
 		}
-		context.Groups[name] = &account.Group{Name: name, Members: make([]string, 0)}
+		context.Groups[name] = &account.Group{Name: name}
 	}
 	for name, group := range config.Groups {
-		if group.Inherit != "" {
-			inherit := context.Groups[group.Inherit]
-			if inherit == nil {
-				return fmt.Errorf("Cannot find group %s to inherit in %s", group.Inherit, name)
+		if group.SubgroupOf != "" {
+			subgroupof := context.Groups[group.SubgroupOf]
+			if subgroupof == nil {
+				return fmt.Errorf("Cannot find group %s to be a subgroup of in %s", group.SubgroupOf, name)
 			}
-			context.Groups[name].Inherit = inherit
+			context.Groups[name].SubgroupOf = subgroupof
 		}
 	}
 	return nil
@@ -118,7 +120,7 @@ func CompileGrants(context *Context, config *Config) error {
 			return fmt.Errorf("Could not find group %s for grant %s", grant.Group, api)
 		}
 		privileges := make(map[string]account.Privilege)
-		for _, accountname := range group.AllMembers() {
+		for _, accountname := range group.AllMembers {
 			_, found := privileges[accountname]
 			if found {
 				return fmt.Errorf("Duplicate account %s", accountname)

@@ -3,11 +3,11 @@ package config
 import (
 	"account"
 	"authorities"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"path"
 	"verifier"
-	"errors"
 )
 
 type StaticFile struct {
@@ -30,17 +30,6 @@ type Context struct {
 	AuthenticationAuthority *authorities.TLSAuthority
 	ServerTLS               *authorities.TLSAuthority
 	StaticFiles             map[string]StaticFile
-}
-
-func (ctx *Context) GetAccount(principal string) (*account.Account, error) {
-	ac, found := ctx.Accounts[principal]
-	if !found {
-		return nil, fmt.Errorf("Cannot find account for principal %s.", principal)
-	}
-	if ac.Principal != principal {
-		return nil, fmt.Errorf("Mismatched principal during lookup")
-	}
-	return ac, nil
 }
 
 type SetupStep func(*Context, *Config) error
@@ -69,6 +58,17 @@ func (a *ConfigAuthority) Load(dir string) (authorities.Authority, error) {
 		return nil, err
 	}
 	return authorities.LoadAuthority(a.Type, keydata, certdata)
+}
+
+func (ctx *Context) GetAccount(principal string) (*account.Account, error) {
+	ac, found := ctx.Accounts[principal]
+	if !found {
+		return nil, fmt.Errorf("Cannot find account for principal %s.", principal)
+	}
+	if ac.Principal != principal {
+		return nil, fmt.Errorf("Mismatched principal during lookup")
+	}
+	return ac, nil
 }
 
 func (c *Context) GetAuthority(name string) (authorities.Authority, error) {

@@ -1,7 +1,12 @@
 package config
 
 import (
+	"authorities"
+	"bytes"
+	"io/ioutil"
+	"strings"
 	"testing"
+	"time"
 )
 
 const MINIMAL_YAML = `
@@ -41,7 +46,7 @@ groups:
   root-admins:
   nodes:
   example-nodes:
-    inherit: nodes
+    subgroupof: nodes
 
 grants:
   # GRANTS!
@@ -171,14 +176,14 @@ func TestParseConfig(t *testing.T) {
 		} else if _, found := config.Groups["example-nodes"]; !found {
 			t.Error("Missing example-nodes.")
 		} else {
-			if config.Groups["root-admins"].Inherit != "" {
-				t.Error("Expected empty inherit for root-admins.")
+			if config.Groups["root-admins"].SubgroupOf != "" {
+				t.Error("Expected empty subgroupof for root-admins.")
 			}
-			if config.Groups["nodes"].Inherit != "" {
-				t.Error("Expected empty inherit for nodes.")
+			if config.Groups["nodes"].SubgroupOf != "" {
+				t.Error("Expected empty subgroupof for nodes.")
 			}
-			if config.Groups["example-nodes"].Inherit != "nodes" {
-				t.Error("Expected 'nodes' inherit for example-nodes.")
+			if config.Groups["example-nodes"].SubgroupOf != "nodes" {
+				t.Error("Expected 'nodes' subgroupof for example-nodes.")
 			}
 		}
 		if len(config.Grants) != 1 {
@@ -237,15 +242,97 @@ func TestParseConfig_Fail(t *testing.T) {
 	}
 }
 
-/* TODO
-func TestParseConfig(t *testing.T) {
+func TestLoadConfig(t *testing.T) {
 	ctx, err := LoadConfig("testdir/smalltest.yaml")
 	if err != nil {
 		t.Error(err)
 	} else {
+		expected_pubkey_bytes, err := ioutil.ReadFile("testdir/test1.pem")
+		if err != nil {
+			t.Error(err)
+		}
+		if len(ctx.Authorities) != 1 {
+			t.Error("Wrong # of authorities")
+		} else if !bytes.Equal(ctx.Authorities["granting"].(*authorities.TLSAuthority).GetPublicKey(), expected_pubkey_bytes) {
+			t.Error("Wrong authority pubkey.")
+		} else if ctx.ServerTLS != ctx.Authorities["granting"] {
+			t.Error("Wrong granting authority.")
+		} else if ctx.AuthenticationAuthority != ctx.Authorities["granting"] {
+			t.Error("Wrong authentication authority.")
+		}
+		// check if the verifier is properly initialized
+		teststr, err := ctx.TokenVerifier.Registry.LookupToken(ctx.TokenVerifier.Registry.GrantToken("test", time.Hour))
+		if err != nil {
+			t.Error(err)
+		} else if teststr.Subject != "test" {
+			t.Error("Wrong token back.")
+		}
+		if len(ctx.StaticFiles) != 1 {
+			t.Error("Wrong number of static files.")
+		} else if ctx.StaticFiles["testa.txt"].Filename != "testa.txt" {
+			t.Errorf("Wrong filename %s.", ctx.StaticFiles["testa.txt"].Filename)
+		} else if ctx.StaticFiles["testa.txt"].Filepath != "testdir/testa.txt" {
+			t.Error("Wrong filename.")
+		}
+		if len(ctx.Groups) != 1 {
+			t.Error("Wrong number of groups.")
+		} else if ctx.Groups["admins"].Name != "admins" {
+			t.Error("Wrong group name.")
+		} else if ctx.Groups["admins"].SubgroupOf != nil {
+			t.Error("Unexpected subgroupof.")
+		} else if len(ctx.Groups["admins"].AllMembers) != 1 {
+			t.Error("Wrong number of members.")
+		} else if ctx.Groups["admins"].AllMembers[0] != "my-admin" {
+			t.Error("Wrong number of members.")
+		}
+		if len(ctx.Accounts) != 1 {
+			t.Error("Wrong number of accounts.")
+		} else if ctx.Accounts["my-admin"].Principal != "my-admin" {
+			t.Error("Wrong admin.")
+		} else if ctx.Accounts["my-admin"].Group != ctx.Groups["admins"] {
+			t.Error("Wrong group.")
+		} else if ctx.Accounts["my-admin"].LimitIP != nil {
+			t.Error("Wrong limitip.")
+		} else if !ctx.Accounts["my-admin"].DisableDirectAuth {
+			t.Error("Wrong disabledirectauth.")
+		} else if len(ctx.Accounts["my-admin"].Metadata) != 1 {
+			t.Error("Wrong amount of metadata.")
+		} else if ctx.Accounts["my-admin"].Metadata["principal"] != "my-admin" {
+			t.Error("Wrong metadata value.")
+		}
 		if len(ctx.Grants) != 1 {
 			t.Error("Wrong number of grants.")
+		} else if ctx.Grants["test-1"].API != "test-1" {
+			t.Error("Wrong grant API")
+		} else if ctx.Grants["test-1"].Group != ctx.Groups["admins"] {
+			t.Error("Wrong grant group.")
+		} else if len(ctx.Grants["test-1"].PrivilegeByAccount) != 1 {
+			t.Error("Wrong number of grant instances.")
+		} else {
+			res, err := ctx.Grants["test-1"].PrivilegeByAccount["my-admin"](nil, "")
+			if err != nil {
+				t.Error(err)
+			} else if res != "this is a test!" {
+				t.Error("Wrong result from privilege!")
+			}
 		}
 	}
 }
-*/
+
+func TestLoadConfigFromBytes_Fail(t *testing.T) {
+	_, err := LoadConfigFromBytes([]byte("invalid-data"))
+	if err == nil {
+		t.Error("Expected error.")
+	} else if !strings.Contains(err.Error(), "unmarshal error") {
+		t.Errorf("Wrong error: %s", err)
+	}
+}
+
+func TestLoadConfig_Fail(t *testing.T) {
+	_, err := LoadConfig("testdir/nonexistent.yaml")
+	if err == nil {
+		t.Error("Expected error.")
+	} else if !strings.Contains(err.Error(), "no such file") {
+		t.Errorf("Wrong error: %s", err)
+	}
+}

@@ -4,23 +4,24 @@ authentication-authority: granting
 servertls: granting   # don't do this in production please
 
 staticfiles:
-  - test.txt
+  - testa.txt
 
 authorities:
   granting:
     type: TLS
-    key: granting.key
-    cert: granting.pem
-
-accounts:
-  - principal: example
-    group: examples
+    key: test1.key
+    cert: test1.pem
 
 groups:
-  examples:
+  admins:
+
+accounts:
+  - principal: my-admin
+    group: admins
+    disable-direct-auth: true
 
 grants:
   test-1:
-    group: root-admins
     privilege: construct-configuration
-    contents: "this is a test"
+    group: admins
+    contents: "this is a test!"

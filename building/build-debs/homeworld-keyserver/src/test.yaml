@@ -117,13 +117,13 @@ groups:
   root-admins:
   nodes:
   supervisor-nodes:
-    inherit: nodes
+    subgroupof: nodes
   kubernetes-nodes:
-    inherit: nodes
+    subgroupof: nodes
   worker-nodes:
-    inherit: kubernetes-nodes
+    subgroupof: kubernetes-nodes
   master-nodes:
-    inherit: master-nodes
+    subgroupof: master-nodes
 
 grants:
 

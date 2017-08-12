@@ -1,22 +1,22 @@
 package config
 
 import (
-	"testing"
-	"authorities"
 	"account"
-	"time"
+	"authorities"
+	"crypto/x509"
+	"encoding/pem"
+	"golang.org/x/crypto/ssh"
 	"reflect"
 	"strings"
+	"testing"
+	"time"
 	"verifier"
-	"golang.org/x/crypto/ssh"
-	"encoding/pem"
-	"crypto/x509"
 )
 
 func TestConfigGrant_CompileGrant_Empty(t *testing.T) {
 	config := ConfigGrant{Privilege: "test"}
 	ctx := Context{}
-	cpl, err := config.CompileGrant(map[string]string {}, &ctx)
+	cpl, err := config.CompileGrant(map[string]string{}, &ctx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -29,7 +29,7 @@ func TestConfigGrant_CompileGrant_Empty(t *testing.T) {
 }
 
 func TestConfigGrant_CompileGrant_Everything(t *testing.T) {
-	for _, hv := range []bool { false, true } {
+	for _, hv := range []bool{false, true} {
 		var hvs string
 		if hv {
 			hvs = "true"
@@ -37,37 +37,37 @@ func TestConfigGrant_CompileGrant_Everything(t *testing.T) {
 			hvs = "false"
 		}
 		config := ConfigGrant{
-			Privilege: "test2",
-			Contents: "hello (mothership) world",
-			Authority: "test-authority",
-			Lifespan: "12h",
-			IsHost: hvs,
-			CommonName: "name-in-(language)",
-			AllowedNames: []string { "mydomain.(language).solar.system" },
-			Group: "test-group",
-			Scope: "test-group",
+			Privilege:    "test2",
+			Contents:     "hello (mothership) world",
+			Authority:    "test-authority",
+			Lifespan:     "12h",
+			IsHost:       hvs,
+			CommonName:   "name-in-(language)",
+			AllowedNames: []string{"mydomain.(language).solar.system"},
+			Group:        "test-group",
+			Scope:        "test-group",
 		}
 		ctx := Context{
-			Authorities: map[string]authorities.Authority {
+			Authorities: map[string]authorities.Authority{
 				"test-authority": &FakeAuthority{},
 			},
-			Groups: map[string]*account.Group {
+			Groups: map[string]*account.Group{
 				"test-group": {Name: "test-group"},
 			},
 		}
-		cpl, err := config.CompileGrant(map[string]string { "mothership": "giant hand", "language": "scribbles" }, &ctx)
+		cpl, err := config.CompileGrant(map[string]string{"mothership": "giant hand", "language": "scribbles"}, &ctx)
 		if err != nil {
 			t.Fatal(err)
 		}
 		expected := CompiledGrant{
-			Privilege: "test2",
-			Scope: ctx.Groups["test-group"],
-			AllowedNames: []string { "mydomain.scribbles.solar.system" },
-			CommonName: "name-in-scribbles",
-			IsHost: cpl.IsHost, // checked separately
-			Lifespan: time.Hour * 12,
-			Authority: ctx.Authorities["test-authority"],
-			Contents: "hello giant hand world",
+			Privilege:    "test2",
+			Scope:        ctx.Groups["test-group"],
+			AllowedNames: []string{"mydomain.scribbles.solar.system"},
+			CommonName:   "name-in-scribbles",
+			IsHost:       cpl.IsHost, // checked separately
+			Lifespan:     time.Hour * 12,
+			Authority:    ctx.Authorities["test-authority"],
+			Contents:     "hello giant hand world",
 		}
 		if !reflect.DeepEqual(expected, *cpl) {
 			t.Error("Result mismatch")
@@ -83,7 +83,7 @@ func TestConfigGrant_CompileGrant_FailPrivilege(t *testing.T) {
 		Privilege: "",
 	}
 	ctx := Context{}
-	_, err := config.CompileGrant(map[string]string {}, &ctx)
+	_, err := config.CompileGrant(map[string]string{}, &ctx)
 	if err == nil {
 		t.Fatal("Expected error")
 	} else if !strings.Contains(err.Error(), "Expected privilege") {
@@ -94,10 +94,10 @@ func TestConfigGrant_CompileGrant_FailPrivilege(t *testing.T) {
 func TestConfigGrant_CompileGrant_FailScope(t *testing.T) {
 	config := ConfigGrant{
 		Privilege: "test",
-		Scope: "missing",
+		Scope:     "missing",
 	}
 	ctx := Context{}
-	_, err := config.CompileGrant(map[string]string {}, &ctx)
+	_, err := config.CompileGrant(map[string]string{}, &ctx)
 	if err == nil {
 		t.Fatal("Expected error")
 	} else if !strings.Contains(err.Error(), "No such group") {
@@ -111,7 +111,7 @@ func TestConfigGrant_CompileGrant_FailAuthority(t *testing.T) {
 		Authority: "missing",
 	}
 	ctx := Context{}
-	_, err := config.CompileGrant(map[string]string {}, &ctx)
+	_, err := config.CompileGrant(map[string]string{}, &ctx)
 	if err == nil {
 		t.Fatal("Expected error")
 	} else if !strings.Contains(err.Error(), "No such authority") {
@@ -122,10 +122,10 @@ func TestConfigGrant_CompileGrant_FailAuthority(t *testing.T) {
 func TestConfigGrant_CompileGrant_FailIsHost(t *testing.T) {
 	config := ConfigGrant{
 		Privilege: "test",
-		IsHost: "maybe",
+		IsHost:    "maybe",
 	}
 	ctx := Context{}
-	_, err := config.CompileGrant(map[string]string {}, &ctx)
+	_, err := config.CompileGrant(map[string]string{}, &ctx)
 	if err == nil {
 		t.Fatal("Expected error")
 	} else if !strings.Contains(err.Error(), "invalid syntax") {
@@ -136,10 +136,10 @@ func TestConfigGrant_CompileGrant_FailIsHost(t *testing.T) {
 func TestConfigGrant_CompileGrant_FailLifespan_Bad(t *testing.T) {
 	config := ConfigGrant{
 		Privilege: "test",
-		Lifespan: "4 hours",
+		Lifespan:  "4 hours",
 	}
 	ctx := Context{}
-	_, err := config.CompileGrant(map[string]string {}, &ctx)
+	_, err := config.CompileGrant(map[string]string{}, &ctx)
 	if err == nil {
 		t.Fatal("Expected error")
 	} else if !strings.Contains(err.Error(), "unknown unit  hours") {
@@ -150,10 +150,10 @@ func TestConfigGrant_CompileGrant_FailLifespan_Bad(t *testing.T) {
 func TestConfigGrant_CompileGrant_FailLifespan_Negative(t *testing.T) {
 	config := ConfigGrant{
 		Privilege: "test",
-		Lifespan: "-1h",
+		Lifespan:  "-1h",
 	}
 	ctx := Context{}
-	_, err := config.CompileGrant(map[string]string {}, &ctx)
+	_, err := config.CompileGrant(map[string]string{}, &ctx)
 	if err == nil {
 		t.Fatal("Expected error")
 	} else if err.Error() != "Nonpositive lifespans are not supported." {
@@ -163,11 +163,11 @@ func TestConfigGrant_CompileGrant_FailLifespan_Negative(t *testing.T) {
 
 func TestConfigGrant_CompileGrant_FailCommonName(t *testing.T) {
 	config := ConfigGrant{
-		Privilege: "test",
+		Privilege:  "test",
 		CommonName: "(badvar1)",
 	}
 	ctx := Context{}
-	_, err := config.CompileGrant(map[string]string {}, &ctx)
+	_, err := config.CompileGrant(map[string]string{}, &ctx)
 	if err == nil {
 		t.Fatal("Expected error")
 	} else if !strings.Contains(err.Error(), "badvar1") {
@@ -177,11 +177,11 @@ func TestConfigGrant_CompileGrant_FailCommonName(t *testing.T) {
 
 func TestConfigGrant_CompileGrant_FailAllowedNames(t *testing.T) {
 	config := ConfigGrant{
-		Privilege: "test",
-		AllowedNames: []string { "(badvar2)" },
+		Privilege:    "test",
+		AllowedNames: []string{"(badvar2)"},
 	}
 	ctx := Context{}
-	_, err := config.CompileGrant(map[string]string {}, &ctx)
+	_, err := config.CompileGrant(map[string]string{}, &ctx)
 	if err == nil {
 		t.Fatal("Expected error")
 	} else if !strings.Contains(err.Error(), "badvar2") {
@@ -192,10 +192,10 @@ func TestConfigGrant_CompileGrant_FailAllowedNames(t *testing.T) {
 func TestConfigGrant_CompileGrant_FailContents(t *testing.T) {
 	config := ConfigGrant{
 		Privilege: "test",
-		Contents: "(badvar3)",
+		Contents:  "(badvar3)",
 	}
 	ctx := Context{}
-	_, err := config.CompileGrant(map[string]string {}, &ctx)
+	_, err := config.CompileGrant(map[string]string{}, &ctx)
 	if err == nil {
 		t.Fatal("Expected error")
 	} else if !strings.Contains(err.Error(), "badvar3") {
@@ -210,14 +210,14 @@ func TestBootstrapAccount(t *testing.T) {
 	priv, err := (&CompiledGrant{
 		Privilege: "bootstrap-account",
 		Scope: &account.Group{
-			Members: []string { "test1", "test2" },
+			AllMembers: []string{"test1", "test2"},
 		},
 		Lifespan: time.Minute * 53,
 	}).CompileToPrivilege(&ctx)
 	if err != nil {
 		t.Error(err)
 	} else {
-		tok, err := priv(nil,"test2")
+		tok, err := priv(nil, "test2")
 		if err != nil {
 			t.Error(err)
 		} else {
@@ -240,23 +240,23 @@ const TEST_CSR = "-----BEGIN CERTIFICATE REQUEST-----\nMIIBVTCBvwIBADAWMRQwEgYDV
 const TEST_PUB = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC5zWmwv8NiKfVkt9KHZ6vAWDnKonUGVbjE+REDhPZwU4obzMEjcx8Ha8mQHZSDzbW835DF9fvsJDARBnCIh/2AB1iUL0jdM2cRKKmqdzGrbHQmet4FgJoWCu7rQKgt4JTAxQVc0qGSBqBlKn2QCKtHUs9PJOEDHSz4l4LwiZ/E2xxD+5/M7EKdlcRXyBOZE6oAwIdV9JNjL0FiqN/QPWijZcFN0AWTql0NRxMq9EagOz9XhHLXdf3rPQzJ/IP/zK6ZB6DAQ53QDLfJ87PAeC/YmFWsB25lHGOV6X5bcyT0HDxfL1bYNCB0oNA417iDp5+yqYoFdDW1Ioj5P2QJbYm1 user@host"
 
 func TestSignSSH(t *testing.T) {
-	authority, err := (&ConfigAuthority{Type:"SSH", Key:"test2", Cert:"test2.pub"}).Load("testdir")
+	authority, err := (&ConfigAuthority{Type: "SSH", Key: "test2", Cert: "test2.pub"}).Load("testdir")
 	if err != nil {
 		t.Fatal(err)
 	}
 	false := false
 	priv, err := (&CompiledGrant{
-		Privilege: "sign-ssh",
-		Authority: authority,
-		IsHost: &false,
-		Lifespan: time.Minute * 53,
-		CommonName: "my-keyid",
-		AllowedNames: []string {"test-name"},
+		Privilege:    "sign-ssh",
+		Authority:    authority,
+		IsHost:       &false,
+		Lifespan:     time.Minute * 53,
+		CommonName:   "my-keyid",
+		AllowedNames: []string{"test-name"},
 	}).CompileToPrivilege(nil)
 	if err != nil {
 		t.Error(err)
 	} else {
-		signed, err := priv(nil,TEST_PUB)
+		signed, err := priv(nil, TEST_PUB)
 		if err != nil {
 			t.Error(err)
 		} else {
@@ -272,23 +272,23 @@ func TestSignSSH(t *testing.T) {
 }
 
 func TestSignTLS(t *testing.T) {
-	authority, err := (&ConfigAuthority{Type:"TLS", Key:"test1.key", Cert:"test1.pem"}).Load("testdir")
+	authority, err := (&ConfigAuthority{Type: "TLS", Key: "test1.key", Cert: "test1.pem"}).Load("testdir")
 	if err != nil {
 		t.Fatal(err)
 	}
 	false := false
 	priv, err := (&CompiledGrant{
-		Privilege: "sign-tls",
-		Authority: authority,
-		IsHost: &false,
-		Lifespan: time.Minute * 53,
-		CommonName: "my-common-name",
-		AllowedNames: []string {"test-dns.mit.edu"},
+		Privilege:    "sign-tls",
+		Authority:    authority,
+		IsHost:       &false,
+		Lifespan:     time.Minute * 53,
+		CommonName:   "my-common-name",
+		AllowedNames: []string{"test-dns.mit.edu"},
 	}).CompileToPrivilege(nil)
 	if err != nil {
 		t.Error(err)
 	} else {
-		signed, err := priv(nil,TEST_CSR)
+		signed, err := priv(nil, TEST_CSR)
 		if err != nil {
 			t.Error(err)
 		} else {
@@ -311,24 +311,24 @@ func TestSignTLS(t *testing.T) {
 }
 
 func TestImpersonate(t *testing.T) {
-	scope := &account.Group{Members: []string {"member1"}}
+	scope := &account.Group{AllMembers: []string{"member1"}}
 	acnt := &account.Account{
 		Principal: "member1",
 	}
 	context := Context{
-		Accounts: map[string]*account.Account {
+		Accounts: map[string]*account.Account{
 			"member1": acnt,
 		},
 	}
 	priv, err := (&CompiledGrant{
 		Privilege: "impersonate",
-		Scope: scope,
+		Scope:     scope,
 	}).CompileToPrivilege(&context)
 	if err != nil {
 		t.Error(err)
 	} else {
 		opctx := account.OperationContext{}
-		result, err := priv(&opctx,"member1")
+		result, err := priv(&opctx, "member1")
 		if err != nil {
 			t.Error(err)
 		} else {
@@ -345,12 +345,12 @@ func TestImpersonate(t *testing.T) {
 func TestConstructConfiguration(t *testing.T) {
 	priv, err := (&CompiledGrant{
 		Privilege: "construct-configuration",
-		Contents: "hello world",
+		Contents:  "hello world",
 	}).CompileToPrivilege(nil)
 	if err != nil {
 		t.Error(err)
 	} else {
-		result, err := priv(nil,"")
+		result, err := priv(nil, "")
 		if err != nil {
 			t.Error(err)
 		} else if result != "hello world" {
@@ -375,50 +375,50 @@ func TestExtraneousParamsToBootstrapAccount(t *testing.T) {
 		TokenVerifier: verifier.NewTokenVerifier(),
 	}
 	false := false
-	for i, grant := range []CompiledGrant {
+	for i, grant := range []CompiledGrant{
 		{ // first one is valid
 			Privilege: "bootstrap-account",
 			Scope: &account.Group{
-				Members: []string { "test1", "test2" },
+				AllMembers: []string{"test1", "test2"},
 			},
 			Lifespan: time.Minute * 53,
 		},
 		{
 			Privilege: "bootstrap-account",
 			Scope: &account.Group{
-				Members: []string { "test1", "test2" },
+				AllMembers: []string{"test1", "test2"},
 			},
-			Lifespan: time.Minute * 53,
+			Lifespan:   time.Minute * 53,
 			CommonName: "extra-common-name",
 		},
 		{
 			Privilege: "bootstrap-account",
 			Scope: &account.Group{
-				Members: []string { "test1", "test2" },
+				AllMembers: []string{"test1", "test2"},
 			},
-			Lifespan: time.Minute * 53,
-			AllowedNames: []string { "test" },
+			Lifespan:     time.Minute * 53,
+			AllowedNames: []string{"test"},
 		},
 		{
 			Privilege: "bootstrap-account",
 			Scope: &account.Group{
-				Members: []string { "test1", "test2" },
+				AllMembers: []string{"test1", "test2"},
 			},
-			Lifespan: time.Minute * 53,
+			Lifespan:  time.Minute * 53,
 			Authority: &FakeAuthority{},
 		},
 		{
 			Privilege: "bootstrap-account",
 			Scope: &account.Group{
-				Members: []string { "test1", "test2" },
+				AllMembers: []string{"test1", "test2"},
 			},
 			Lifespan: time.Minute * 53,
-			IsHost: &false,
+			IsHost:   &false,
 		},
 		{
 			Privilege: "bootstrap-account",
 			Scope: &account.Group{
-				Members: []string { "test1", "test2" },
+				AllMembers: []string{"test1", "test2"},
 			},
 			Lifespan: time.Minute * 53,
 			Contents: "content",
@@ -440,37 +440,37 @@ func TestExtraneousParamsToBootstrapAccount(t *testing.T) {
 }
 
 func TestExtraneousParamsToSignSSH(t *testing.T) {
-	authority, err := (&ConfigAuthority{Type:"SSH", Key:"test2", Cert:"test2.pub"}).Load("testdir")
+	authority, err := (&ConfigAuthority{Type: "SSH", Key: "test2", Cert: "test2.pub"}).Load("testdir")
 	if err != nil {
 		t.Fatal(err)
 	}
 	false := false
-	for i, grant := range []CompiledGrant {
+	for i, grant := range []CompiledGrant{
 		{ // first one is valid
-			Privilege: "sign-ssh",
-			Authority: authority,
-			IsHost: &false,
-			Lifespan: time.Minute * 53,
-			CommonName: "my-keyid",
-			AllowedNames: []string {"test-name"},
+			Privilege:    "sign-ssh",
+			Authority:    authority,
+			IsHost:       &false,
+			Lifespan:     time.Minute * 53,
+			CommonName:   "my-keyid",
+			AllowedNames: []string{"test-name"},
 		},
 		{
-			Privilege: "sign-ssh",
-			Authority: authority,
-			IsHost: &false,
-			Lifespan: time.Minute * 53,
-			CommonName: "my-keyid",
-			AllowedNames: []string {"test-name"},
-			Scope: &account.Group{},
+			Privilege:    "sign-ssh",
+			Authority:    authority,
+			IsHost:       &false,
+			Lifespan:     time.Minute * 53,
+			CommonName:   "my-keyid",
+			AllowedNames: []string{"test-name"},
+			Scope:        &account.Group{},
 		},
 		{
-			Privilege: "sign-ssh",
-			Authority: authority,
-			IsHost: &false,
-			Lifespan: time.Minute * 53,
-			CommonName: "my-keyid",
-			AllowedNames: []string {"test-name"},
-			Contents: "test",
+			Privilege:    "sign-ssh",
+			Authority:    authority,
+			IsHost:       &false,
+			Lifespan:     time.Minute * 53,
+			CommonName:   "my-keyid",
+			AllowedNames: []string{"test-name"},
+			Contents:     "test",
 		},
 	} {
 		_, err := (&grant).CompileToPrivilege(nil)
@@ -489,37 +489,37 @@ func TestExtraneousParamsToSignSSH(t *testing.T) {
 }
 
 func TestExtraneousParamsToSignTLS(t *testing.T) {
-	authority, err := (&ConfigAuthority{Type:"TLS", Key:"test1.key", Cert:"test1.pem"}).Load("testdir")
+	authority, err := (&ConfigAuthority{Type: "TLS", Key: "test1.key", Cert: "test1.pem"}).Load("testdir")
 	if err != nil {
 		t.Fatal(err)
 	}
 	false := false
-	for i, grant := range []CompiledGrant {
+	for i, grant := range []CompiledGrant{
 		{ // first one is valid
-			Privilege: "sign-tls",
-			Authority: authority,
-			IsHost: &false,
-			Lifespan: time.Minute * 53,
-			CommonName: "my-keyid",
-			AllowedNames: []string {"test-name"},
+			Privilege:    "sign-tls",
+			Authority:    authority,
+			IsHost:       &false,
+			Lifespan:     time.Minute * 53,
+			CommonName:   "my-keyid",
+			AllowedNames: []string{"test-name"},
 		},
 		{
-			Privilege: "sign-tls",
-			Authority: authority,
-			IsHost: &false,
-			Lifespan: time.Minute * 53,
-			CommonName: "my-keyid",
-			AllowedNames: []string {"test-name"},
-			Scope: &account.Group{},
+			Privilege:    "sign-tls",
+			Authority:    authority,
+			IsHost:       &false,
+			Lifespan:     time.Minute * 53,
+			CommonName:   "my-keyid",
+			AllowedNames: []string{"test-name"},
+			Scope:        &account.Group{},
 		},
 		{
-			Privilege: "sign-tls",
-			Authority: authority,
-			IsHost: &false,
-			Lifespan: time.Minute * 53,
-			CommonName: "my-keyid",
-			AllowedNames: []string {"test-name"},
-			Contents: "test",
+			Privilege:    "sign-tls",
+			Authority:    authority,
+			IsHost:       &false,
+			Lifespan:     time.Minute * 53,
+			CommonName:   "my-keyid",
+			AllowedNames: []string{"test-name"},
+			Contents:     "test",
 		},
 	} {
 		_, err := (&grant).CompileToPrivilege(nil)
@@ -539,40 +539,40 @@ func TestExtraneousParamsToSignTLS(t *testing.T) {
 
 func TestExtraneousParamsToImpersonate(t *testing.T) {
 	false := false
-	for i, grant := range []CompiledGrant {
+	for i, grant := range []CompiledGrant{
 		{ // first one is valid
 			Privilege: "impersonate",
-			Scope: &account.Group{},
+			Scope:     &account.Group{},
 		},
 		{
 			Privilege: "impersonate",
-			Scope: &account.Group{},
-			Contents: "content",
+			Scope:     &account.Group{},
+			Contents:  "content",
 		},
 		{
 			Privilege: "impersonate",
-			Scope: &account.Group{},
-			IsHost: &false,
+			Scope:     &account.Group{},
+			IsHost:    &false,
 		},
 		{
 			Privilege: "impersonate",
-			Scope: &account.Group{},
+			Scope:     &account.Group{},
 			Authority: &FakeAuthority{},
 		},
 		{
-			Privilege: "impersonate",
-			Scope: &account.Group{},
-			AllowedNames: []string { "name" },
+			Privilege:    "impersonate",
+			Scope:        &account.Group{},
+			AllowedNames: []string{"name"},
 		},
 		{
-			Privilege: "impersonate",
-			Scope: &account.Group{},
+			Privilege:  "impersonate",
+			Scope:      &account.Group{},
 			CommonName: "common-name",
 		},
 		{
 			Privilege: "impersonate",
-			Scope: &account.Group{},
-			Lifespan: time.Hour,
+			Scope:     &account.Group{},
+			Lifespan:  time.Hour,
 		},
 	} {
 		_, err := (&grant).CompileToPrivilege(nil)
@@ -592,40 +592,40 @@ func TestExtraneousParamsToImpersonate(t *testing.T) {
 
 func TestExtraneousParamsToConstructConfiguration(t *testing.T) {
 	false := false
-	for i, grant := range []CompiledGrant {
+	for i, grant := range []CompiledGrant{
 		{ // first one is valid
 			Privilege: "construct-configuration",
-			Contents: "hello world",
+			Contents:  "hello world",
 		},
 		{
 			Privilege: "construct-configuration",
-			Contents: "hello world",
-			Scope: &account.Group{},
+			Contents:  "hello world",
+			Scope:     &account.Group{},
 		},
 		{
 			Privilege: "construct-configuration",
-			Contents: "hello world",
-			IsHost: &false,
+			Contents:  "hello world",
+			IsHost:    &false,
 		},
 		{
 			Privilege: "construct-configuration",
-			Contents: "hello world",
+			Contents:  "hello world",
 			Authority: &FakeAuthority{},
 		},
 		{
-			Privilege: "construct-configuration",
-			Contents: "hello world",
-			AllowedNames: []string { "name" },
+			Privilege:    "construct-configuration",
+			Contents:     "hello world",
+			AllowedNames: []string{"name"},
 		},
 		{
-			Privilege: "construct-configuration",
-			Contents: "hello world",
+			Privilege:  "construct-configuration",
+			Contents:   "hello world",
 			CommonName: "common-name",
 		},
 		{
 			Privilege: "construct-configuration",
-			Contents: "hello world",
-			Lifespan: time.Hour,
+			Contents:  "hello world",
+			Lifespan:  time.Hour,
 		},
 	} {
 		_, err := (&grant).CompileToPrivilege(nil)
@@ -647,23 +647,23 @@ func TestInsufficientParamsToBootstrapAccount(t *testing.T) {
 	ctx := Context{
 		TokenVerifier: verifier.NewTokenVerifier(),
 	}
-	for i, grant := range []CompiledGrant {
+	for i, grant := range []CompiledGrant{
 		{ // first one is valid
 			Privilege: "bootstrap-account",
 			Scope: &account.Group{
-				Members: []string { "test1", "test2" },
+				AllMembers: []string{"test1", "test2"},
 			},
 			Lifespan: time.Minute * 53,
 		},
 		{
 			Privilege: "bootstrap-account",
 			Scope: &account.Group{
-				Members: []string { "test1", "test2" },
+				AllMembers: []string{"test1", "test2"},
 			},
 		},
 		{
 			Privilege: "bootstrap-account",
-			Lifespan: time.Minute * 53,
+			Lifespan:  time.Minute * 53,
 		},
 	} {
 		_, err := (&grant).CompileToPrivilege(&ctx)
@@ -682,53 +682,53 @@ func TestInsufficientParamsToBootstrapAccount(t *testing.T) {
 }
 
 func TestInsufficientParamsToSignSSH(t *testing.T) {
-	authority, err := (&ConfigAuthority{Type:"SSH", Key:"test2", Cert:"test2.pub"}).Load("testdir")
+	authority, err := (&ConfigAuthority{Type: "SSH", Key: "test2", Cert: "test2.pub"}).Load("testdir")
 	if err != nil {
 		t.Fatal(err)
 	}
 	false := false
-	for i, grant := range []CompiledGrant {
+	for i, grant := range []CompiledGrant{
 		{ // first one is valid
-			Privilege: "sign-ssh",
-			Authority: authority,
-			IsHost: &false,
-			Lifespan: time.Minute * 53,
-			CommonName: "my-keyid",
-			AllowedNames: []string {"test-name"},
+			Privilege:    "sign-ssh",
+			Authority:    authority,
+			IsHost:       &false,
+			Lifespan:     time.Minute * 53,
+			CommonName:   "my-keyid",
+			AllowedNames: []string{"test-name"},
 		},
 		{
-			Privilege: "sign-ssh",
-			IsHost: &false,
-			Lifespan: time.Minute * 53,
-			CommonName: "my-keyid",
-			AllowedNames: []string {"test-name"},
+			Privilege:    "sign-ssh",
+			IsHost:       &false,
+			Lifespan:     time.Minute * 53,
+			CommonName:   "my-keyid",
+			AllowedNames: []string{"test-name"},
 		},
 		{
-			Privilege: "sign-ssh",
-			Authority: authority,
-			Lifespan: time.Minute * 53,
-			CommonName: "my-keyid",
-			AllowedNames: []string {"test-name"},
+			Privilege:    "sign-ssh",
+			Authority:    authority,
+			Lifespan:     time.Minute * 53,
+			CommonName:   "my-keyid",
+			AllowedNames: []string{"test-name"},
 		},
 		{
-			Privilege: "sign-ssh",
-			Authority: authority,
-			IsHost: &false,
-			CommonName: "my-keyid",
-			AllowedNames: []string {"test-name"},
+			Privilege:    "sign-ssh",
+			Authority:    authority,
+			IsHost:       &false,
+			CommonName:   "my-keyid",
+			AllowedNames: []string{"test-name"},
 		},
 		{
-			Privilege: "sign-ssh",
-			Authority: authority,
-			IsHost: &false,
-			Lifespan: time.Minute * 53,
-			AllowedNames: []string {"test-name"},
+			Privilege:    "sign-ssh",
+			Authority:    authority,
+			IsHost:       &false,
+			Lifespan:     time.Minute * 53,
+			AllowedNames: []string{"test-name"},
 		},
 		{
-			Privilege: "sign-ssh",
-			Authority: authority,
-			IsHost: &false,
-			Lifespan: time.Minute * 53,
+			Privilege:  "sign-ssh",
+			Authority:  authority,
+			IsHost:     &false,
+			Lifespan:   time.Minute * 53,
 			CommonName: "my-keyid",
 		},
 	} {
@@ -748,53 +748,53 @@ func TestInsufficientParamsToSignSSH(t *testing.T) {
 }
 
 func TestInsufficientParamsToSignTLS(t *testing.T) {
-	authority, err := (&ConfigAuthority{Type:"TLS", Key:"test1.key", Cert:"test1.pem"}).Load("testdir")
+	authority, err := (&ConfigAuthority{Type: "TLS", Key: "test1.key", Cert: "test1.pem"}).Load("testdir")
 	if err != nil {
 		t.Fatal(err)
 	}
 	false := false
-	for i, grant := range []CompiledGrant {
+	for i, grant := range []CompiledGrant{
 		{ // first one is valid
-			Privilege: "sign-tls",
-			Authority: authority,
-			IsHost: &false,
-			Lifespan: time.Minute * 53,
-			CommonName: "my-keyid",
-			AllowedNames: []string {"test-name"},
+			Privilege:    "sign-tls",
+			Authority:    authority,
+			IsHost:       &false,
+			Lifespan:     time.Minute * 53,
+			CommonName:   "my-keyid",
+			AllowedNames: []string{"test-name"},
 		},
 		{
-			Privilege: "sign-tls",
-			IsHost: &false,
-			Lifespan: time.Minute * 53,
-			CommonName: "my-keyid",
-			AllowedNames: []string {"test-name"},
+			Privilege:    "sign-tls",
+			IsHost:       &false,
+			Lifespan:     time.Minute * 53,
+			CommonName:   "my-keyid",
+			AllowedNames: []string{"test-name"},
 		},
 		{
-			Privilege: "sign-tls",
-			Authority: authority,
-			Lifespan: time.Minute * 53,
-			CommonName: "my-keyid",
-			AllowedNames: []string {"test-name"},
+			Privilege:    "sign-tls",
+			Authority:    authority,
+			Lifespan:     time.Minute * 53,
+			CommonName:   "my-keyid",
+			AllowedNames: []string{"test-name"},
 		},
 		{
-			Privilege: "sign-tls",
-			Authority: authority,
-			IsHost: &false,
-			CommonName: "my-keyid",
-			AllowedNames: []string {"test-name"},
+			Privilege:    "sign-tls",
+			Authority:    authority,
+			IsHost:       &false,
+			CommonName:   "my-keyid",
+			AllowedNames: []string{"test-name"},
 		},
 		{
-			Privilege: "sign-tls",
-			Authority: authority,
-			IsHost: &false,
-			Lifespan: time.Minute * 53,
-			AllowedNames: []string {"test-name"},
+			Privilege:    "sign-tls",
+			Authority:    authority,
+			IsHost:       &false,
+			Lifespan:     time.Minute * 53,
+			AllowedNames: []string{"test-name"},
 		},
 		{
-			Privilege: "sign-tls",
-			Authority: authority,
-			IsHost: &false,
-			Lifespan: time.Minute * 53,
+			Privilege:  "sign-tls",
+			Authority:  authority,
+			IsHost:     &false,
+			Lifespan:   time.Minute * 53,
 			CommonName: "my-keyid",
 		},
 	} {
@@ -814,10 +814,10 @@ func TestInsufficientParamsToSignTLS(t *testing.T) {
 }
 
 func TestInsufficientParamsToImpersonate(t *testing.T) {
-	for i, grant := range []CompiledGrant {
+	for i, grant := range []CompiledGrant{
 		{ // first one is valid
 			Privilege: "impersonate",
-			Scope: &account.Group{},
+			Scope:     &account.Group{},
 		},
 		{
 			Privilege: "impersonate",
@@ -839,10 +839,10 @@ func TestInsufficientParamsToImpersonate(t *testing.T) {
 }
 
 func TestInsufficientParamsToConstructConfiguration(t *testing.T) {
-	for i, grant := range []CompiledGrant {
+	for i, grant := range []CompiledGrant{
 		{ // first one is valid
 			Privilege: "construct-configuration",
-			Contents: "hello world",
+			Contents:  "hello world",
 		},
 		{
 			Privilege: "construct-configuration",

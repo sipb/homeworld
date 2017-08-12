@@ -1,64 +1,22 @@
 package account
 
 import (
-	"sort"
 	"testing"
 )
-
-func TestGroup_AllMembers(t *testing.T) {
-	g1 := &Group{Members: []string{"a", "b", "c"}}
-	g2 := &Group{Members: []string{"d"}, Inherit: g1}
-	g3 := &Group{Members: []string{}, Inherit: g2}
-	g4a := &Group{Members: []string{"efghiateounth"}, Inherit: g3}
-	g4b := &Group{Members: []string{"kc", "kd", "ke", "kf"}, Inherit: g3}
-
-	groups := []*Group{g1, g2, g3, g4a, g4b}
-	expects := [][]string{
-		{"a", "b", "c"},
-		{"a", "b", "c", "d"},
-		{"a", "b", "c", "d"},
-		{"a", "b", "c", "d", "efghiateounth"},
-		{"a", "b", "c", "d", "kc", "kd", "ke", "kf"},
-	}
-
-	for i, group := range groups {
-		expect := expects[i]
-		mems := group.AllMembers()
-		if len(expect) != len(mems) {
-			t.Errorf("Wrong length for group %v", group)
-		} else {
-			sort.Strings(expect)
-			sort.Strings(mems)
-			for i, expect := range expect {
-				found := mems[i]
-				if expect != found {
-					t.Errorf("Group member mismatch: %v versus %v", expect, found)
-				}
-			}
-		}
-	}
-}
 
 func TestGroup_HasMember(t *testing.T) {
 	options := []string{"a", "b", "c", "d", "efghiateounth", "kc", "kd", "ke", "kf", "kg"}
 
-	g1 := &Group{Members: []string{"a", "b", "c"}}
-	g2 := &Group{Members: []string{"d"}, Inherit: g1}
-	g3 := &Group{Members: []string{}, Inherit: g2}
-	g4a := &Group{Members: []string{"efghiateounth"}, Inherit: g3}
-	g4b := &Group{Members: []string{"kc", "kd", "ke", "kf"}, Inherit: g3}
+	g1 := &Group{AllMembers: []string{"a", "b", "c", "d", "efghiateounth", "kc", "kd", "ke", "kf"}}
+	g2 := &Group{AllMembers: []string{"d", "efghiateounth", "kc", "kd", "ke", "kf"}, SubgroupOf: g1}
+	g3 := &Group{AllMembers: []string{"efghiateounth", "kc", "kd", "ke", "kf"}, SubgroupOf: g2}
+	g4a := &Group{AllMembers: []string{"efghiateounth"}, SubgroupOf: g3}
+	g4b := &Group{AllMembers: []string{"kc", "kd", "ke", "kf"}, SubgroupOf: g3}
 
 	groups := []*Group{g1, g2, g3, g4a, g4b}
-	expects := [][]string{
-		{"a", "b", "c"},
-		{"a", "b", "c", "d"},
-		{"a", "b", "c", "d"},
-		{"a", "b", "c", "d", "efghiateounth"},
-		{"a", "b", "c", "d", "kc", "kd", "ke", "kf"},
-	}
 
-	for i, group := range groups {
-		expect := expects[i]
+	for _, group := range groups {
+		expect := group.AllMembers
 		tried := make(map[string]bool)
 		for _, expectelem := range expect {
 			if !group.HasMember(expectelem) {

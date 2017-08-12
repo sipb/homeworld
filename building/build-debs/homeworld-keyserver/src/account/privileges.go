@@ -58,7 +58,10 @@ func stringInList(value string, within []string) bool {
 }
 
 func NewBootstrapPrivilege(allowed_principals []string, lifespan time.Duration, registry *token.TokenRegistry) (Privilege, error) {
-	if len(allowed_principals) == 0 || lifespan < time.Millisecond || registry == nil {
+	if len(allowed_principals) == 0 {
+		return nil, fmt.Errorf("Expected at least one allowed principal in token granting privilege.")
+	}
+	if lifespan < time.Millisecond || registry == nil {
 		return nil, fmt.Errorf("Missing parameter to token granting privilege.")
 	}
 	return func(_ *OperationContext, encoded_principal string) (string, error) {

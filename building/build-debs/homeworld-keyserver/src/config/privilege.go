@@ -90,7 +90,7 @@ func (grant *CompiledGrant) CompileToPrivilege(context *Context) (account.Privil
 		if grant.Scope == nil || grant.Lifespan == 0 {
 			return nil, errors.New("Missing parameter(s) to bootstrap-account")
 		}
-		return account.NewBootstrapPrivilege(grant.Scope.AllMembers(), grant.Lifespan, context.TokenVerifier.Registry)
+		return account.NewBootstrapPrivilege(grant.Scope.AllMembers, grant.Lifespan, context.TokenVerifier.Registry)
 	case "sign-ssh":
 		if grant.Scope != nil || grant.Contents != "" {
 			return nil, fmt.Errorf("Extraneous parameter(s) provided to sign-ssh")

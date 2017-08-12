@@ -32,7 +32,7 @@ type ConfigGrant struct {
 }
 
 type ConfigGroup struct {
-	Inherit string
+	SubgroupOf string
 }
 
 type ConfigStatic string
