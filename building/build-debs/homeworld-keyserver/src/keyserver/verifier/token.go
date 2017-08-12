@@ -3,7 +3,7 @@ package verifier
 import (
 	"errors"
 	"net/http"
-	"token"
+	"keyserver/token"
 )
 
 const TokenHeader = "X-Bootstrap-Token"

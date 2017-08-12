@@ -1,7 +1,7 @@
 package config
 
 import (
-	"authorities"
+	"keyserver/authorities"
 	"bytes"
 	"io/ioutil"
 	"strings"

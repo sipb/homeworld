@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"token/scoped"
+	"keyserver/token/scoped"
 )
 
 func TestNonexistentTokens(t *testing.T) {

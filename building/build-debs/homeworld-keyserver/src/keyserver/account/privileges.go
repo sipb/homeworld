@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"authorities"
-	"token"
+	"keyserver/authorities"
+	"keyserver/token"
 )
 
 type OperationContext struct {

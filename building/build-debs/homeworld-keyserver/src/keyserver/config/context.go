@@ -1,13 +1,13 @@
 package config
 
 import (
-	"account"
-	"authorities"
+	"keyserver/account"
+	"keyserver/authorities"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"path"
-	"verifier"
+	"keyserver/verifier"
 )
 
 type StaticFile struct {

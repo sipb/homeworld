@@ -1,4 +1,4 @@
-package keyserver
+package keyapi
 
 import (
 	"testing"
@@ -7,12 +7,12 @@ import (
 	"net/http/httptest"
 	"io/ioutil"
 	"strings"
-	"verifier"
+	"keyserver/verifier"
 	"time"
 	"net/http"
 	"crypto/tls"
-	"config"
-	"authorities"
+	"keyserver/config"
+	"keyserver/authorities"
 	"encoding/json"
 )
 

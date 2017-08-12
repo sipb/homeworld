@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 	"time"
-	"token"
+	"keyserver/token"
 )
 
 func getTestRequest(token string) *http.Request {

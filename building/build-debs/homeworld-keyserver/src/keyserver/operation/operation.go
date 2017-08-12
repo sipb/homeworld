@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 
-	"account"
-	"config"
+	"keyserver/account"
+	"keyserver/config"
 	"errors"
 )
 

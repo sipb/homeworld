@@ -1,14 +1,14 @@
-package keyserver
+package keyapi
 
 import (
 	"testing"
-	"account"
+	"keyserver/account"
 	"net/http/httptest"
 	"net"
 	"strings"
-	"config"
-	"verifier"
-	"authorities"
+	"keyserver/config"
+	"keyserver/verifier"
+	"keyserver/authorities"
 	"time"
 	"encoding/pem"
 	"crypto/x509"

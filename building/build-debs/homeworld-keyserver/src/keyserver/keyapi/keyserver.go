@@ -1,11 +1,11 @@
-package keyserver
+package keyapi
 
 import (
 	"crypto/tls"
 	"log"
 	"net/http"
 
-	"config"
+	"keyserver/config"
 	"context"
 	"net"
 )

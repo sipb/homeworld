@@ -1,15 +1,15 @@
-package keyserver
+package keyapi
 
 import (
-	"config"
+	"keyserver/config"
 	"net/http"
 	"io/ioutil"
-	"operation"
+	"keyserver/operation"
 	"fmt"
 	"log"
-	"account"
-	"verifier"
-	"util"
+	"keyserver/account"
+	"keyserver/verifier"
+	"keyserver/util"
 	"crypto/x509"
 	"crypto/tls"
 )

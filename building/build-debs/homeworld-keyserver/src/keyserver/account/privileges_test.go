@@ -1,7 +1,7 @@
 package account
 
 import (
-	"authorities"
+	"keyserver/authorities"
 	"bytes"
 	"crypto/tls"
 	"encoding/base64"
@@ -11,7 +11,7 @@ import (
 	"strings"
 	"testing"
 	"time"
-	"token"
+	"keyserver/token"
 )
 
 const (

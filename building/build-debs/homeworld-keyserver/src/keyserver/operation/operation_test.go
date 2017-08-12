@@ -2,8 +2,8 @@ package operation
 
 import (
 	"testing"
-	"account"
-	"config"
+	"keyserver/account"
+	"keyserver/config"
 	"errors"
 	"fmt"
 	"log"

@@ -1,8 +1,8 @@
 package config
 
 import (
-	"account"
-	"authorities"
+	"keyserver/account"
+	"keyserver/authorities"
 	"crypto/x509"
 	"encoding/pem"
 	"golang.org/x/crypto/ssh"
@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 	"time"
-	"verifier"
+	"keyserver/verifier"
 )
 
 func TestConfigGrant_CompileGrant_Empty(t *testing.T) {

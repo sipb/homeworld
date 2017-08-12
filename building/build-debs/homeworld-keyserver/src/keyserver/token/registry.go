@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 	"time"
-	"token/scoped"
+	"keyserver/token/scoped"
 )
 
 type TokenRegistry struct {

@@ -15,7 +15,7 @@ import (
 	"net/http"
 	"time"
 
-	"verifier"
+	"keyserver/verifier"
 )
 
 type TLSAuthority struct {
