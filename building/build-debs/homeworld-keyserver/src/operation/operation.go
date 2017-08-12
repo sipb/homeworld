@@ -39,7 +39,7 @@ func InvokeAPIOperationSet(a *account.Account, context *config.Context, requestB
 func InvokeAPIOperation(ctx *account.OperationContext, gctx *config.Context, API string, requestBody string, logger *log.Logger) (string, error) {
 	grant, found := gctx.Grants[API]
 	if !found {
-		return "", fmt.Errorf("Could not find API request %s", grant)
+		return "", fmt.Errorf("Could not find API request %s", API)
 	}
 	if ctx.Account == nil {
 		return "", errors.New("Missing account during request.")

@@ -6,7 +6,7 @@ import (
 	"token"
 )
 
-const authheader = "X-Bootstrap-Token"
+const TokenHeader = "X-Bootstrap-Token"
 
 type TokenVerifier struct {
 	Registry *token.TokenRegistry
@@ -18,11 +18,11 @@ func NewTokenVerifier() TokenVerifier {
 }
 
 func (v TokenVerifier) HasAttempt(request *http.Request) bool {
-	return request.Header.Get(authheader) != ""
+	return request.Header.Get(TokenHeader) != ""
 }
 
 func (v TokenVerifier) Verify(request *http.Request) (principal string, err error) {
-	tokens := request.Header.Get(authheader)
+	tokens := request.Header.Get(TokenHeader)
 	if tokens == "" {
 		return "", errors.New("No token authentication header provided")
 	}

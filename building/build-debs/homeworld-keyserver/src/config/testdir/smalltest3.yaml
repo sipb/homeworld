@@ -9,19 +9,26 @@ staticfiles:
 authorities:
   granting:
     type: TLS
-    key: test1.key
-    cert: test1.pem
+    key: selfsig.key
+    cert: selfsig.pem
 
 groups:
   admins:
+  servers:
 
 accounts:
   - principal: my-admin
     group: admins
-    disable-direct-auth: true
+  - principal: my-server
+    group: servers
 
 grants:
   test-1:
     privilege: construct-configuration
+    group: servers
+    contents: "and now, there will be cake"
+  test-2:
+    privilege: bootstrap-account
     group: admins
-    contents: "this is a test!"
+    scope: servers
+    lifespan: 5m

@@ -271,8 +271,8 @@ func TestLoadConfig(t *testing.T) {
 			t.Error("Wrong number of static files.")
 		} else if ctx.StaticFiles["testa.txt"].Filename != "testa.txt" {
 			t.Errorf("Wrong filename %s.", ctx.StaticFiles["testa.txt"].Filename)
-		} else if ctx.StaticFiles["testa.txt"].Filepath != "testdir/testa.txt" {
-			t.Error("Wrong filename.")
+		} else if ctx.StaticFiles["testa.txt"].Filepath != "../config/testdir/testa.txt" {
+			t.Errorf("Wrong filepath %s.", ctx.StaticFiles["testa.txt"].Filepath)
 		}
 		if len(ctx.Groups) != 1 {
 			t.Error("Wrong number of groups.")

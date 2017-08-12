@@ -112,7 +112,7 @@ func (t *TLSAuthority) ToHTTPSCert() tls.Certificate {
 var _ verifier.Verifier = (*TLSAuthority)(nil)
 
 func (t *TLSAuthority) HasAttempt(request *http.Request) bool {
-	return len(request.TLS.VerifiedChains) > 0 && len(request.TLS.VerifiedChains[0]) > 0
+	return request.TLS != nil && len(request.TLS.VerifiedChains) > 0 && len(request.TLS.VerifiedChains[0]) > 0
 }
 
 func (t *TLSAuthority) Verify(request *http.Request) (string, error) {

@@ -18,10 +18,9 @@ groups:
 accounts:
   - principal: my-admin
     group: admins
-    disable-direct-auth: true
 
 grants:
   test-1:
     privilege: construct-configuration
     group: admins
-    contents: "this is a test!"
+    contents: "after this test, there will be cake"

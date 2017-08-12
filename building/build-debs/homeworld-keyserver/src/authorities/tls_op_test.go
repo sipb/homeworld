@@ -14,6 +14,7 @@ import (
 	"strings"
 	"testing"
 	"time"
+	"net/http/httptest"
 )
 
 const (
@@ -454,5 +455,47 @@ func TestTLSAuthority_Sign_MalformedCSR(t *testing.T) {
 		t.Error("Expected error while signing malformed CSR")
 	} else if !strings.Contains(err.Error(), "verification error") {
 		t.Errorf("Unexpected error message -- expected verification error: %s", err)
+	}
+}
+
+func TestTLSAuthority_HasAttempt_None(t *testing.T) {
+	a := getTLSAuthority(t)
+	if a.HasAttempt(httptest.NewRequest("GET", "/test", nil)) {
+		t.Error("Should be no attempt.")
+	}
+}
+
+func TestTLSAuthority_HasAttempt_PartialExists(t *testing.T) {
+	a := getTLSAuthority(t)
+	req := httptest.NewRequest("GET", "/test", nil)
+	req.TLS = &tls.ConnectionState{}
+	if a.HasAttempt(req) {
+		t.Error("Should be no attempt.")
+	}
+}
+
+func TestTLSAuthority_HasAttempt_MostlyExists(t *testing.T) {
+	a := getTLSAuthority(t)
+	req := httptest.NewRequest("GET", "/test", nil)
+	req.TLS = &tls.ConnectionState{VerifiedChains: [][]*x509.Certificate { {} }}
+	if a.HasAttempt(req) {
+		t.Error("Should be no attempt.")
+	}
+}
+
+func TestTLSAuthority_HasAttempt_Exists(t *testing.T) {
+	a := getTLSAuthority(t)
+	certblock, err := loadSinglePEMBlock([]byte(TLS_CLIENT_CERT), []string{"CERTIFICATE"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	cert, err := x509.ParseCertificate(certblock)
+	if err != nil {
+		t.Fatal(err)
+	}
+	req := httptest.NewRequest("GET", "/test", nil)
+	req.TLS = &tls.ConnectionState{VerifiedChains: [][]*x509.Certificate { { cert } }}
+	if !a.HasAttempt(req) {
+		t.Error("Should be an attempt.")
 	}
 }
