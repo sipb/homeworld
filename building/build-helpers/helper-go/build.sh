@@ -21,6 +21,7 @@ GOROOT_FINAL="/usr/lib/homeworld-goroot" GOARCH="amd64" GOOS="linux" CGO_ENABLED
 cd "${ROOT}"
 rm -rf go1.4
 mv go1.8.3 go
+echo "renamed go1.8.3/ -> go/"
 tar -czf ../go-bin-1.8.3.tgz go/
 
 echo "golang built!"
