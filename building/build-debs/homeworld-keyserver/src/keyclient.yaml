@@ -1,0 +1,106 @@
+
+keyserver: egg-sandwich.mit.edu
+authoritypath: /etc/hyades/keyclient/keyservertls.pem
+
+keypath: /etc/hyades/keyclient/granting.key
+certpath: /etc/hyades/keyclient/granting.pem
+
+tokenpath: /etc/hyades/keyclient/bootstrap_token.txt
+tokenapi: renew-keygrant
+request-initial-keygrant: renew-keygrant
+
+downloads:
+  - type: authority
+    name: etcd-client
+    path: /etc/hyades/authorities/etcd-client.pem
+    refresh: 24h
+    mode: 644
+
+  - type: authority
+    name: etcd-server
+    path: /etc/hyades/authorities/etcd-server.pem
+    refresh: 24h
+    mode: 644
+
+  - type: authority
+    name: kubernetes
+    path: /etc/hyades/authorities/kubernetes.pem
+    refresh: 24h
+    mode: 644
+
+  - type: authority
+    name: ssh-user
+    path: /etc/ssh/ssh_user_ca.pub
+    refresh: 168h   # allow a week for mistakes to be noticed on this one
+    mode: 644
+
+  - type: static
+    name: cluster.conf
+    path: /etc/hyades/cluster.conf
+    refresh: 24h
+    mode: 644
+
+  - type: api
+    name: get-local-config
+    path: /etc/hyades/local.conf
+    refresh: 24h
+    mode: 644
+
+  # just for master nodes
+
+  - type: authority
+    name: serviceaccount
+    path: /etc/hyades/keys/serviceaccount.pem
+    refresh: 24h
+    mode: 644
+
+  - type: api
+    name: fetch-serviceaccount-key
+    path: /etc/hyades/keys/serviceaccount.key
+    refresh: 24h
+    mode: 600
+
+keys:
+  - name: keygranting
+    type: tls
+    key: /etc/hyades/keyclient/granting.key
+    cert: /etc/hyades/keyclient/granting.pem
+    api: renew-keygrant
+    in-advance: 336h   # renew two weeks before expiration
+
+  - name: ssh-host
+    type: ssh-pubkey
+    key: /etc/ssh/ssh_host_rsa_key.pub
+    cert: /etc/ssh/ssh_host_rsa_cert
+    api: grant-ssh-host
+    in-advance: 168h   # renew one week before expiration
+
+  # NOTE: THIS PART WILL VARY BY SERVER
+
+  - name: kube-worker
+    type: tls
+    key: /etc/hyades/keys/kubernetes-worker.key
+    cert: /etc/hyades/keys/kubernetes-worker.pem
+    api: grant-kubernetes-worker
+    in-advance: 168h   # renew one week before expiration
+
+  - name: kube-master
+    type: tls
+    key: /etc/hyades/keys/kubernetes-master.key
+    cert: /etc/hyades/keys/kubernetes-master.pem
+    api: grant-kubernetes-master
+    in-advance: 168h   # renew one week before expiration
+
+  - name: etcd-server
+    type: tls
+    key: /etc/hyades/keys/etcd-server.key
+    cert: /etc/hyades/keys/etcd-server.pem
+    api: grant-etcd-server
+    in-advance: 168h   # renew one week before expiration
+
+  - name: etcd-client
+    type: tls
+    key: /etc/hyades/keys/etcd-client.key
+    cert: /etc/hyades/keys/etcd-client.pem
+    api: grant-etcd-client
+    in-advance: 168h   # renew one week before expiration

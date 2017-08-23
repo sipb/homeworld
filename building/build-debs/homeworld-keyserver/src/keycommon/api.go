@@ -153,6 +153,17 @@ func (a *certAuth) SendRequests(reqs []Request) ([]string, error) {
 	return a.k.sendRequests(reqs, a.client, func(_ *http.Request) error { return nil })
 }
 
+func SendRequest(a RequestTarget, api string, body string) (string, error) {
+	strs, err := a.SendRequests([]Request{{API: api, Body: body}})
+	if err != nil {
+		return "", err
+	}
+	if len(strs) != 1 {
+		return "", fmt.Errorf("Wrong number of results: %d != 1", len(strs))
+	}
+	return strs[0], nil
+}
+
 func (k *Keyserver) sendRequests(reqs []Request, client http.Client, authmethod func(*http.Request) error) ([]string, error) {
 	jsonready := make([]struct{ api string; body string }, len(reqs))
 	for i, req := range reqs {

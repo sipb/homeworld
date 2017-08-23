@@ -44,6 +44,11 @@ authorities:
     key: kubernetes.key
     cert: kubernetes.pem
 
+  serviceaccount:
+    type: static
+    key: serviceaccount.key
+    cert: serviceaccount.pem
+
 accounts:
   - principal: eggs-benedict.mit.edu
     group: master-nodes
@@ -167,7 +172,7 @@ grants:
     group: nodes
     privilege: sign-tls
     authority: keygranting
-    lifespan: 40d
+    lifespan: 960h  # fourty day lifespan
     ishost: false
     common-name: (principal)
 
@@ -194,7 +199,7 @@ grants:
     group: nodes
     privilege: sign-ssh
     authority: ssh-host
-    lifespan: 60d
+    lifespan: 1440h  # sixty day lifespan
     ishost: false
     common-name: admitted-(principal)
     allowed-names:
@@ -206,7 +211,7 @@ grants:
     group: master-nodes
     privilege: sign-tls
     authority: kubernetes
-    lifespan: 30d
+    lifespan: 720h  # thirty day lifespan
     ishost: true
     common-name: kube-master-(hostname)
     allowed-names:
@@ -223,7 +228,7 @@ grants:
     group: master-nodes
     privilege: sign-tls
     authority: etcd-server
-    lifespan: 30d
+    lifespan: 720h  # thirty day lifespan
     ishost: true
     common-name: etcd-server-(hostname)
     allowed-names:
@@ -237,8 +242,9 @@ grants:
     group: kubernetes-nodes
     privilege: sign-tls
     authority: kubernetes
-    common-name: kube-worker-(hostname)
+    lifespan: 720h  # thirty day lifespan
     ishost: false
+    common-name: kube-worker-(hostname)
     allowed-names:
     - (hostname).mit.edu
     - (hostname)
@@ -248,10 +254,15 @@ grants:
     group: master-nodes
     privilege: sign-tls
     authority: etcd-client
-    lifespan: 30d
+    lifespan: 720h  # thirty day lifespan
     ishost: false
     common-name: etcd-client-(hostname)
     allowed-names:
     - (hostname).mit.edu
     - (hostname)
     - (ip)
+
+  fetch-serviceaccount-key:
+    group: master-nodes
+    privilege: fetch-key
+    authority: serviceaccount

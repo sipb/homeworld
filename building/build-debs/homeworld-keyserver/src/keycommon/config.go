@@ -8,10 +8,10 @@ import (
 )
 
 type configtype struct {
-	authority_path string
-	hostname string
-	key_path string
-	cert_path string
+	AuthorityPath string
+	Keyserver     string
+	KeyPath       string
+	CertPath      string
 }
 
 func LoadKeyserver(configpath string) (*Keyserver, configtype, error) {
@@ -20,15 +20,15 @@ func LoadKeyserver(configpath string) (*Keyserver, configtype, error) {
 	if err != nil {
 		return nil, configtype{}, fmt.Errorf("While loading configuration: %s", err)
 	}
-	err = yaml.UnmarshalStrict(configdata, &config)
+	err = yaml.Unmarshal(configdata, &config)
 	if err != nil {
 		return nil, configtype{}, fmt.Errorf("While decoding configuration: %s", err)
 	}
-	authoritydata, err := ioutil.ReadFile(config.authority_path)
+	authoritydata, err := ioutil.ReadFile(config.AuthorityPath)
 	if err != nil {
 		return nil, configtype{}, fmt.Errorf("While loading authority: %s", err)
 	}
-	ks, err := NewKeyserver(authoritydata, config.hostname)
+	ks, err := NewKeyserver(authoritydata, config.Keyserver)
 	if err != nil {
 		return nil, configtype{}, fmt.Errorf("While preparing setup: %s", err)
 	}
@@ -40,10 +40,10 @@ func LoadKeyserverWithCert(configpath string) (*Keyserver, RequestTarget, error)
 	if err != nil {
 		return nil, nil, err
 	}
-	if config.cert_path == "" || config.key_path == "" {
+	if config.CertPath == "" || config.KeyPath == "" {
 		return nil, nil, fmt.Errorf("While preparing authentication: expected non-empty path.")
 	}
-	keypair, err := tls.LoadX509KeyPair(config.cert_path, config.key_path)
+	keypair, err := tls.LoadX509KeyPair(config.CertPath, config.KeyPath)
 	if err != nil {
 		return nil, nil, fmt.Errorf("While loading keypair: %s", err)
 	}

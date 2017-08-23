@@ -22,7 +22,7 @@ func HandleRequest(principal string, request_data []byte) ([]byte, error) {
 		requests[i].Body = req.body
 	}
 
-	_, rt, err := keycommon.LoadKeyserverWithCert("/etc/hyades/keyserver/keyclient.conf")
+	_, rt, err := keycommon.LoadKeyserverWithCert("/etc/hyades/keyclient/keyclient.conf")
 	if err != nil {
 		return nil, err
 	}
