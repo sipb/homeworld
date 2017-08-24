@@ -1,8 +1,8 @@
 package util
 
 import (
-	"os"
 	"errors"
+	"os"
 )
 
 func Exists(path string) bool {
@@ -30,4 +30,3 @@ func EnsureIsFolder(dirname string) error {
 	}
 	return nil
 }
-

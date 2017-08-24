@@ -1,14 +1,14 @@
 package keyclient
 
 import (
+	"crypto/tls"
+	"fmt"
+	"keyclient/util"
 	"keycommon"
+	"log"
+	"strings"
 	"sync"
 	"time"
-	"crypto/tls"
-	"log"
-	"keyclient/util"
-	"fmt"
-	"strings"
 )
 
 const RSA_BITS = 4096
@@ -27,7 +27,7 @@ type Action interface {
 	Perform() error
 }
 
-type errNothingToDo struct {}
+type errNothingToDo struct{}
 
 func (errNothingToDo) Error() string {
 	return "Nothing to do!"

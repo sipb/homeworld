@@ -3,9 +3,9 @@ package keyclient
 import (
 	"errors"
 	"fmt"
-	"time"
-	"strconv"
 	"keycommon"
+	"strconv"
+	"time"
 )
 
 func PrepareKeygenAction(m *Mainloop, k ConfigKey) (Action, error) {
@@ -33,7 +33,7 @@ func PrepareDownloadAction(m *Mainloop, d ConfigDownload) (Action, error) {
 	if err != nil {
 		return nil, err
 	}
-	if mode & 0002 != 0 {
+	if mode&0002 != 0 {
 		return nil, fmt.Errorf("Disallowed mode: %o (will not grant world-writable access)", mode)
 	}
 	switch d.Type {

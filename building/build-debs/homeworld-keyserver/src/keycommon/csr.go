@@ -1,13 +1,13 @@
 package keycommon
 
 import (
+	"crypto/rand"
 	"crypto/x509"
+	"crypto/x509/pkix"
 	"encoding/pem"
 	"errors"
-	"crypto/rand"
-	"crypto/x509/pkix"
-	"golang.org/x/crypto/ssh"
 	"fmt"
+	"golang.org/x/crypto/ssh"
 	"wraputil"
 )
 
@@ -38,8 +38,8 @@ func BuildTLSCSR(privkey []byte) ([]byte, error) {
 	}
 
 	template := &x509.CertificateRequest{
-		Subject: pkix.Name{CommonName: "invalid-cn-temporary-request"}, // should be replaced by actual subject on server
-		SignatureAlgorithm: x509.SHA256WithRSA, // TODO: ensure that server ignores this properly
+		Subject:            pkix.Name{CommonName: "invalid-cn-temporary-request"}, // should be replaced by actual subject on server
+		SignatureAlgorithm: x509.SHA256WithRSA,                                    // TODO: ensure that server ignores this properly
 	}
 
 	der, err := x509.CreateCertificateRequest(rand.Reader, template, key)

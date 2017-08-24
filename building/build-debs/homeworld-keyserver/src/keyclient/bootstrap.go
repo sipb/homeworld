@@ -1,13 +1,13 @@
 package keyclient
 
 import (
+	"errors"
+	"fmt"
 	"io/ioutil"
+	"keycommon"
 	"os"
 	"strings"
 	"unicode"
-	"errors"
-	"keycommon"
-	"fmt"
 )
 
 type BootstrapAction struct {

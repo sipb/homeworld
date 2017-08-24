@@ -1,10 +1,10 @@
 package keycommon
 
 import (
+	"crypto/tls"
+	"fmt"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	"fmt"
-	"crypto/tls"
 )
 
 type configtype struct {

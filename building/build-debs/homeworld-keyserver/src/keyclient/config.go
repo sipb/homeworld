@@ -1,10 +1,10 @@
 package keyclient
 
 import (
-	"keycommon"
 	"fmt"
-	"io/ioutil"
 	"gopkg.in/yaml.v2"
+	"io/ioutil"
+	"keycommon"
 )
 
 type ConfigDownload struct {

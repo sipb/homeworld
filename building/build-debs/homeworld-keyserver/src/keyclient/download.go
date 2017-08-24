@@ -1,10 +1,10 @@
 package keyclient
 
 import (
-	"keycommon"
-	"time"
-	"os"
 	"io/ioutil"
+	"keycommon"
+	"os"
+	"time"
 )
 
 type DownloadFetcher interface {
@@ -18,13 +18,13 @@ type AuthorityFetcher struct {
 }
 
 type StaticFetcher struct {
-	Keyserver     *keycommon.Keyserver
+	Keyserver  *keycommon.Keyserver
 	StaticName string
 }
 
 type APIFetcher struct {
-	Mainloop     *Mainloop
-	API           string
+	Mainloop *Mainloop
+	API      string
 }
 
 type DownloadAction struct {

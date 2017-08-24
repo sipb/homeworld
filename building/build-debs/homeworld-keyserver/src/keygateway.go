@@ -1,16 +1,19 @@
 package main
 
 import (
-	"os"
-	"log"
-	"io/ioutil"
-	"errors"
-	"keycommon"
 	"encoding/json"
+	"errors"
+	"io/ioutil"
+	"keycommon"
+	"log"
+	"os"
 )
 
 func HandleRequest(principal string, request_data []byte) ([]byte, error) {
-	jsonload := []struct{ api string; body string } {}
+	jsonload := []struct {
+		api  string
+		body string
+	}{}
 	err := json.Unmarshal(request_data, jsonload)
 	if err != nil {
 		return nil, err

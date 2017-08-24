@@ -3,8 +3,8 @@ package wraputil
 import (
 	"bytes"
 	"encoding/pem"
-	"fmt"
 	"errors"
+	"fmt"
 )
 
 func LoadSinglePEMBlock(data []byte, expected_types []string) ([]byte, error) {

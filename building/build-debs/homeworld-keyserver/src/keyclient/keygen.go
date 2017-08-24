@@ -1,20 +1,20 @@
 package keyclient
 
 import (
-	"crypto/x509"
-	"os"
-	"encoding/pem"
-	"path"
-	"crypto/rsa"
-	"keyclient/util"
 	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
 	"fmt"
+	"keyclient/util"
 	"log"
+	"os"
+	"path"
 )
 
 type TLSKeygenAction struct {
 	keypath string
-	logger log.Logger
+	logger  log.Logger
 }
 
 func (ka TLSKeygenAction) Perform() error {
@@ -35,7 +35,7 @@ func (ka TLSKeygenAction) Perform() error {
 
 	keydata := x509.MarshalPKCS1PrivateKey(private_key)
 
-	file_out, err := os.OpenFile(ka.keypath, os.O_WRONLY | os.O_EXCL | os.O_CREATE, 0600)
+	file_out, err := os.OpenFile(ka.keypath, os.O_WRONLY|os.O_EXCL|os.O_CREATE, 0600)
 	if err != nil {
 		return fmt.Errorf("Failed to create file for generated key: %s", err)
 	}

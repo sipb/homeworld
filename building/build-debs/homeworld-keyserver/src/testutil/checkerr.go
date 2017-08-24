@@ -1,9 +1,9 @@
 package testutil
 
 import (
-	"testing"
-	"strings"
 	"runtime"
+	"strings"
+	"testing"
 )
 
 // Not really unit-testable...
@@ -11,7 +11,7 @@ func CheckError(t *testing.T, err error, substr string) {
 	_, file, line, ok := runtime.Caller(1)
 	if ok {
 		segs := strings.Split(file, "/")
-		file = segs[len(segs) - 1]
+		file = segs[len(segs)-1]
 	} else {
 		file, line = "???", 1
 	}

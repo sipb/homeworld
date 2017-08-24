@@ -1,8 +1,8 @@
 package main
 
 import (
-	"log"
 	"keyclient"
+	"log"
 )
 
 // the keyclient is a daemon with a few different responsibilities:

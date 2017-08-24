@@ -1,12 +1,12 @@
 package keycommon
 
 import (
-	"fmt"
 	"errors"
+	"fmt"
 )
 
 type Request struct {
-	API string
+	API  string
 	Body string
 }
 
@@ -15,9 +15,9 @@ type RequestTarget interface {
 }
 
 type impersonatedTarget struct {
-	BaseTarget RequestTarget
+	BaseTarget       RequestTarget
 	ImpersonationAPI string
-	User string
+	User             string
 }
 
 func Impersonate(rt RequestTarget, api string, user string) (RequestTarget, error) {
@@ -36,9 +36,9 @@ func Impersonate(rt RequestTarget, api string, user string) (RequestTarget, erro
 }
 
 func (t *impersonatedTarget) SendRequests(reqs []Request) ([]string, error) {
-	new_requests := make([]Request, len(reqs) + 1)
+	new_requests := make([]Request, len(reqs)+1)
 	for i, req := range reqs {
-		new_requests[i + 1] = req
+		new_requests[i+1] = req
 	}
 	new_requests[0] = Request{API: t.ImpersonationAPI, Body: t.User}
 	return t.BaseTarget.SendRequests(new_requests)

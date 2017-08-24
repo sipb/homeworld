@@ -1,26 +1,26 @@
 package keyclient
 
 import (
-	"time"
-	"golang.org/x/crypto/ssh"
-	"fmt"
-	"encoding/pem"
 	"crypto/x509"
+	"encoding/pem"
+	"fmt"
+	"golang.org/x/crypto/ssh"
 	"io/ioutil"
-	"os"
 	"keycommon"
+	"os"
+	"time"
 	"wraputil"
 )
 
 type RequestOrRenewAction struct {
-	Mainloop *Mainloop
-	InAdvance time.Duration
-	API string
-	Name string
+	Mainloop        *Mainloop
+	InAdvance       time.Duration
+	API             string
+	Name            string
 	CheckExpiration func([]byte) (time.Time, error)
-	GenCSR func([]byte) ([]byte, error)
-	KeyFile string
-	CertFile string
+	GenCSR          func([]byte) ([]byte, error)
+	KeyFile         string
+	CertFile        string
 }
 
 func CheckSSHCertExpiration(key []byte) (time.Time, error) {
@@ -65,7 +65,7 @@ func (ra *RequestOrRenewAction) Perform() error {
 		}
 		renew_at := expiration.Add(-ra.InAdvance)
 		if renew_at.After(time.Now()) {
-			return ErrNothingToDo  // we have a cert and it's not yet time to renew it
+			return ErrNothingToDo // we have a cert and it's not yet time to renew it
 		}
 		// time to renew!
 	}

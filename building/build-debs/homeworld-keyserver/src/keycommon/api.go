@@ -1,16 +1,16 @@
 package keycommon
 
 import (
-	"encoding/json"
-	"errors"
-	"fmt"
-	"net/http"
+	"bytes"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/json"
 	"encoding/pem"
-	"bytes"
-	"io/ioutil"
+	"errors"
+	"fmt"
 	"golang.org/x/crypto/ssh"
+	"io/ioutil"
+	"net/http"
 	"wraputil"
 )
 
@@ -110,7 +110,7 @@ func (k *Keyserver) fetchPath(path string) ([]byte, error) {
 }
 
 type tokenAuth struct {
-	k *Keyserver
+	k     *Keyserver
 	token string
 }
 
@@ -118,7 +118,7 @@ func (k *Keyserver) AuthenticateWithToken(token string) (RequestTarget, error) {
 	if token == "" {
 		return nil, errors.New("Invalid token.")
 	}
-	return &tokenAuth{ k, token }, nil
+	return &tokenAuth{k, token}, nil
 }
 
 func (a *tokenAuth) auth(request *http.Request) error {
@@ -131,9 +131,9 @@ func (a *tokenAuth) SendRequests(reqs []Request) ([]string, error) {
 }
 
 type certAuth struct {
-	k *Keyserver
+	k      *Keyserver
 	client http.Client
-	cert tls.Certificate
+	cert   tls.Certificate
 }
 
 func (k *Keyserver) AuthenticateWithCert(cert tls.Certificate) (RequestTarget, error) {
@@ -144,7 +144,7 @@ func (k *Keyserver) AuthenticateWithCert(cert tls.Certificate) (RequestTarget, e
 	txport.TLSClientConfig = &cconf
 	client.Transport = &txport
 
-	return &certAuth{ k,client, cert }, nil
+	return &certAuth{k, client, cert}, nil
 }
 
 func (a *certAuth) SendRequests(reqs []Request) ([]string, error) {
@@ -163,7 +163,10 @@ func SendRequest(a RequestTarget, api string, body string) (string, error) {
 }
 
 func (k *Keyserver) sendRequests(reqs []Request, client http.Client, authmethod func(*http.Request) error) ([]string, error) {
-	jsonready := make([]struct{ api string; body string }, len(reqs))
+	jsonready := make([]struct {
+		api  string
+		body string
+	}, len(reqs))
 	for i, req := range reqs {
 		jsonready[i].api = req.API
 		jsonready[i].body = req.Body
@@ -172,7 +175,7 @@ func (k *Keyserver) sendRequests(reqs []Request, client http.Client, authmethod 
 	if err != nil {
 		return nil, fmt.Errorf("While encoding request: %s", err)
 	}
-	request, err := http.NewRequest("POST", k.baseurl + "/apirequest", bytes.NewReader(reqdata))
+	request, err := http.NewRequest("POST", k.baseurl+"/apirequest", bytes.NewReader(reqdata))
 	if err != nil {
 		return nil, fmt.Errorf("While preparing request: %s", err)
 	}
@@ -191,10 +194,10 @@ func (k *Keyserver) sendRequests(reqs []Request, client http.Client, authmethod 
 	if err != nil {
 		return nil, fmt.Errorf("While receiving response: %s", err)
 	}
-	outputs := []string {}
+	outputs := []string{}
 	err = json.Unmarshal(body, &outputs)
 	if err != nil {
-		return nil ,fmt.Errorf("While decoding response: %s", err)
+		return nil, fmt.Errorf("While decoding response: %s", err)
 	}
 	if len(outputs) != len(reqs) {
 		return nil, fmt.Errorf("While finalizing response: wrong number of responses")
