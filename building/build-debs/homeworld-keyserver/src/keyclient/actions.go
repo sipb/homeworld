@@ -33,16 +33,16 @@ func PrepareDownloadAction(m *Mainloop, d ConfigDownload) (Action, error) {
 	if err != nil {
 		return nil, err
 	}
-	if mode & 0002 {
+	if mode & 0002 != 0 {
 		return nil, fmt.Errorf("Disallowed mode: %o (will not grant world-writable access)", mode)
 	}
 	switch d.Type {
 	case "authority":
-		return DownloadAction{Fetcher: AuthorityFetcher{Keyserver: m.ks, AuthorityName: d.Name}, Path: d.Path, Refresh: refresh_period, Mode: mode}, nil
+		return &DownloadAction{Fetcher: &AuthorityFetcher{Keyserver: m.ks, AuthorityName: d.Name}, Path: d.Path, Refresh: refresh_period, Mode: mode}, nil
 	case "static":
-		return DownloadAction{Fetcher: StaticFetcher{Keyserver: m.ks, StaticName: d.Name}, Path: d.Path, Refresh: refresh_period, Mode: mode}, nil
+		return &DownloadAction{Fetcher: &StaticFetcher{Keyserver: m.ks, StaticName: d.Name}, Path: d.Path, Refresh: refresh_period, Mode: mode}, nil
 	case "api":
-		return DownloadAction{Fetcher: APIFetcher{Mainloop: m, API: d.Name}, Path: d.Path, Refresh: refresh_period, Mode: mode}, nil
+		return &DownloadAction{Fetcher: &APIFetcher{Mainloop: m, API: d.Name}, Path: d.Path, Refresh: refresh_period, Mode: mode}, nil
 	default:
 		return nil, fmt.Errorf("Unrecognized download type: %s", d.Type)
 	}
@@ -64,9 +64,11 @@ func PrepareRequestOrRenewKeys(m *Mainloop, key ConfigKey, inadvance time.Durati
 	}
 	switch key.Type {
 	case "tls":
+		fallthrough
 	case "tls-pubkey":
 		return &RequestOrRenewAction{Mainloop: m, InAdvance: inadvance, API: key.API, Name: key.Name, CheckExpiration: CheckTLSCertExpiration, GenCSR: keycommon.BuildTLSCSR, KeyFile: key.Key, CertFile: key.Cert}, nil
 	case "ssh":
+		fallthrough
 	case "ssh-pubkey":
 		return &RequestOrRenewAction{Mainloop: m, InAdvance: inadvance, API: key.API, Name: key.Name, CheckExpiration: CheckSSHCertExpiration, GenCSR: keycommon.BuildSSHCSR, KeyFile: key.Key, CertFile: key.Cert}, nil
 	default:

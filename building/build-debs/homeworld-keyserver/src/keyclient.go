@@ -1,14 +1,7 @@
 package main
 
 import (
-	"os"
 	"log"
-	"io/ioutil"
-	"errors"
-	"keycommon"
-	"encoding/json"
-	"fmt"
-	"crypto/tls"
 	"keyclient"
 )
 

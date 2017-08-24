@@ -25,14 +25,14 @@ type RequestOrRenewAction struct {
 func CheckSSHCertExpiration(key []byte) (time.Time, error) {
 	pubkey, _, _, rest, err := ssh.ParseAuthorizedKey(key)
 	if err != nil {
-		return nil, err
+		return time.Time{}, err
 	}
 	if len(rest) > 0 {
-		return nil, fmt.Errorf("Extraneous data after SSH certificate")
+		return time.Time{}, fmt.Errorf("Extraneous data after SSH certificate")
 	}
 	cert, ok := pubkey.(*ssh.Certificate)
 	if !ok {
-		return nil, fmt.Errorf("Found public key instead of certificate when checking expiration")
+		return time.Time{}, fmt.Errorf("Found public key instead of certificate when checking expiration")
 	}
 	return time.Unix(int64(cert.ValidBefore), 0), nil
 }
@@ -50,7 +50,7 @@ func CheckTLSCertExpiration(key []byte) (time.Time, error) {
 	}
 	cert, err := x509.ParseCertificate(block.Bytes)
 	if err != nil {
-		return nil, err
+		return time.Time{}, err
 	}
 	return cert.NotAfter, nil
 }
