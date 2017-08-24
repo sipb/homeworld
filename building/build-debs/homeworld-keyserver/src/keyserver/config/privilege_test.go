@@ -2,7 +2,6 @@ package config
 
 import (
 	"crypto/x509"
-	"encoding/pem"
 	"golang.org/x/crypto/ssh"
 	"keyserver/account"
 	"keyserver/authorities"
@@ -11,6 +10,7 @@ import (
 	"strings"
 	"testing"
 	"time"
+	"wraputil"
 )
 
 func TestConfigGrant_CompileGrant_Empty(t *testing.T) {
@@ -292,14 +292,11 @@ func TestSignTLS(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		} else {
-			block, rest := pem.Decode([]byte(signed))
-			if len(rest) != 0 {
+			blockdata, err := wraputil.LoadSinglePEMBlock([]byte(signed), []string{"CERTIFICATE"})
+			if err != nil {
 				t.Fatal(err)
 			}
-			if block.Type != "CERTIFICATE" {
-				t.Error("Wrong block type.")
-			}
-			cert, err := x509.ParseCertificate(block.Bytes)
+			cert, err := x509.ParseCertificate(blockdata)
 			if err != nil {
 				t.Fatal(err)
 			}

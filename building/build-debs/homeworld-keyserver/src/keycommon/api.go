@@ -11,6 +11,7 @@ import (
 	"bytes"
 	"io/ioutil"
 	"golang.org/x/crypto/ssh"
+	"wraputil"
 )
 
 type Keyserver struct {
@@ -19,14 +20,11 @@ type Keyserver struct {
 }
 
 func parseTLSCertificate(data []byte) (*x509.Certificate, error) {
-	block, rest := pem.Decode(data)
-	if len(rest) != 0 {
-		return nil, fmt.Errorf("Unexpected data found when looking for PEM block")
+	blockdata, err := wraputil.LoadSinglePEMBlock(data, []string{"CERTIFICATE"})
+	if err != nil {
+		return nil, err
 	}
-	if block.Type != "CERTIFICATE" {
-		return nil, fmt.Errorf("Expected PEM block for CERTIFICATE, not %s", block.Type)
-	}
-	cert, err := x509.ParseCertificate(block.Bytes)
+	cert, err := x509.ParseCertificate(blockdata)
 	if err != nil {
 		return nil, err
 	}

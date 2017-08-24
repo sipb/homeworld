@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"crypto/tls"
 	"crypto/x509"
-	"encoding/pem"
 	"errors"
 	"io/ioutil"
 	"keyserver/account"
@@ -18,6 +17,7 @@ import (
 	"strings"
 	"testing"
 	"time"
+	"wraputil"
 )
 
 func TestVerifyAccountIP_NoLimit(t *testing.T) {
@@ -216,14 +216,11 @@ func prepCertAuth(t *testing.T, gctx *config.Context) *http.Request {
 	if err != nil {
 		t.Fatal(err)
 	}
-	block, rest := pem.Decode([]byte(certstr))
-	if len(rest) > 0 {
-		t.Error("Extra data.")
+	content, err := wraputil.LoadSinglePEMBlock([]byte(certstr), []string{"CERTIFICATE"})
+	if err != nil {
+		t.Fatal(err)
 	}
-	if block.Type != "CERTIFICATE" {
-		t.Error("Wrong type.")
-	}
-	cert, err := x509.ParseCertificate(block.Bytes)
+	cert, err := x509.ParseCertificate(content)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -370,12 +367,10 @@ func TestConfiguredKeyserver_GetServerCert(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	refdata, rest := pem.Decode(refpem)
-	if len(rest) > 0 {
-		t.Error("Trailing data.")
-	} else if refdata.Type != "CERTIFICATE" {
-		t.Error("Wrong pem block type.")
-	} else if !bytes.Equal(certdata, refdata.Bytes) {
+	refdata, err := wraputil.LoadSinglePEMBlock(refpem, []string{"CERTIFICATE"})
+	if err != nil {
+		t.Error(err)
+	} else if !bytes.Equal(certdata, refdata) {
 		t.Error("Cert mismatch")
 	}
 }

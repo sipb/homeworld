@@ -8,6 +8,7 @@ import (
 	"crypto/x509/pkix"
 	"golang.org/x/crypto/ssh"
 	"fmt"
+	"wraputil"
 )
 
 // accepts both public and private keys
@@ -27,17 +28,11 @@ func BuildSSHCSR(key []byte) ([]byte, error) {
 }
 
 func BuildTLSCSR(privkey []byte) ([]byte, error) {
-	block, rest := pem.Decode(privkey)
-	if block == nil {
-		return nil, errors.New("Could not find PEM-encoded block")
+	keydata, err := wraputil.LoadSinglePEMBlock(privkey, []string{"RSA PRIVATE KEY"}) // TODO: support other formats
+	if err != nil {
+		return nil, err
 	}
-	if len(rest) > 0 {
-		return nil, errors.New("Extraneous data after PEM-encoded block")
-	}
-	if block.Type != "RSA PRIVATE KEY" { // TODO: support other formats
-		return nil, errors.New("Expected PEM type RSA PRIVATE KEY")
-	}
-	key, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	key, err := x509.ParsePKCS1PrivateKey(keydata)
 	if err != nil {
 		return nil, err
 	}

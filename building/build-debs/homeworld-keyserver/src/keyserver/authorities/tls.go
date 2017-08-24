@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"keyserver/verifier"
+	"wraputil"
 )
 
 type TLSAuthority struct {
@@ -30,37 +31,13 @@ func (t *TLSAuthority) Equal(authority *TLSAuthority) bool {
 	return bytes.Equal(t.certData, authority.certData)
 }
 
-func loadSinglePEMBlock(data []byte, expected_types []string) ([]byte, error) {
-	if !bytes.HasPrefix(data, []byte("-----BEGIN ")) {
-		return nil, errors.New("Missing expected PEM header")
-	}
-	pemBlock, remain := pem.Decode(data)
-	if pemBlock == nil {
-		return nil, errors.New("Could not parse PEM data")
-	}
-	found := false
-	for _, expected_type := range expected_types {
-		if pemBlock.Type == expected_type {
-			found = true
-			break
-		}
-	}
-	if !found {
-		return nil, fmt.Errorf("Found PEM block of type \"%s\" instead of types %s", pemBlock.Type, expected_types)
-	}
-	if remain != nil && len(remain) > 0 {
-		return nil, errors.New("Trailing data found after PEM data")
-	}
-	return pemBlock.Bytes, nil
-}
-
 func LoadTLSAuthority(keydata []byte, pubkeydata []byte) (Authority, error) {
-	certblock, err := loadSinglePEMBlock(pubkeydata, []string{"CERTIFICATE"})
+	certblock, err := wraputil.LoadSinglePEMBlock(pubkeydata, []string{"CERTIFICATE"})
 	if err != nil {
 		return nil, err
 	}
 
-	keyblock, err := loadSinglePEMBlock(keydata, []string{"RSA PRIVATE KEY", "PRIVATE KEY"})
+	keyblock, err := wraputil.LoadSinglePEMBlock(keydata, []string{"RSA PRIVATE KEY", "PRIVATE KEY"})
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +109,7 @@ func (t *TLSAuthority) Verify(request *http.Request) (string, error) {
 }
 
 func (t *TLSAuthority) Sign(request string, ishost bool, lifespan time.Duration, commonname string, names []string) (string, error) {
-	pemBlock, err := loadSinglePEMBlock([]byte(request), []string{"CERTIFICATE REQUEST"})
+	pemBlock, err := wraputil.LoadSinglePEMBlock([]byte(request), []string{"CERTIFICATE REQUEST"})
 	if err != nil {
 		return "", err
 	}

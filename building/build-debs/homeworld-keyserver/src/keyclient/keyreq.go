@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"os"
 	"keycommon"
+	"wraputil"
 )
 
 type RequestOrRenewAction struct {
@@ -38,17 +39,11 @@ func CheckSSHCertExpiration(key []byte) (time.Time, error) {
 }
 
 func CheckTLSCertExpiration(key []byte) (time.Time, error) {
-	block, rest := pem.Decode(key)
-	if block == nil {
-		return time.Time{}, fmt.Errorf("No PEM block found when looking for TLS cert.")
+	blockdata, err := wraputil.LoadSinglePEMBlock(key, []string{"CERTIFICATE"})
+	if err != nil {
+		return time.Time{}, err
 	}
-	if len(rest) > 0 {
-		return time.Time{}, fmt.Errorf("Extraneous data found after PEM block")
-	}
-	if block.Type != "CERTIFICATE" {
-		return time.Time{}, fmt.Errorf("Expected PEM block with type CERTIFICATE, not %s", block.Type)
-	}
-	cert, err := x509.ParseCertificate(block.Bytes)
+	cert, err := x509.ParseCertificate(blockdata)
 	if err != nil {
 		return time.Time{}, err
 	}
