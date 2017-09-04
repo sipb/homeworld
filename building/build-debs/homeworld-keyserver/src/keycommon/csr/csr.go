@@ -1,14 +1,14 @@
-package keycommon
+package csr
 
 import (
 	"crypto/rand"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
-	"errors"
 	"fmt"
 	"golang.org/x/crypto/ssh"
 	"wraputil"
+	"strings"
 )
 
 // accepts both public and private keys
@@ -17,22 +17,19 @@ func BuildSSHCSR(key []byte) ([]byte, error) {
 	if err == nil {
 		return ssh.MarshalAuthorizedKey(privkey.PublicKey()), nil
 	}
-	pubkey, _, _, rest, err2 := ssh.ParseAuthorizedKey(key)
+	pubkey, err2 := wraputil.ParseSSHTextPubkey(key)
 	if err2 == nil {
-		if len(rest) > 0 {
-			return nil, fmt.Errorf("Extraneous text after SSH pubkey")
+		if strings.Contains(pubkey.Type(), "cert") {
+			return nil, fmt.Errorf("Expected SSH pubkey file to not have certificate type %s", pubkey.Type())
 		}
 		return ssh.MarshalAuthorizedKey(pubkey), nil
 	}
 	return nil, fmt.Errorf("could not parse key as pubkey or privkey: %s (as privkey) / %s (as pubkey)", err, err2)
 }
 
+// only accepts private keys, because there are no public key files in TLS
 func BuildTLSCSR(privkey []byte) ([]byte, error) {
-	keydata, err := wraputil.LoadSinglePEMBlock(privkey, []string{"RSA PRIVATE KEY"}) // TODO: support other formats
-	if err != nil {
-		return nil, err
-	}
-	key, err := x509.ParsePKCS1PrivateKey(keydata)
+	key, err := wraputil.LoadRSAKeyFromPEM(privkey)
 	if err != nil {
 		return nil, err
 	}

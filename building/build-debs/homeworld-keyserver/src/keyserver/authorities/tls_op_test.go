@@ -15,6 +15,7 @@ import (
 	"strings"
 	"testing"
 	"time"
+	"wraputil"
 )
 
 const (
@@ -184,11 +185,7 @@ func TestExpiredTLSAuthority(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	expiredCertBlock, err := loadSinglePEMBlock([]byte(TLS_CLIENT_EXPIRED), []string{"CERTIFICATE"})
-	if err != nil {
-		t.Fatal(err)
-	}
-	expiredCert, err := x509.ParseCertificate(expiredCertBlock)
+	expiredCert, err := wraputil.LoadX509CertFromPEM([]byte(TLS_CLIENT_EXPIRED))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -217,11 +214,7 @@ func TestUnissuedTLSAuthority(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	unissuedCertBlock, err := loadSinglePEMBlock([]byte(TLS_CLIENT_UNISSUED), []string{"CERTIFICATE"})
-	if err != nil {
-		t.Fatal(err)
-	}
-	unissuedCert, err := x509.ParseCertificate(unissuedCertBlock)
+	unissuedCert, err := wraputil.LoadX509CertFromPEM([]byte(TLS_CLIENT_UNISSUED))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -325,11 +318,7 @@ func signAndLoad(t *testing.T, csr string, ishost bool, duration time.Duration, 
 	if err != nil {
 		t.Fatal(err)
 	}
-	certdata, err := loadSinglePEMBlock([]byte(certpem), []string{"CERTIFICATE"})
-	if err != nil {
-		t.Fatal(err)
-	}
-	cert, err := x509.ParseCertificate(certdata)
+	cert, err := wraputil.LoadX509CertFromPEM([]byte(certpem))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -485,11 +474,7 @@ func TestTLSAuthority_HasAttempt_MostlyExists(t *testing.T) {
 
 func TestTLSAuthority_HasAttempt_Exists(t *testing.T) {
 	a := getTLSAuthority(t)
-	certblock, err := loadSinglePEMBlock([]byte(TLS_CLIENT_CERT), []string{"CERTIFICATE"})
-	if err != nil {
-		t.Fatal(err)
-	}
-	cert, err := x509.ParseCertificate(certblock)
+	cert, err := wraputil.LoadX509CertFromPEM([]byte(TLS_CLIENT_CERT))
 	if err != nil {
 		t.Fatal(err)
 	}

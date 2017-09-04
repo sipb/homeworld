@@ -3,9 +3,9 @@ package keyclient
 import (
 	"errors"
 	"fmt"
-	"keycommon"
 	"strconv"
 	"time"
+	"keycommon/csr"
 )
 
 func PrepareKeygenAction(m *Mainloop, k ConfigKey) (Action, error) {
@@ -66,11 +66,11 @@ func PrepareRequestOrRenewKeys(m *Mainloop, key ConfigKey, inadvance time.Durati
 	case "tls":
 		fallthrough
 	case "tls-pubkey":
-		return &RequestOrRenewAction{Mainloop: m, InAdvance: inadvance, API: key.API, Name: key.Name, CheckExpiration: CheckTLSCertExpiration, GenCSR: keycommon.BuildTLSCSR, KeyFile: key.Key, CertFile: key.Cert}, nil
+		return &RequestOrRenewAction{Mainloop: m, InAdvance: inadvance, API: key.API, Name: key.Name, CheckExpiration: GetTLSCertExpiration, GenCSR: csr.BuildTLSCSR, KeyFile: key.Key, CertFile: key.Cert}, nil
 	case "ssh":
 		fallthrough
 	case "ssh-pubkey":
-		return &RequestOrRenewAction{Mainloop: m, InAdvance: inadvance, API: key.API, Name: key.Name, CheckExpiration: CheckSSHCertExpiration, GenCSR: keycommon.BuildSSHCSR, KeyFile: key.Key, CertFile: key.Cert}, nil
+		return &RequestOrRenewAction{Mainloop: m, InAdvance: inadvance, API: key.API, Name: key.Name, CheckExpiration: CheckSSHCertExpiration, GenCSR: csr.BuildSSHCSR, KeyFile: key.Key, CertFile: key.Cert}, nil
 	default:
 		return nil, fmt.Errorf("Unrecognized key type: %s", key.Type)
 	}

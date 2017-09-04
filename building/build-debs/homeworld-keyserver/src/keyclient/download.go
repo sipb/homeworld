@@ -5,6 +5,7 @@ import (
 	"keycommon"
 	"os"
 	"time"
+	"keycommon/server"
 )
 
 type DownloadFetcher interface {
@@ -13,12 +14,12 @@ type DownloadFetcher interface {
 }
 
 type AuthorityFetcher struct {
-	Keyserver     *keycommon.Keyserver
+	Keyserver     *server.Keyserver
 	AuthorityName string
 }
 
 type StaticFetcher struct {
-	Keyserver  *keycommon.Keyserver
+	Keyserver  *server.Keyserver
 	StaticName string
 }
 

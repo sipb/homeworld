@@ -23,40 +23,20 @@ type TLSAuthority struct {
 	// TODO: also support ECDSA or other newer algorithms
 	key         *rsa.PrivateKey
 	cert        *x509.Certificate
-	certData    []byte
 	certEncoded []byte
 }
 
 func (t *TLSAuthority) Equal(authority *TLSAuthority) bool {
-	return bytes.Equal(t.certData, authority.certData)
+	return bytes.Equal(t.cert.Raw, authority.cert.Raw)
 }
 
 func LoadTLSAuthority(keydata []byte, pubkeydata []byte) (Authority, error) {
-	certblock, err := wraputil.LoadSinglePEMBlock(pubkeydata, []string{"CERTIFICATE"})
+	privkey, err := wraputil.LoadRSAKeyFromPEM(keydata)
 	if err != nil {
 		return nil, err
 	}
 
-	keyblock, err := wraputil.LoadSinglePEMBlock(keydata, []string{"RSA PRIVATE KEY", "PRIVATE KEY"})
-	if err != nil {
-		return nil, err
-	}
-
-	privkey, err := x509.ParsePKCS1PrivateKey(keyblock)
-	if err != nil {
-		tmpkey, err := x509.ParsePKCS8PrivateKey(keyblock)
-		if err != nil {
-			return nil, errors.New("Could not load PEM private key as PKCS#1 or PKCS#8")
-		}
-		tprivkey, ok := tmpkey.(*rsa.PrivateKey)
-		if ok {
-			privkey = tprivkey
-		} else {
-			return nil, errors.New("Non-RSA private key found in PKCS#8 block")
-		}
-	}
-
-	cert, err := x509.ParseCertificate(certblock)
+	cert, err := wraputil.LoadX509CertFromPEM(pubkeydata)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +48,7 @@ func LoadTLSAuthority(keydata []byte, pubkeydata []byte) (Authority, error) {
 		return nil, errors.New("mismatched RSA public and private keys")
 	}
 
-	return &TLSAuthority{key: privkey, cert: cert, certData: certblock, certEncoded: pubkeydata}, nil
+	return &TLSAuthority{key: privkey, cert: cert, certEncoded: pubkeydata}, nil
 }
 
 func (t *TLSAuthority) ToCertPool() *x509.CertPool {
@@ -82,7 +62,7 @@ func (t *TLSAuthority) GetPublicKey() []byte {
 }
 
 func (t *TLSAuthority) ToHTTPSCert() tls.Certificate {
-	return tls.Certificate{Certificate: [][]byte{t.certData}, PrivateKey: t.key}
+	return tls.Certificate{Certificate: [][]byte{t.cert.Raw}, PrivateKey: t.key}
 }
 
 // Ensure *TLSAuthority implements Verifier
@@ -109,11 +89,7 @@ func (t *TLSAuthority) Verify(request *http.Request) (string, error) {
 }
 
 func (t *TLSAuthority) Sign(request string, ishost bool, lifespan time.Duration, commonname string, names []string) (string, error) {
-	pemBlock, err := wraputil.LoadSinglePEMBlock([]byte(request), []string{"CERTIFICATE REQUEST"})
-	if err != nil {
-		return "", err
-	}
-	csr, err := x509.ParseCertificateRequest(pemBlock)
+	csr, err := wraputil.LoadX509CSRFromPEM([]byte(request))
 	if err != nil {
 		return "", err
 	}

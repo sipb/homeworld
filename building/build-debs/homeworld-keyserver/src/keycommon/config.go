@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	"keycommon/server"
+	"keycommon/reqtarget"
 )
 
 type configtype struct {
@@ -14,7 +16,7 @@ type configtype struct {
 	CertPath      string
 }
 
-func LoadKeyserver(configpath string) (*Keyserver, configtype, error) {
+func LoadKeyserver(configpath string) (*server.Keyserver, configtype, error) {
 	config := configtype{}
 	configdata, err := ioutil.ReadFile(configpath)
 	if err != nil {
@@ -28,14 +30,14 @@ func LoadKeyserver(configpath string) (*Keyserver, configtype, error) {
 	if err != nil {
 		return nil, configtype{}, fmt.Errorf("While loading authority: %s", err)
 	}
-	ks, err := NewKeyserver(authoritydata, config.Keyserver)
+	ks, err := server.NewKeyserver(authoritydata, config.Keyserver)
 	if err != nil {
 		return nil, configtype{}, fmt.Errorf("While preparing setup: %s", err)
 	}
 	return ks, config, nil
 }
 
-func LoadKeyserverWithCert(configpath string) (*Keyserver, RequestTarget, error) {
+func LoadKeyserverWithCert(configpath string) (*server.Keyserver, reqtarget.RequestTarget, error) {
 	k, config, err := LoadKeyserver(configpath)
 	if err != nil {
 		return nil, nil, err

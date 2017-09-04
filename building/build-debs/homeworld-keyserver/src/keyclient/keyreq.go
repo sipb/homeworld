@@ -38,12 +38,8 @@ func CheckSSHCertExpiration(key []byte) (time.Time, error) {
 	return time.Unix(int64(cert.ValidBefore), 0), nil
 }
 
-func CheckTLSCertExpiration(key []byte) (time.Time, error) {
-	blockdata, err := wraputil.LoadSinglePEMBlock(key, []string{"CERTIFICATE"})
-	if err != nil {
-		return time.Time{}, err
-	}
-	cert, err := x509.ParseCertificate(blockdata)
+func GetTLSCertExpiration(certdata []byte) (time.Time, error) {
+	cert, err := wraputil.LoadX509CertFromPEM(certdata)
 	if err != nil {
 		return time.Time{}, err
 	}

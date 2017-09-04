@@ -5,6 +5,8 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"crypto/rsa"
+	"crypto/x509"
 )
 
 func LoadSinglePEMBlock(data []byte, expected_types []string) ([]byte, error) {
@@ -29,4 +31,50 @@ func LoadSinglePEMBlock(data []byte, expected_types []string) ([]byte, error) {
 		return nil, errors.New("Trailing data found after PEM data")
 	}
 	return pemBlock.Bytes, nil
+}
+
+func LoadX509CertFromPEM(certdata []byte) (*x509.Certificate, error) {
+	certblock, err := LoadSinglePEMBlock(certdata, []string{"CERTIFICATE"})
+	if err != nil {
+		return nil, err
+	}
+	cert, err := x509.ParseCertificate(certblock)
+	if err != nil {
+		return nil, err
+	}
+	return cert, nil
+}
+
+func LoadX509CSRFromPEM(certdata []byte) (*x509.CertificateRequest, error) {
+	pemBlock, err := LoadSinglePEMBlock(certdata, []string{"CERTIFICATE REQUEST"})
+	if err != nil {
+		return nil, err
+	}
+	csr, err := x509.ParseCertificateRequest(pemBlock)
+	if err != nil {
+		return nil, err
+	}
+	return csr, nil
+}
+
+func LoadRSAKeyFromPEM(keydata []byte) (*rsa.PrivateKey, error) {
+	keyblock, err := LoadSinglePEMBlock(keydata, []string{"RSA PRIVATE KEY", "PRIVATE KEY"})
+	if err != nil {
+		return nil, err
+	}
+
+	privkey, err := x509.ParsePKCS1PrivateKey(keyblock)
+	if err == nil {
+		return privkey, nil
+	}
+	tmpkey, err := x509.ParsePKCS8PrivateKey(keyblock)
+	if err == nil {
+		privkey, ok := tmpkey.(*rsa.PrivateKey)
+		if ok {
+			return privkey, nil
+		} else {
+			return nil, errors.New("Non-RSA private key found in PKCS#8 block")
+		}
+	}
+	return nil, errors.New("Could not load PEM private key as PKCS#1 or PKCS#8")
 }

@@ -1,18 +1,9 @@
-package keycommon
+package reqtarget
 
 import (
-	"errors"
 	"fmt"
+	"errors"
 )
-
-type Request struct {
-	API  string
-	Body string
-}
-
-type RequestTarget interface {
-	SendRequests([]Request) ([]string, error)
-}
 
 type impersonatedTarget struct {
 	BaseTarget       RequestTarget
@@ -28,7 +19,7 @@ func Impersonate(rt RequestTarget, api string, user string) (RequestTarget, erro
 		return nil, errors.New("Invalid user.")
 	}
 	rt2 := &impersonatedTarget{rt, api, user}
-	_, err := rt2.SendRequests([]Request{})
+	_, err := rt2.SendRequests(nil)
 	if err != nil {
 		return nil, fmt.Errorf("While verifying impersonation functionality: %s", err)
 	}
@@ -41,5 +32,12 @@ func (t *impersonatedTarget) SendRequests(reqs []Request) ([]string, error) {
 		new_requests[i+1] = req
 	}
 	new_requests[0] = Request{API: t.ImpersonationAPI, Body: t.User}
-	return t.BaseTarget.SendRequests(new_requests)
+	responses, err := t.BaseTarget.SendRequests(new_requests)
+	if err != nil {
+		return nil, err
+	}
+	if len(responses) != len(new_requests) {
+		return nil, errors.New("count mismatch during impersonation response verification")
+	}
+	return responses[1:], nil
 }

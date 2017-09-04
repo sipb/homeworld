@@ -216,11 +216,7 @@ func prepCertAuth(t *testing.T, gctx *config.Context) *http.Request {
 	if err != nil {
 		t.Fatal(err)
 	}
-	content, err := wraputil.LoadSinglePEMBlock([]byte(certstr), []string{"CERTIFICATE"})
-	if err != nil {
-		t.Fatal(err)
-	}
-	cert, err := x509.ParseCertificate(content)
+	cert, err := wraputil.LoadX509CertFromPEM([]byte(certstr))
 	if err != nil {
 		t.Fatal(err)
 	}

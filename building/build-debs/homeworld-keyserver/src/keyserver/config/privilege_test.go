@@ -1,7 +1,6 @@
 package config
 
 import (
-	"crypto/x509"
 	"golang.org/x/crypto/ssh"
 	"keyserver/account"
 	"keyserver/authorities"
@@ -292,11 +291,7 @@ func TestSignTLS(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		} else {
-			blockdata, err := wraputil.LoadSinglePEMBlock([]byte(signed), []string{"CERTIFICATE"})
-			if err != nil {
-				t.Fatal(err)
-			}
-			cert, err := x509.ParseCertificate(blockdata)
+			cert, err := wraputil.LoadX509CertFromPEM([]byte(signed))
 			if err != nil {
 				t.Fatal(err)
 			}
