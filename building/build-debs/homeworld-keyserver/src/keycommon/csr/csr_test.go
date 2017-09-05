@@ -2,9 +2,9 @@ package csr
 
 import (
 	"testing"
-	"wraputil"
+	"util/wraputil"
 	"bytes"
-	"testutil"
+	"util/testutil"
 	"crypto/x509"
 	"crypto/rsa"
 	"strings"

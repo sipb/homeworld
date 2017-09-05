@@ -3,7 +3,7 @@ package endpoint
 import (
 	"testing"
 	"crypto/x509"
-	"testutil"
+	"util/testutil"
 	"crypto/rsa"
 	"crypto/tls"
 	"bytes"

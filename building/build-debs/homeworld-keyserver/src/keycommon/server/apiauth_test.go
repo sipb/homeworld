@@ -4,7 +4,7 @@ import (
 	"testing"
 	"net/http"
 	"encoding/pem"
-	"testutil"
+	"util/testutil"
 	"crypto/tls"
 	"keycommon/reqtarget"
 	"io/ioutil"

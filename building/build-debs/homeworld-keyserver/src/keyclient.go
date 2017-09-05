@@ -11,13 +11,6 @@ import (
 //  - renew the keygranting certificate
 //  - renew other certificates
 
-type configtype struct {
-	AuthorityPath string
-	Keyserver     string
-	KeyPath       string
-	CertPath      string
-}
-
 func main() {
 	loop, err := keyclient.Load("/etc/hyades/keyclient/keyclient.conf")
 	if err != nil {

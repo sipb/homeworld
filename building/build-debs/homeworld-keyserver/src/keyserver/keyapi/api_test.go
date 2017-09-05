@@ -17,7 +17,7 @@ import (
 	"strings"
 	"testing"
 	"time"
-	"wraputil"
+	"util/wraputil"
 )
 
 func TestVerifyAccountIP_NoLimit(t *testing.T) {

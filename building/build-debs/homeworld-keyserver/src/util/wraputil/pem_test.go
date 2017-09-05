@@ -2,7 +2,7 @@ package wraputil
 
 import (
 	"testing"
-	"testutil"
+	"util/testutil"
 	"strings"
 	"bytes"
 	"crypto/x509"

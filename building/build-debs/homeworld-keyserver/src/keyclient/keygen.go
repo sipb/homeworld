@@ -6,7 +6,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"keyclient/util"
+	"util/fileutil"
 	"log"
 	"os"
 	"path"
@@ -18,12 +18,12 @@ type TLSKeygenAction struct {
 }
 
 func (ka TLSKeygenAction) Perform() error {
-	if util.Exists(ka.keypath) {
+	if fileutil.Exists(ka.keypath) {
 		return ErrNothingToDo // already exists
 	}
 
 	dirname := path.Dir(ka.keypath)
-	err := util.EnsureIsFolder(dirname)
+	err := fileutil.EnsureIsFolder(dirname)
 	if err != nil {
 		return fmt.Errorf("Failed to prepare directory %s for generated key: %s", dirname, err)
 	}

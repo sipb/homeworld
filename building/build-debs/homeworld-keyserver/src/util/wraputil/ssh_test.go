@@ -3,7 +3,7 @@ package wraputil
 import (
 	"testing"
 	"golang.org/x/crypto/ssh"
-	"testutil"
+	"util/testutil"
 )
 
 const (

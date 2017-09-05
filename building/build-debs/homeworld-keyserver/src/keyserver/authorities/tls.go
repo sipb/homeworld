@@ -16,7 +16,7 @@ import (
 	"time"
 
 	"keyserver/verifier"
-	"wraputil"
+	"util/wraputil"
 )
 
 type TLSAuthority struct {

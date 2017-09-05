@@ -1,4 +1,4 @@
-package util
+package fileutil
 
 import (
 	"errors"
@@ -23,6 +23,10 @@ func EnsureIsFolder(dirname string) error {
 		}
 		if err != nil {
 			return err
+		}
+		fileinfo, err = os.Stat(dirname)
+		if err != nil {
+			return err // hard to test in practice, but still necessary
 		}
 	}
 	if !fileinfo.IsDir() {

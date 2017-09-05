@@ -2,7 +2,7 @@ package server
 
 import (
 	"testing"
-	"testutil"
+	"util/testutil"
 	"crypto/tls"
 	"net/http"
 	"crypto/rsa"

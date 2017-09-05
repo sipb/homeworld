@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"keyserver/account"
 	"keyserver/authorities"
-	"keyserver/util"
+	"util/strutil"
 	"strconv"
 	"time"
 )
@@ -58,21 +58,21 @@ func (grant *ConfigGrant) CompileGrant(vars map[string]string, ctx *Context) (*C
 		g.Lifespan = lifespan
 	}
 	if grant.CommonName != "" {
-		commonname, err := util.SubstituteVars(grant.CommonName, vars)
+		commonname, err := strutil.SubstituteVars(grant.CommonName, vars)
 		if err != nil {
 			return nil, err
 		}
 		g.CommonName = commonname
 	}
 	if grant.AllowedNames != nil {
-		allowednames, err := util.SubstituteAllVars(grant.AllowedNames, vars)
+		allowednames, err := strutil.SubstituteAllVars(grant.AllowedNames, vars)
 		if err != nil {
 			return nil, err
 		}
 		g.AllowedNames = allowednames
 	}
 	if grant.Contents != "" {
-		contents, err := util.SubstituteVars(grant.Contents, vars)
+		contents, err := strutil.SubstituteVars(grant.Contents, vars)
 		if err != nil {
 			return nil, err
 		}

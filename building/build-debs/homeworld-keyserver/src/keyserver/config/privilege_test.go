@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 	"time"
-	"wraputil"
+	"util/wraputil"
 )
 
 func TestConfigGrant_CompileGrant_Empty(t *testing.T) {

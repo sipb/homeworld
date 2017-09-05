@@ -3,7 +3,7 @@ package reqtarget
 import (
 	"testing"
 	"errors"
-	"testutil"
+	"util/testutil"
 )
 
 func TestSendRequest(t *testing.T) {

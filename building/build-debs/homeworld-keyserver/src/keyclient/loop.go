@@ -3,7 +3,7 @@ package keyclient
 import (
 	"crypto/tls"
 	"fmt"
-	"keyclient/util"
+	"util/fileutil"
 	"log"
 	"strings"
 	"sync"
@@ -101,7 +101,7 @@ func (m *Mainloop) Stop() {
 }
 
 func (m *Mainloop) reloadKeygrantingCert() {
-	if util.Exists(m.config.KeyPath) && util.Exists(m.config.CertPath) {
+	if fileutil.Exists(m.config.KeyPath) && fileutil.Exists(m.config.CertPath) {
 		cert, err := tls.LoadX509KeyPair(m.config.CertPath, m.config.KeyPath)
 		if err != nil {
 			m.logger.Printf("Failed to reload keygranting certificate: %s", err)

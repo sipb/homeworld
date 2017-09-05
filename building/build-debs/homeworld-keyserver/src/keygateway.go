@@ -7,6 +7,7 @@ import (
 	"keycommon"
 	"log"
 	"os"
+	"keycommon/reqtarget"
 )
 
 func HandleRequest(principal string, request_data []byte) ([]byte, error) {
@@ -19,7 +20,7 @@ func HandleRequest(principal string, request_data []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	requests := make([]keycommon.Request, len(jsonload))
+	requests := make([]reqtarget.Request, len(jsonload))
 	for i, req := range jsonload {
 		requests[i].API = req.api
 		requests[i].Body = req.body
@@ -30,7 +31,7 @@ func HandleRequest(principal string, request_data []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	reqt, err := keycommon.Impersonate(rt, "auth-to-kerberos", principal)
+	reqt, err := reqtarget.Impersonate(rt, "auth-to-kerberos", principal)
 	if err != nil {
 		return nil, err
 	}

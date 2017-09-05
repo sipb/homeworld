@@ -8,10 +8,10 @@ import (
 	"keyserver/account"
 	"keyserver/config"
 	"keyserver/operation"
-	"keyserver/util"
 	"keyserver/verifier"
 	"log"
 	"net/http"
+	"util/netutil"
 )
 
 type Keyserver interface {
@@ -28,7 +28,7 @@ type ConfiguredKeyserver struct {
 }
 
 func verifyAccountIP(account *account.Account, request *http.Request) error {
-	ip, err := util.ParseRemoteAddressFromRequest(request)
+	ip, err := netutil.ParseRemoteAddressFromRequest(request)
 	if err != nil {
 		return err
 	}
