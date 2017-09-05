@@ -14,13 +14,13 @@ import (
 	"util/testkeyutil"
 )
 
-func launchTestServer(t *testing.T, f http.HandlerFunc) (stop func(), clientcakey *rsa.PrivateKey, clientcacert *x509.Certificate, servercert *x509.Certificate) {
+func launchTestServer(t *testing.T, f http.HandlerFunc) (stop func(), clientcakey *rsa.PrivateKey, clientcacert *x509.Certificate, servercert *x509.Certificate, hostname string) {
 	clientcakey, clientcacert = testkeyutil.GenerateTLSRootForTests(t, "test-ca", nil, nil)
 	serverkey, servercert := testkeyutil.GenerateTLSRootForTests(t, "test-ca-2", []string {"localhost" }, nil)
 	pool := x509.NewCertPool()
 	pool.AddCert(clientcacert)
 	srv := &http.Server{
-		Addr:    "localhost:20557",
+		Addr:    "localhost:0",
 		Handler: f,
 		TLSConfig: &tls.Config{
 			ClientAuth:   tls.VerifyClientCertIfGiven,
@@ -35,6 +35,7 @@ func launchTestServer(t *testing.T, f http.HandlerFunc) (stop func(), clientcake
 	if err != nil {
 		t.Fatal(err)
 	}
+	hostname = strings.Replace(ln.Addr().String(), "127.0.0.1", "localhost", 1)
 
 	done := make(chan bool)
 
@@ -42,8 +43,10 @@ func launchTestServer(t *testing.T, f http.HandlerFunc) (stop func(), clientcake
 		tlsListener := tls.NewListener(ln, srv.TLSConfig)
 		err := srv.Serve(tlsListener)
 		if err == http.ErrServerClosed || strings.Contains(err.Error(), "use of closed network connection") {
+			_ = srv.Close() // ignore errors
 			done <- false
 		} else {
+			_ = srv.Close() // ignore errors
 			t.Error(err)
 			done <- true
 		}
@@ -76,7 +79,7 @@ func TestNewKeyserver_InvalidAuthority(t *testing.T) {
 }
 
 func TestKeyserver_GetStatic(t *testing.T) {
-	stop, _, _, servercert := launchTestServer(t, func(writer http.ResponseWriter, request *http.Request) {
+	stop, _, _, servercert, hostname := launchTestServer(t, func(writer http.ResponseWriter, request *http.Request) {
 		if request.URL.Path != "/static/local.conf" {
 			http.Error(writer, "No such file", 404)
 		} else {
@@ -84,7 +87,7 @@ func TestKeyserver_GetStatic(t *testing.T) {
 		}
 	})
 	defer stop()
-	ks, err := NewKeyserver(pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: servercert.Raw}), "localhost")
+	ks, err := NewKeyserver(pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: servercert.Raw}), hostname)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -108,7 +111,7 @@ func TestKeyserver_GetStatic_NoStatic(t *testing.T) {
 }
 
 func TestKeyserver_GetPubkey(t *testing.T) {
-	stop, _, _, servercert := launchTestServer(t, func(writer http.ResponseWriter, request *http.Request) {
+	stop, _, _, servercert, hostname := launchTestServer(t, func(writer http.ResponseWriter, request *http.Request) {
 		if request.URL.Path != "/pub/testauthority" {
 			http.Error(writer, "No such file", 404)
 		} else {
@@ -116,7 +119,7 @@ func TestKeyserver_GetPubkey(t *testing.T) {
 		}
 	})
 	defer stop()
-	ks, err := NewKeyserver(pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: servercert.Raw}), "localhost")
+	ks, err := NewKeyserver(pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: servercert.Raw}), hostname)
 	if err != nil {
 		t.Fatal(err)
 	}

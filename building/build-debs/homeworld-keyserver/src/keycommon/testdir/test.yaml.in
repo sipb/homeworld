@@ -1,0 +1,12 @@
+
+keyserver: {{HOST}}
+authoritypath: testdir/cert.pem
+
+keypath: testdir/grant.key
+certpath: testdir/grant.pem
+
+# irrelevant information to test how loading works
+
+tokenpath: /etc/hyades/keyclient/bootstrap_token.txt
+tokenapi: renew-keygrant
+request-initial-keygrant: renew-keygrant

@@ -15,15 +15,17 @@ import (
 	"os"
 	"keycommon/reqtarget"
 	"util/testkeyutil"
+	"time"
 )
 
-func launchTestServer(t *testing.T, f http.HandlerFunc) (stop func(), clientcakey *rsa.PrivateKey, clientcacert *x509.Certificate, servercert *x509.Certificate) {
+func launchTestServer(t *testing.T, f http.HandlerFunc) (stop func(), clientcakey *rsa.PrivateKey, clientcacert *x509.Certificate, servercert *x509.Certificate, hostname string) {
+	time.Sleep(time.Millisecond * 5)
 	clientcakey, clientcacert = testkeyutil.GenerateTLSRootForTests(t, "test-ca", nil, nil)
 	serverkey, servercert := testkeyutil.GenerateTLSRootForTests(t, "test-ca-2", []string {"localhost" }, nil)
 	pool := x509.NewCertPool()
 	pool.AddCert(clientcacert)
 	srv := &http.Server{
-		Addr:    "localhost:20557",
+		Addr:    "localhost:0",
 		Handler: f,
 		TLSConfig: &tls.Config{
 			ClientAuth:   tls.VerifyClientCertIfGiven,
@@ -38,6 +40,7 @@ func launchTestServer(t *testing.T, f http.HandlerFunc) (stop func(), clientcake
 	if err != nil {
 		t.Fatal(err)
 	}
+	hostname = strings.Replace(ln.Addr().String(), "127.0.0.1", "localhost", 1)
 
 	done := make(chan bool)
 
@@ -69,7 +72,7 @@ func launchTestServer(t *testing.T, f http.HandlerFunc) (stop func(), clientcake
 }
 
 func TestLoadKeyserver(t *testing.T) {
-	stop, _, _, servercert := launchTestServer(t, func(writer http.ResponseWriter, request *http.Request) {
+	stop, _, _, servercert, hostname := launchTestServer(t, func(writer http.ResponseWriter, request *http.Request) {
 		writer.Write([]byte("test contents\n"))
 	})
 	defer stop()
@@ -77,6 +80,16 @@ func TestLoadKeyserver(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	template, err := ioutil.ReadFile("testdir/test.yaml.in")
+	if err != nil {
+		t.Fatal(err)
+	}
+	templated := []byte(strings.Replace(string(template), "{{HOST}}", hostname, 1))
+	err = ioutil.WriteFile("testdir/test.yaml", templated, os.FileMode(0644))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove("testdir/test.yaml")
 	ks, _, err := LoadKeyserver("testdir/test.yaml")
 	if err != nil {
 		t.Fatal(err)
@@ -108,21 +121,21 @@ func TestLoadKeyserver_NoCert(t *testing.T) {
 }
 
 func TestLoadKeyserver_InvalidCert(t *testing.T) {
-	stop, _, _, _ := launchTestServer(t, func(writer http.ResponseWriter, request *http.Request) {
+	/*stop, _, _, _, _ := launchTestServer(t, func(writer http.ResponseWriter, request *http.Request) {
 		writer.Write([]byte("test contents\n"))
 	})
-	defer stop()
+	defer stop()*/
 	err := ioutil.WriteFile("testdir/cert.pem", []byte("this is not a valid authority"), os.FileMode(0644))
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, _, err = LoadKeyserver("testdir/test.yaml")
+	_, _, err = LoadKeyserver("testdir/testbase.yaml")
 	testutil.CheckError(t, err, "authority certificate: Missing expected PEM header")
 	os.Remove("testdir/cert.pem")
 }
 
 func TestLoadKeyserverWithCert(t *testing.T) {
-	stop, cakey, cacert, servercert := launchTestServer(t, func(writer http.ResponseWriter, request *http.Request) {
+	stop, cakey, cacert, servercert, hostname := launchTestServer(t, func(writer http.ResponseWriter, request *http.Request) {
 		if request.URL.Path != "/apirequest" {
 			http.Error(writer, "Wrong path", 404)
 		} else if len(request.TLS.VerifiedChains) != 1 {
@@ -162,6 +175,16 @@ func TestLoadKeyserverWithCert(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	template, err := ioutil.ReadFile("testdir/test.yaml.in")
+	if err != nil {
+		t.Fatal(err)
+	}
+	templated := []byte(strings.Replace(string(template), "{{HOST}}", hostname, 1))
+	err = ioutil.WriteFile("testdir/test.yaml", templated, os.FileMode(0644))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove("testdir/test.yaml")
 	_, rt, err := LoadKeyserverWithCert("testdir/test.yaml")
 	if err != nil {
 		t.Fatal(err)

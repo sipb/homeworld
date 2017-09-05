@@ -19,7 +19,8 @@ func NewKeyserver(authority []byte, hostname string) (*Keyserver, error) {
 
 	pool := x509.NewCertPool()
 	pool.AddCert(cert)
-	ep, err := endpoint.NewServerEndpoint("https://" + hostname + ":20557/", pool)
+	// TODO: more robust hostname handling code
+	ep, err := endpoint.NewServerEndpoint(fmt.Sprintf("https://%s/", hostname), pool)
 	if err != nil {
 		return nil, err // should not happen -- the URL provided also satisfies the checked constraints
 	}

@@ -1,5 +1,5 @@
 
-keyserver: egg-sandwich.mit.edu
+keyserver: egg-sandwich.mit.edu:20557
 authoritypath: /etc/hyades/keyclient/keyservertls.pem
 
 keypath: /etc/hyades/keyclient/granting.key

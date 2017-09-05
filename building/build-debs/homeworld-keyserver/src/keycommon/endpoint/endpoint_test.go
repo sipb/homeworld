@@ -400,12 +400,12 @@ func TestServerEndpoint_Request_RequestGrindToHalt(t *testing.T) {
 	stop, _, _, servercert := launchTestServer(t, func(writer http.ResponseWriter, request *http.Request) {
 		data := [10000]byte{}
 		writer.Write(data[:])
-		time.Sleep(time.Millisecond * 11)
+		time.Sleep(time.Millisecond * 51)
 		writer.Write([]byte("Second line\n"))
 	})
 	defer stop()
 	endpoint := createBaseEndpoint(t, servercert)
-	endpoint.timeout = time.Millisecond * 10
+	endpoint.timeout = time.Millisecond * 50
 	_, err := endpoint.Request("/testabc", "GET", nil)
 	testutil.CheckError(t, err, "Timeout exceeded while reading body")
 }

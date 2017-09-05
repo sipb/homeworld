@@ -12,7 +12,7 @@ import (
 )
 
 func TestKeyserver_AuthenticateWithCert(t *testing.T) {
-	stop, cakey, cacert, servercert := launchTestServer(t, func(writer http.ResponseWriter, request *http.Request) {
+	stop, cakey, cacert, servercert, hostname := launchTestServer(t, func(writer http.ResponseWriter, request *http.Request) {
 		if request.URL.Path != "/apirequest" {
 			http.Error(writer, "Wrong path", 404)
 		} else if len(request.TLS.VerifiedChains) != 1 {
@@ -39,7 +39,7 @@ func TestKeyserver_AuthenticateWithCert(t *testing.T) {
 		}
 	})
 	defer stop()
-	ks, err := NewKeyserver(pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: servercert.Raw}), "localhost")
+	ks, err := NewKeyserver(pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: servercert.Raw}), hostname)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -61,7 +61,7 @@ func TestKeyserver_AuthenticateWithCert(t *testing.T) {
 }
 
 func TestKeyserver_AuthenticateWithToken(t *testing.T) {
-	stop, _, _, servercert := launchTestServer(t, func(writer http.ResponseWriter, request *http.Request) {
+	stop, _, _, servercert, hostname := launchTestServer(t, func(writer http.ResponseWriter, request *http.Request) {
 		if request.URL.Path != "/apirequest" {
 			http.Error(writer, "Wrong path", 404)
 		} else if request.Header.Get("X-Bootstrap-Token") != "mytoken" {
@@ -82,7 +82,7 @@ func TestKeyserver_AuthenticateWithToken(t *testing.T) {
 		}
 	})
 	defer stop()
-	ks, err := NewKeyserver(pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: servercert.Raw}), "localhost")
+	ks, err := NewKeyserver(pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: servercert.Raw}), hostname)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -127,11 +127,11 @@ func TestKeyserver_AuthenticateWithToken_NoServer(t *testing.T) {
 }
 
 func TestKeyserver_AuthenticateWithToken_ResponseMismatch(t *testing.T) {
-	stop, _, _, servercert := launchTestServer(t, func(writer http.ResponseWriter, request *http.Request) {
+	stop, _, _, servercert, hostname := launchTestServer(t, func(writer http.ResponseWriter, request *http.Request) {
 		writer.Write([]byte("[\"123\"]"))
 	})
 	defer stop()
-	ks, err := NewKeyserver(pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: servercert.Raw}), "localhost")
+	ks, err := NewKeyserver(pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: servercert.Raw}), hostname)
 	if err != nil {
 		t.Fatal(err)
 	}
