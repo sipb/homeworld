@@ -4,10 +4,11 @@ import (
 	"crypto/x509"
 	"fmt"
 	"wraputil"
+	"keycommon/endpoint"
 )
 
 type Keyserver struct {
-	endpoint ServerEndpoint
+	endpoint endpoint.ServerEndpoint
 }
 
 func NewKeyserver(authority []byte, hostname string) (*Keyserver, error) {
@@ -15,14 +16,14 @@ func NewKeyserver(authority []byte, hostname string) (*Keyserver, error) {
 	if err != nil {
 		return nil, fmt.Errorf("While parsing authority certificate: %s", err)
 	}
+
 	pool := x509.NewCertPool()
 	pool.AddCert(cert)
-
-	endpoint, err := NewServerEndpoint("https://" + hostname + ":20557/", pool)
+	ep, err := endpoint.NewServerEndpoint("https://" + hostname + ":20557/", pool)
 	if err != nil {
-		return nil, err
+		return nil, err // should not happen -- the URL provided also satisfies the checked constraints
 	}
-	return &Keyserver{endpoint: endpoint}, nil
+	return &Keyserver{endpoint: ep}, nil
 }
 
 func (k *Keyserver) GetStatic(staticname string) ([]byte, error) {

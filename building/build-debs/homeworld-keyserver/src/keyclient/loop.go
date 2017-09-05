@@ -4,17 +4,17 @@ import (
 	"crypto/tls"
 	"fmt"
 	"keyclient/util"
-	"keycommon"
 	"log"
 	"strings"
 	"sync"
 	"time"
+	"keycommon/server"
 )
 
 const RSA_BITS = 4096
 
 type Mainloop struct {
-	ks          *keycommon.Keyserver
+	ks          *server.Keyserver
 	config      Config
 	actions     []Action
 	stoponce    sync.Once

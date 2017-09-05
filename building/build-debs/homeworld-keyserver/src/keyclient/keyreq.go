@@ -1,15 +1,13 @@
 package keyclient
 
 import (
-	"crypto/x509"
-	"encoding/pem"
 	"fmt"
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
-	"keycommon"
 	"os"
 	"time"
 	"wraputil"
+	"keycommon/reqtarget"
 )
 
 type RequestOrRenewAction struct {
@@ -80,7 +78,7 @@ func (ra *RequestOrRenewAction) Perform() error {
 	if err != nil {
 		return err
 	}
-	cert, err := keycommon.SendRequest(rt, ra.API, string(csr))
+	cert, err := reqtarget.SendRequest(rt, ra.API, string(csr))
 	if err != nil {
 		return err
 	}

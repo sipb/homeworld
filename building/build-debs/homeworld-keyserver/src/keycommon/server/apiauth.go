@@ -5,10 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"crypto/tls"
+	"keycommon/endpoint"
 )
 
 type authenticated struct {
-	endpoint ServerEndpoint
+	endpoint endpoint.ServerEndpoint
 }
 
 func (k *Keyserver) AuthenticateWithToken(token string) (reqtarget.RequestTarget, error) {
@@ -24,7 +25,7 @@ func (k *Keyserver) AuthenticateWithCert(cert tls.Certificate) (reqtarget.Reques
 
 func (a *authenticated) SendRequests(reqs []reqtarget.Request) ([]string, error) {
 	outputs := []string{}
-	err := a.endpoint.PostJSON("/apirequest", reqs, outputs)
+	err := a.endpoint.PostJSON("/apirequest", reqs, &outputs)
 	if err != nil {
 		return nil, err
 	}

@@ -5,6 +5,7 @@ import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"keycommon"
+	"keycommon/server"
 )
 
 type ConfigDownload struct {
@@ -25,17 +26,14 @@ type ConfigKey struct {
 }
 
 type Config struct {
-	AuthorityPath string
-	Keyserver     string
-	KeyPath       string
-	CertPath      string
+	keycommon.Config
 	TokenPath     string
 	TokenAPI      string
 	Downloads     []ConfigDownload
 	Keys          []ConfigKey
 }
 
-func LoadConfig(configpath string) (*keycommon.Keyserver, Config, error) {
+func LoadConfig(configpath string) (*server.Keyserver, Config, error) {
 	config := Config{}
 	configdata, err := ioutil.ReadFile(configpath)
 	if err != nil {
@@ -49,7 +47,7 @@ func LoadConfig(configpath string) (*keycommon.Keyserver, Config, error) {
 	if err != nil {
 		return nil, Config{}, fmt.Errorf("While loading authority: %s", err)
 	}
-	ks, err := keycommon.NewKeyserver(authoritydata, config.Keyserver)
+	ks, err := server.NewKeyserver(authoritydata, config.Keyserver)
 	if err != nil {
 		return nil, Config{}, fmt.Errorf("While preparing setup: %s", err)
 	}

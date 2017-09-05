@@ -2,10 +2,10 @@ package keyclient
 
 import (
 	"io/ioutil"
-	"keycommon"
 	"os"
 	"time"
 	"keycommon/server"
+	"keycommon/reqtarget"
 )
 
 type DownloadFetcher interface {
@@ -88,7 +88,7 @@ func (df *APIFetcher) Fetch() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	resp, err := keycommon.SendRequest(rt, df.API, "")
+	resp, err := reqtarget.SendRequest(rt, df.API, "")
 	if err != nil {
 		return nil, err
 	}

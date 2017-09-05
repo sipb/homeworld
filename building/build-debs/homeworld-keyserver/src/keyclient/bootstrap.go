@@ -4,10 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"keycommon"
 	"os"
 	"strings"
 	"unicode"
+	"keycommon/csr"
+	"keycommon/reqtarget"
 )
 
 type BootstrapAction struct {
@@ -49,11 +50,11 @@ func (da *BootstrapAction) Perform() error {
 	if err != nil {
 		return err
 	}
-	csr, err := keycommon.BuildTLSCSR(privkey)
+	csr, err := csr.BuildTLSCSR(privkey)
 	if err != nil {
 		return err
 	}
-	certbytes, err := keycommon.SendRequest(rt, da.TokenAPI, string(csr))
+	certbytes, err := reqtarget.SendRequest(rt, da.TokenAPI, string(csr))
 	if err != nil {
 		return err
 	}
