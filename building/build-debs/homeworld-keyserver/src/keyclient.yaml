@@ -7,7 +7,6 @@ certpath: /etc/hyades/keyclient/granting.pem
 
 tokenpath: /etc/hyades/keyclient/bootstrap_token.txt
 tokenapi: renew-keygrant
-request-initial-keygrant: renew-keygrant
 
 downloads:
   - type: authority

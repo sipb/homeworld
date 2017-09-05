@@ -1,4 +1,4 @@
-package csr
+package csrutil
 
 import (
 	"crypto/rand"

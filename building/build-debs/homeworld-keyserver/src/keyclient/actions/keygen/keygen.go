@@ -1,4 +1,4 @@
-package keyclient
+package keygen
 
 import (
 	"crypto/rand"
@@ -10,16 +10,37 @@ import (
 	"log"
 	"os"
 	"path"
+	"keyclient/loop"
+	"keyclient/config"
+	"errors"
 )
+
+const RSA_BITS = 4096
 
 type TLSKeygenAction struct {
 	keypath string
 	logger  log.Logger
 }
 
+func PrepareKeygenAction(m *loop.Mainloop, k config.ConfigKey) (loop.Action, error) {
+	switch k.Type {
+	case "tls":
+		return TLSKeygenAction{keypath: k.Key, logger: m.Logger}, nil
+	case "ssh":
+		// should probably include creating a .pub file as well
+		return nil, errors.New("Unimplemented operation: SSH key generation")
+	case "tls-pubkey":
+		return nil, nil // key is pregenerated
+	case "ssh-pubkey":
+		return nil, nil // key is pregenerated
+	default:
+		return nil, fmt.Errorf("Unrecognized key type: %s", k.Type)
+	}
+}
+
 func (ka TLSKeygenAction) Perform() error {
 	if fileutil.Exists(ka.keypath) {
-		return ErrNothingToDo // already exists
+		return loop.ErrNothingToDo // already exists
 	}
 
 	dirname := path.Dir(ka.keypath)

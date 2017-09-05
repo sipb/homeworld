@@ -15,12 +15,13 @@ import (
 	"strings"
 	"time"
 	"fmt"
+	"util/testkeyutil"
 )
 
 func createBaseEndpoint(t *testing.T, rootcert *x509.Certificate) ServerEndpoint {
 	pool := x509.NewCertPool()
 	if rootcert == nil {
-		_, rootcert = testutil.GenerateTLSRootForTests(t, "test-root", nil, nil)
+		_, rootcert = testkeyutil.GenerateTLSRootForTests(t, "test-root", nil, nil)
 	}
 	pool.AddCert(rootcert)
 	endpoint, err := NewServerEndpoint("https://localhost:50001/test/", pool)
@@ -34,8 +35,8 @@ func createBaseEndpoint(t *testing.T, rootcert *x509.Certificate) ServerEndpoint
 }
 
 func launchTestServer(t *testing.T, f http.HandlerFunc) (stop func(), clientcakey *rsa.PrivateKey, clientcacert *x509.Certificate, servercert *x509.Certificate) {
-	clientcakey, clientcacert = testutil.GenerateTLSRootForTests(t, "test-ca", nil, nil)
-	serverkey, servercert := testutil.GenerateTLSRootForTests(t, "test-ca-2", []string {"localhost" }, nil)
+	clientcakey, clientcacert = testkeyutil.GenerateTLSRootForTests(t, "test-ca", nil, nil)
+	serverkey, servercert := testkeyutil.GenerateTLSRootForTests(t, "test-ca-2", []string {"localhost" }, nil)
 	pool := x509.NewCertPool()
 	pool.AddCert(clientcacert)
 	srv := &http.Server{
@@ -105,7 +106,7 @@ func TestNewServerEndpoint(t *testing.T) {
 
 func TestNewServerEndpoint_NoURL(t *testing.T) {
 	pool := x509.NewCertPool()
-	_, rootcert := testutil.GenerateTLSRootForTests(t, "test-root", nil, nil)
+	_, rootcert := testkeyutil.GenerateTLSRootForTests(t, "test-root", nil, nil)
 	pool.AddCert(rootcert)
 	_, err := NewServerEndpoint("", pool)
 	testutil.CheckError(t, err, "empty base URL")
@@ -113,7 +114,7 @@ func TestNewServerEndpoint_NoURL(t *testing.T) {
 
 func TestNewServerEndpoint_NoFinalSlash(t *testing.T) {
 	pool := x509.NewCertPool()
-	_, rootcert := testutil.GenerateTLSRootForTests(t, "test-root", nil, nil)
+	_, rootcert := testkeyutil.GenerateTLSRootForTests(t, "test-root", nil, nil)
 	pool.AddCert(rootcert)
 	_, err := NewServerEndpoint("https://localhost:50001", pool)
 	testutil.CheckError(t, err, "must end in a slash")
@@ -152,9 +153,9 @@ func TestServerEndpoint_WithHeader(t *testing.T) {
 
 func TestServerEndpoint_WithCertificate(t *testing.T) {
 	endpoint := createBaseEndpoint(t, nil)
-	cakey, cacert := testutil.GenerateTLSRootForTests(t, "ca-root", nil, nil)
-	ourkey, ourcert := testutil.GenerateTLSKeypairForTests(t, "cert-test-1", nil, nil, cacert, cakey)
-	ourkey2, ourcert2 := testutil.GenerateTLSKeypairForTests(t, "cert-test-2", nil, nil, cacert, cakey)
+	cakey, cacert := testkeyutil.GenerateTLSRootForTests(t, "ca-root", nil, nil)
+	ourkey, ourcert := testkeyutil.GenerateTLSKeypairForTests(t, "cert-test-1", nil, nil, cacert, cakey)
+	ourkey2, ourcert2 := testkeyutil.GenerateTLSKeypairForTests(t, "cert-test-2", nil, nil, cacert, cakey)
 	if len(endpoint.certificates) != 0 {
 		t.Error("Extraneous certs.")
 	}
@@ -205,9 +206,9 @@ func TestServerEndpoint_WithCertificate(t *testing.T) {
 
 func TestServerEndpoint_WithBoth(t *testing.T) {
 	endpoint := createBaseEndpoint(t, nil)
-	cakey, cacert := testutil.GenerateTLSRootForTests(t, "ca-root", nil, nil)
-	ourkey, ourcert := testutil.GenerateTLSKeypairForTests(t, "cert-test-1", nil, nil, cacert, cakey)
-	ourkey2, ourcert2 := testutil.GenerateTLSKeypairForTests(t, "cert-test-2", nil, nil, cacert, cakey)
+	cakey, cacert := testkeyutil.GenerateTLSRootForTests(t, "ca-root", nil, nil)
+	ourkey, ourcert := testkeyutil.GenerateTLSKeypairForTests(t, "cert-test-1", nil, nil, cacert, cakey)
+	ourkey2, ourcert2 := testkeyutil.GenerateTLSKeypairForTests(t, "cert-test-2", nil, nil, cacert, cakey)
 
 	endpoint = endpoint.WithCertificate(tls.Certificate{PrivateKey: ourkey, Certificate: [][]byte { ourcert.Raw }})
 	intermediate := endpoint.WithHeader("X-Sample-Header", "ABC")
@@ -337,7 +338,7 @@ func TestServerEndpoint_Request_CertAuth(t *testing.T) {
 		}
 	})
 	defer stop()
-	clientkey, clientcert := testutil.GenerateTLSKeypairForTests(t, "test-temp-cert", nil, nil, clientcacert, clientcakey)
+	clientkey, clientcert := testkeyutil.GenerateTLSKeypairForTests(t, "test-temp-cert", nil, nil, clientcacert, clientcakey)
 	endpoint := createBaseEndpoint(t, servercert).WithCertificate(tls.Certificate{PrivateKey: clientkey, Certificate: [][]byte{ clientcert.Raw }})
 	result, err := endpoint.Request("/testabc", "GET", []byte("this == a body!\n"))
 	if err != nil {
@@ -496,7 +497,7 @@ func TestServerEndpoint_PostJSON(t *testing.T) {
 }
 
 func TestServerEndpoint_PostJSON_BadRequest(t *testing.T) {
-	_, servercert := testutil.GenerateTLSRootForTests(t, "root", nil, nil)
+	_, servercert := testkeyutil.GenerateTLSRootForTests(t, "root", nil, nil)
 	endpoint := createBaseEndpoint(t, servercert)
 	testdata := new(chan error)
 	err := endpoint.PostJSON("/testdef", testdata, nil)
@@ -504,7 +505,7 @@ func TestServerEndpoint_PostJSON_BadRequest(t *testing.T) {
 }
 
 func TestServerEndpoint_PostJSON_NoServer(t *testing.T) {
-	_, servercert := testutil.GenerateTLSRootForTests(t, "root", nil, nil)
+	_, servercert := testkeyutil.GenerateTLSRootForTests(t, "root", nil, nil)
 	endpoint := createBaseEndpoint(t, servercert)
 	err := endpoint.PostJSON("/testdef", 10, nil)
 	testutil.CheckError(t, err, "connection refused")

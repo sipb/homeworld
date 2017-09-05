@@ -1,4 +1,4 @@
-package keyclient
+package download
 
 import (
 	"io/ioutil"
@@ -6,6 +6,10 @@ import (
 	"time"
 	"keycommon/server"
 	"keycommon/reqtarget"
+	"strconv"
+	"fmt"
+	"keyclient/loop"
+	"keyclient/config"
 )
 
 type DownloadFetcher interface {
@@ -24,7 +28,7 @@ type StaticFetcher struct {
 }
 
 type APIFetcher struct {
-	Mainloop *Mainloop
+	Mainloop *loop.Mainloop
 	API      string
 }
 
@@ -33,6 +37,30 @@ type DownloadAction struct {
 	Path    string
 	Refresh time.Duration
 	Mode    uint64
+}
+
+func PrepareDownloadAction(m *loop.Mainloop, d config.ConfigDownload) (loop.Action, error) {
+	refresh_period, err := time.ParseDuration(d.Refresh)
+	if err != nil {
+		return nil, err
+	}
+	mode, err := strconv.ParseUint(d.Mode, 8, 9)
+	if err != nil {
+		return nil, err
+	}
+	if mode&0002 != 0 {
+		return nil, fmt.Errorf("Disallowed mode: %o (will not grant world-writable access)", mode)
+	}
+	switch d.Type {
+	case "authority":
+		return &DownloadAction{Fetcher: &AuthorityFetcher{Keyserver: m.Keyserver, AuthorityName: d.Name}, Path: d.Path, Refresh: refresh_period, Mode: mode}, nil
+	case "static":
+		return &DownloadAction{Fetcher: &StaticFetcher{Keyserver: m.Keyserver, StaticName: d.Name}, Path: d.Path, Refresh: refresh_period, Mode: mode}, nil
+	case "api":
+		return &DownloadAction{Fetcher: &APIFetcher{Mainloop: m, API: d.Name}, Path: d.Path, Refresh: refresh_period, Mode: mode}, nil
+	default:
+		return nil, fmt.Errorf("Unrecognized download type: %s", d.Type)
+	}
 }
 
 func (da *DownloadAction) Perform() error {
@@ -44,7 +72,7 @@ func (da *DownloadAction) Perform() error {
 	} else {
 		staleness := time.Now().Sub(statinfo.ModTime())
 		if staleness <= da.Refresh {
-			return ErrNothingToDo
+			return loop.ErrNothingToDo
 		}
 		// stale! we should refresh it, if possible.
 	}
@@ -76,15 +104,15 @@ func (sf *StaticFetcher) Fetch() ([]byte, error) {
 }
 
 func (df *APIFetcher) PrereqsSatisfied() error {
-	if df.Mainloop.keygrant != nil {
+	if df.Mainloop.Keygrant != nil {
 		return nil
 	} else {
-		return errBlockedAction{"No keygranting certificate ready."}
+		return loop.ErrBlockedAction{"No keygranting certificate ready."}
 	}
 }
 
 func (df *APIFetcher) Fetch() ([]byte, error) {
-	rt, err := df.Mainloop.ks.AuthenticateWithCert(*df.Mainloop.keygrant)
+	rt, err := df.Mainloop.Keyserver.AuthenticateWithCert(*df.Mainloop.Keygrant)
 	if err != nil {
 		return nil, err
 	}

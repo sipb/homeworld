@@ -1,4 +1,4 @@
-package testutil
+package testkeyutil
 
 import (
 	"crypto/rsa"
@@ -9,10 +9,37 @@ import (
 	"crypto/x509/pkix"
 	"net"
 	"testing"
+	"encoding/pem"
+	"encoding/asn1"
+	"util/wraputil"
 )
 
 func GenerateTLSRootForTests(t *testing.T, commonname string, dns []string, ips []net.IP) (*rsa.PrivateKey, *x509.Certificate) {
 	return GenerateTLSKeypairForTests(t, commonname, dns, ips, nil, nil)
+}
+
+// based on https://stackoverflow.com/questions/33932221/golang-marshal-pkcs8-private-key
+func marshalpkcs8(key *rsa.PrivateKey) ([]byte, error) {
+	return asn1.Marshal(struct {
+		Version             int
+		PrivateKeyAlgorithm []asn1.ObjectIdentifier
+		PrivateKey          []byte
+	} {
+		Version: 0,
+		PrivateKeyAlgorithm: []asn1.ObjectIdentifier {{1, 2, 840, 113549, 1, 1, 1}}, // pkcs1 OID
+		PrivateKey: x509.MarshalPKCS1PrivateKey(key),
+	})
+}
+
+func GenerateTLSRootPEMsForTests(t *testing.T, commonname string, dns []string, ips []net.IP) (key []byte, keypkcs8 []byte, cert []byte) {
+	keyd, certd := GenerateTLSRootForTests(t, commonname, dns, ips)
+	pkcs8key, err := marshalpkcs8(keyd)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(keyd)}),
+		pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: pkcs8key}),
+		pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certd.Raw})
 }
 
 func GenerateTLSKeypairForTests(t *testing.T, commonname string, dns []string, ips []net.IP, parent *x509.Certificate, parentkey *rsa.PrivateKey) (*rsa.PrivateKey, *x509.Certificate) {
@@ -64,4 +91,23 @@ func GenerateTLSKeypairForTests(t *testing.T, commonname string, dns []string, i
 		t.Fatal("Could not generate TLS keypair: " + err.Error())
 	}
 	return key, cert
+}
+
+func GenerateTLSKeypairPEMsForTests(t *testing.T, commonname string, dns []string, ips []net.IP, parent []byte, parentkey []byte) (key []byte, keypkcs8 []byte, cert []byte) {
+	parentdec, err := wraputil.LoadX509CertFromPEM(parent)
+	if err != nil {
+		t.Fatal(err)
+	}
+	parentkeydec, err := wraputil.LoadRSAKeyFromPEM(parentkey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	keyd, certd := GenerateTLSKeypairForTests(t, commonname, dns, ips, parentdec, parentkeydec)
+	pkcs8key, err := marshalpkcs8(keyd)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(keyd)}),
+		pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: pkcs8key}),
+		pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certd.Raw})
 }

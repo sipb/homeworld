@@ -16,16 +16,14 @@ import (
 	"testing"
 	"time"
 	"util/wraputil"
+	"encoding/pem"
+	"util/csrutil"
+	"util/testkeyutil"
 )
 
 const (
-	// TODO: make sure these don't expire
-	TLS_SELFSIG_KEY  = "-----BEGIN RSA PRIVATE KEY-----\nMIICXAIBAAKBgQC3j47UVL/c0sqCtvEyNUra56BTK+saal/mp6VnjZWbNM1ZRfH1\nVi8yYWqictyhUQDMbEvO3bDBWdwCBrcuZoXtvHaQBLgMPt4h3+WjfmUSN+H+o4Rx\nPizes25OJSDXWoFX6SfZDG+8w+AsA7I9DRpSxx24uK4Yhb6Lb/emjOaKKwIDAQAB\nAoGBAK5LpQ6eznOKv/nwZgQLsGE9cPGokRvLB/bHFvrF6NmwAJCVJtOTG0uWTp+j\nuzV96ekxp6XswQpHHe3anJN1jBJ+igEUuVoF61tV2M/sZwXuGolyAgFDJSosqPgy\n0oijbuJ+4tQPCHrg0jKsKIkTdom5oQ2OeTaB/UmRJ/cWNW7pAkEA3dcquLexnGes\ncmdo9DCRGHLVKB72XU0UuL8QInZh1T4yQjLzbUUtKPwaM/Nk0XMgF9epy2RmeL7b\nyk5OAAh5twJBANPTbMoPV3+uyuRP/GhedtNJAQIB7qdNqgYPB4cRE6xN+It9xuNI\n+qIuKGMEEkRVvCkC4ff+NwNm66uYeE3kAy0CQFrekTxa2mEDwoqWO1KTNkv6db/a\ndvYe5dcLRHOpZEeyE2o0bqwawvXf1mfjUi/NZZ7+kymiNatOGr/StXakAh8CQH1k\nO5MFL+uigfJTMvxpZve90H3qvOaGv+4kOXWH81hdM5MHWpOy4MLehgPPJi0Tf3Xb\ngf52mwRFiZ6jfBvHrOUCQGeTzEin78yQGqaxjNvFPFfxnoZrx4sPa/dk3Qquj8eA\nWFnr32OyZNtsjUviUg2/n1fK2bUfzi0LO50X9bVlOPQ=\n-----END RSA PRIVATE KEY-----"
-	TLS_SELFSIG_CERT = "-----BEGIN CERTIFICATE-----\nMIIB8TCCAVqgAwIBAgIJAIyPpV4fZ+/QMA0GCSqGSIb3DQEBCwUAMBsxGTAXBgNV\nBAMMEHRlc3Qtc2VydmVyLWNlcnQwHhcNMTcwODA2MDU1NDQxWhcNMTcwOTA1MDU1\nNDQxWjAbMRkwFwYDVQQDDBB0ZXN0LXNlcnZlci1jZXJ0MIGfMA0GCSqGSIb3DQEB\nAQUAA4GNADCBiQKBgQC3j47UVL/c0sqCtvEyNUra56BTK+saal/mp6VnjZWbNM1Z\nRfH1Vi8yYWqictyhUQDMbEvO3bDBWdwCBrcuZoXtvHaQBLgMPt4h3+WjfmUSN+H+\no4RxPizes25OJSDXWoFX6SfZDG+8w+AsA7I9DRpSxx24uK4Yhb6Lb/emjOaKKwID\nAQABoz0wOzAJBgNVHRMEAjAAMB0GA1UdJQQWMBQGCCsGAQUFBwMCBggrBgEFBQcD\nATAPBgNVHREECDAGhwR/AAABMA0GCSqGSIb3DQEBCwUAA4GBAI8M+jT5T+ajBsYv\nUHuTB+wkL32qdTU9GB0eobGU2EU+zh8fvnYGyrEsgNP3dSnIx77bpqjZD8Jo7iWP\nZvqtgOKRPaPXgvmgWFZgTLZjFk/YQ05jihEH3wXhnezP0Pb1kkCSLGhXWuB7V00U\nbSt/cILW+uJSxAZLY0jjCJbzy7HT\n-----END CERTIFICATE-----"
-
+	// TODO: replace these with generated certs and keys, especially to avoid expiration
 	TLS_CLIENT_KEY        = "-----BEGIN RSA PRIVATE KEY-----\nMIICWwIBAAKBgQC0q6RPYtP88n+LWlup97hWb2I3bIwWiIqPR6bsUU6sB5T/mier\nx9kReFSu4346GMyv4rVzarLueipvMPcXP++LZ+sH0NQUwD2uSPe15EgRcoEEPNvV\nxsNJMvQfEfjv+1RHHPHMYJV9MJzXFRj52oyx3xK+jDG4Sm1ThI70fwJHYwIDAQAB\nAoGAClAl7/YnPbAmAbFlvB0M47o19A35LSwcJLOlXqYBhKZmJfUJwK+Gv42L3/PS\nd8SEoqGhU/ZKQnyswW4dHLGkncr+RAAQ5UGRUHr7wsP1c+9kZpkaj1hmyLQvEbL6\nLPFxvno6AGxbURznIBu1hCQUu0aS/QZYfpaYrjo/9N3dg7ECQQDe4HAsUMYah+3b\nGu2q2oTqFOdLU+LA7ZloX338uIXbXCwiZz43b40uNqoXYXRZQQB7qT+zwseqDXWZ\npmWjBTeZAkEAz4VtH9Ug511V7idjlOe0k1kois4ydfvurniUoBtDE6xKD6dR/EZ6\nf5yCVfM0GZAq+BgomYKEBTklo1EuUMYkWwJAF7M0GnJIbp/PukHlzgpIof+xDMCR\n10Qs0P1+jzYr/cSSaOIjqo9xKt3jPnM9hRQ1cfDwdjQbOUkPHVSlcC1o2QJAekup\nWZ8ievbYUzdHSlOaaVObvuFxf3Ju4McS35/xUcCxDLSQblmii13SuZBP3djGWdry\n4jS2VNWuxqZq4xNCDQJAEZ7djTVtLEghjof27CuXMkopZZ4RhYTsAbZAwMBNBhds\npQQS+O5pIVDD8ou3QfifB6G5OmZr0PaKld/99H52LA==\n-----END RSA PRIVATE KEY-----"
-	TLS_CLIENT_CERT       = "-----BEGIN CERTIFICATE-----\nMIICHTCCAQUCCQDMWwmePGAAbTANBgkqhkiG9w0BAQsFADAPMQ0wCwYDVQQDDAR0\nZXN0MB4XDTE3MDgwNjA1NDIzMloXDTE3MDkwNTA1NDIzMlowFjEUMBIGA1UEAwwL\nY2xpZW50LXRlc3QwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALSrpE9i0/zy\nf4taW6n3uFZvYjdsjBaIio9HpuxRTqwHlP+aJ6vH2RF4VK7jfjoYzK/itXNqsu56\nKm8w9xc/74tn6wfQ1BTAPa5I97XkSBFygQQ829XGw0ky9B8R+O/7VEcc8cxglX0w\nnNcVGPnajLHfEr6MMbhKbVOEjvR/AkdjAgMBAAEwDQYJKoZIhvcNAQELBQADggEB\nAL9ean4hhASkXiDMhDN0bTamflo6FlA8P9z+YD+OgyVVI+shEIkgMdB1NojIgzUB\nshPwhEQZrL+sDIKRYiA22tSBbgsbo4dkF5rpU+7RduKTl+q68SBue1TCtOCOimVX\nm/1VboYzfarRbLauHIVbiei4iX8OduIKi5i88yTwZgg7W69PcF8EUlg2brh7gMTa\n9Rn58H788kMokYcoAEZ+LVZdk8PNjYNkRZ3lUYvJbt9Ytdkone2WwyK8nChIV9Lg\n8yaSyFcqH4jkRVZrkdiMqqqbxKh2q0b+tLf0ixdRPeUxyDEikgAGaZ9XhV4+rqWa\nbgtUHwsSXRDGAkwMC3e2wtk=\n-----END CERTIFICATE-----"
-	TLS_CLIENT_ENCODED_CN = "client-test"
 
 	TLS_CLIENT_EXPIRED  = "-----BEGIN CERTIFICATE-----\nMIICHTCCAQUCCQDMWwmePGAAcjANBgkqhkiG9w0BAQsFADAPMQ0wCwYDVQQDDAR0\nZXN0MB4XDTE3MDczMDE2MzY0M1oXDTE3MDczMTE2MzY0M1owFjEUMBIGA1UEAwwL\nY2xpZW50LXRlc3QwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALSrpE9i0/zy\nf4taW6n3uFZvYjdsjBaIio9HpuxRTqwHlP+aJ6vH2RF4VK7jfjoYzK/itXNqsu56\nKm8w9xc/74tn6wfQ1BTAPa5I97XkSBFygQQ829XGw0ky9B8R+O/7VEcc8cxglX0w\nnNcVGPnajLHfEr6MMbhKbVOEjvR/AkdjAgMBAAEwDQYJKoZIhvcNAQELBQADggEB\nAH33moyxmEfUQk366sKzqMszCRGFMi4hoCFICih2FQI+rLhRLjqgwp+nPJaMxOuK\n3r4+hS3J4dRePdJNCyL26Vc9Sa6Qc825UwLMb5y6PJ7vCqXhlxsRMm69WntKpIyt\nGyTm22GSay8VE4aE24bhwP6SBFm/0hf9l60t7u9UtVYB7duoeNbwzntpG0F5HzMD\nbh5jlUDDoXrBJg/ywgwRsg6zrEh3S/Eijgc2RIXSvbefW3qvyV5H0bxR5ZADN7RB\nk6NFAwMGtFLqwDEIkGuooCkcSt8noptBwjygIALtihGWI2+mghlgpuNjXBG0bqwy\nVNf+DJUbQeTv82e/D1rAO1M=\n-----END CERTIFICATE-----"
 	TLS_CLIENT_UNISSUED = "-----BEGIN CERTIFICATE-----\nMIICITCCAQkCCQDMWwmePGAAczANBgkqhkiG9w0BAQsFADAPMQ0wCwYDVQQDDAR0\nZXN0MCIYDzI1MDAwMTAxMDUwMDAwWhgPMjUwMDAxMDIwNTAwMDBaMBYxFDASBgNV\nBAMMC2NsaWVudC10ZXN0MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC0q6RP\nYtP88n+LWlup97hWb2I3bIwWiIqPR6bsUU6sB5T/mierx9kReFSu4346GMyv4rVz\narLueipvMPcXP++LZ+sH0NQUwD2uSPe15EgRcoEEPNvVxsNJMvQfEfjv+1RHHPHM\nYJV9MJzXFRj52oyx3xK+jDG4Sm1ThI70fwJHYwIDAQABMA0GCSqGSIb3DQEBCwUA\nA4IBAQAWf1TLwaYLA7xR4Zqfr5Kei5mYYhlYq1eJ5y5j4+TI9XIdUPa5f3mrYZtu\nDqAmQmbqIXYM0YRSKgR/6BnMwEITUYeV1Ahmg631bWxdKdOvxxvtjiXDQnzyYXZl\naAL0URPQ1urnJziLF/SKh3j3HTCeuqpPYp0K7fB/A8EGcVDgy7sBQZzSxTyBiynf\np0S285QIgkoz3rLo3CUrlIyadmkSfmKdfsi5DHloJzbbarSRHbRb2xi1XVfV2ECU\n7HQRdZr9jBwDZGCFQHPIySZzfdUmi6vaMNaDKguBj25LLNKLI1xmJH+64Sc2q23H\n5OpXFz6VRggtqANEMzFvfs5NF+jY\n-----END CERTIFICATE-----"
@@ -37,7 +35,8 @@ const (
 )
 
 func launchFakeTLSServer(t *testing.T, handler http.Handler, clientCA *TLSAuthority, clientCert tls.Certificate) (func(), func(string) []byte) {
-	falseauthority, err := LoadTLSAuthority([]byte(TLS_SELFSIG_KEY), []byte(TLS_SELFSIG_CERT))
+	pemkey, _, pemcert := testkeyutil.GenerateTLSRootPEMsForTests(t, "test-server-cert", nil, []net.IP{net.IPv4(127, 0, 0, 1)})
+	falseauthority, err := LoadTLSAuthority(pemkey, pemcert)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -118,8 +117,9 @@ func launchFakeTLSServerExt(t *testing.T, handler http.Handler, clientCA *TLSAut
 }
 
 func TestTLSAuthority_VerifyWorks(t *testing.T) {
-	authority := getTLSAuthority(t) // uses cert from tls_parse_test.go
-	clientCert, err := tls.X509KeyPair([]byte(TLS_CLIENT_CERT), []byte(TLS_CLIENT_KEY))
+	authority, clikey, clicert := getTLSAuthority(t) // uses cert from tls_parse_test.go
+
+	clientCert, err := tls.X509KeyPair(clicert, clikey)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -134,25 +134,32 @@ func TestTLSAuthority_VerifyWorks(t *testing.T) {
 	defer stop()
 
 	principal := request("")
-	if string(principal) != TLS_CLIENT_ENCODED_CN {
+	if string(principal) != "test" {
 		t.Error("Mismatch on encoded Common Name")
 	}
 }
 
 func TestTLSAuthority_VerifyWrongCert(t *testing.T) {
-	authority := getTLSAuthority(t) // uses cert from tls_parse_test.go
-	clientCert, err := tls.X509KeyPair([]byte(TLS_SELFSIG_CERT), []byte(TLS_SELFSIG_KEY))
+	authority, _, _ := getTLSAuthority(t) // uses cert from tls_parse_test.go
+
+	pemkey, _, pemcert := testkeyutil.GenerateTLSRootPEMsForTests(t, "test-server-cert", nil, []net.IP{net.IPv4(127, 0, 0, 1)})
+	falseauthority, err := LoadTLSAuthority(pemkey, pemcert)
 	if err != nil {
 		t.Fatal(err)
 	}
-	stop, request := launchFakeTLSServer(t, http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+	clientCert, err := tls.X509KeyPair([]byte(pemcert), []byte(pemkey))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	stop, request := launchFakeTLSServerExt(t, http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		_, err := authority.Verify(request)
 		if err == nil {
 			t.Error("Expected error from authority")
 		} else {
 			writer.Write([]byte(err.Error()))
 		}
-	}), authority, clientCert)
+	}), authority, falseauthority.(*TLSAuthority), clientCert)
 	defer stop()
 
 	errtext := string(request(""))
@@ -162,7 +169,7 @@ func TestTLSAuthority_VerifyWrongCert(t *testing.T) {
 }
 
 func TestTLSAuthority_VerifyNoCert(t *testing.T) {
-	authority := getTLSAuthority(t) // uses cert from tls_parse_test.go
+	authority, _, _ := getTLSAuthority(t) // uses cert from tls_parse_test.go
 	stop, request := launchFakeTLSServer(t, http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		_, err := authority.Verify(request)
 		if err == nil {
@@ -180,8 +187,9 @@ func TestTLSAuthority_VerifyNoCert(t *testing.T) {
 }
 
 func TestExpiredTLSAuthority(t *testing.T) {
-	authority := getTLSAuthority(t) // uses cert from tls_parse_test.go
-	clientCert, err := tls.X509KeyPair([]byte(TLS_CLIENT_CERT), []byte(TLS_CLIENT_KEY))
+	authority, testkey, testcert := getTLSAuthority(t) // uses cert from tls_parse_test.go
+	clikey, _, clicert := testkeyutil.GenerateTLSKeypairPEMsForTests(t, "client-test", nil, nil, testcert, testkey)
+	clientCert, err := tls.X509KeyPair(clicert, clikey)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -209,8 +217,9 @@ func TestExpiredTLSAuthority(t *testing.T) {
 }
 
 func TestUnissuedTLSAuthority(t *testing.T) {
-	authority := getTLSAuthority(t) // uses cert from tls_parse_test.go
-	clientCert, err := tls.X509KeyPair([]byte(TLS_CLIENT_CERT), []byte(TLS_CLIENT_KEY))
+	authority, testkey, testcert := getTLSAuthority(t) // uses cert from tls_parse_test.go
+	clikey, _, clicert := testkeyutil.GenerateTLSKeypairPEMsForTests(t, "client-test", nil, nil, testcert, testkey)
+	clientCert, err := tls.X509KeyPair(clicert, clikey)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -237,8 +246,7 @@ func TestUnissuedTLSAuthority(t *testing.T) {
 	}
 }
 
-func checkClientCertValidity(t *testing.T, clientCertData []byte, key []byte) (string, error) {
-	authority := getTLSAuthority(t) // uses cert from tls_parse_test.go
+func checkClientCertValidity(t *testing.T, clientCertData []byte, key []byte, authority *TLSAuthority) (string, error) {
 	clientCert, err := tls.X509KeyPair(clientCertData, key)
 	if err != nil {
 		t.Fatal(err)
@@ -261,12 +269,16 @@ func checkClientCertValidity(t *testing.T, clientCertData []byte, key []byte) (s
 }
 
 func TestTLSAuthority_Sign_UserCert(t *testing.T) {
-	a := getTLSAuthority(t)
-	cert, err := a.Sign(TLS_CLIENT_CSR, false, time.Hour, "common-name-tc", []string{"dns1.mit.edu", "18.181.123.456", "dns2.mit.edu", "18.181.123.789"})
+	a, _, _ := getTLSAuthority(t)
+	csr, err := csrutil.BuildTLSCSR([]byte(TLS_CLIENT_KEY))
 	if err != nil {
 		t.Fatal(err)
 	}
-	princ, err := checkClientCertValidity(t, []byte(cert), []byte(TLS_CLIENT_KEY))
+	cert, err := a.Sign(string(csr), false, time.Hour, "common-name-tc", []string{"dns1.mit.edu", "18.181.123.456", "dns2.mit.edu", "18.181.123.789"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	princ, err := checkClientCertValidity(t, []byte(cert), []byte(TLS_CLIENT_KEY), a)
 	if err != nil {
 		t.Errorf("Generated certificate did not validate: %s", err)
 	} else if princ != "common-name-tc" {
@@ -275,9 +287,12 @@ func TestTLSAuthority_Sign_UserCert(t *testing.T) {
 }
 
 func TestTLSAuthority_Sign_HostCert(t *testing.T) {
-	a := getTLSAuthority(t)
+	a, testkey, testcert := getTLSAuthority(t)
 
-	serverCA, err := LoadTLSAuthority([]byte(TLS_SELFSIG_KEY), []byte(TLS_SELFSIG_CERT))
+	key, cert := testkeyutil.GenerateTLSRootForTests(t, "test-server-cert", nil, []net.IP{net.IPv4(127, 0, 0, 1)})
+	serverCA, err := LoadTLSAuthority(
+		pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(key)}),
+		pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: cert.Raw}))
 	if err != nil {
 		t.Fatalf("Could not create TLS authority: %s", err)
 	}
@@ -292,7 +307,8 @@ func TestTLSAuthority_Sign_HostCert(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	clientCert, err := tls.X509KeyPair([]byte(TLS_CLIENT_CERT), []byte(TLS_CLIENT_KEY))
+	clikey, _, clicert := testkeyutil.GenerateTLSKeypairPEMsForTests(t, "client-test", nil, nil, testcert, testkey)
+	clientCert, err := tls.X509KeyPair(clicert, clikey)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -307,13 +323,13 @@ func TestTLSAuthority_Sign_HostCert(t *testing.T) {
 	defer stop()
 
 	principal := string(request(""))
-	if principal != TLS_CLIENT_ENCODED_CN {
+	if principal != "client-test" {
 		t.Error("Did not find expected principal")
 	}
 }
 
 func signAndLoad(t *testing.T, csr string, ishost bool, duration time.Duration, commonname string, names []string) *x509.Certificate {
-	a := getTLSAuthority(t)
+	a, _, _ := getTLSAuthority(t)
 	certpem, err := a.Sign(csr, ishost, duration, commonname, names)
 	if err != nil {
 		t.Fatal(err)
@@ -418,7 +434,7 @@ func TestTLSAuthority_Sign_CheckNames(t *testing.T) {
 }
 
 func TestTLSAuthority_Sign_MalformedPEM(t *testing.T) {
-	a := getTLSAuthority(t)
+	a, _, _ := getTLSAuthority(t)
 	_, err := a.Sign("I'm literally not a PEM file", false, time.Hour, "common-name-tc", []string{"dns1.mit.edu", "18.181.123.456", "dns2.mit.edu", "18.181.123.789"})
 	if err == nil {
 		t.Error("Expected error while signing malformed CSR")
@@ -428,7 +444,7 @@ func TestTLSAuthority_Sign_MalformedPEM(t *testing.T) {
 }
 
 func TestTLSAuthority_Sign_MalformedCSRBody(t *testing.T) {
-	a := getTLSAuthority(t)
+	a, _, _ := getTLSAuthority(t)
 	_, err := a.Sign(strings.Replace(TLS_CLIENT_CSR, "WMRQw", "Y", -1), false, time.Hour, "common-name-tc", []string{"dns1.mit.edu", "18.181.123.456", "dns2.mit.edu", "18.181.123.789"})
 	if err == nil {
 		t.Error("Expected error while signing malformed CSR")
@@ -438,7 +454,7 @@ func TestTLSAuthority_Sign_MalformedCSRBody(t *testing.T) {
 }
 
 func TestTLSAuthority_Sign_MalformedCSR(t *testing.T) {
-	a := getTLSAuthority(t)
+	a, _, _ := getTLSAuthority(t)
 	_, err := a.Sign(strings.Replace(TLS_CLIENT_CSR, "Z", "Y", -1), false, time.Hour, "common-name-tc", []string{"dns1.mit.edu", "18.181.123.456", "dns2.mit.edu", "18.181.123.789"})
 	if err == nil {
 		t.Error("Expected error while signing malformed CSR")
@@ -448,14 +464,14 @@ func TestTLSAuthority_Sign_MalformedCSR(t *testing.T) {
 }
 
 func TestTLSAuthority_HasAttempt_None(t *testing.T) {
-	a := getTLSAuthority(t)
+	a, _, _ := getTLSAuthority(t)
 	if a.HasAttempt(httptest.NewRequest("GET", "/test", nil)) {
 		t.Error("Should be no attempt.")
 	}
 }
 
 func TestTLSAuthority_HasAttempt_PartialExists(t *testing.T) {
-	a := getTLSAuthority(t)
+	a, _, _ := getTLSAuthority(t)
 	req := httptest.NewRequest("GET", "/test", nil)
 	req.TLS = &tls.ConnectionState{}
 	if a.HasAttempt(req) {
@@ -464,7 +480,7 @@ func TestTLSAuthority_HasAttempt_PartialExists(t *testing.T) {
 }
 
 func TestTLSAuthority_HasAttempt_MostlyExists(t *testing.T) {
-	a := getTLSAuthority(t)
+	a, _, _ := getTLSAuthority(t)
 	req := httptest.NewRequest("GET", "/test", nil)
 	req.TLS = &tls.ConnectionState{VerifiedChains: [][]*x509.Certificate{{}}}
 	if a.HasAttempt(req) {
@@ -473,8 +489,9 @@ func TestTLSAuthority_HasAttempt_MostlyExists(t *testing.T) {
 }
 
 func TestTLSAuthority_HasAttempt_Exists(t *testing.T) {
-	a := getTLSAuthority(t)
-	cert, err := wraputil.LoadX509CertFromPEM([]byte(TLS_CLIENT_CERT))
+	a, _, _ := getTLSAuthority(t)
+	_, _, certb := testkeyutil.GenerateTLSRootPEMsForTests(t, "client-test", nil, nil)
+	cert, err := wraputil.LoadX509CertFromPEM(certb)
 	if err != nil {
 		t.Fatal(err)
 	}

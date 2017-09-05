@@ -4,15 +4,17 @@ import (
 	"bytes"
 	"strings"
 	"testing"
+	"util/testkeyutil"
 )
 
 func TestLoadAuthority(t *testing.T) {
-	tlsa, err := LoadAuthority("TLS", []byte(TLS_TEST_PRIVKEY), []byte(TLS_TEST_CERT))
+	key, _, cert := testkeyutil.GenerateTLSRootPEMsForTests(t, "test", nil, nil)
+	tlsa, err := LoadAuthority("TLS", key, cert)
 	if err != nil {
 		t.Fatal(err)
 	}
 	tlst := tlsa.(*TLSAuthority)
-	if !bytes.Equal(tlst.GetPublicKey(), []byte(TLS_TEST_CERT)) {
+	if !bytes.Equal(tlst.GetPublicKey(), cert) {
 		t.Error("Mismatch!")
 	}
 

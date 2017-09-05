@@ -8,6 +8,7 @@ import (
 	"crypto/tls"
 	"keycommon/reqtarget"
 	"io/ioutil"
+	"util/testkeyutil"
 )
 
 func TestKeyserver_AuthenticateWithCert(t *testing.T) {
@@ -42,7 +43,7 @@ func TestKeyserver_AuthenticateWithCert(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	clikey, clicert := testutil.GenerateTLSKeypairForTests(t, "test-client", nil, nil, cacert, cakey)
+	clikey, clicert := testkeyutil.GenerateTLSKeypairForTests(t, "test-client", nil, nil, cacert, cakey)
 	rt, err := ks.AuthenticateWithCert(tls.Certificate{PrivateKey: clikey, Certificate: [][]byte{ clicert.Raw }})
 	if err != nil {
 		t.Fatal(err)
@@ -102,7 +103,7 @@ func TestKeyserver_AuthenticateWithToken(t *testing.T) {
 }
 
 func TestKeyserver_AuthenticateWithToken_NoToken(t *testing.T) {
-	_, servercert := testutil.GenerateTLSRootForTests(t, "test-serv", nil, nil)
+	_, servercert := testkeyutil.GenerateTLSRootForTests(t, "test-serv", nil, nil)
 	ks, err := NewKeyserver(pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: servercert.Raw}), "localhost")
 	if err != nil {
 		t.Fatal(err)
@@ -112,7 +113,7 @@ func TestKeyserver_AuthenticateWithToken_NoToken(t *testing.T) {
 }
 
 func TestKeyserver_AuthenticateWithToken_NoServer(t *testing.T) {
-	_, servercert := testutil.GenerateTLSRootForTests(t, "test-serv", nil, nil)
+	_, servercert := testkeyutil.GenerateTLSRootForTests(t, "test-serv", nil, nil)
 	ks, err := NewKeyserver(pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: servercert.Raw}), "localhost")
 	if err != nil {
 		t.Fatal(err)

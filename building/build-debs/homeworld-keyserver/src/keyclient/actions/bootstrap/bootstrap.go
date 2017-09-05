@@ -1,4 +1,4 @@
-package keyclient
+package bootstrap
 
 import (
 	"errors"
@@ -7,14 +7,22 @@ import (
 	"os"
 	"strings"
 	"unicode"
-	"keycommon/csr"
+	"util/csrutil"
 	"keycommon/reqtarget"
+	"keyclient/loop"
 )
 
 type BootstrapAction struct {
-	Mainloop      *Mainloop
+	Mainloop      *loop.Mainloop
 	TokenFilePath string
 	TokenAPI      string
+}
+
+func PrepareBootstrapAction(m *loop.Mainloop, tokenfilepath string, api string) (loop.Action, error) {
+	if api == "" {
+		return nil, errors.New("No bootstrap API provided.")
+	}
+	return &BootstrapAction{Mainloop: m, TokenFilePath: tokenfilepath, TokenAPI: api}, nil
 }
 
 func (da *BootstrapAction) getToken() (string, error) {
@@ -32,25 +40,25 @@ func (da *BootstrapAction) getToken() (string, error) {
 }
 
 func (da *BootstrapAction) Perform() error {
-	if da.Mainloop.keygrant != nil {
-		return ErrNothingToDo
+	if da.Mainloop.Keygrant != nil {
+		return loop.ErrNothingToDo
 	}
 	token, err := da.getToken()
 	if err != nil {
 		return err
 	}
 	if token == "" {
-		return ErrNothingToDo
+		return loop.ErrNothingToDo
 	}
-	rt, err := da.Mainloop.ks.AuthenticateWithToken(token)
+	rt, err := da.Mainloop.Keyserver.AuthenticateWithToken(token)
 	if err != nil {
 		return err
 	}
-	privkey, err := ioutil.ReadFile(da.Mainloop.config.KeyPath)
+	privkey, err := ioutil.ReadFile(da.Mainloop.Config.KeyPath)
 	if err != nil {
 		return err
 	}
-	csr, err := csr.BuildTLSCSR(privkey)
+	csr, err := csrutil.BuildTLSCSR(privkey)
 	if err != nil {
 		return err
 	}
@@ -66,12 +74,12 @@ func (da *BootstrapAction) Perform() error {
 	if len(certbytes) == 0 {
 		return fmt.Errorf("Received empty response.")
 	}
-	err = ioutil.WriteFile(da.Mainloop.config.CertPath, []byte(certbytes), os.FileMode(0600))
+	err = ioutil.WriteFile(da.Mainloop.Config.CertPath, []byte(certbytes), os.FileMode(0600))
 	if err != nil {
 		return err
 	}
-	da.Mainloop.reloadKeygrantingCert()
-	if da.Mainloop.keygrant == nil {
+	da.Mainloop.ReloadKeygrantingCert()
+	if da.Mainloop.Keygrant == nil {
 		return fmt.Errorf("Expected properly loaded keygrant certificate")
 	}
 	return nil

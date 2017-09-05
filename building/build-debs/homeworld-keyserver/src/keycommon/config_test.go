@@ -14,11 +14,12 @@ import (
 	"encoding/pem"
 	"os"
 	"keycommon/reqtarget"
+	"util/testkeyutil"
 )
 
 func launchTestServer(t *testing.T, f http.HandlerFunc) (stop func(), clientcakey *rsa.PrivateKey, clientcacert *x509.Certificate, servercert *x509.Certificate) {
-	clientcakey, clientcacert = testutil.GenerateTLSRootForTests(t, "test-ca", nil, nil)
-	serverkey, servercert := testutil.GenerateTLSRootForTests(t, "test-ca-2", []string {"localhost" }, nil)
+	clientcakey, clientcacert = testkeyutil.GenerateTLSRootForTests(t, "test-ca", nil, nil)
+	serverkey, servercert := testkeyutil.GenerateTLSRootForTests(t, "test-ca-2", []string {"localhost" }, nil)
 	pool := x509.NewCertPool()
 	pool.AddCert(clientcacert)
 	srv := &http.Server{
@@ -148,7 +149,7 @@ func TestLoadKeyserverWithCert(t *testing.T) {
 		}
 	})
 	defer stop()
-	testkey, testcert := testutil.GenerateTLSKeypairForTests(t, "test-client", nil, nil, cacert, cakey)
+	testkey, testcert := testkeyutil.GenerateTLSKeypairForTests(t, "test-client", nil, nil, cacert, cakey)
 	err := ioutil.WriteFile("testdir/cert.pem", pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: servercert.Raw}), os.FileMode(0644))
 	if err != nil {
 		t.Fatal(err)
@@ -183,7 +184,7 @@ func TestLoadKeyserverWithCert_NoConfig(t *testing.T) {
 }
 
 func TestLoadKeyserverWithCert_IncompleteCert(t *testing.T) {
-	_, servercert := testutil.GenerateTLSRootForTests(t, "test-cert", nil, nil)
+	_, servercert := testkeyutil.GenerateTLSRootForTests(t, "test-cert", nil, nil)
 	err := ioutil.WriteFile("testdir/cert.pem", pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: servercert.Raw}), os.FileMode(0644))
 	if err != nil {
 		t.Fatal(err)
@@ -194,7 +195,7 @@ func TestLoadKeyserverWithCert_IncompleteCert(t *testing.T) {
 }
 
 func TestLoadKeyserverWithCert_IncompleteKey(t *testing.T) {
-	_, servercert := testutil.GenerateTLSRootForTests(t, "test-cert", nil, nil)
+	_, servercert := testkeyutil.GenerateTLSRootForTests(t, "test-cert", nil, nil)
 	err := ioutil.WriteFile("testdir/cert.pem", pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: servercert.Raw}), os.FileMode(0644))
 	if err != nil {
 		t.Fatal(err)
@@ -205,7 +206,7 @@ func TestLoadKeyserverWithCert_IncompleteKey(t *testing.T) {
 }
 
 func TestLoadKeyserverWithCert_NoKeyPair(t *testing.T) {
-	_, servercert := testutil.GenerateTLSRootForTests(t, "test-cert", nil, nil)
+	_, servercert := testkeyutil.GenerateTLSRootForTests(t, "test-cert", nil, nil)
 	err := ioutil.WriteFile("testdir/cert.pem", pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: servercert.Raw}), os.FileMode(0644))
 	if err != nil {
 		t.Fatal(err)

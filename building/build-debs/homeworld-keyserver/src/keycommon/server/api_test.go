@@ -11,11 +11,12 @@ import (
 	"strings"
 	"context"
 	"encoding/pem"
+	"util/testkeyutil"
 )
 
 func launchTestServer(t *testing.T, f http.HandlerFunc) (stop func(), clientcakey *rsa.PrivateKey, clientcacert *x509.Certificate, servercert *x509.Certificate) {
-	clientcakey, clientcacert = testutil.GenerateTLSRootForTests(t, "test-ca", nil, nil)
-	serverkey, servercert := testutil.GenerateTLSRootForTests(t, "test-ca-2", []string {"localhost" }, nil)
+	clientcakey, clientcacert = testkeyutil.GenerateTLSRootForTests(t, "test-ca", nil, nil)
+	serverkey, servercert := testkeyutil.GenerateTLSRootForTests(t, "test-ca-2", []string {"localhost" }, nil)
 	pool := x509.NewCertPool()
 	pool.AddCert(clientcacert)
 	srv := &http.Server{
@@ -97,7 +98,7 @@ func TestKeyserver_GetStatic(t *testing.T) {
 }
 
 func TestKeyserver_GetStatic_NoStatic(t *testing.T) {
-	_, servercert := testutil.GenerateTLSRootForTests(t, "test-serv", nil, nil)
+	_, servercert := testkeyutil.GenerateTLSRootForTests(t, "test-serv", nil, nil)
 	ks, err := NewKeyserver(pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: servercert.Raw}), "localhost")
 	if err != nil {
 		t.Fatal(err)
@@ -129,7 +130,7 @@ func TestKeyserver_GetPubkey(t *testing.T) {
 }
 
 func TestKeyserver_GetPublic_NoStatic(t *testing.T) {
-	_, servercert := testutil.GenerateTLSRootForTests(t, "test-serv", nil, nil)
+	_, servercert := testkeyutil.GenerateTLSRootForTests(t, "test-serv", nil, nil)
 	ks, err := NewKeyserver(pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: servercert.Raw}), "localhost")
 	if err != nil {
 		t.Fatal(err)

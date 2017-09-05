@@ -1,4 +1,4 @@
-package keyclient
+package keyreq
 
 import (
 	"fmt"
@@ -8,10 +8,14 @@ import (
 	"time"
 	"util/wraputil"
 	"keycommon/reqtarget"
+	"util/csrutil"
+	"keyclient/loop"
+	"errors"
+	"keyclient/config"
 )
 
 type RequestOrRenewAction struct {
-	Mainloop        *Mainloop
+	Mainloop        *loop.Mainloop
 	InAdvance       time.Duration
 	API             string
 	Name            string
@@ -19,6 +23,27 @@ type RequestOrRenewAction struct {
 	GenCSR          func([]byte) ([]byte, error)
 	KeyFile         string
 	CertFile        string
+}
+
+func PrepareRequestOrRenewKeys(m *loop.Mainloop, key config.ConfigKey, inadvance time.Duration) (loop.Action, error) {
+	if inadvance <= 0 {
+		return nil, errors.New("Invalid in-advance for key renewal.")
+	}
+	if key.API == "" {
+		return nil, errors.New("No renew API provided.")
+	}
+	switch key.Type {
+	case "tls":
+		fallthrough
+	case "tls-pubkey":
+		return &RequestOrRenewAction{Mainloop: m, InAdvance: inadvance, API: key.API, Name: key.Name, CheckExpiration: GetTLSCertExpiration, GenCSR: csrutil.BuildTLSCSR, KeyFile: key.Key, CertFile: key.Cert}, nil
+	case "ssh":
+		fallthrough
+	case "ssh-pubkey":
+		return &RequestOrRenewAction{Mainloop: m, InAdvance: inadvance, API: key.API, Name: key.Name, CheckExpiration: CheckSSHCertExpiration, GenCSR: csrutil.BuildSSHCSR, KeyFile: key.Key, CertFile: key.Cert}, nil
+	default:
+		return nil, fmt.Errorf("Unrecognized key type: %s", key.Type)
+	}
 }
 
 func CheckSSHCertExpiration(key []byte) (time.Time, error) {
@@ -59,12 +84,12 @@ func (ra *RequestOrRenewAction) Perform() error {
 		}
 		renew_at := expiration.Add(-ra.InAdvance)
 		if renew_at.After(time.Now()) {
-			return ErrNothingToDo // we have a cert and it's not yet time to renew it
+			return loop.ErrNothingToDo // we have a cert and it's not yet time to renew it
 		}
 		// time to renew!
 	}
-	if ra.Mainloop.keygrant == nil {
-		return errBlockedAction{"No keygranting certificate ready."}
+	if ra.Mainloop.Keygrant == nil {
+		return loop.ErrBlockedAction{"No keygranting certificate ready."}
 	}
 	keydata, err := ioutil.ReadFile(ra.KeyFile)
 	if err != nil {
@@ -74,7 +99,7 @@ func (ra *RequestOrRenewAction) Perform() error {
 	if err != nil {
 		return err
 	}
-	rt, err := ra.Mainloop.ks.AuthenticateWithCert(*ra.Mainloop.keygrant)
+	rt, err := ra.Mainloop.Keyserver.AuthenticateWithCert(*ra.Mainloop.Keygrant)
 	if err != nil {
 		return err
 	}
