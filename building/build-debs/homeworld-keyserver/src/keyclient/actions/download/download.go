@@ -8,8 +8,11 @@ import (
 	"keycommon/reqtarget"
 	"strconv"
 	"fmt"
-	"keyclient/loop"
+	"keyclient/state"
 	"keyclient/config"
+	"keyclient/actloop"
+	"log"
+	"errors"
 )
 
 type DownloadFetcher interface {
@@ -28,7 +31,7 @@ type StaticFetcher struct {
 }
 
 type APIFetcher struct {
-	Mainloop *loop.Mainloop
+	Mainloop *state.ClientState
 	API      string
 }
 
@@ -39,7 +42,7 @@ type DownloadAction struct {
 	Mode    uint64
 }
 
-func PrepareDownloadAction(m *loop.Mainloop, d config.ConfigDownload) (loop.Action, error) {
+func PrepareDownloadAction(m *state.ClientState, d config.ConfigDownload) (actloop.Action, error) {
 	refresh_period, err := time.ParseDuration(d.Refresh)
 	if err != nil {
 		return nil, err
@@ -63,23 +66,32 @@ func PrepareDownloadAction(m *loop.Mainloop, d config.ConfigDownload) (loop.Acti
 	}
 }
 
-func (da *DownloadAction) Perform() error {
+func (da *DownloadAction) Pending() (bool, error) {
 	if statinfo, err := os.Stat(da.Path); err != nil {
-		if !os.IsNotExist(err) {
-			return err
+		if os.IsNotExist(err) {
+			// doesn't exist -- create it!
+			return true, nil
+		} else {
+			// broken -- try creating it (and probably fail!)
+			return true, err
 		}
-		// doesn't exist -- create it!
 	} else {
 		staleness := time.Now().Sub(statinfo.ModTime())
 		if staleness <= da.Refresh {
-			return loop.ErrNothingToDo
+			// still valid
+			return false, nil
+		} else {
+			// stale! we should refresh it, if possible.
+			return true, nil
 		}
-		// stale! we should refresh it, if possible.
 	}
-	err := da.Fetcher.PrereqsSatisfied()
-	if err != nil {
-		return err
-	}
+}
+
+func (da *DownloadAction) CheckBlocker() error {
+	return da.Fetcher.PrereqsSatisfied()
+}
+
+func (da *DownloadAction) Perform(logger *log.Logger) error {
 	data, err := da.Fetcher.Fetch()
 	if err != nil {
 		return err
@@ -107,7 +119,7 @@ func (df *APIFetcher) PrereqsSatisfied() error {
 	if df.Mainloop.Keygrant != nil {
 		return nil
 	} else {
-		return loop.ErrBlockedAction{"No keygranting certificate ready."}
+		return errors.New("No keygranting certificate ready.")
 	}
 }
 

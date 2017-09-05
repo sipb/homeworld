@@ -9,16 +9,19 @@ import (
 	"unicode"
 	"util/csrutil"
 	"keycommon/reqtarget"
-	"keyclient/loop"
+	"keyclient/state"
+	"keyclient/actloop"
+	"util/fileutil"
+	"log"
 )
 
 type BootstrapAction struct {
-	Mainloop      *loop.Mainloop
+	Mainloop      *state.ClientState
 	TokenFilePath string
 	TokenAPI      string
 }
 
-func PrepareBootstrapAction(m *loop.Mainloop, tokenfilepath string, api string) (loop.Action, error) {
+func PrepareBootstrapAction(m *state.ClientState, tokenfilepath string, api string) (actloop.Action, error) {
 	if api == "" {
 		return nil, errors.New("No bootstrap API provided.")
 	}
@@ -27,10 +30,13 @@ func PrepareBootstrapAction(m *loop.Mainloop, tokenfilepath string, api string) 
 
 func (da *BootstrapAction) getToken() (string, error) {
 	contents, err := ioutil.ReadFile(da.TokenFilePath)
-	if os.IsNotExist(err) {
-		return "", nil
+	if err != nil {
+		return "", err
 	}
 	token := strings.TrimSpace(string(contents))
+	if len(token) == 0 {
+		return "", errors.New("Invalid token found.")
+	}
 	for _, c := range token {
 		if !unicode.IsPrint(c) || c == ' ' || c > 127 {
 			return "", errors.New("Invalid token found.")
@@ -39,16 +45,18 @@ func (da *BootstrapAction) getToken() (string, error) {
 	return token, nil
 }
 
-func (da *BootstrapAction) Perform() error {
-	if da.Mainloop.Keygrant != nil {
-		return loop.ErrNothingToDo
-	}
+func (da *BootstrapAction) Pending() (bool, error) {
+	return da.Mainloop.Keygrant == nil && fileutil.Exists(da.TokenFilePath), nil
+}
+
+func (da *BootstrapAction) CheckBlocker() error {
+	return nil
+}
+
+func (da *BootstrapAction) Perform(logger *log.Logger) error {
 	token, err := da.getToken()
 	if err != nil {
 		return err
-	}
-	if token == "" {
-		return loop.ErrNothingToDo
 	}
 	rt, err := da.Mainloop.Keyserver.AuthenticateWithToken(token)
 	if err != nil {
@@ -78,9 +86,9 @@ func (da *BootstrapAction) Perform() error {
 	if err != nil {
 		return err
 	}
-	da.Mainloop.ReloadKeygrantingCert()
-	if da.Mainloop.Keygrant == nil {
-		return fmt.Errorf("Expected properly loaded keygrant certificate")
+	err = da.Mainloop.ReloadKeygrantingCert()
+	if err != nil {
+		return fmt.Errorf("expected properly loaded keygrant certificate, but: %s", err)
 	}
 	return nil
 }

@@ -10,22 +10,22 @@ import (
 	"log"
 	"os"
 	"path"
-	"keyclient/loop"
+	"keyclient/state"
 	"keyclient/config"
 	"errors"
+	"keyclient/actloop"
 )
 
 const RSA_BITS = 4096
 
 type TLSKeygenAction struct {
 	keypath string
-	logger  log.Logger
 }
 
-func PrepareKeygenAction(m *loop.Mainloop, k config.ConfigKey) (loop.Action, error) {
+func PrepareKeygenAction(m *state.ClientState, k config.ConfigKey) (actloop.Action, error) {
 	switch k.Type {
 	case "tls":
-		return TLSKeygenAction{keypath: k.Key, logger: m.Logger}, nil
+		return TLSKeygenAction{keypath: k.Key}, nil
 	case "ssh":
 		// should probably include creating a .pub file as well
 		return nil, errors.New("Unimplemented operation: SSH key generation")
@@ -38,11 +38,15 @@ func PrepareKeygenAction(m *loop.Mainloop, k config.ConfigKey) (loop.Action, err
 	}
 }
 
-func (ka TLSKeygenAction) Perform() error {
-	if fileutil.Exists(ka.keypath) {
-		return loop.ErrNothingToDo // already exists
-	}
+func (ka TLSKeygenAction) Pending() (bool, error) {
+	return !fileutil.Exists(ka.keypath), nil
+}
 
+func (ka TLSKeygenAction) CheckBlocker() error {
+	return nil
+}
+
+func (ka TLSKeygenAction) Perform(log *log.Logger) error {
 	dirname := path.Dir(ka.keypath)
 	err := fileutil.EnsureIsFolder(dirname)
 	if err != nil {
@@ -65,7 +69,7 @@ func (ka TLSKeygenAction) Perform() error {
 		if !succeeded {
 			file_out.Close()
 			err := os.Remove(ka.keypath)
-			ka.logger.Printf("While aborting key generation and removing wedged file: %s", err)
+			log.Printf("While aborting key generation and removing wedged file: %s", err)
 		}
 	}()
 	err = pem.Encode(file_out, &pem.Block{Type: "RSA PRIVATE KEY", Bytes: keydata})

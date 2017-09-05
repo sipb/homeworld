@@ -9,13 +9,15 @@ import (
 	"util/wraputil"
 	"keycommon/reqtarget"
 	"util/csrutil"
-	"keyclient/loop"
+	"keyclient/state"
 	"errors"
 	"keyclient/config"
+	"keyclient/actloop"
+	"log"
 )
 
 type RequestOrRenewAction struct {
-	Mainloop        *loop.Mainloop
+	Mainloop        *state.ClientState
 	InAdvance       time.Duration
 	API             string
 	Name            string
@@ -25,7 +27,7 @@ type RequestOrRenewAction struct {
 	CertFile        string
 }
 
-func PrepareRequestOrRenewKeys(m *loop.Mainloop, key config.ConfigKey, inadvance time.Duration) (loop.Action, error) {
+func PrepareRequestOrRenewKeys(m *state.ClientState, key config.ConfigKey, inadvance time.Duration) (actloop.Action, error) {
 	if inadvance <= 0 {
 		return nil, errors.New("Invalid in-advance for key renewal.")
 	}
@@ -69,28 +71,39 @@ func GetTLSCertExpiration(certdata []byte) (time.Time, error) {
 	return cert.NotAfter, nil
 }
 
-func (ra *RequestOrRenewAction) Perform() error {
+func (ra *RequestOrRenewAction) Pending() (bool, error) {
 	existing, err := ioutil.ReadFile(ra.CertFile)
 	if err != nil {
 		if os.IsNotExist(err) {
-			// not really an error; fall through and always populate
+			return true, nil // population needed
 		} else {
-			return fmt.Errorf("While trying to check expiration status of certificate: %s", err)
+			// this will probably fail to regenerate, but at least we tried? and this way, it's made clear that a problem is continuing.
+			return true, fmt.Errorf("While trying to check expiration status of certificate: %s\n", err)
 		}
 	} else {
 		expiration, err := ra.CheckExpiration(existing)
 		if err != nil {
-			return fmt.Errorf("While trying to check expiration status of certificate: %s", err)
+			// almost invariably means malformed
+			return true, fmt.Errorf("While trying to check expiration status of certificate: %s\n", err)
 		}
 		renew_at := expiration.Add(-ra.InAdvance)
 		if renew_at.After(time.Now()) {
-			return loop.ErrNothingToDo // we have a cert and it's not yet time to renew it
+			return false, nil // not time to renew
+		} else {
+			return true, nil // time to renew
 		}
-		// time to renew!
 	}
+}
+
+func (ra *RequestOrRenewAction) CheckBlocker() error {
 	if ra.Mainloop.Keygrant == nil {
-		return loop.ErrBlockedAction{"No keygranting certificate ready."}
+		return errors.New("no keygranting certificate ready")
+	} else {
+		return nil
 	}
+}
+
+func (ra *RequestOrRenewAction) Perform(logger *log.Logger) error {
 	keydata, err := ioutil.ReadFile(ra.KeyFile)
 	if err != nil {
 		return err

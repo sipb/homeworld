@@ -3,6 +3,8 @@ package main
 import (
 	"keyclient"
 	"log"
+	"keyclient/setup"
+	"os"
 )
 
 // the keyclient is a daemon with a few different responsibilities:
@@ -12,9 +14,9 @@ import (
 //  - renew other certificates
 
 func main() {
-	loop, err := keyclient.Load("/etc/hyades/keyclient/keyclient.conf")
+	logger := log.New(os.Stderr, "[keyclient] ", log.Ldate | log.Ltime | log.Lmicroseconds | log.Lshortfile)
+	_, err := setup.LoadAndLaunch("/etc/hyades/keyclient/keyclient.conf", logger)
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatal(err)
 	}
-	loop.Run()
 }
