@@ -44,7 +44,7 @@ func Load(configpath string, logger *log.Logger) ([]actloop.Action, error) {
 		if err != nil {
 			return nil, err
 		}
-		act, err := keygen.PrepareKeygenAction(m, key)
+		act, err := keygen.PrepareKeygenAction(key)
 		if err != nil {
 			return nil, err
 		}
@@ -73,7 +73,7 @@ func Load(configpath string, logger *log.Logger) ([]actloop.Action, error) {
 
 func Launch(actions []actloop.Action, logger *log.Logger) (stop func()) {
 	loop := actloop.NewActLoop(actions, logger)
-	go loop.Run()
+	go loop.Run(time.Second * 10)
 	return loop.Cancel
 }
 

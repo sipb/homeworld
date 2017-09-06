@@ -8,7 +8,7 @@ import (
 
 type ActLoop struct {
 	actions     []Action
-	stoponce    sync.Once
+	stoplock    sync.Mutex
 	should_stop bool
 	logger      *log.Logger
 }
@@ -25,10 +25,12 @@ func NewActLoop(actions []Action, logger *log.Logger) ActLoop {
 
 func (m *ActLoop) Step() (stabilized bool) {
 	blocked_by := []error{}
+	possibly_stable := true
 	for _, action := range m.actions {
 		pending, err := action.Pending()
 		if err != nil {
-			m.logger.Print("actloop check error: %s\n", err.Error())
+			m.logger.Printf("actloop check error: %s\n", err.Error())
+			possibly_stable = false
 		}
 		if !pending {
 			continue
@@ -41,12 +43,13 @@ func (m *ActLoop) Step() (stabilized bool) {
 		err = action.Perform(m.logger)
 		if err != nil {
 			m.logger.Printf("actloop step error: %s\n", err.Error())
+			possibly_stable = false
 		} else {
 			return false
 		}
 	}
 	if len(blocked_by) == 0 {
-		return true
+		return possibly_stable
 	} else {
 		m.logger.Printf("ACTLOOP BLOCKED (%d)\n", len(blocked_by))
 		for _, blockerr := range blocked_by {
@@ -57,23 +60,29 @@ func (m *ActLoop) Step() (stabilized bool) {
 }
 
 func (m *ActLoop) Cancel() {
-	m.stoponce.Do(func() {
-		m.should_stop = true
-	})
+	m.stoplock.Lock()
+	defer m.stoplock.Unlock()
+	m.should_stop = true
 }
 
-func (m *ActLoop) Run() {
+func (m *ActLoop) IsCancelled() bool {
+	m.stoplock.Lock()
+	defer m.stoplock.Unlock()
+	return m.should_stop
+}
+
+func (m *ActLoop) Run(cycletime time.Duration) {
 	was_stabilized := false
-	for !m.should_stop {
+	for !m.IsCancelled() {
 		// TODO: report current status somewhere -- health checker endpoint?
 		stabilized := m.Step()
 		if stabilized {
 			if !was_stabilized {
 				m.logger.Printf("ACTLOOP STABILIZED\n")
 			}
-			time.Sleep(time.Minute * 5)
+			time.Sleep(cycletime * 30)  // usually five minutes
 		} else {
-			time.Sleep(time.Second * 10)
+			time.Sleep(cycletime)  // usually ten seconds
 		}
 		was_stabilized = stabilized
 	}

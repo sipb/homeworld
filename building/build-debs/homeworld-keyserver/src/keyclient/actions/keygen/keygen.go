@@ -10,7 +10,6 @@ import (
 	"log"
 	"os"
 	"path"
-	"keyclient/state"
 	"keyclient/config"
 	"errors"
 	"keyclient/actloop"
@@ -22,19 +21,19 @@ type TLSKeygenAction struct {
 	keypath string
 }
 
-func PrepareKeygenAction(m *state.ClientState, k config.ConfigKey) (actloop.Action, error) {
+func PrepareKeygenAction(k config.ConfigKey) (actloop.Action, error) {
 	switch k.Type {
 	case "tls":
 		return TLSKeygenAction{keypath: k.Key}, nil
 	case "ssh":
 		// should probably include creating a .pub file as well
-		return nil, errors.New("Unimplemented operation: SSH key generation")
+		return nil, errors.New("unimplemented operation: ssh key generation")
 	case "tls-pubkey":
 		return nil, nil // key is pregenerated
 	case "ssh-pubkey":
 		return nil, nil // key is pregenerated
 	default:
-		return nil, fmt.Errorf("Unrecognized key type: %s", k.Type)
+		return nil, fmt.Errorf("unrecognized key type: %s", k.Type)
 	}
 }
 
