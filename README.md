@@ -6,11 +6,26 @@ AFS: /afs/sipb/project/hyades/provisioning
 
 # Subfolders
 
- * auth: authserver
- * admission: scripts to set up the SSH system
- * build-etcd, build-flannel, build-kubernetes, build-rkt: building required software components
- * deployment: deployment code and overview
- * clustered: code that runs on the cluster
+Top-level:
+
+ * building: code and scripts for creating binaries and uploading them to repositories
+ * deployment: code and scripts for deploying or operating a cluster
+ * design: (incomplete) design documents for the system.
+
+In more detail:
+
+ * building/build-helpers: build scripts for intermediate tools (i.e. Go)
+ * building/build-acis: container build scripts
+ * building/build-debs: debian package build scripts
+ * building/build-iso: installation ISO build scripts
+ * building/upstream: vendored upstream source packages (stored in a separate Git repository; see pull-upstream.sh)
+ * building/upload-acis: uploading containers to the registry
+ * building/upload-debs: uploading debian packages to the repository
+
+ * deployment/admit: deployment scripts for admission server
+ * deployment/auth: deployment scripts for authentication server
+ * deployment/clustered: configuration files and scripts for code that runs on the cluster
+ * deployment/deployment-config: files and scripts for configuring a cluster and setting up certificates
 
 # Repository Security
 
@@ -24,6 +39,22 @@ Write access on GitHub is restricted to the hyades-provisioning team.
 
 These security measures exist due to scripts from this repository being used on
 trusted systems with /root kerberos tickets or other important auth keys.
+
+# Contributing Guidelines
+
+Every commit in this repository *MUST* be signed by a trusted developer. You
+will need a PGP key in the web of trust, or at least a PGP key that the main
+maintainer can trust. Before your PRs are merged, you will need to rebase all
+of your commits against the current master branch and ensure that each of them
+is signed. Consider combining small and pointless commits into larger commits.
+
+## Guidelines for Go code
+
+Every commit with Go code should be formatted with gofmt if possible. If not,
+sequences of commits should be formatted at the end.
+
+If the code is part of a security-critical component, there should be
+reasonably complete unit tests before merging.
 
 # Contact
 
