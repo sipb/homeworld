@@ -4,6 +4,10 @@ import (
 	"testing"
 	"keyclient/config"
 	"util/testutil"
+	"os"
+	"util/fileutil"
+	"io/ioutil"
+	"util/wraputil"
 )
 
 func TestPrepareKeygenAction_TLSPubkey(t *testing.T) {
@@ -44,8 +48,10 @@ func TestPrepareKeygenAction_TLSKey(t *testing.T) {
 	if action.(TLSKeygenAction).keypath != "testdir/crypto.key" {
 		t.Error("wrong key path")
 	}
+	if action.(TLSKeygenAction).bits != 4096 {
+		t.Error("wrong number of bits")
+	}
 }
-
 
 func TestPrepareKeygenAction_SSHKey_Unimplemented(t *testing.T) {
 	key := config.ConfigKey{
@@ -61,4 +67,141 @@ func TestPrepareKeygenAction_Invalid(t *testing.T) {
 	}
 	_, err := PrepareKeygenAction(key)
 	testutil.CheckError(t, err, "unrecognized key type: pin-tumbler-key")
+}
+
+func TestTLSKeygenAction_Pending_NoKey(t *testing.T) {
+	err := fileutil.EnsureIsFolder("testdir")
+	if err != nil {
+		t.Fatal(err)
+	}
+	ispending, err := TLSKeygenAction{keypath: "testdir/nonexistent.key"}.Pending()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !ispending {
+		t.Error("should be pending")
+	}
+}
+
+func TestTLSKeygenAction_Pending_YesKey(t *testing.T) {
+	err := fileutil.EnsureIsFolder("testdir")
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = ioutil.WriteFile("testdir/existent.key", []byte("test"), os.FileMode(0600))
+	if err != nil {
+		t.Fatal(err)
+	}
+	ispending, err := TLSKeygenAction{keypath: "testdir/existent.key"}.Pending()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if ispending {
+		t.Error("should not be pending")
+	}
+
+	os.Remove("testdir/existent.key")
+}
+
+func TestTLSKeygenAction_CheckBlocker(t *testing.T) {
+	value := TLSKeygenAction{}.CheckBlocker()
+	if value != nil {
+		t.Error("keygen should never be blocked")
+	}
+}
+
+func TestTLSKeygenAction_Perform(t *testing.T) {
+	err := fileutil.EnsureIsFolder("testdir")
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = os.Remove("testdir/output.key")
+	if err != nil && !os.IsNotExist(err) {
+		t.Fatal(err)
+	}
+
+	// weird number to make sure that the number is actually taken into account
+	err = TLSKeygenAction{"testdir/output.key", 519}.Perform(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	data, err := ioutil.ReadFile("testdir/output.key")
+	if err != nil {
+		t.Fatal(err)
+	}
+	key, err := wraputil.LoadRSAKeyFromPEM(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = key.Validate()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if key.N.BitLen() != 519 {
+		t.Fatal("Wrong number of bits in key")
+	}
+
+	os.Remove("testdir/output.key")
+}
+
+func TestTLSKeygenAction_Perform_NoCreateDirectories(t *testing.T) {
+	err := fileutil.EnsureIsFolder("testdir")
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = os.Remove("testdir/testinvalid")
+	if err != nil && !os.IsNotExist(err) {
+		t.Fatal(err)
+	}
+	err = os.Mkdir("testdir/testinvalid", os.FileMode(0))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// weird number to make sure that the number is actually taken into account
+	err = TLSKeygenAction{"testdir/testinvalid/subdir/output.key", 519}.Perform(nil)
+	testutil.CheckError(t, err, "failed to prepare directory")
+	testutil.CheckError(t, err, "permission denied")
+
+	os.Remove("testdir/testinvalid")
+}
+
+func TestTLSKeygenAction_Perform_CannotGen(t *testing.T) {
+	err := fileutil.EnsureIsFolder("testdir")
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = os.Remove("testdir/output.key")
+	if err != nil && !os.IsNotExist(err) {
+		t.Fatal(err)
+	}
+
+	// weird number to make sure that the number is actually taken into account
+	err = TLSKeygenAction{"testdir/output.key", 0}.Perform(nil)
+	testutil.CheckError(t, err, "too few primes of given length")
+}
+
+func TestTLSKeygenAction_Perform_NoCreateFile(t *testing.T) {
+	err := fileutil.EnsureIsFolder("testdir")
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = os.Remove("testdir/testinvalid")
+	if err != nil && !os.IsNotExist(err) {
+		t.Fatal(err)
+	}
+	err = os.Mkdir("testdir/testinvalid", os.FileMode(0))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// weird number to make sure that the number is actually taken into account
+	err = TLSKeygenAction{"testdir/testinvalid/output.key", 519}.Perform(nil)
+	testutil.CheckError(t, err, "failed to create file")
+	testutil.CheckError(t, err, "permission denied")
+
+	os.Remove("testdir/testinvalid")
 }

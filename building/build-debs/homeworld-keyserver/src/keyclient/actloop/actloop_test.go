@@ -351,7 +351,7 @@ func TestActLoop_StableTime(t *testing.T) {
 			if attempt < TIME_ATTEMPTS {
 				continue // let's try that again...
 			} else {
-				t.Error("invalid duration of stabilized pause")
+				t.Error("invalid duration of stabilized pause: %v", pause_for / time.Millisecond)
 			}
 		}
 		if logbuf.String() != "[actloop] PERFORMED!\n[actloop] PERFORMED!\n[actloop] ACTLOOP STABILIZED\n" {

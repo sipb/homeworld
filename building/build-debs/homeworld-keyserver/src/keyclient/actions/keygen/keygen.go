@@ -19,12 +19,13 @@ const RSA_BITS = 4096
 
 type TLSKeygenAction struct {
 	keypath string
+	bits int
 }
 
 func PrepareKeygenAction(k config.ConfigKey) (actloop.Action, error) {
 	switch k.Type {
 	case "tls":
-		return TLSKeygenAction{keypath: k.Key}, nil
+		return TLSKeygenAction{keypath: k.Key, bits: RSA_BITS}, nil
 	case "ssh":
 		// should probably include creating a .pub file as well
 		return nil, errors.New("unimplemented operation: ssh key generation")
@@ -38,6 +39,7 @@ func PrepareKeygenAction(k config.ConfigKey) (actloop.Action, error) {
 }
 
 func (ka TLSKeygenAction) Pending() (bool, error) {
+	// it's acceptable for the directory to not exist, because we'll just create it later
 	return !fileutil.Exists(ka.keypath), nil
 }
 
@@ -45,41 +47,23 @@ func (ka TLSKeygenAction) CheckBlocker() error {
 	return nil
 }
 
-func (ka TLSKeygenAction) Perform(log *log.Logger) error {
+func (ka TLSKeygenAction) Perform(_ *log.Logger) error {
 	dirname := path.Dir(ka.keypath)
 	err := fileutil.EnsureIsFolder(dirname)
 	if err != nil {
-		return fmt.Errorf("Failed to prepare directory %s for generated key: %s", dirname, err)
+		return fmt.Errorf("failed to prepare directory %s for generated key: %s", dirname, err)
 	}
 
-	private_key, err := rsa.GenerateKey(rand.Reader, RSA_BITS)
+	private_key, err := rsa.GenerateKey(rand.Reader, ka.bits)
 	if err != nil {
-		return fmt.Errorf("Failed to generate RSA key (%d bits) for %s: %s", RSA_BITS, ka.keypath, err)
+		return fmt.Errorf("failed to generate RSA key (%d bits) for %s: %s", RSA_BITS, ka.keypath, err)
 	}
 
 	keydata := x509.MarshalPKCS1PrivateKey(private_key)
 
-	file_out, err := os.OpenFile(ka.keypath, os.O_WRONLY|os.O_EXCL|os.O_CREATE, 0600)
+	err = fileutil.CreateFile(ka.keypath, pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: keydata}), os.FileMode(0600))
 	if err != nil {
-		return fmt.Errorf("Failed to create file for generated key: %s", err)
+		return fmt.Errorf("failed to create file for generated key: %s", err)
 	}
-	succeeded := false
-	defer func() {
-		if !succeeded {
-			file_out.Close()
-			err := os.Remove(ka.keypath)
-			log.Printf("While aborting key generation and removing wedged file: %s", err)
-		}
-	}()
-	err = pem.Encode(file_out, &pem.Block{Type: "RSA PRIVATE KEY", Bytes: keydata})
-	if err != nil {
-		return fmt.Errorf("Could not successfully write file for generated key: %s", err)
-	} else {
-		err := file_out.Close()
-		if err != nil {
-			return fmt.Errorf("Could not successfully write file for generated key: %s", err)
-		}
-		succeeded = true
-		return nil
-	}
+	return nil
 }
