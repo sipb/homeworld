@@ -3,8 +3,8 @@ package server
 import (
 	"crypto/x509"
 	"fmt"
-	"util/wraputil"
 	"keycommon/endpoint"
+	"util/wraputil"
 )
 
 type Keyserver struct {

@@ -7,8 +7,8 @@ import (
 	"encoding/pem"
 	"fmt"
 	"golang.org/x/crypto/ssh"
-	"util/wraputil"
 	"strings"
+	"util/wraputil"
 )
 
 // accepts both public and private keys

@@ -5,9 +5,9 @@ import (
 	"errors"
 	"io/ioutil"
 	"keycommon"
+	"keycommon/reqtarget"
 	"log"
 	"os"
-	"keycommon/reqtarget"
 )
 
 func HandleRequest(principal string, request_data []byte) ([]byte, error) {

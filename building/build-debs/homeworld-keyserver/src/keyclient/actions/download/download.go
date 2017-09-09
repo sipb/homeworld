@@ -1,15 +1,15 @@
 package download
 
 import (
-	"io/ioutil"
-	"os"
-	"time"
-	"strconv"
 	"fmt"
-	"keyclient/state"
-	"keyclient/config"
+	"io/ioutil"
 	"keyclient/actloop"
+	"keyclient/config"
+	"keyclient/state"
 	"log"
+	"os"
+	"strconv"
+	"time"
 )
 
 type DownloadAction struct {

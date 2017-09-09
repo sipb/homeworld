@@ -1,21 +1,21 @@
 package endpoint
 
 import (
-	"testing"
-	"crypto/x509"
-	"util/testutil"
+	"bytes"
+	"context"
 	"crypto/rsa"
 	"crypto/tls"
-	"bytes"
-	"net/http"
-	"net"
-	"context"
-	"io/ioutil"
+	"crypto/x509"
 	"encoding/json"
-	"strings"
-	"time"
 	"fmt"
+	"io/ioutil"
+	"net"
+	"net/http"
+	"strings"
+	"testing"
+	"time"
 	"util/testkeyutil"
+	"util/testutil"
 )
 
 func createBaseEndpoint(t *testing.T, rootcert *x509.Certificate) ServerEndpoint {
@@ -36,7 +36,7 @@ func createBaseEndpoint(t *testing.T, rootcert *x509.Certificate) ServerEndpoint
 
 func launchTestServer(t *testing.T, f http.HandlerFunc) (stop func(), clientcakey *rsa.PrivateKey, clientcacert *x509.Certificate, servercert *x509.Certificate) {
 	clientcakey, clientcacert = testkeyutil.GenerateTLSRootForTests(t, "test-ca", nil, nil)
-	serverkey, servercert := testkeyutil.GenerateTLSRootForTests(t, "test-ca-2", []string {"localhost" }, nil)
+	serverkey, servercert := testkeyutil.GenerateTLSRootForTests(t, "test-ca-2", []string{"localhost"}, nil)
 	pool := x509.NewCertPool()
 	pool.AddCert(clientcacert)
 	srv := &http.Server{
@@ -96,7 +96,7 @@ func TestNewServerEndpoint(t *testing.T) {
 	if endpoint.baseURL != "https://localhost:50001/test/" {
 		t.Error("Wrong base URL")
 	}
-	if endpoint.timeout != time.Second * 30 {
+	if endpoint.timeout != time.Second*30 {
 		t.Error("Wrong default timeout")
 	}
 	if len(endpoint.rootCAs.Subjects()) != 1 {
@@ -160,7 +160,7 @@ func TestServerEndpoint_WithCertificate(t *testing.T) {
 		t.Error("Extraneous certs.")
 	}
 
-	ep2 := endpoint.WithCertificate(tls.Certificate{PrivateKey: ourkey, Certificate: [][]byte { ourcert.Raw }})
+	ep2 := endpoint.WithCertificate(tls.Certificate{PrivateKey: ourkey, Certificate: [][]byte{ourcert.Raw}})
 	if len(endpoint.certificates) != 0 {
 		t.Error("Should not have affected previous copy.")
 	}
@@ -177,7 +177,7 @@ func TestServerEndpoint_WithCertificate(t *testing.T) {
 		t.Error("Wrong cert")
 	}
 
-	ep3 := ep2.WithCertificate(tls.Certificate{PrivateKey: ourkey2, Certificate: [][]byte { ourcert2.Raw }})
+	ep3 := ep2.WithCertificate(tls.Certificate{PrivateKey: ourkey2, Certificate: [][]byte{ourcert2.Raw}})
 	if len(ep2.certificates) != 1 {
 		t.Error("Should not have affected previous copy.")
 	}
@@ -210,10 +210,10 @@ func TestServerEndpoint_WithBoth(t *testing.T) {
 	ourkey, ourcert := testkeyutil.GenerateTLSKeypairForTests(t, "cert-test-1", nil, nil, cacert, cakey)
 	ourkey2, ourcert2 := testkeyutil.GenerateTLSKeypairForTests(t, "cert-test-2", nil, nil, cacert, cakey)
 
-	endpoint = endpoint.WithCertificate(tls.Certificate{PrivateKey: ourkey, Certificate: [][]byte { ourcert.Raw }})
+	endpoint = endpoint.WithCertificate(tls.Certificate{PrivateKey: ourkey, Certificate: [][]byte{ourcert.Raw}})
 	intermediate := endpoint.WithHeader("X-Sample-Header", "ABC")
 
-	endpoint = intermediate.WithCertificate(tls.Certificate{PrivateKey: ourkey2, Certificate: [][]byte { ourcert2.Raw }})
+	endpoint = intermediate.WithCertificate(tls.Certificate{PrivateKey: ourkey2, Certificate: [][]byte{ourcert2.Raw}})
 	endpoint = endpoint.WithHeader("X-Sample-Header-2", "DEF")
 
 	if len(intermediate.certificates) != 1 {
@@ -339,7 +339,7 @@ func TestServerEndpoint_Request_CertAuth(t *testing.T) {
 	})
 	defer stop()
 	clientkey, clientcert := testkeyutil.GenerateTLSKeypairForTests(t, "test-temp-cert", nil, nil, clientcacert, clientcakey)
-	endpoint := createBaseEndpoint(t, servercert).WithCertificate(tls.Certificate{PrivateKey: clientkey, Certificate: [][]byte{ clientcert.Raw }})
+	endpoint := createBaseEndpoint(t, servercert).WithCertificate(tls.Certificate{PrivateKey: clientkey, Certificate: [][]byte{clientcert.Raw}})
 	result, err := endpoint.Request("/testabc", "GET", []byte("this == a body!\n"))
 	if err != nil {
 		t.Fatal(err)
@@ -388,7 +388,7 @@ func TestServerEndpoint_Request_RequestFail(t *testing.T) {
 	})
 	defer stop()
 	endpoint := createBaseEndpoint(t, servercert)
-	for _, code := range []int {500, 501, 400, 401, 403, 404} {
+	for _, code := range []int{500, 501, 400, 401, 403, 404} {
 		ncode = code
 		_, err := endpoint.Request("/testabc", "GET", nil)
 		testutil.CheckError(t, err, fmt.Sprintf("status code: %d", code))
@@ -485,7 +485,7 @@ func TestServerEndpoint_PostJSON(t *testing.T) {
 	})
 	defer stop()
 	endpoint := createBaseEndpoint(t, servercert).WithHeader("X-Token", "hello world")
-	testdata := testRequest{ "demonic", -666 }
+	testdata := testRequest{"demonic", -666}
 	testout := &testResponse{}
 	err := endpoint.PostJSON("/testdef", testdata, testout)
 	if err != nil {

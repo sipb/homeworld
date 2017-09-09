@@ -1,8 +1,8 @@
 package config
 
 import (
-	"testing"
 	"reflect"
+	"testing"
 	"util/testutil"
 )
 
@@ -12,28 +12,28 @@ func TestLoadConfig(t *testing.T) {
 		t.Fatal(err)
 	}
 	expected := Config{
-		Keyserver: "localhost",
-		CertPath: "../testdir/keyclient/granting.pem",
-		KeyPath: "../testdir/keyclient/granting.key",
+		Keyserver:     "localhost",
+		CertPath:      "../testdir/keyclient/granting.pem",
+		KeyPath:       "../testdir/keyclient/granting.key",
 		AuthorityPath: "../testdir/keyclient/keyservertls.pem",
-		TokenPath: "../testdir/keyclient/bootstrap_token.txt",
-		TokenAPI: "renew-keygrant",
-		Downloads: []ConfigDownload {
+		TokenPath:     "../testdir/keyclient/bootstrap_token.txt",
+		TokenAPI:      "renew-keygrant",
+		Downloads: []ConfigDownload{
 			{
-				Type: "authority",
-				Path: "../testdir/authorities/etcd-client.pem",
-				Name: "etcd-client",
+				Type:    "authority",
+				Path:    "../testdir/authorities/etcd-client.pem",
+				Name:    "etcd-client",
 				Refresh: "24h",
-				Mode: "644",
+				Mode:    "644",
 			},
 		},
-		Keys: []ConfigKey {
+		Keys: []ConfigKey{
 			{
-				Name: "keygranting",
-				Type: "tls",
-				Key: "../testdir/keyclient/granting.key",
-				Cert: "../testdir/keyclient/granting.pem",
-				API: "renew-keygrant",
+				Name:      "keygranting",
+				Type:      "tls",
+				Key:       "../testdir/keyclient/granting.key",
+				Cert:      "../testdir/keyclient/granting.pem",
+				API:       "renew-keygrant",
 				InAdvance: "336h",
 			},
 		},

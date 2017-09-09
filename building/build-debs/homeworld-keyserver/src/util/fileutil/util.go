@@ -2,8 +2,8 @@ package fileutil
 
 import (
 	"errors"
-	"os"
 	"fmt"
+	"os"
 )
 
 func Exists(path string) bool {
@@ -43,7 +43,7 @@ func CreateFile(filename string, contents []byte, permissions os.FileMode) error
 	}
 	_, err = file_out.Write(contents)
 	if err != nil {
-		file_out.Close()            // ignore failure: nothing more we can do...
+		file_out.Close() // ignore failure: nothing more we can do...
 	} else {
 		err = file_out.Close()
 	}

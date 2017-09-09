@@ -1,26 +1,26 @@
 package download
 
 import (
-	"testing"
+	"errors"
+	"io/ioutil"
+	"keyclient/config"
 	"keyclient/state"
 	"keycommon/server"
-	"keyclient/config"
-	"time"
-	"util/testutil"
-	"util/fileutil"
 	"os"
-	"io/ioutil"
-	"errors"
+	"testing"
+	"time"
+	"util/fileutil"
+	"util/testutil"
 )
 
 func TestPrepareDownloadAction_Static(t *testing.T) {
 	ml := &state.ClientState{Keyserver: &server.Keyserver{}}
 	action, err := PrepareDownloadAction(ml, config.ConfigDownload{
-		Type: "static",
+		Type:    "static",
 		Refresh: "24h",
-		Name: "teststatic",
-		Mode: "600",
-		Path: "testdir/test.txt",
+		Name:    "teststatic",
+		Mode:    "600",
+		Path:    "testdir/test.txt",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -31,7 +31,7 @@ func TestPrepareDownloadAction_Static(t *testing.T) {
 	if action.(*DownloadAction).Mode != 0600 {
 		t.Error("wrong mode")
 	}
-	if action.(*DownloadAction).Refresh != time.Hour * 24 {
+	if action.(*DownloadAction).Refresh != time.Hour*24 {
 		t.Error("wrong refresh interval")
 	}
 	fetcher := action.(*DownloadAction).Fetcher.(*StaticFetcher)
@@ -46,11 +46,11 @@ func TestPrepareDownloadAction_Static(t *testing.T) {
 func TestPrepareDownloadAction_Pubkey(t *testing.T) {
 	ml := &state.ClientState{Keyserver: &server.Keyserver{}}
 	action, err := PrepareDownloadAction(ml, config.ConfigDownload{
-		Type: "authority",
+		Type:    "authority",
 		Refresh: "24h",
-		Name: "testkey",
-		Mode: "600",
-		Path: "testdir/test.txt",
+		Name:    "testkey",
+		Mode:    "600",
+		Path:    "testdir/test.txt",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -61,7 +61,7 @@ func TestPrepareDownloadAction_Pubkey(t *testing.T) {
 	if action.(*DownloadAction).Mode != 0600 {
 		t.Error("wrong mode")
 	}
-	if action.(*DownloadAction).Refresh != time.Hour * 24 {
+	if action.(*DownloadAction).Refresh != time.Hour*24 {
 		t.Error("wrong refresh interval")
 	}
 	fetcher := action.(*DownloadAction).Fetcher.(*AuthorityFetcher)
@@ -76,11 +76,11 @@ func TestPrepareDownloadAction_Pubkey(t *testing.T) {
 func TestPrepareDownloadAction_API(t *testing.T) {
 	ml := &state.ClientState{Keyserver: &server.Keyserver{}}
 	action, err := PrepareDownloadAction(ml, config.ConfigDownload{
-		Type: "api",
+		Type:    "api",
 		Refresh: "24h",
-		Name: "testapi",
-		Mode: "600",
-		Path: "testdir/test.txt",
+		Name:    "testapi",
+		Mode:    "600",
+		Path:    "testdir/test.txt",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -91,7 +91,7 @@ func TestPrepareDownloadAction_API(t *testing.T) {
 	if action.(*DownloadAction).Mode != 0600 {
 		t.Error("wrong mode")
 	}
-	if action.(*DownloadAction).Refresh != time.Hour * 24 {
+	if action.(*DownloadAction).Refresh != time.Hour*24 {
 		t.Error("wrong refresh interval")
 	}
 	fetcher := action.(*DownloadAction).Fetcher.(*APIFetcher)
@@ -106,11 +106,11 @@ func TestPrepareDownloadAction_API(t *testing.T) {
 func TestPrepareDownloadAction_Unrecognized(t *testing.T) {
 	ml := &state.ClientState{Keyserver: &server.Keyserver{}}
 	_, err := PrepareDownloadAction(ml, config.ConfigDownload{
-		Type: "ftp",
+		Type:    "ftp",
 		Refresh: "24h",
-		Name: "testapi",
-		Mode: "600",
-		Path: "testdir/test.txt",
+		Name:    "testapi",
+		Mode:    "600",
+		Path:    "testdir/test.txt",
 	})
 	testutil.CheckError(t, err, "unrecognized download type: ftp")
 }
@@ -118,11 +118,11 @@ func TestPrepareDownloadAction_Unrecognized(t *testing.T) {
 func TestPrepareDownloadAction_InvalidDuration_UnsupportedUnit(t *testing.T) {
 	ml := &state.ClientState{Keyserver: &server.Keyserver{}}
 	_, err := PrepareDownloadAction(ml, config.ConfigDownload{
-		Type: "static",
+		Type:    "static",
 		Refresh: "24d",
-		Name: "testapi",
-		Mode: "600",
-		Path: "testdir/test.txt",
+		Name:    "testapi",
+		Mode:    "600",
+		Path:    "testdir/test.txt",
 	})
 	testutil.CheckError(t, err, "unknown unit d")
 }
@@ -130,11 +130,11 @@ func TestPrepareDownloadAction_InvalidDuration_UnsupportedUnit(t *testing.T) {
 func TestPrepareDownloadAction_InvalidDuration_Invalid(t *testing.T) {
 	ml := &state.ClientState{Keyserver: &server.Keyserver{}}
 	_, err := PrepareDownloadAction(ml, config.ConfigDownload{
-		Type: "static",
+		Type:    "static",
 		Refresh: "one hour",
-		Name: "testapi",
-		Mode: "600",
-		Path: "testdir/test.txt",
+		Name:    "testapi",
+		Mode:    "600",
+		Path:    "testdir/test.txt",
 	})
 	testutil.CheckError(t, err, "invalid duration one hour")
 }
@@ -142,11 +142,11 @@ func TestPrepareDownloadAction_InvalidDuration_Invalid(t *testing.T) {
 func TestPrepareDownloadAction_NotOctal(t *testing.T) {
 	ml := &state.ClientState{Keyserver: &server.Keyserver{}}
 	_, err := PrepareDownloadAction(ml, config.ConfigDownload{
-		Type: "static",
+		Type:    "static",
 		Refresh: "24h",
-		Name: "testapi",
-		Mode: "800",
-		Path: "testdir/test.txt",
+		Name:    "testapi",
+		Mode:    "800",
+		Path:    "testdir/test.txt",
 	})
 	testutil.CheckError(t, err, "strconv.ParseUint: parsing \"800\": invalid syntax")
 }
@@ -154,11 +154,11 @@ func TestPrepareDownloadAction_NotOctal(t *testing.T) {
 func TestPrepareDownloadAction_WorldWritable(t *testing.T) {
 	ml := &state.ClientState{Keyserver: &server.Keyserver{}}
 	_, err := PrepareDownloadAction(ml, config.ConfigDownload{
-		Type: "static",
+		Type:    "static",
 		Refresh: "24h",
-		Name: "testapi",
-		Mode: "666",
-		Path: "testdir/test.txt",
+		Name:    "testapi",
+		Mode:    "666",
+		Path:    "testdir/test.txt",
 	})
 	testutil.CheckError(t, err, "will not grant world-writable access")
 }
@@ -237,8 +237,8 @@ func TestDownloadAction_Pending_Old(t *testing.T) {
 }
 
 type FakeFetcher struct {
-	prereqs error
-	data []byte
+	prereqs  error
+	data     []byte
 	datafail error
 }
 

@@ -1,8 +1,8 @@
 package actloop
 
 import (
-	"sync"
 	"log"
+	"sync"
 	"time"
 )
 
@@ -15,7 +15,7 @@ type ActLoop struct {
 
 type Action interface {
 	Pending() (bool, error)
-	CheckBlocker() error   // error means "this can't happen yet"
+	CheckBlocker() error // error means "this can't happen yet"
 	Perform(logger *log.Logger) error
 }
 
@@ -80,9 +80,9 @@ func (m *ActLoop) Run(cycletime time.Duration) {
 			if !was_stabilized {
 				m.logger.Printf("ACTLOOP STABILIZED\n")
 			}
-			time.Sleep(cycletime * 30)  // usually five minutes
+			time.Sleep(cycletime * 30) // usually five minutes
 		} else {
-			time.Sleep(cycletime)  // usually ten seconds
+			time.Sleep(cycletime) // usually ten seconds
 		}
 		was_stabilized = stabilized
 	}

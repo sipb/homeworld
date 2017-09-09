@@ -1,11 +1,11 @@
 package actloop
 
 import (
-	"testing"
-	"log"
-	"errors"
 	"bytes"
+	"errors"
+	"log"
 	"reflect"
+	"testing"
 	"time"
 )
 
@@ -276,7 +276,7 @@ func TestActLoop_RunSimple(t *testing.T) {
 }
 
 type TimeAction struct {
-	PerformedAt time.Time
+	PerformedAt        time.Time
 	LastPendingCheckAt time.Time
 }
 
@@ -310,7 +310,7 @@ func TestActLoop_CycleTime(t *testing.T) {
 			t.Error("should have been executed")
 		}
 		duration := taction.PerformedAt.Sub(start)
-		if duration / time.Millisecond < 20 || duration / time.Millisecond >= 25 {
+		if duration/time.Millisecond < 20 || duration/time.Millisecond >= 25 {
 			if attempt < TIME_ATTEMPTS {
 				continue // let's try that again...
 			} else {
@@ -332,7 +332,12 @@ func TestActLoop_StableTime(t *testing.T) {
 		logger := log.New(logbuf, "[actloop] ", 0)
 		loop := NewActLoop(actions, logger)
 		interstitial := time.Time{}
-		go func() { time.Sleep(time.Millisecond * 10); interstitial = taction.LastPendingCheckAt; time.Sleep(time.Millisecond * 30); loop.Cancel() }()
+		go func() {
+			time.Sleep(time.Millisecond * 10)
+			interstitial = taction.LastPendingCheckAt
+			time.Sleep(time.Millisecond * 30)
+			loop.Cancel()
+		}()
 		start := time.Now()
 		loop.Run(time.Millisecond)
 		if !actions[0].(*FakeAction).Performed || !actions[1].(*FakeAction).Performed || taction.PerformedAt.IsZero() {

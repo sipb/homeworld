@@ -1,24 +1,24 @@
 package endpoint
 
 import (
+	"bytes"
+	"crypto/tls"
 	"crypto/x509"
+	"encoding/json"
 	"errors"
-	"strings"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"crypto/tls"
-	"bytes"
-	"encoding/json"
+	"strings"
 	"time"
 )
 
 type ServerEndpoint struct {
-	rootCAs *x509.CertPool
-	baseURL string
+	rootCAs      *x509.CertPool
+	baseURL      string
 	extraHeaders map[string]string
 	certificates []tls.Certificate
-	timeout time.Duration
+	timeout      time.Duration
 }
 
 func NewServerEndpoint(url string, authorities *x509.CertPool) (ServerEndpoint, error) {
@@ -33,7 +33,7 @@ func NewServerEndpoint(url string, authorities *x509.CertPool) (ServerEndpoint, 
 
 func (s ServerEndpoint) WithHeader(key string, value string) ServerEndpoint {
 	out := s
-	out.extraHeaders = map[string]string {}
+	out.extraHeaders = map[string]string{}
 	for k, v := range s.extraHeaders {
 		out.extraHeaders[k] = v
 	}
@@ -56,13 +56,13 @@ func (s ServerEndpoint) Request(path string, method string, reqbody []byte) ([]b
 	client := http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				RootCAs: s.rootCAs,
+				RootCAs:      s.rootCAs,
 				Certificates: s.certificates,
 			},
 		},
 		Timeout: s.timeout,
 	}
-	req, err := http.NewRequest(method, s.baseURL + path[1:], bytes.NewReader(reqbody))
+	req, err := http.NewRequest(method, s.baseURL+path[1:], bytes.NewReader(reqbody))
 	if err != nil {
 		return nil, fmt.Errorf("while preparing request: %s", err.Error())
 	}

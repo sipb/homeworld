@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	"keycommon/server"
 	"keycommon/reqtarget"
+	"keycommon/server"
 )
 
 type Config struct {

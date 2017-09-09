@@ -1,15 +1,15 @@
 package state
 
 import (
-	"testing"
-	"keyclient/config"
-	"os"
-	"util/testutil"
-	"io/ioutil"
-	"util/testkeyutil"
 	"crypto/rsa"
 	"crypto/tls"
+	"io/ioutil"
+	"keyclient/config"
+	"os"
+	"testing"
 	"util/fileutil"
+	"util/testkeyutil"
+	"util/testutil"
 )
 
 func TestClientState_ReloadKeygrantingCert_NoCerts(t *testing.T) {
@@ -23,7 +23,7 @@ func TestClientState_ReloadKeygrantingCert_NoCerts(t *testing.T) {
 	}
 	state := &ClientState{Config: config.Config{
 		CertPath: "../testdir/test.pem",
-		KeyPath: "../testdir/test.key",
+		KeyPath:  "../testdir/test.key",
 	}}
 	err = state.ReloadKeygrantingCert()
 	testutil.CheckError(t, err, "no keygranting certificate found")
@@ -43,9 +43,9 @@ func TestClientState_ReloadKeygrantingCert_NoCerts_Preserve(t *testing.T) {
 	}
 	state := &ClientState{Config: config.Config{
 		CertPath: "../testdir/test.pem",
-		KeyPath: "../testdir/test.key",
+		KeyPath:  "../testdir/test.key",
 	}}
-	state.Keygrant = &tls.Certificate{OCSPStaple:[]byte("not a valid cert")}
+	state.Keygrant = &tls.Certificate{OCSPStaple: []byte("not a valid cert")}
 	err = state.ReloadKeygrantingCert()
 	testutil.CheckError(t, err, "no keygranting certificate found")
 	if string(state.Keygrant.OCSPStaple) != "not a valid cert" {
@@ -64,7 +64,7 @@ func TestClientState_ReloadKeygrantingCert_NoCertYesKey(t *testing.T) {
 	}
 	state := &ClientState{Config: config.Config{
 		CertPath: "../testdir/test.pem",
-		KeyPath: "../testdir/test.key",
+		KeyPath:  "../testdir/test.key",
 	}}
 	err = state.ReloadKeygrantingCert()
 	testutil.CheckError(t, err, "no keygranting certificate found")
@@ -85,7 +85,7 @@ func TestClientState_ReloadKeygrantingCert_YesCertNoKey(t *testing.T) {
 	}
 	state := &ClientState{Config: config.Config{
 		CertPath: "../testdir/test.pem",
-		KeyPath: "../testdir/test.key",
+		KeyPath:  "../testdir/test.key",
 	}}
 	err = state.ReloadKeygrantingCert()
 	testutil.CheckError(t, err, "no keygranting certificate found")
@@ -106,7 +106,7 @@ func TestClientState_ReloadKeygrantingCert_InvalidData(t *testing.T) {
 	}
 	state := &ClientState{Config: config.Config{
 		CertPath: "../testdir/test.pem",
-		KeyPath: "../testdir/test.key",
+		KeyPath:  "../testdir/test.key",
 	}}
 	err = state.ReloadKeygrantingCert()
 	testutil.CheckError(t, err, "failed to reload keygranting certificate: tls: failed to find any PEM data")
@@ -128,9 +128,9 @@ func TestClientState_ReloadKeygrantingCert_InvalidData_Preserve(t *testing.T) {
 	}
 	state := &ClientState{Config: config.Config{
 		CertPath: "../testdir/test.pem",
-		KeyPath: "../testdir/test.key",
+		KeyPath:  "../testdir/test.key",
 	}}
-	state.Keygrant = &tls.Certificate{OCSPStaple:[]byte("not a valid cert")}
+	state.Keygrant = &tls.Certificate{OCSPStaple: []byte("not a valid cert")}
 	err = state.ReloadKeygrantingCert()
 	testutil.CheckError(t, err, "failed to reload keygranting certificate: tls: failed to find any PEM data")
 	if string(state.Keygrant.OCSPStaple) != "not a valid cert" {
@@ -152,7 +152,7 @@ func TestClientState_ReloadKeygrantingCert_ValidData(t *testing.T) {
 	}
 	state := &ClientState{Config: config.Config{
 		CertPath: "../testdir/test.pem",
-		KeyPath: "../testdir/test.key",
+		KeyPath:  "../testdir/test.key",
 	}}
 	err = state.ReloadKeygrantingCert()
 	if err != nil {
@@ -181,9 +181,9 @@ func TestClientState_ReloadKeygrantingCert_ValidData_NoPreserve(t *testing.T) {
 	}
 	state := &ClientState{Config: config.Config{
 		CertPath: "../testdir/test.pem",
-		KeyPath: "../testdir/test.key",
+		KeyPath:  "../testdir/test.key",
 	}}
-	state.Keygrant = &tls.Certificate{OCSPStaple:[]byte("not a valid cert")}
+	state.Keygrant = &tls.Certificate{OCSPStaple: []byte("not a valid cert")}
 	err = state.ReloadKeygrantingCert()
 	if err != nil {
 		t.Fatal(err)
@@ -209,7 +209,7 @@ func TestClientState_ReplaceKeygrantingCert(t *testing.T) {
 	}
 	state := &ClientState{Config: config.Config{
 		CertPath: "testdir/testa.pem",
-		KeyPath: "testdir/testa.key",
+		KeyPath:  "testdir/testa.key",
 	}}
 	keypem, _, certpem := testkeyutil.GenerateTLSRootPEMsForTests(t, "test", nil, nil)
 	err = ioutil.WriteFile("testdir/testa.key", keypem, os.FileMode(0600))
@@ -237,7 +237,7 @@ func TestClientState_ReplaceKeygrantingCert_NoFolder(t *testing.T) {
 	}
 	state := &ClientState{Config: config.Config{
 		CertPath: "testdir/nonexistent/testa.pem",
-		KeyPath: "testdir/testa.key",
+		KeyPath:  "testdir/testa.key",
 	}}
 	keypem, _, certpem := testkeyutil.GenerateTLSRootPEMsForTests(t, "test", nil, nil)
 	err = ioutil.WriteFile("testdir/testa.key", keypem, os.FileMode(0600))
@@ -259,7 +259,7 @@ func TestClientState_ReplaceKeygrantingCert_Invalid(t *testing.T) {
 	}
 	state := &ClientState{Config: config.Config{
 		CertPath: "testdir/testa.pem",
-		KeyPath: "testdir/testa.key",
+		KeyPath:  "testdir/testa.key",
 	}}
 	keypem, _, _ := testkeyutil.GenerateTLSRootPEMsForTests(t, "test", nil, nil)
 	err = ioutil.WriteFile("testdir/testa.key", keypem, os.FileMode(0600))

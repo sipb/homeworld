@@ -1,8 +1,8 @@
 package reqtarget
 
 import (
-	"testing"
 	"errors"
+	"testing"
 	"util/testutil"
 )
 
@@ -11,7 +11,7 @@ func TestSendRequest(t *testing.T) {
 		if len(requests) != 1 {
 			return nil, errors.New("count mismatch")
 		} else {
-			return []string { "alvarids" }, nil
+			return []string{"alvarids"}, nil
 		}
 	}}
 	result, err := SendRequest(rt, "after", "one-million-days")
@@ -40,7 +40,7 @@ func TestSendRequest_NotEnoughResults(t *testing.T) {
 		if len(requests) != 1 {
 			return nil, errors.New("count mismatch")
 		} else {
-			return []string {}, nil
+			return []string{}, nil
 		}
 	}}
 	_, err := SendRequest(rt, "after", "one-million-days")
@@ -52,7 +52,7 @@ func TestSendRequest_TooManyResults(t *testing.T) {
 		if len(requests) != 1 {
 			return nil, errors.New("count mismatch")
 		} else {
-			return []string {"embrans", "vonahi"}, nil
+			return []string{"embrans", "vonahi"}, nil
 		}
 	}}
 	_, err := SendRequest(rt, "after", "one-million-days")

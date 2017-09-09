@@ -4,15 +4,15 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"keyclient/actloop"
+	"keyclient/state"
+	"keycommon/reqtarget"
+	"log"
 	"os"
 	"strings"
 	"unicode"
 	"util/csrutil"
-	"keycommon/reqtarget"
-	"keyclient/state"
-	"keyclient/actloop"
 	"util/fileutil"
-	"log"
 )
 
 type BootstrapAction struct {

@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"keyserver/account"
 	"keyserver/authorities"
-	"util/strutil"
 	"strconv"
 	"time"
+	"util/strutil"
 )
 
 type CompiledGrant struct {

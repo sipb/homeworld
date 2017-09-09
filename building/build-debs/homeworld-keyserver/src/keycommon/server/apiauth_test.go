@@ -1,14 +1,14 @@
 package server
 
 import (
-	"testing"
-	"net/http"
-	"encoding/pem"
-	"util/testutil"
 	"crypto/tls"
-	"keycommon/reqtarget"
+	"encoding/pem"
 	"io/ioutil"
+	"keycommon/reqtarget"
+	"net/http"
+	"testing"
 	"util/testkeyutil"
+	"util/testutil"
 )
 
 func TestKeyserver_AuthenticateWithCert(t *testing.T) {
@@ -44,11 +44,11 @@ func TestKeyserver_AuthenticateWithCert(t *testing.T) {
 		t.Fatal(err)
 	}
 	clikey, clicert := testkeyutil.GenerateTLSKeypairForTests(t, "test-client", nil, nil, cacert, cakey)
-	rt, err := ks.AuthenticateWithCert(tls.Certificate{PrivateKey: clikey, Certificate: [][]byte{ clicert.Raw }})
+	rt, err := ks.AuthenticateWithCert(tls.Certificate{PrivateKey: clikey, Certificate: [][]byte{clicert.Raw}})
 	if err != nil {
 		t.Fatal(err)
 	}
-	response, err := rt.SendRequests([]reqtarget.Request{ {API: "testapi", Body: "testbody"} })
+	response, err := rt.SendRequests([]reqtarget.Request{{API: "testapi", Body: "testbody"}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -90,7 +90,7 @@ func TestKeyserver_AuthenticateWithToken(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	response, err := rt.SendRequests([]reqtarget.Request{ {API: "testapi", Body: "testbody"} })
+	response, err := rt.SendRequests([]reqtarget.Request{{API: "testapi", Body: "testbody"}})
 	if err != nil {
 		t.Fatal(err)
 	}

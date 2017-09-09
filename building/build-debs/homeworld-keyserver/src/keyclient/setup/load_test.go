@@ -1,17 +1,17 @@
 package setup
 
 import (
-	"testing"
-	"log"
 	"bytes"
 	"io/ioutil"
-	"util/testkeyutil"
-	"os"
 	"keyclient/actions/bootstrap"
+	"keyclient/actions/download"
 	"keyclient/actions/keygen"
 	"keyclient/actions/keyreq"
+	"log"
+	"os"
+	"testing"
 	"time"
-	"keyclient/actions/download"
+	"util/testkeyutil"
 	"util/testutil"
 )
 
@@ -134,7 +134,7 @@ func TestLoad_Full_Actions(t *testing.T) {
 	if kreq.KeyFile != "testdir/granting2.key" {
 		t.Error("wrong cert file")
 	}
-	if kreq.InAdvance != time.Hour * 336 {
+	if kreq.InAdvance != time.Hour*336 {
 		t.Error("wrong in-advance interval")
 	}
 	if kreq.Name != "keygranting" {
@@ -149,7 +149,7 @@ func TestLoad_Full_Actions(t *testing.T) {
 	if down.Mode != 0644 {
 		t.Error("wrong file mode")
 	}
-	if down.Refresh != time.Hour * 24 {
+	if down.Refresh != time.Hour*24 {
 		t.Error("wrong refresh interval")
 	}
 	fetcher := down.Fetcher.(*download.AuthorityFetcher)

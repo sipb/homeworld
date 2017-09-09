@@ -1,19 +1,19 @@
 package download
 
 import (
-	"testing"
-	"keyclient/state"
-	"crypto/tls"
-	"util/testkeyutil"
-	"net/http"
-	"strings"
 	"context"
 	"crypto/rsa"
+	"crypto/tls"
 	"crypto/x509"
-	"net"
-	"keycommon/server"
 	"encoding/pem"
 	"io/ioutil"
+	"keyclient/state"
+	"keycommon/server"
+	"net"
+	"net/http"
+	"strings"
+	"testing"
+	"util/testkeyutil"
 	"util/testutil"
 )
 
@@ -37,7 +37,7 @@ func TestAPIFetcher_PrereqsNotSatisfied(t *testing.T) {
 
 func TestAPIFetcher_PrereqsSatisfied(t *testing.T) {
 	key, cert := testkeyutil.GenerateTLSRootForTests(t, "test", nil, nil)
-	cert2 := &tls.Certificate{PrivateKey: key, Certificate: [][]byte{ cert.Raw }}
+	cert2 := &tls.Certificate{PrivateKey: key, Certificate: [][]byte{cert.Raw}}
 	if (&APIFetcher{State: &state.ClientState{Keygrant: cert2}}).PrereqsSatisfied() != nil {
 		t.Error("should be satisfied")
 	}
@@ -45,7 +45,7 @@ func TestAPIFetcher_PrereqsSatisfied(t *testing.T) {
 
 func launchTestServer(t *testing.T, f http.HandlerFunc) (stop func(), clientcakey *rsa.PrivateKey, clientcacert *x509.Certificate, servercert *x509.Certificate, addr string) {
 	clientcakey, clientcacert = testkeyutil.GenerateTLSRootForTests(t, "test-ca", nil, nil)
-	serverkey, servercert := testkeyutil.GenerateTLSRootForTests(t, "test-ca-2", []string {"localhost" }, nil)
+	serverkey, servercert := testkeyutil.GenerateTLSRootForTests(t, "test-ca-2", []string{"localhost"}, nil)
 	pool := x509.NewCertPool()
 	pool.AddCert(clientcacert)
 	srv := &http.Server{

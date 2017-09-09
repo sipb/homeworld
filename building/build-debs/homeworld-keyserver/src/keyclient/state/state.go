@@ -2,19 +2,19 @@ package state
 
 import (
 	"crypto/tls"
-	"util/fileutil"
-	"keycommon/server"
-	"keyclient/config"
-	"fmt"
 	"errors"
+	"fmt"
 	"io/ioutil"
+	"keyclient/config"
+	"keycommon/server"
 	"os"
+	"util/fileutil"
 )
 
 type ClientState struct {
-	Keyserver   *server.Keyserver
-	Config      config.Config
-	Keygrant    *tls.Certificate
+	Keyserver *server.Keyserver
+	Config    config.Config
+	Keygrant  *tls.Certificate
 }
 
 func (s *ClientState) ReloadKeygrantingCert() error {

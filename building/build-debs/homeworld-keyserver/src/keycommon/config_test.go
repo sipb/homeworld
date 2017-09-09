@@ -1,27 +1,27 @@
 package keycommon
 
 import (
-	"testing"
-	"crypto/tls"
-	"net/http"
-	"crypto/rsa"
-	"crypto/x509"
-	"util/testutil"
-	"net"
-	"strings"
 	"context"
-	"io/ioutil"
+	"crypto/rsa"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/pem"
-	"os"
+	"io/ioutil"
 	"keycommon/reqtarget"
-	"util/testkeyutil"
+	"net"
+	"net/http"
+	"os"
+	"strings"
+	"testing"
 	"time"
+	"util/testkeyutil"
+	"util/testutil"
 )
 
 func launchTestServer(t *testing.T, f http.HandlerFunc) (stop func(), clientcakey *rsa.PrivateKey, clientcacert *x509.Certificate, servercert *x509.Certificate, hostname string) {
 	time.Sleep(time.Millisecond * 5)
 	clientcakey, clientcacert = testkeyutil.GenerateTLSRootForTests(t, "test-ca", nil, nil)
-	serverkey, servercert := testkeyutil.GenerateTLSRootForTests(t, "test-ca-2", []string {"localhost" }, nil)
+	serverkey, servercert := testkeyutil.GenerateTLSRootForTests(t, "test-ca-2", []string{"localhost"}, nil)
 	pool := x509.NewCertPool()
 	pool.AddCert(clientcacert)
 	srv := &http.Server{

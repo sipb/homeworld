@@ -1,51 +1,51 @@
 package keyreq
 
 import (
-	"testing"
-	"keyclient/state"
-	"keyclient/config"
-	"util/testutil"
-	"time"
-	"util/fileutil"
-	"os"
-	"io/ioutil"
-	"util/certutil"
-	"util/testkeyutil"
-	"encoding/pem"
-	"crypto/tls"
-	"keycommon/server"
-	"strings"
-	"net/http"
-	"context"
-	"crypto/rsa"
-	"crypto/x509"
-	"net"
-	"util/csrutil"
-	"crypto/rand"
-	"encoding/json"
-	"keycommon/reqtarget"
-	"util/wraputil"
-	"fmt"
-	"math/big"
-	"golang.org/x/crypto/ssh"
 	"bytes"
+	"context"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/tls"
+	"crypto/x509"
+	"encoding/json"
+	"encoding/pem"
+	"fmt"
+	"golang.org/x/crypto/ssh"
+	"io/ioutil"
+	"keyclient/config"
+	"keyclient/state"
+	"keycommon/reqtarget"
+	"keycommon/server"
+	"math/big"
+	"net"
+	"net/http"
+	"os"
+	"strings"
+	"testing"
+	"time"
+	"util/certutil"
+	"util/csrutil"
+	"util/fileutil"
+	"util/testkeyutil"
+	"util/testutil"
+	"util/wraputil"
 )
 
 func TestPrepareRequestOrRenewKeys_TLS(t *testing.T) {
 	s := &state.ClientState{}
 	act, err := PrepareRequestOrRenewKeys(s, config.ConfigKey{
-		Name: "examplekey",
-		Type: "tls",
-		Key: "testdir/test.key",
-		Cert: "testdir/test.cert",
-		API: "testapi",
+		Name:      "examplekey",
+		Type:      "tls",
+		Key:       "testdir/test.key",
+		Cert:      "testdir/test.cert",
+		API:       "testapi",
 		InAdvance: "26h",
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 	action := act.(*RequestOrRenewAction)
-	if action.InAdvance != time.Hour * 26 {
+	if action.InAdvance != time.Hour*26 {
 		t.Error("wrong inadvance duration")
 	}
 	if action.Name != "examplekey" {
@@ -71,7 +71,7 @@ func TestPrepareRequestOrRenewKeys_TLS(t *testing.T) {
 }
 
 func TestPrepareRequestOrRenewKeys_SSH(t *testing.T) {
-	for _, ktype := range []string { "ssh", "ssh-pubkey" } {
+	for _, ktype := range []string{"ssh", "ssh-pubkey"} {
 		s := &state.ClientState{}
 		act, err := PrepareRequestOrRenewKeys(s, config.ConfigKey{
 			Name:      "examplekey",
@@ -114,11 +114,11 @@ func TestPrepareRequestOrRenewKeys_SSH(t *testing.T) {
 func TestPrepareRequestOrRenewKeys_BadType(t *testing.T) {
 	s := &state.ClientState{}
 	_, err := PrepareRequestOrRenewKeys(s, config.ConfigKey{
-		Name: "examplekey",
-		Type: "pin-tumbler",
-		Key: "testdir/test",
-		Cert: "testdir/test-cert.pub",
-		API: "testapi",
+		Name:      "examplekey",
+		Type:      "pin-tumbler",
+		Key:       "testdir/test",
+		Cert:      "testdir/test-cert.pub",
+		API:       "testapi",
 		InAdvance: "26h",
 	})
 	testutil.CheckError(t, err, "unrecognized key type: pin-tumbler")
@@ -127,10 +127,10 @@ func TestPrepareRequestOrRenewKeys_BadType(t *testing.T) {
 func TestPrepareRequestOrRenewKeys_NoAPI(t *testing.T) {
 	s := &state.ClientState{}
 	_, err := PrepareRequestOrRenewKeys(s, config.ConfigKey{
-		Name: "examplekey",
-		Type: "ssh",
-		Key: "testdir/test",
-		Cert: "testdir/test-cert.pub",
+		Name:      "examplekey",
+		Type:      "ssh",
+		Key:       "testdir/test",
+		Cert:      "testdir/test-cert.pub",
 		InAdvance: "26h",
 	})
 	testutil.CheckError(t, err, "no renew api provided")
@@ -141,9 +141,9 @@ func TestPrepareRequestOrRenewKeys_NoInadvance(t *testing.T) {
 	_, err := PrepareRequestOrRenewKeys(s, config.ConfigKey{
 		Name: "examplekey",
 		Type: "ssh",
-		Key: "testdir/test",
+		Key:  "testdir/test",
 		Cert: "testdir/test-cert.pub",
-		API: "testapi",
+		API:  "testapi",
 	})
 	testutil.CheckError(t, err, "invalid in-advance interval for key renewal: time: invalid duration")
 }
@@ -151,11 +151,11 @@ func TestPrepareRequestOrRenewKeys_NoInadvance(t *testing.T) {
 func TestPrepareRequestOrRenewKeys_ZeroAdvance(t *testing.T) {
 	s := &state.ClientState{}
 	_, err := PrepareRequestOrRenewKeys(s, config.ConfigKey{
-		Name: "examplekey",
-		Type: "ssh",
-		Key: "testdir/test",
-		Cert: "testdir/test-cert.pub",
-		API: "testapi",
+		Name:      "examplekey",
+		Type:      "ssh",
+		Key:       "testdir/test",
+		Cert:      "testdir/test-cert.pub",
+		API:       "testapi",
 		InAdvance: "0h",
 	})
 	testutil.CheckError(t, err, "invalid in-advance interval for key renewal: nonpositive duration")
@@ -164,11 +164,11 @@ func TestPrepareRequestOrRenewKeys_ZeroAdvance(t *testing.T) {
 func TestPrepareRequestOrRenewKeys_NegativeAdvance(t *testing.T) {
 	s := &state.ClientState{}
 	_, err := PrepareRequestOrRenewKeys(s, config.ConfigKey{
-		Name: "examplekey",
-		Type: "ssh",
-		Key: "testdir/test",
-		Cert: "testdir/test-cert.pub",
-		API: "testapi",
+		Name:      "examplekey",
+		Type:      "ssh",
+		Key:       "testdir/test",
+		Cert:      "testdir/test-cert.pub",
+		API:       "testapi",
 		InAdvance: "-1h",
 	})
 	testutil.CheckError(t, err, "invalid in-advance interval for key renewal: nonpositive duration")
@@ -214,7 +214,7 @@ func TestRequestOrRenewAction_Pending_MalformedTLS(t *testing.T) {
 		t.Error(err)
 	}
 	ispending, err := (&RequestOrRenewAction{
-		CertFile: "testdir/malformed.pem",
+		CertFile:        "testdir/malformed.pem",
 		CheckExpiration: certutil.CheckTLSCertExpiration,
 	}).Pending()
 	if !ispending {
@@ -234,7 +234,7 @@ func TestRequestOrRenewAction_Pending_MalformedSSH(t *testing.T) {
 		t.Error(err)
 	}
 	ispending, err := (&RequestOrRenewAction{
-		CertFile: "testdir/malformed.pem",
+		CertFile:        "testdir/malformed.pem",
 		CheckExpiration: certutil.CheckSSHCertExpiration,
 	}).Pending()
 	if !ispending {
@@ -255,9 +255,9 @@ func TestRequestOrRenewAction_Pending_NonRenewable(t *testing.T) {
 		t.Error(err)
 	}
 	ispending, err := (&RequestOrRenewAction{
-		CertFile: "testdir/real.pem",
+		CertFile:        "testdir/real.pem",
 		CheckExpiration: certutil.CheckTLSCertExpiration,
-		InAdvance: time.Minute * 30, // less than the default time.Hour for temporary certs
+		InAdvance:       time.Minute * 30, // less than the default time.Hour for temporary certs
 	}).Pending()
 	if err != nil {
 		t.Error(err)
@@ -279,9 +279,9 @@ func TestRequestOrRenewAction_Pending_Renewable(t *testing.T) {
 		t.Error(err)
 	}
 	ispending, err := (&RequestOrRenewAction{
-		CertFile: "testdir/real.pem",
+		CertFile:        "testdir/real.pem",
 		CheckExpiration: certutil.CheckTLSCertExpiration,
-		InAdvance: time.Minute * 90, // longer than the default time.Hour for temporary certs
+		InAdvance:       time.Minute * 90, // longer than the default time.Hour for temporary certs
 	}).Pending()
 	if err != nil {
 		t.Error(err)
@@ -314,7 +314,7 @@ func TestRequestOrRenewAction_CheckBlocker_YesGrant(t *testing.T) {
 
 func launchTestServer(t *testing.T, f http.HandlerFunc) (stop func(), clientcakey *rsa.PrivateKey, clientcacert *x509.Certificate, servercert *x509.Certificate, addr string) {
 	clientcakey, clientcacert = testkeyutil.GenerateTLSRootForTests(t, "test-ca", nil, nil)
-	serverkey, servercert := testkeyutil.GenerateTLSRootForTests(t, "test-ca-2", []string {"localhost" }, nil)
+	serverkey, servercert := testkeyutil.GenerateTLSRootForTests(t, "test-ca-2", []string{"localhost"}, nil)
 	pool := x509.NewCertPool()
 	pool.AddCert(clientcacert)
 	srv := &http.Server{
@@ -444,13 +444,13 @@ func TestRequestOrRenewAction_Perform_TLS(t *testing.T) {
 	}
 	// the actual action setup
 	action := &RequestOrRenewAction{
-		KeyFile: "testdir/testkey.key",
+		KeyFile:  "testdir/testkey.key",
 		CertFile: "testdir/testcert.pem",
 		State: &state.ClientState{
 			Keyserver: keyserver,
-			Keygrant: &tls.Certificate{PrivateKey: clikey, Certificate: [][]byte{clicert.Raw}},
+			Keygrant:  &tls.Certificate{PrivateKey: clikey, Certificate: [][]byte{clicert.Raw}},
 		},
-		API: "testapi",
+		API:    "testapi",
 		GenCSR: csrutil.BuildTLSCSR,
 	}
 	// the actual request
@@ -462,7 +462,7 @@ func TestRequestOrRenewAction_Perform_TLS(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	if string(contents) != "this is definitely not a certificate but you don't care.\n" + thisid + "\n" {
+	if string(contents) != "this is definitely not a certificate but you don't care.\n"+thisid+"\n" {
 		t.Error("wrong contents")
 	}
 	os.Remove("testdir/testcert.pem")
@@ -541,13 +541,13 @@ func TestRequestOrRenewAction_Perform_SSH(t *testing.T) {
 	}
 	// the actual action setup
 	action := &RequestOrRenewAction{
-		KeyFile: "testdir/testkey.pub",
+		KeyFile:  "testdir/testkey.pub",
 		CertFile: "testdir/testkey-cert.pub",
 		State: &state.ClientState{
 			Keyserver: keyserver,
-			Keygrant: &tls.Certificate{PrivateKey: clikey, Certificate: [][]byte{clicert.Raw}},
+			Keygrant:  &tls.Certificate{PrivateKey: clikey, Certificate: [][]byte{clicert.Raw}},
 		},
-		API: "testapi",
+		API:    "testapi",
 		GenCSR: csrutil.BuildSSHCSR,
 	}
 	// the actual request
@@ -559,7 +559,7 @@ func TestRequestOrRenewAction_Perform_SSH(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	if string(contents) != "this is definitely not a certificate but you don't care.\n" + thisid + "\n" {
+	if string(contents) != "this is definitely not a certificate but you don't care.\n"+thisid+"\n" {
 		t.Error("wrong contents")
 	}
 	os.Remove("testdir/testkey-cert.pub")
@@ -594,13 +594,13 @@ func TestRequestOrRenewAction_Perform_TLS_ResultFail(t *testing.T) {
 	}
 	// the actual action setup
 	action := &RequestOrRenewAction{
-		KeyFile: "testdir/testkey.key",
+		KeyFile:  "testdir/testkey.key",
 		CertFile: "testdir/nonexistent/testcert.pem",
 		State: &state.ClientState{
 			Keyserver: keyserver,
-			Keygrant: &tls.Certificate{PrivateKey: clikey, Certificate: [][]byte{clicert.Raw}},
+			Keygrant:  &tls.Certificate{PrivateKey: clikey, Certificate: [][]byte{clicert.Raw}},
 		},
-		API: "testapi",
+		API:    "testapi",
 		GenCSR: csrutil.BuildTLSCSR,
 	}
 	// the actual request
@@ -637,13 +637,13 @@ func TestRequestOrRenewAction_Perform_TLS_NoResult(t *testing.T) {
 	}
 	// the actual action setup
 	action := &RequestOrRenewAction{
-		KeyFile: "testdir/testkey.key",
+		KeyFile:  "testdir/testkey.key",
 		CertFile: "testdir/testcert.pem",
 		State: &state.ClientState{
 			Keyserver: keyserver,
-			Keygrant: &tls.Certificate{PrivateKey: clikey, Certificate: [][]byte{clicert.Raw}},
+			Keygrant:  &tls.Certificate{PrivateKey: clikey, Certificate: [][]byte{clicert.Raw}},
 		},
-		API: "testapi",
+		API:    "testapi",
 		GenCSR: csrutil.BuildTLSCSR,
 	}
 	// the actual request
@@ -676,13 +676,13 @@ func TestRequestOrRenewAction_Perform_TLS_NoServer(t *testing.T) {
 	}
 	// the actual action setup
 	action := &RequestOrRenewAction{
-		KeyFile: "testdir/testkey.key",
+		KeyFile:  "testdir/testkey.key",
 		CertFile: "testdir/testcert.pem",
 		State: &state.ClientState{
 			Keyserver: keyserver,
-			Keygrant: &tls.Certificate{PrivateKey: clikey, Certificate: [][]byte{clicert.Raw}},
+			Keygrant:  &tls.Certificate{PrivateKey: clikey, Certificate: [][]byte{clicert.Raw}},
 		},
-		API: "testapi",
+		API:    "testapi",
 		GenCSR: csrutil.BuildTLSCSR,
 	}
 	// the actual request
@@ -703,7 +703,7 @@ func TestRequestOrRenewAction_Perform_TLS_InvalidKey(t *testing.T) {
 	// the actual action setup
 	action := &RequestOrRenewAction{
 		KeyFile: "testdir/testkey.key",
-		GenCSR: csrutil.BuildTLSCSR,
+		GenCSR:  csrutil.BuildTLSCSR,
 	}
 	// the actual request
 	err = action.Perform(nil)

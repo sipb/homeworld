@@ -1,18 +1,18 @@
 package setup
 
 import (
-	"time"
-	"keyclient/state"
-	"keyclient/config"
+	"fmt"
+	"io/ioutil"
 	"keyclient/actions/bootstrap"
+	"keyclient/actions/download"
 	"keyclient/actions/keygen"
 	"keyclient/actions/keyreq"
-	"keyclient/actions/download"
-	"io/ioutil"
-	"fmt"
-	"keycommon/server"
 	"keyclient/actloop"
+	"keyclient/config"
+	"keyclient/state"
+	"keycommon/server"
 	"log"
+	"time"
 )
 
 // TODO: private key rotation, not just getting new certs

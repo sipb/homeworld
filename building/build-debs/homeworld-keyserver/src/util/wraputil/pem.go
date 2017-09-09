@@ -2,11 +2,11 @@ package wraputil
 
 import (
 	"bytes"
+	"crypto/rsa"
+	"crypto/x509"
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"crypto/rsa"
-	"crypto/x509"
 )
 
 func LoadSinglePEMBlock(data []byte, expected_types []string) ([]byte, error) {

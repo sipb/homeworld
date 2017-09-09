@@ -1,22 +1,22 @@
 package server
 
 import (
-	"testing"
-	"util/testutil"
-	"crypto/tls"
-	"net/http"
-	"crypto/rsa"
-	"crypto/x509"
-	"net"
-	"strings"
 	"context"
+	"crypto/rsa"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/pem"
+	"net"
+	"net/http"
+	"strings"
+	"testing"
 	"util/testkeyutil"
+	"util/testutil"
 )
 
 func launchTestServer(t *testing.T, f http.HandlerFunc) (stop func(), clientcakey *rsa.PrivateKey, clientcacert *x509.Certificate, servercert *x509.Certificate, hostname string) {
 	clientcakey, clientcacert = testkeyutil.GenerateTLSRootForTests(t, "test-ca", nil, nil)
-	serverkey, servercert := testkeyutil.GenerateTLSRootForTests(t, "test-ca-2", []string {"localhost" }, nil)
+	serverkey, servercert := testkeyutil.GenerateTLSRootForTests(t, "test-ca-2", []string{"localhost"}, nil)
 	pool := x509.NewCertPool()
 	pool.AddCert(clientcacert)
 	srv := &http.Server{

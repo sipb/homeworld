@@ -1,12 +1,12 @@
 package wraputil
 
 import (
+	"bytes"
+	"crypto/rsa"
+	"crypto/x509"
+	"strings"
 	"testing"
 	"util/testutil"
-	"strings"
-	"bytes"
-	"crypto/x509"
-	"crypto/rsa"
 )
 
 const (
@@ -120,7 +120,7 @@ func TestLoadX509CertFromPEM_RawIsInput(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	data, err := LoadSinglePEMBlock([]byte(TLS_TEST_CERT), []string{ "CERTIFICATE" })
+	data, err := LoadSinglePEMBlock([]byte(TLS_TEST_CERT), []string{"CERTIFICATE"})
 	if err != nil {
 		t.Fatal(err)
 	}

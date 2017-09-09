@@ -5,14 +5,14 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"fmt"
-	"util/fileutil"
+	"keyclient/actloop"
+	"keyclient/config"
 	"log"
 	"os"
 	"path"
-	"keyclient/config"
-	"errors"
-	"keyclient/actloop"
+	"util/fileutil"
 )
 
 const RSA_BITS = 4096

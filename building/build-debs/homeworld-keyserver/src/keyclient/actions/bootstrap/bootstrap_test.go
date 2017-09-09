@@ -1,29 +1,29 @@
 package bootstrap
 
 import (
-	"testing"
-	"keyclient/state"
-	"util/testutil"
-	"io/ioutil"
-	"os"
-	"util/fileutil"
-	"crypto/tls"
-	"keycommon/server"
-	"strings"
-	"net/http"
-	"crypto/rsa"
-	"crypto/x509"
-	"util/testkeyutil"
-	"net"
 	"context"
-	"encoding/pem"
-	"time"
-	"fmt"
-	"keyclient/config"
-	"util/wraputil"
-	"keycommon/reqtarget"
+	"crypto/rsa"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
+	"fmt"
+	"io/ioutil"
+	"keyclient/config"
+	"keyclient/state"
+	"keycommon/reqtarget"
+	"keycommon/server"
 	"keyserver/authorities"
+	"net"
+	"net/http"
+	"os"
+	"strings"
+	"testing"
+	"time"
+	"util/fileutil"
+	"util/testkeyutil"
+	"util/testutil"
+	"util/wraputil"
 )
 
 func TestPrepareBootstrapAction(t *testing.T) {
@@ -174,7 +174,7 @@ func TestGetToken_NotPrintable(t *testing.T) {
 
 func launchTestServer(t *testing.T, f http.HandlerFunc) (stop func(), clientcakey *rsa.PrivateKey, clientcacert *x509.Certificate, servercert *x509.Certificate, addr string) {
 	clientcakey, clientcacert = testkeyutil.GenerateTLSRootForTests(t, "test-ca", nil, nil)
-	serverkey, servercert := testkeyutil.GenerateTLSRootForTests(t, "test-ca-2", []string {"localhost" }, nil)
+	serverkey, servercert := testkeyutil.GenerateTLSRootForTests(t, "test-ca-2", []string{"localhost"}, nil)
 	pool := x509.NewCertPool()
 	pool.AddCert(clientcacert)
 	srv := &http.Server{
@@ -256,7 +256,7 @@ func TestSendRequest(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = ioutil.WriteFile("testdir/test.token", []byte(" " + token + "\n"), os.FileMode(0600))
+	err = ioutil.WriteFile("testdir/test.token", []byte(" "+token+"\n"), os.FileMode(0600))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -303,7 +303,7 @@ func TestSendRequest_CannotRemove(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = ioutil.WriteFile("testdir/limited/test.token", []byte(" " + token + "\n"), os.FileMode(0600))
+	err = ioutil.WriteFile("testdir/limited/test.token", []byte(" "+token+"\n"), os.FileMode(0600))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -533,7 +533,7 @@ func TestPerform(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = ioutil.WriteFile("testdir/test.token", []byte(" " + token + "\n"), os.FileMode(0600))
+	err = ioutil.WriteFile("testdir/test.token", []byte(" "+token+"\n"), os.FileMode(0600))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -548,10 +548,10 @@ func TestPerform(t *testing.T) {
 	}
 	err = (&BootstrapAction{
 		TokenFilePath: "testdir/test.token",
-		TokenAPI: "testapi",
+		TokenAPI:      "testapi",
 		State: &state.ClientState{
 			Config: config.Config{
-				KeyPath: "testdir/test.key",
+				KeyPath:  "testdir/test.key",
 				CertPath: "testdir/test.pem",
 			},
 			Keyserver: ks,
@@ -620,10 +620,10 @@ func TestPerform_NoResponse(t *testing.T) {
 	}
 	err = (&BootstrapAction{
 		TokenFilePath: "testdir/test.token",
-		TokenAPI: "testapi",
+		TokenAPI:      "testapi",
 		State: &state.ClientState{
 			Config: config.Config{
-				KeyPath: "testdir/test.key",
+				KeyPath:  "testdir/test.key",
 				CertPath: "testdir/test.pem",
 			},
 			Keyserver: ks,
@@ -671,10 +671,10 @@ func TestPerform_InvalidResponse(t *testing.T) {
 	}
 	err = (&BootstrapAction{
 		TokenFilePath: "testdir/test.token",
-		TokenAPI: "testapi",
+		TokenAPI:      "testapi",
 		State: &state.ClientState{
 			Config: config.Config{
-				KeyPath: "testdir/test.key",
+				KeyPath:  "testdir/test.key",
 				CertPath: "testdir/test.pem",
 			},
 			Keyserver: ks,

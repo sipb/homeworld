@@ -2,8 +2,8 @@ package main
 
 import (
 	"keyclient"
-	"log"
 	"keyclient/setup"
+	"log"
 	"os"
 )
 
@@ -14,7 +14,7 @@ import (
 //  - renew other certificates
 
 func main() {
-	logger := log.New(os.Stderr, "[keyclient] ", log.Ldate | log.Ltime | log.Lmicroseconds | log.Lshortfile)
+	logger := log.New(os.Stderr, "[keyclient] ", log.Ldate|log.Ltime|log.Lmicroseconds|log.Lshortfile)
 	_, err := setup.LoadAndLaunch("/etc/hyades/keyclient/keyclient.conf", logger)
 	if err != nil {
 		logger.Fatal(err)

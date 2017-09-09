@@ -1,12 +1,12 @@
 package keygen
 
 import (
-	"testing"
-	"keyclient/config"
-	"util/testutil"
-	"os"
-	"util/fileutil"
 	"io/ioutil"
+	"keyclient/config"
+	"os"
+	"testing"
+	"util/fileutil"
+	"util/testutil"
 	"util/wraputil"
 )
 
@@ -34,7 +34,7 @@ func TestPrepareKeygenAction_SSHPubkey(t *testing.T) {
 func TestPrepareKeygenAction_TLSKey(t *testing.T) {
 	key := config.ConfigKey{
 		Type: "tls",
-		Key: "testdir/crypto.key",
+		Key:  "testdir/crypto.key",
 	}
 	action, err := PrepareKeygenAction(key)
 	if err != nil {

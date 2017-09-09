@@ -1,16 +1,16 @@
 package testkeyutil
 
 import (
+	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
-	"crypto/rand"
-	"time"
-	"math/big"
 	"crypto/x509/pkix"
+	"encoding/asn1"
+	"encoding/pem"
+	"math/big"
 	"net"
 	"testing"
-	"encoding/pem"
-	"encoding/asn1"
+	"time"
 	"util/wraputil"
 )
 
@@ -24,10 +24,10 @@ func marshalpkcs8(key *rsa.PrivateKey) ([]byte, error) {
 		Version             int
 		PrivateKeyAlgorithm []asn1.ObjectIdentifier
 		PrivateKey          []byte
-	} {
-		Version: 0,
-		PrivateKeyAlgorithm: []asn1.ObjectIdentifier {{1, 2, 840, 113549, 1, 1, 1}}, // pkcs1 OID
-		PrivateKey: x509.MarshalPKCS1PrivateKey(key),
+	}{
+		Version:             0,
+		PrivateKeyAlgorithm: []asn1.ObjectIdentifier{{1, 2, 840, 113549, 1, 1, 1}}, // pkcs1 OID
+		PrivateKey:          x509.MarshalPKCS1PrivateKey(key),
 	})
 }
 
@@ -66,8 +66,8 @@ func GenerateTLSKeypairForTests_WithTime(t *testing.T, commonname string, dns []
 		ExtKeyUsage: extKeyUsage,
 
 		BasicConstraintsValid: true,
-		IsCA:           true,
-		MaxPathLen:     1,
+		IsCA:       true,
+		MaxPathLen: 1,
 
 		SerialNumber: serialNumber,
 

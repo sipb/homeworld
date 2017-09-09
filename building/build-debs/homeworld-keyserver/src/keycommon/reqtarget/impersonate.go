@@ -1,8 +1,8 @@
 package reqtarget
 
 import (
-	"fmt"
 	"errors"
+	"fmt"
 )
 
 type impersonatedTarget struct {

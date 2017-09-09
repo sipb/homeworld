@@ -1,18 +1,18 @@
 package keyreq
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
+	"keyclient/actloop"
+	"keyclient/config"
+	"keyclient/state"
+	"keycommon/reqtarget"
+	"log"
 	"os"
 	"time"
-	"keycommon/reqtarget"
-	"util/csrutil"
-	"keyclient/state"
-	"errors"
-	"keyclient/config"
-	"keyclient/actloop"
-	"log"
 	"util/certutil"
+	"util/csrutil"
 )
 
 type RequestOrRenewAction struct {
@@ -38,12 +38,12 @@ func PrepareRequestOrRenewKeys(s *state.ClientState, key config.ConfigKey) (actl
 		return nil, errors.New("no renew api provided")
 	}
 	action := &RequestOrRenewAction{
-		State: s,
+		State:     s,
 		InAdvance: inadvance,
-		API: key.API,
-		Name: key.Name,
-		KeyFile: key.Key,
-		CertFile: key.Cert,
+		API:       key.API,
+		Name:      key.Name,
+		KeyFile:   key.Key,
+		CertFile:  key.Cert,
 	}
 	switch key.Type {
 	case "tls":

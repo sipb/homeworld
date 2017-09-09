@@ -1,9 +1,9 @@
 package fileutil
 
 import (
-	"testing"
-	"os"
 	"io/ioutil"
+	"os"
+	"testing"
 	"util/testutil"
 )
 
@@ -26,7 +26,7 @@ func TestExists(t *testing.T) {
 }
 
 func TestEnsureIsFolder_NotDir(t *testing.T) {
-	os.Mkdir("testdir", os.FileMode(0755)) // ignore errors
+	os.Mkdir("testdir", os.FileMode(0755))         // ignore errors
 	os.Remove("testdir/should_not_be_a_directory") // ignore errors
 	err := ioutil.WriteFile("testdir/should_not_be_a_directory", []byte("test"), os.FileMode(0755))
 	if err != nil {
@@ -37,7 +37,7 @@ func TestEnsureIsFolder_NotDir(t *testing.T) {
 }
 
 func TestEnsureIsFolder_AlreadyExists(t *testing.T) {
-	os.Mkdir("testdir", os.FileMode(0755)) // ignore errors
+	os.Mkdir("testdir", os.FileMode(0755))     // ignore errors
 	os.Remove("testdir/should_be_a_directory") // ignore errors
 	err := os.Mkdir("testdir/should_be_a_directory", os.FileMode(0755))
 	if err != nil {
@@ -57,7 +57,7 @@ func TestEnsureIsFolder_AlreadyExists(t *testing.T) {
 }
 
 func TestEnsureIsFolder_CreateOne(t *testing.T) {
-	os.Mkdir("testdir", os.FileMode(0755)) // ignore errors
+	os.Mkdir("testdir", os.FileMode(0755))     // ignore errors
 	os.Remove("testdir/should_be_a_directory") // ignore errors
 	info, err := os.Stat("testdir/should_be_a_directory")
 	if err == nil {
@@ -81,7 +81,7 @@ func TestEnsureIsFolder_CreateOne(t *testing.T) {
 func TestEnsureIsFolder_CreateTwo(t *testing.T) {
 	os.Mkdir("testdir", os.FileMode(0755)) // ignore errors
 	os.Remove("testdir/parent_dir/subdir") // ignore errors
-	os.Remove("testdir/parent_dir") // ignore errors
+	os.Remove("testdir/parent_dir")        // ignore errors
 	info, err := os.Stat("testdir/parent_dir")
 	if err == nil {
 		t.Fatal("expected error")
@@ -103,7 +103,7 @@ func TestEnsureIsFolder_CreateTwo(t *testing.T) {
 
 func TestEnsureIsFolder_CannotStat(t *testing.T) {
 	os.Mkdir("testdir", os.FileMode(0755)) // ignore errors
-	os.Remove("testdir/brokendir") // ignore errors
+	os.Remove("testdir/brokendir")         // ignore errors
 	err := ioutil.WriteFile("testdir/brokendir", []byte("test"), os.FileMode(0644))
 	if err != nil {
 		t.Fatal(err)
@@ -114,7 +114,7 @@ func TestEnsureIsFolder_CannotStat(t *testing.T) {
 
 func TestEnsureIsFolder_CannotMkdir(t *testing.T) {
 	os.Mkdir("testdir", os.FileMode(0755)) // ignore errors
-	os.Remove("testdir/limiteddir") // ignore errors
+	os.Remove("testdir/limiteddir")        // ignore errors
 	err := os.Mkdir("testdir/limiteddir", os.FileMode(0555))
 	if err != nil {
 		t.Fatal(err)

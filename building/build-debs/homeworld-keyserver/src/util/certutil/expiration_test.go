@@ -1,13 +1,13 @@
 package certutil
 
 import (
-	"testing"
-	"golang.org/x/crypto/ssh"
-	"time"
 	"crypto/rand"
 	"crypto/rsa"
-	"util/testkeyutil"
 	"encoding/pem"
+	"golang.org/x/crypto/ssh"
+	"testing"
+	"time"
+	"util/testkeyutil"
 	"util/testutil"
 )
 
@@ -20,13 +20,13 @@ func TestCheckSSHCertExpiration(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	testtime := time.Now().Add(time.Hour * 13 + time.Second * 20)
+	testtime := time.Now().Add(time.Hour*13 + time.Second*20)
 	pk, err := ssh.NewPublicKey(signkey.Public())
 	if err != nil {
 		t.Fatal(err)
 	}
 	cert := &ssh.Certificate{
-		Key: pk,
+		Key:         pk,
 		ValidBefore: uint64(testtime.Unix()),
 	}
 	err = cert.SignCert(rand.Reader, signer)

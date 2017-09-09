@@ -1,8 +1,8 @@
 package wraputil
 
 import (
-	"golang.org/x/crypto/ssh"
 	"errors"
+	"golang.org/x/crypto/ssh"
 	"strings"
 )
 

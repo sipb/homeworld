@@ -1,8 +1,8 @@
 package reqtarget
 
 import (
-	"testing"
 	"errors"
+	"testing"
 	"util/testutil"
 )
 
@@ -48,13 +48,13 @@ func TestImpersonate(t *testing.T) {
 			if r[2].Body != "parameter-B" {
 				t.Error("Wrong perform body")
 			}
-			return []string { "", "result-A", "result-B" }, nil
+			return []string{"", "result-A", "result-B"}, nil
 		}
 	}}, "become-doppelganger", "mephistopheles")
 	if err != nil {
 		t.Fatal(err)
 	}
-	results, err := rt.SendRequests([]Request { { "perform-action-1", "parameter-A" }, { "perform-action-2", "parameter-B" } })
+	results, err := rt.SendRequests([]Request{{"perform-action-1", "parameter-A"}, {"perform-action-2", "parameter-B"}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -133,6 +133,6 @@ func TestImpersonate_FailOnPurpose(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = rt.SendRequests([]Request { { "perform-action-1", "parameter-A" }, { "perform-action-2", "parameter-B" } })
+	_, err = rt.SendRequests([]Request{{"perform-action-1", "parameter-A"}, {"perform-action-2", "parameter-B"}})
 	testutil.CheckError(t, err, "purposeful failure")
 }
