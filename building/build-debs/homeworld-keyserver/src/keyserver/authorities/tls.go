@@ -30,13 +30,13 @@ func (t *TLSAuthority) Equal(authority *TLSAuthority) bool {
 	return bytes.Equal(t.cert.Raw, authority.cert.Raw)
 }
 
-func LoadTLSAuthority(keydata []byte, pubkeydata []byte) (Authority, error) {
+func LoadTLSAuthority(keydata []byte, certdata []byte) (Authority, error) {
 	privkey, err := wraputil.LoadRSAKeyFromPEM(keydata)
 	if err != nil {
 		return nil, err
 	}
 
-	cert, err := wraputil.LoadX509CertFromPEM(pubkeydata)
+	cert, err := wraputil.LoadX509CertFromPEM(certdata)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func LoadTLSAuthority(keydata []byte, pubkeydata []byte) (Authority, error) {
 		return nil, errors.New("mismatched RSA public and private keys")
 	}
 
-	return &TLSAuthority{key: privkey, cert: cert, certEncoded: pubkeydata}, nil
+	return &TLSAuthority{key: privkey, cert: cert, certEncoded: certdata}, nil
 }
 
 func (t *TLSAuthority) ToCertPool() *x509.CertPool {

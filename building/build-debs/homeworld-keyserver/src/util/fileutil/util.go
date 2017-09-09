@@ -44,20 +44,14 @@ func CreateFile(filename string, contents []byte, permissions os.FileMode) error
 	_, err = file_out.Write(contents)
 	if err != nil {
 		file_out.Close()            // ignore failure: nothing more we can do...
+	} else {
+		err = file_out.Close()
+	}
+	if err != nil {
 		err2 := os.Remove(filename) // do our best to remove it...
 		if err2 != nil && !os.IsNotExist(err2) {
-			err = fmt.Errorf("Multiple errors while creating file: %s | %s", err.Error(), err2.Error())
+			err = fmt.Errorf("multiple errors while creating file: %s | %s", err.Error(), err2.Error())
 		}
-		return err
-	} else {
-		err := file_out.Close()
-		if err != nil {
-			err2 := os.Remove(filename) // do our best to remove it...
-			if err2 != nil && !os.IsNotExist(err2) {
-				err = fmt.Errorf("Multiple errors while creating file: %s | %s", err.Error(), err2.Error())
-			}
-			return err
-		}
-		return nil
 	}
+	return err
 }

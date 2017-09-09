@@ -1,0 +1,23 @@
+keyserver: localhost:20557
+authoritypath: testdir/keyservertls.pem
+
+keypath: testdir/granting.key
+certpath: testdir/granting.pem
+
+tokenpath: testdir/bootstrap.token
+tokenapi: renew-keygrant
+
+downloads:
+  - type: authority
+    name: etcd-client
+    path: testdir/etcd-client.pem
+    refresh: 24h
+    mode: 644
+
+keys:
+  - name: keygranting
+    type: tls
+    key: testdir/granting2.key
+    cert: testdir/granting2.pem
+    api: renew-keygrant2
+    in-advance: 336h   # renew two weeks before expiration

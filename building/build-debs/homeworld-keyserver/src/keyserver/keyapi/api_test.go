@@ -18,6 +18,7 @@ import (
 	"testing"
 	"time"
 	"util/wraputil"
+	"util/testkeyutil"
 )
 
 func TestVerifyAccountIP_NoLimit(t *testing.T) {
@@ -82,7 +83,8 @@ func TestVerifyAccountIP_BadRequest(t *testing.T) {
 
 func TestAttemptAuthentication_NoAuthentication(t *testing.T) {
 	request := httptest.NewRequest("GET", "/test", nil)
-	authority, err := (&config.ConfigAuthority{Type: "TLS", Cert: "test1.pem", Key: "test1.key"}).Load("../config/testdir")
+	keydata, _, certdata := testkeyutil.GenerateTLSRootPEMsForTests(t, "test-ca", nil, nil)
+	authority, err := authorities.LoadTLSAuthority(keydata, certdata)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -99,7 +101,8 @@ func TestAttemptAuthentication_NoAuthentication(t *testing.T) {
 }
 
 func TestAttemptAuthentication_TokenAuth(t *testing.T) {
-	authority, err := (&config.ConfigAuthority{Type: "TLS", Cert: "test1.pem", Key: "test1.key"}).Load("../config/testdir")
+	keydata, _, certdata := testkeyutil.GenerateTLSRootPEMsForTests(t, "test-ca", nil, nil)
+	authority, err := authorities.LoadTLSAuthority(keydata, certdata)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -121,7 +124,8 @@ func TestAttemptAuthentication_TokenAuth(t *testing.T) {
 }
 
 func TestAttemptAuthentication_TokenAuth_Fail(t *testing.T) {
-	authority, err := (&config.ConfigAuthority{Type: "TLS", Cert: "test1.pem", Key: "test1.key"}).Load("../config/testdir")
+	keydata, _, certdata := testkeyutil.GenerateTLSRootPEMsForTests(t, "test-ca", nil, nil)
+	authority, err := authorities.LoadTLSAuthority(keydata, certdata)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -143,7 +147,8 @@ func TestAttemptAuthentication_TokenAuth_Fail(t *testing.T) {
 }
 
 func TestAttemptAuthentication_MissingAccount_Token(t *testing.T) {
-	authority, err := (&config.ConfigAuthority{Type: "TLS", Cert: "test1.pem", Key: "test1.key"}).Load("../config/testdir")
+	keydata, _, certdata := testkeyutil.GenerateTLSRootPEMsForTests(t, "test-ca", nil, nil)
+	authority, err := authorities.LoadTLSAuthority(keydata, certdata)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -163,7 +168,8 @@ func TestAttemptAuthentication_MissingAccount_Token(t *testing.T) {
 }
 
 func TestAttemptAuthentication_NoDirectAuth_Token(t *testing.T) {
-	authority, err := (&config.ConfigAuthority{Type: "TLS", Cert: "test1.pem", Key: "test1.key"}).Load("../config/testdir")
+	keydata, _, certdata := testkeyutil.GenerateTLSRootPEMsForTests(t, "test-ca", nil, nil)
+	authority, err := authorities.LoadTLSAuthority(keydata, certdata)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -185,7 +191,8 @@ func TestAttemptAuthentication_NoDirectAuth_Token(t *testing.T) {
 }
 
 func TestAttemptAuthentication_InvalidIP_Token(t *testing.T) {
-	authority, err := (&config.ConfigAuthority{Type: "TLS", Cert: "test1.pem", Key: "test1.key"}).Load("../config/testdir")
+	keydata, _, certdata := testkeyutil.GenerateTLSRootPEMsForTests(t, "test-ca", nil, nil)
+	authority, err := authorities.LoadTLSAuthority(keydata, certdata)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -226,7 +233,8 @@ func prepCertAuth(t *testing.T, gctx *config.Context) *http.Request {
 }
 
 func TestAttemptAuthentication_CertAuth(t *testing.T) {
-	authority, err := (&config.ConfigAuthority{Type: "TLS", Cert: "test1.pem", Key: "test1.key"}).Load("../config/testdir")
+	keydata, _, certdata := testkeyutil.GenerateTLSRootPEMsForTests(t, "test-ca", nil, nil)
+	authority, err := authorities.LoadTLSAuthority(keydata, certdata)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -272,7 +280,8 @@ func TestAttemptAuthentication_CertAuth_Fail(t *testing.T) {
 }
 
 func TestAttemptAuthentication_MissingAccount_Cert(t *testing.T) {
-	authority, err := (&config.ConfigAuthority{Type: "TLS", Cert: "test1.pem", Key: "test1.key"}).Load("../config/testdir")
+	keydata, _, certdata := testkeyutil.GenerateTLSRootPEMsForTests(t, "test-ca", nil, nil)
+	authority, err := authorities.LoadTLSAuthority(keydata, certdata)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -290,7 +299,8 @@ func TestAttemptAuthentication_MissingAccount_Cert(t *testing.T) {
 }
 
 func TestAttemptAuthentication_NoDirectAuth_Cert(t *testing.T) {
-	authority, err := (&config.ConfigAuthority{Type: "TLS", Cert: "test1.pem", Key: "test1.key"}).Load("../config/testdir")
+	keydata, _, certdata := testkeyutil.GenerateTLSRootPEMsForTests(t, "test-ca", nil, nil)
+	authority, err := authorities.LoadTLSAuthority(keydata, certdata)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -310,7 +320,8 @@ func TestAttemptAuthentication_NoDirectAuth_Cert(t *testing.T) {
 }
 
 func TestAttemptAuthentication_InvalidIP_Cert(t *testing.T) {
-	authority, err := (&config.ConfigAuthority{Type: "TLS", Cert: "test1.pem", Key: "test1.key"}).Load("../config/testdir")
+	keydata, _, certdata := testkeyutil.GenerateTLSRootPEMsForTests(t, "test-ca", nil, nil)
+	authority, err := authorities.LoadTLSAuthority(keydata, certdata)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -332,7 +343,8 @@ func TestAttemptAuthentication_InvalidIP_Cert(t *testing.T) {
 }
 
 func TestConfiguredKeyserver_GetClientCAs(t *testing.T) {
-	authority, err := (&config.ConfigAuthority{Type: "TLS", Cert: "test1.pem", Key: "test1.key"}).Load("../config/testdir")
+	keydata, _, certdata := testkeyutil.GenerateTLSRootPEMsForTests(t, "test-ca", nil, nil)
+	authority, err := authorities.LoadTLSAuthority(keydata, certdata)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -350,7 +362,8 @@ func TestConfiguredKeyserver_GetClientCAs(t *testing.T) {
 }
 
 func TestConfiguredKeyserver_GetServerCert(t *testing.T) {
-	authority, err := (&config.ConfigAuthority{Type: "TLS", Cert: "test1.pem", Key: "test1.key"}).Load("../config/testdir")
+	keydata, _, cdata := testkeyutil.GenerateTLSRootPEMsForTests(t, "test-ca", nil, nil)
+	authority, err := authorities.LoadTLSAuthority(keydata, cdata)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -359,11 +372,7 @@ func TestConfiguredKeyserver_GetServerCert(t *testing.T) {
 		t.Fatal("Wrong number of certs")
 	}
 	certdata := ks.GetServerCert().Certificate[0]
-	refpem, err := ioutil.ReadFile("../config/testdir/test1.pem")
-	if err != nil {
-		t.Fatal(err)
-	}
-	refdata, err := wraputil.LoadSinglePEMBlock(refpem, []string{"CERTIFICATE"})
+	refdata, err := wraputil.LoadSinglePEMBlock(cdata, []string{"CERTIFICATE"})
 	if err != nil {
 		t.Error(err)
 	} else if !bytes.Equal(certdata, refdata) {

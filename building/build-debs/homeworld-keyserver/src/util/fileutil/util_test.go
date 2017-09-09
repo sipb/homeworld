@@ -122,3 +122,45 @@ func TestEnsureIsFolder_CannotMkdir(t *testing.T) {
 	err = EnsureIsFolder("testdir/limiteddir/disallowed")
 	testutil.CheckError(t, err, "permission denied")
 }
+
+func TestCreateFile(t *testing.T) {
+	err := EnsureIsFolder("testdir")
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = os.Remove("testdir/testfile.txt")
+	if err != nil && !os.IsNotExist(err) {
+		t.Fatal(err)
+	}
+	err = CreateFile("testdir/testfile.txt", []byte("hello world\n"), os.FileMode(0644))
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := ioutil.ReadFile("testdir/testfile.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(data) != "hello world\n" {
+		t.Error("wrong file data")
+	}
+}
+
+func TestCreateFile_Contended(t *testing.T) {
+	err := EnsureIsFolder("testdir")
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = ioutil.WriteFile("testdir/testfile.txt", []byte("original\n"), os.FileMode(0644))
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = CreateFile("testdir/testfile.txt", []byte("hello world\n"), os.FileMode(0644))
+	testutil.CheckError(t, err, "testdir/testfile.txt: file exists")
+	data, err := ioutil.ReadFile("testdir/testfile.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(data) != "original\n" {
+		t.Error("wrong file data")
+	}
+}

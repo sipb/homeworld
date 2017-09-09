@@ -294,7 +294,7 @@ func (t *TimeAction) Perform(logger *log.Logger) error {
 	return nil
 }
 
-const TIME_ATTEMPTS = 2
+const TIME_ATTEMPTS = 3
 
 func TestActLoop_CycleTime(t *testing.T) {
 	for attempt := 1; attempt <= TIME_ATTEMPTS; attempt++ {
@@ -343,7 +343,7 @@ func TestActLoop_StableTime(t *testing.T) {
 			if attempt < TIME_ATTEMPTS {
 				continue // let's try that again...
 			} else {
-				t.Error("invalid latency for early check")
+				t.Errorf("invalid latency for early check: %v", start_latency)
 			}
 		}
 		pause_for := taction.LastPendingCheckAt.Sub(interstitial)
@@ -351,7 +351,7 @@ func TestActLoop_StableTime(t *testing.T) {
 			if attempt < TIME_ATTEMPTS {
 				continue // let's try that again...
 			} else {
-				t.Error("invalid duration of stabilized pause: %v", pause_for / time.Millisecond)
+				t.Errorf("invalid duration of stabilized pause: %v", pause_for)
 			}
 		}
 		if logbuf.String() != "[actloop] PERFORMED!\n[actloop] PERFORMED!\n[actloop] ACTLOOP STABILIZED\n" {

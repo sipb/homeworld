@@ -40,11 +40,11 @@ func TestPrepareKeygenAction_TLSKey(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if action.(TLSKeygenAction).keypath != "testdir/crypto.key" {
+	if action.(TLSKeygenAction).Keypath != "testdir/crypto.key" {
 		t.Error("wrong key path")
 	}
-	if action.(TLSKeygenAction).bits != 4096 {
-		t.Error("wrong number of bits")
+	if action.(TLSKeygenAction).Bits != 4096 {
+		t.Error("wrong number of Bits")
 	}
 }
 
@@ -69,7 +69,7 @@ func TestTLSKeygenAction_Pending_NoKey(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	ispending, err := TLSKeygenAction{keypath: "testdir/nonexistent.key"}.Pending()
+	ispending, err := TLSKeygenAction{Keypath: "testdir/nonexistent.key"}.Pending()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -87,7 +87,7 @@ func TestTLSKeygenAction_Pending_YesKey(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	ispending, err := TLSKeygenAction{keypath: "testdir/existent.key"}.Pending()
+	ispending, err := TLSKeygenAction{Keypath: "testdir/existent.key"}.Pending()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -136,7 +136,7 @@ func TestTLSKeygenAction_Perform(t *testing.T) {
 	}
 
 	if key.N.BitLen() != 519 {
-		t.Fatal("Wrong number of bits in key")
+		t.Fatal("Wrong number of Bits in key")
 	}
 
 	os.Remove("testdir/output.key")

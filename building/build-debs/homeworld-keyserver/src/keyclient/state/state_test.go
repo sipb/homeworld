@@ -9,6 +9,7 @@ import (
 	"util/testkeyutil"
 	"crypto/rsa"
 	"crypto/tls"
+	"util/fileutil"
 )
 
 func TestClientState_ReloadKeygrantingCert_NoCerts(t *testing.T) {
@@ -25,7 +26,7 @@ func TestClientState_ReloadKeygrantingCert_NoCerts(t *testing.T) {
 		KeyPath: "../testdir/test.key",
 	}}
 	err = state.ReloadKeygrantingCert()
-	testutil.CheckError(t, err, "No keygranting certificate found.")
+	testutil.CheckError(t, err, "no keygranting certificate found")
 	if state.Keygrant != nil {
 		t.Error("no keygrant should be present")
 	}
@@ -46,7 +47,7 @@ func TestClientState_ReloadKeygrantingCert_NoCerts_Preserve(t *testing.T) {
 	}}
 	state.Keygrant = &tls.Certificate{OCSPStaple:[]byte("not a valid cert")}
 	err = state.ReloadKeygrantingCert()
-	testutil.CheckError(t, err, "No keygranting certificate found.")
+	testutil.CheckError(t, err, "no keygranting certificate found")
 	if string(state.Keygrant.OCSPStaple) != "not a valid cert" {
 		t.Error("keygrant modified when it should have been preserved")
 	}
@@ -66,7 +67,7 @@ func TestClientState_ReloadKeygrantingCert_NoCertYesKey(t *testing.T) {
 		KeyPath: "../testdir/test.key",
 	}}
 	err = state.ReloadKeygrantingCert()
-	testutil.CheckError(t, err, "No keygranting certificate found.")
+	testutil.CheckError(t, err, "no keygranting certificate found")
 	if state.Keygrant != nil {
 		t.Error("no keygrant should be present")
 	}
@@ -87,7 +88,7 @@ func TestClientState_ReloadKeygrantingCert_YesCertNoKey(t *testing.T) {
 		KeyPath: "../testdir/test.key",
 	}}
 	err = state.ReloadKeygrantingCert()
-	testutil.CheckError(t, err, "No keygranting certificate found.")
+	testutil.CheckError(t, err, "no keygranting certificate found")
 	if state.Keygrant != nil {
 		t.Error("no keygrant should be present")
 	}
@@ -108,7 +109,7 @@ func TestClientState_ReloadKeygrantingCert_InvalidData(t *testing.T) {
 		KeyPath: "../testdir/test.key",
 	}}
 	err = state.ReloadKeygrantingCert()
-	testutil.CheckError(t, err, "Failed to reload keygranting certificate: tls: failed to find any PEM data")
+	testutil.CheckError(t, err, "failed to reload keygranting certificate: tls: failed to find any PEM data")
 	if state.Keygrant != nil {
 		t.Error("no keygrant should be present")
 	}
@@ -131,7 +132,7 @@ func TestClientState_ReloadKeygrantingCert_InvalidData_Preserve(t *testing.T) {
 	}}
 	state.Keygrant = &tls.Certificate{OCSPStaple:[]byte("not a valid cert")}
 	err = state.ReloadKeygrantingCert()
-	testutil.CheckError(t, err, "Failed to reload keygranting certificate: tls: failed to find any PEM data")
+	testutil.CheckError(t, err, "failed to reload keygranting certificate: tls: failed to find any PEM data")
 	if string(state.Keygrant.OCSPStaple) != "not a valid cert" {
 		t.Error("keygrant modified when it should have been preserved")
 	}
@@ -199,4 +200,80 @@ func TestClientState_ReloadKeygrantingCert_ValidData_NoPreserve(t *testing.T) {
 	}
 	os.Remove("../testdir/test.pem")
 	os.Remove("../testdir/test.key")
+}
+
+func TestClientState_ReplaceKeygrantingCert(t *testing.T) {
+	err := fileutil.EnsureIsFolder("testdir")
+	if err != nil {
+		t.Fatal(err)
+	}
+	state := &ClientState{Config: config.Config{
+		CertPath: "testdir/testa.pem",
+		KeyPath: "testdir/testa.key",
+	}}
+	keypem, _, certpem := testkeyutil.GenerateTLSRootPEMsForTests(t, "test", nil, nil)
+	err = ioutil.WriteFile("testdir/testa.key", keypem, os.FileMode(0600))
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = state.ReplaceKeygrantingCert(certpem)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = os.Remove("testdir/testa.key")
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = os.Remove("testdir/testa.pem")
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestClientState_ReplaceKeygrantingCert_NoFolder(t *testing.T) {
+	err := fileutil.EnsureIsFolder("testdir")
+	if err != nil {
+		t.Fatal(err)
+	}
+	state := &ClientState{Config: config.Config{
+		CertPath: "testdir/nonexistent/testa.pem",
+		KeyPath: "testdir/testa.key",
+	}}
+	keypem, _, certpem := testkeyutil.GenerateTLSRootPEMsForTests(t, "test", nil, nil)
+	err = ioutil.WriteFile("testdir/testa.key", keypem, os.FileMode(0600))
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = state.ReplaceKeygrantingCert(certpem)
+	testutil.CheckError(t, err, "testdir/nonexistent/testa.pem: no such file or directory")
+	err = os.Remove("testdir/testa.key")
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestClientState_ReplaceKeygrantingCert_Invalid(t *testing.T) {
+	err := fileutil.EnsureIsFolder("testdir")
+	if err != nil {
+		t.Fatal(err)
+	}
+	state := &ClientState{Config: config.Config{
+		CertPath: "testdir/testa.pem",
+		KeyPath: "testdir/testa.key",
+	}}
+	keypem, _, _ := testkeyutil.GenerateTLSRootPEMsForTests(t, "test", nil, nil)
+	err = ioutil.WriteFile("testdir/testa.key", keypem, os.FileMode(0600))
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = state.ReplaceKeygrantingCert([]byte("invalid cert"))
+	testutil.CheckError(t, err, "failed to reload keygranting certificate: tls: failed to find any PEM data in certificate input")
+	err = os.Remove("testdir/testa.key")
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = os.Remove("testdir/testa.pem")
+	if err != nil {
+		t.Fatal(err)
+	}
 }

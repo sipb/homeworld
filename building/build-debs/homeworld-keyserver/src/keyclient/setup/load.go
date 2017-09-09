@@ -24,16 +24,16 @@ func Load(configpath string, logger *log.Logger) ([]actloop.Action, error) {
 	}
 	authoritydata, err := ioutil.ReadFile(conf.AuthorityPath)
 	if err != nil {
-		return nil, fmt.Errorf("While loading authority: %s", err)
+		return nil, fmt.Errorf("while loading authority: %s", err)
 	}
 	ks, err := server.NewKeyserver(authoritydata, conf.Keyserver)
 	if err != nil {
-		return nil, fmt.Errorf("While preparing setup: %s", err)
+		return nil, fmt.Errorf("while preparing setup: %s", err)
 	}
-	m := &state.ClientState{Config: conf, Keyserver: ks}
+	s := &state.ClientState{Config: conf, Keyserver: ks}
 	actions := []actloop.Action{}
 	if conf.TokenPath != "" {
-		act, err := bootstrap.PrepareBootstrapAction(m, conf.TokenPath, conf.TokenAPI)
+		act, err := bootstrap.PrepareBootstrapAction(s, conf.TokenPath, conf.TokenAPI)
 		if err != nil {
 			return nil, err
 		}
@@ -47,26 +47,27 @@ func Load(configpath string, logger *log.Logger) ([]actloop.Action, error) {
 		if act != nil {
 			actions = append(actions, act)
 		}
-		act, err = keyreq.PrepareRequestOrRenewKeys(m, key)
+		act, err = keyreq.PrepareRequestOrRenewKeys(s, key)
 		if err != nil {
 			return nil, err
 		}
 		actions = append(actions, act)
 	}
 	for _, dl := range conf.Downloads {
-		act, err := download.PrepareDownloadAction(m, dl)
+		act, err := download.PrepareDownloadAction(s, dl)
 		if err != nil {
 			return nil, err
 		}
 		actions = append(actions, act)
 	}
-	err = m.ReloadKeygrantingCert()
+	err = s.ReloadKeygrantingCert()
 	if err != nil {
-		logger.Printf("Keygranting cert not yet available: %s\n", err.Error())
+		logger.Printf("keygranting cert not yet available: %s\n", err.Error())
 	}
 	return actions, nil
 }
 
+// TODO: unit-test this launch better (i.e. the ten second part, etc)
 func Launch(actions []actloop.Action, logger *log.Logger) (stop func()) {
 	loop := actloop.NewActLoop(actions, logger)
 	go loop.Run(time.Second * 10)

@@ -312,7 +312,6 @@ func TestRequestOrRenewAction_CheckBlocker_YesGrant(t *testing.T) {
 	}
 }
 
-
 func launchTestServer(t *testing.T, f http.HandlerFunc) (stop func(), clientcakey *rsa.PrivateKey, clientcacert *x509.Certificate, servercert *x509.Certificate, addr string) {
 	clientcakey, clientcacert = testkeyutil.GenerateTLSRootForTests(t, "test-ca", nil, nil)
 	serverkey, servercert := testkeyutil.GenerateTLSRootForTests(t, "test-ca-2", []string {"localhost" }, nil)

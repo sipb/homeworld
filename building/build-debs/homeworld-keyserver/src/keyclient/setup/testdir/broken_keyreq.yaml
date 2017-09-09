@@ -1,0 +1,13 @@
+keyserver: localhost:20557
+authoritypath: testdir/keyservertls.pem
+
+keypath: testdir/granting.key
+certpath: testdir/granting.pem
+
+keys:
+  - name: keygranting
+    type: tls
+    key: testdir/granting2.key
+    cert: testdir/granting2.pem
+    api: renew-keygrant2
+    in-advance: invalid
