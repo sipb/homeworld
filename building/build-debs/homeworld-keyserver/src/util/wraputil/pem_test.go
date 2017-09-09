@@ -222,7 +222,7 @@ func TestLoadRSAKeyFromPEM_PKCS1_MATCHES_PKCS8(t *testing.T) {
 
 func TestLoadRSAKeyFromPEM_Fails_ECDSA(t *testing.T) {
 	_, err := LoadRSAKeyFromPEM([]byte(TLS_TEST_ECDSA_KEY))
-	testutil.CheckError(t, err, "Non-RSA private key found")
+	testutil.CheckError(t, err, "non-RSA private key found")
 }
 
 func TestLoadRSAKeyFromPEM_Invalid(t *testing.T) {
@@ -237,5 +237,5 @@ func TestLoadRSAKeyFromPEM_Empty(t *testing.T) {
 
 func TestLoadRSAKeyFromPEM_Malformed(t *testing.T) {
 	_, err := LoadRSAKeyFromPEM([]byte(strings.Replace(TLS_TEST_PRIVKEY, "AA", "ZZ", 1)))
-	testutil.CheckError(t, err, "Could not load PEM private key as PKCS#1 or PKCS#8")
+	testutil.CheckError(t, err, "could not load PEM private key as PKCS#1 or PKCS#8")
 }

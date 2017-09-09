@@ -356,7 +356,7 @@ func TestServerEndpoint_Request_BadPath(t *testing.T) {
 	defer stop()
 	endpoint := createBaseEndpoint(t, servercert)
 	_, err := endpoint.Request("testabc", "GET", []byte("this == a body!\n"))
-	testutil.CheckError(t, err, "Path must be absolute")
+	testutil.CheckError(t, err, "path must be absolute")
 }
 
 func TestServerEndpoint_Request_BadMethod(t *testing.T) {

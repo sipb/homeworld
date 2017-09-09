@@ -44,7 +44,7 @@ func TestSendRequest_NotEnoughResults(t *testing.T) {
 		}
 	}}
 	_, err := SendRequest(rt, "after", "one-million-days")
-	testutil.CheckError(t, err, "Wrong number of results")
+	testutil.CheckError(t, err, "wrong number of results")
 }
 
 func TestSendRequest_TooManyResults(t *testing.T) {
@@ -56,5 +56,5 @@ func TestSendRequest_TooManyResults(t *testing.T) {
 		}
 	}}
 	_, err := SendRequest(rt, "after", "one-million-days")
-	testutil.CheckError(t, err, "Wrong number of results")
+	testutil.CheckError(t, err, "wrong number of results")
 }

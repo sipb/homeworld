@@ -73,8 +73,8 @@ func LoadRSAKeyFromPEM(keydata []byte) (*rsa.PrivateKey, error) {
 		if ok {
 			return privkey, nil
 		} else {
-			return nil, errors.New("Non-RSA private key found in PKCS#8 block")
+			return nil, errors.New("non-RSA private key found in PKCS#8 block")
 		}
 	}
-	return nil, errors.New("Could not load PEM private key as PKCS#1 or PKCS#8")
+	return nil, errors.New("could not load PEM private key as PKCS#1 or PKCS#8")
 }

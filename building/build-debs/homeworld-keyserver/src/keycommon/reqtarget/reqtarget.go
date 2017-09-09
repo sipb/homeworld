@@ -17,7 +17,7 @@ func SendRequest(a RequestTarget, api string, body string) (string, error) {
 		return "", err
 	}
 	if len(strs) != 1 {
-		return "", fmt.Errorf("Wrong number of results: %d != 1", len(strs))
+		return "", fmt.Errorf("wrong number of results: %d != 1", len(strs))
 	}
 	return strs[0], nil
 }

@@ -30,7 +30,7 @@ func (a *authenticated) SendRequests(reqs []reqtarget.Request) ([]string, error)
 		return nil, err
 	}
 	if len(outputs) != len(reqs) {
-		return nil, fmt.Errorf("While finalizing response: wrong number of responses")
+		return nil, fmt.Errorf("while finalizing response: wrong number of responses")
 	}
 	return outputs, nil
 }

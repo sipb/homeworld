@@ -43,12 +43,14 @@ func GenerateTLSRootPEMsForTests(t *testing.T, commonname string, dns []string, 
 }
 
 func GenerateTLSKeypairForTests(t *testing.T, commonname string, dns []string, ips []net.IP, parent *x509.Certificate, parentkey *rsa.PrivateKey) (*rsa.PrivateKey, *x509.Certificate) {
+	return GenerateTLSKeypairForTests_WithTime(t, commonname, dns, ips, parent, parentkey, time.Now(), time.Hour)
+}
+
+func GenerateTLSKeypairForTests_WithTime(t *testing.T, commonname string, dns []string, ips []net.IP, parent *x509.Certificate, parentkey *rsa.PrivateKey, issueat time.Time, duration time.Duration) (*rsa.PrivateKey, *x509.Certificate) {
 	key, err := rsa.GenerateKey(rand.Reader, 512) // NOTE: this is LAUGHABLY SMALL! do not attempt to use this in production.
 	if err != nil {
 		t.Fatal("Could not generate TLS keypair: " + err.Error())
 	}
-
-	issue_at := time.Now()
 
 	serialNumber, err := rand.Int(rand.Reader, (&big.Int{}).Exp(big.NewInt(2), big.NewInt(159), nil))
 	if err != nil {
@@ -69,8 +71,8 @@ func GenerateTLSKeypairForTests(t *testing.T, commonname string, dns []string, i
 
 		SerialNumber: serialNumber,
 
-		NotBefore: issue_at,
-		NotAfter:  issue_at.Add(time.Hour),
+		NotBefore: issueat,
+		NotAfter:  issueat.Add(duration),
 
 		Subject:     pkix.Name{CommonName: commonname},
 		DNSNames:    dns,

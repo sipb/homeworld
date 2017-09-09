@@ -10,17 +10,12 @@ import (
 	"util/wraputil"
 )
 
-func TestPrepareKeygenAction_TLSPubkey(t *testing.T) {
+func TestPrepareKeygenAction_TLSPubkey_Disallowed(t *testing.T) {
 	key := config.ConfigKey{
 		Type: "tls-pubkey",
 	}
-	action, err := PrepareKeygenAction(key)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if action != nil {
-		t.Error("action should be nil")
-	}
+	_, err := PrepareKeygenAction(key)
+	testutil.CheckError(t, err, "unrecognized key type: tls-pubkey")
 }
 
 func TestPrepareKeygenAction_SSHPubkey(t *testing.T) {

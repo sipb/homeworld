@@ -29,8 +29,6 @@ func PrepareKeygenAction(k config.ConfigKey) (actloop.Action, error) {
 	case "ssh":
 		// should probably include creating a .pub file as well
 		return nil, errors.New("unimplemented operation: ssh key generation")
-	case "tls-pubkey":
-		return nil, nil // key is pregenerated
 	case "ssh-pubkey":
 		return nil, nil // key is pregenerated
 	default:

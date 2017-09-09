@@ -178,7 +178,7 @@ func TestLoadECDSAKey(t *testing.T) {
 	_, err := LoadTLSAuthority([]byte(TLS_TEST_ECDSA_KEY), pemcert)
 	if err == nil {
 		t.Error("Should not be able to create ECDSA authority (YET)")
-	} else if !strings.Contains(err.Error(), "Non-RSA") {
+	} else if !strings.Contains(err.Error(), "non-RSA") {
 		t.Errorf("Expected ECDSA key to fail for not being RSA, not: %s", err)
 	}
 }

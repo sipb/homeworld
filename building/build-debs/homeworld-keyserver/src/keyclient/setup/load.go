@@ -40,10 +40,6 @@ func Load(configpath string, logger *log.Logger) ([]actloop.Action, error) {
 		actions = append(actions, act)
 	}
 	for _, key := range conf.Keys {
-		inadvance, err := time.ParseDuration(key.InAdvance)
-		if err != nil {
-			return nil, err
-		}
 		act, err := keygen.PrepareKeygenAction(key)
 		if err != nil {
 			return nil, err
@@ -51,7 +47,7 @@ func Load(configpath string, logger *log.Logger) ([]actloop.Action, error) {
 		if act != nil {
 			actions = append(actions, act)
 		}
-		act, err = keyreq.PrepareRequestOrRenewKeys(m, key, inadvance)
+		act, err = keyreq.PrepareRequestOrRenewKeys(m, key)
 		if err != nil {
 			return nil, err
 		}
