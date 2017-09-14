@@ -97,12 +97,21 @@ func TestLoad_Full_Actions(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(acts) != 4 {
+	if len(acts) != 5 {
 		t.Fatal("wrong number of actions")
 	}
 
+	// pre-bootstrap keygen action
+	kgen := acts[0].(keygen.TLSKeygenAction)
+	if kgen.Bits != 4096 {
+		t.Error("wrong number of bits")
+	}
+	if kgen.Keypath != "testdir/granting.key" {
+		t.Error("wrong keygen target")
+	}
+
 	// bootstrap action
-	bstrap := acts[0].(*bootstrap.BootstrapAction)
+	bstrap := acts[1].(*bootstrap.BootstrapAction)
 	state := bstrap.State
 	if bstrap.TokenAPI != "renew-keygrant" {
 		t.Error("wrong token API")
@@ -112,7 +121,7 @@ func TestLoad_Full_Actions(t *testing.T) {
 	}
 
 	// keygen action
-	kgen := acts[1].(keygen.TLSKeygenAction)
+	kgen = acts[2].(keygen.TLSKeygenAction)
 	if kgen.Bits != 4096 {
 		t.Error("wrong number of bits")
 	}
@@ -121,7 +130,7 @@ func TestLoad_Full_Actions(t *testing.T) {
 	}
 
 	// keyreq action
-	kreq := acts[2].(*keyreq.RequestOrRenewAction)
+	kreq := acts[3].(*keyreq.RequestOrRenewAction)
 	if kreq.State != state {
 		t.Error("mismatch of state")
 	}
@@ -142,7 +151,7 @@ func TestLoad_Full_Actions(t *testing.T) {
 	}
 
 	// download action
-	down := acts[3].(*download.DownloadAction)
+	down := acts[4].(*download.DownloadAction)
 	if down.Path != "testdir/etcd-client.pem" {
 		t.Error("wrong path")
 	}

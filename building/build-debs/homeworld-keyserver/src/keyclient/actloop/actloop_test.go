@@ -21,6 +21,10 @@ func (f *FakeAction) CheckBlocker() error {
 	return nil
 }
 
+func (f *FakeAction) Info() string {
+	return "fakeinfo"
+}
+
 func (f *FakeAction) Perform(logger *log.Logger) error {
 	if f.Performed {
 		return errors.New("Already performed!")
@@ -99,7 +103,7 @@ func TestActLoop_StepSimple(t *testing.T) {
 	if !stabilized {
 		t.Error("should be stabilized")
 	}
-	if logbuf.String() != "[actloop] PERFORMED!\n[actloop] PERFORMED!\n" {
+	if logbuf.String() != "[actloop] PERFORMED!\n[actloop] action performed: fakeinfo\n[actloop] PERFORMED!\n[actloop] action performed: fakeinfo\n" {
 		t.Error("should not have logged:", logbuf.String())
 	}
 }
@@ -117,6 +121,10 @@ func (f *FailPendingAction) CheckBlocker() error {
 	return nil
 }
 
+func (f *FailPendingAction) Info() string {
+	return "fakeinfo"
+}
+
 func (f *FailPendingAction) Perform(logger *log.Logger) error {
 	if f.PerformedAnyway {
 		panic("should not be here")
@@ -130,13 +138,13 @@ func TestActLoop_Step_PendingErr_Halt(t *testing.T) {
 	logbuf := bytes.NewBuffer(nil)
 	logger := log.New(logbuf, "[actloop] ", 0)
 	loop := NewActLoop(actions, logger)
-	if loop.Step() {
-		t.Error("should not be stabilized")
+	if !loop.Step() {
+		t.Error("should not be destabilized")
 	}
 	if actions[0].(*FailPendingAction).PerformedAnyway {
 		t.Error("should not have been performed")
 	}
-	if logbuf.String() != "[actloop] actloop check error: purposeful failure\n" {
+	if logbuf.String() != "[actloop] actloop check error: purposeful failure (in fakeinfo)\n" {
 		t.Error("should not have logged:", logbuf.String())
 	}
 }
@@ -152,7 +160,7 @@ func TestActLoop_Step_PendingErr_Cont(t *testing.T) {
 	if !actions[0].(*FailPendingAction).PerformedAnyway {
 		t.Error("should have been performed")
 	}
-	if logbuf.String() != "[actloop] actloop check error: purposeful failure\n" {
+	if logbuf.String() != "[actloop] actloop check error: purposeful failure (in fakeinfo)\n[actloop] action performed: fakeinfo\n" {
 		t.Error("should not have logged:", logbuf.String())
 	}
 }
@@ -167,6 +175,10 @@ func (f *BlockedAction) Pending() (bool, error) {
 
 func (f *BlockedAction) CheckBlocker() error {
 	return errors.New(f.errortext)
+}
+
+func (f *BlockedAction) Info() string {
+	return "fakeinfo"
 }
 
 func (f *BlockedAction) Perform(logger *log.Logger) error {
@@ -207,6 +219,10 @@ func (f *FailingAction) Pending() (bool, error) {
 	return true, nil
 }
 
+func (f *FailingAction) Info() string {
+	return "fakeinfo"
+}
+
 func (f *FailingAction) CheckBlocker() error {
 	return nil
 }
@@ -221,10 +237,10 @@ func TestActLoop_Step_FailingAction_One(t *testing.T) {
 	logbuf := bytes.NewBuffer(nil)
 	logger := log.New(logbuf, "[actloop] ", 0)
 	loop := NewActLoop(actions, logger)
-	if loop.Step() {
-		t.Error("should not be stabilized")
+	if !loop.Step() {
+		t.Error("should not be destabilized")
 	}
-	if logbuf.String() != "[actloop] actloop step error: resonance cascade\n" {
+	if logbuf.String() != "[actloop] actloop step error: resonance cascade (in fakeinfo)\n" {
 		t.Error("should not have logged:", logbuf.String())
 	}
 }
@@ -243,7 +259,7 @@ func TestActLoop_Step_FailingAction_Continuation(t *testing.T) {
 	if actions[2].(*FakeAction).Performed {
 		t.Error("should not have been performed")
 	}
-	if logbuf.String() != "[actloop] PERFORMED!\n" {
+	if logbuf.String() != "[actloop] PERFORMED!\n[actloop] action performed: fakeinfo\n" {
 		t.Error("should not have logged:", logbuf.String())
 	}
 	if loop.Step() {
@@ -255,7 +271,7 @@ func TestActLoop_Step_FailingAction_Continuation(t *testing.T) {
 	if !actions[2].(*FakeAction).Performed {
 		t.Error("should have been performed")
 	}
-	if logbuf.String() != "[actloop] PERFORMED!\n[actloop] actloop step error: resonance cascade\n[actloop] PERFORMED!\n" {
+	if logbuf.String() != "[actloop] PERFORMED!\n[actloop] action performed: fakeinfo\n[actloop] actloop step error: resonance cascade (in fakeinfo)\n[actloop] PERFORMED!\n[actloop] action performed: fakeinfo\n" {
 		t.Error("should not have logged:", logbuf.String())
 	}
 }
@@ -266,11 +282,11 @@ func TestActLoop_RunSimple(t *testing.T) {
 	logger := log.New(logbuf, "[actloop] ", 0)
 	loop := NewActLoop(actions, logger)
 	go func() { time.Sleep(time.Millisecond * 10); loop.Cancel() }()
-	loop.Run(time.Nanosecond)
+	loop.Run(time.Nanosecond, time.Nanosecond * 30)
 	if !actions[0].(*FakeAction).Performed || !actions[1].(*FakeAction).Performed {
 		t.Error("should have been executed")
 	}
-	if logbuf.String() != "[actloop] PERFORMED!\n[actloop] PERFORMED!\n[actloop] ACTLOOP STABILIZED\n" {
+	if logbuf.String() != "[actloop] PERFORMED!\n[actloop] action performed: fakeinfo\n[actloop] PERFORMED!\n[actloop] action performed: fakeinfo\n[actloop] ACTLOOP STABILIZED\n" {
 		t.Error("should not have logged:", logbuf.String())
 	}
 }
@@ -285,6 +301,10 @@ func (t *TimeAction) Pending() (bool, error) {
 	return t.PerformedAt.IsZero(), nil
 }
 
+func (f *TimeAction) Info() string {
+	return "timeinfo"
+}
+
 func (t *TimeAction) CheckBlocker() error {
 	return nil
 }
@@ -294,7 +314,7 @@ func (t *TimeAction) Perform(logger *log.Logger) error {
 	return nil
 }
 
-const TIME_ATTEMPTS = 3
+const TIME_ATTEMPTS = 4
 
 func TestActLoop_CycleTime(t *testing.T) {
 	for attempt := 1; attempt <= TIME_ATTEMPTS; attempt++ {
@@ -305,7 +325,7 @@ func TestActLoop_CycleTime(t *testing.T) {
 		loop := NewActLoop(actions, logger)
 		go func() { time.Sleep(time.Millisecond * 100); loop.Cancel() }()
 		start := time.Now()
-		loop.Run(time.Millisecond * 10)
+		loop.Run(time.Millisecond * 10, time.Millisecond * 300)
 		if !actions[0].(*FakeAction).Performed || !actions[1].(*FakeAction).Performed || taction.PerformedAt.IsZero() {
 			t.Error("should have been executed")
 		}
@@ -317,7 +337,7 @@ func TestActLoop_CycleTime(t *testing.T) {
 				t.Error("Invalid duration of execution:", duration, "ms")
 			}
 		}
-		if logbuf.String() != "[actloop] PERFORMED!\n[actloop] PERFORMED!\n[actloop] ACTLOOP STABILIZED\n" {
+		if logbuf.String() != "[actloop] PERFORMED!\n[actloop] action performed: fakeinfo\n[actloop] PERFORMED!\n[actloop] action performed: fakeinfo\n[actloop] action performed: timeinfo\n[actloop] ACTLOOP STABILIZED\n" {
 			t.Error("should not have logged:", logbuf.String())
 		}
 		break
@@ -339,7 +359,7 @@ func TestActLoop_StableTime(t *testing.T) {
 			loop.Cancel()
 		}()
 		start := time.Now()
-		loop.Run(time.Millisecond)
+		loop.Run(time.Millisecond, time.Millisecond * 30)
 		if !actions[0].(*FakeAction).Performed || !actions[1].(*FakeAction).Performed || taction.PerformedAt.IsZero() {
 			t.Error("should have been executed")
 		}
@@ -359,7 +379,7 @@ func TestActLoop_StableTime(t *testing.T) {
 				t.Errorf("invalid duration of stabilized pause: %v", pause_for)
 			}
 		}
-		if logbuf.String() != "[actloop] PERFORMED!\n[actloop] PERFORMED!\n[actloop] ACTLOOP STABILIZED\n" {
+		if logbuf.String() != "[actloop] PERFORMED!\n[actloop] action performed: fakeinfo\n[actloop] PERFORMED!\n[actloop] action performed: fakeinfo\n[actloop] action performed: timeinfo\n[actloop] ACTLOOP STABILIZED\n" {
 			t.Error("should not have logged:", logbuf.String())
 		}
 		break

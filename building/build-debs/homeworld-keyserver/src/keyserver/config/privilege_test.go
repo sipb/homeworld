@@ -782,13 +782,6 @@ func TestInsufficientParamsToSignTLS(t *testing.T) {
 			Lifespan:     time.Minute * 53,
 			AllowedNames: []string{"test-name"},
 		},
-		{
-			Privilege:  "sign-tls",
-			Authority:  authority,
-			IsHost:     &false,
-			Lifespan:   time.Minute * 53,
-			CommonName: "my-keyid",
-		},
 	} {
 		_, err := (&grant).CompileToPrivilege(nil)
 		if i == 0 { // first one is valid

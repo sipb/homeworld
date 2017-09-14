@@ -48,10 +48,39 @@ func TestPrepareBootstrapAction_InvalidAPI(t *testing.T) {
 	testutil.CheckError(t, err, "no bootstrap api provided")
 }
 
-func TestBootstrapAction_CheckBlocker(t *testing.T) {
-	err := (&BootstrapAction{}).CheckBlocker()
+func TestBootstrapAction_CheckBlocker_NoKey(t *testing.T) {
+	err := (&BootstrapAction{
+		State: &state.ClientState{
+			Config: config.Config{
+				KeyPath: "testdir/nonexistent.key",
+			},
+		},
+	}).CheckBlocker()
+	testutil.CheckError(t, err, "key does not yet exist: testdir/nonexistent.key")
+}
+
+func TestBootstrapAction_CheckBlocker_YesKey(t *testing.T) {
+	err := fileutil.EnsureIsFolder("testdir")
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = ioutil.WriteFile("testdir/existent.key", []byte("test"), os.FileMode(0600))
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = (&BootstrapAction{
+		State: &state.ClientState{
+			Config: config.Config{
+				KeyPath: "testdir/existent.key",
+			},
+		},
+	}).CheckBlocker()
 	if err != nil {
 		t.Error(err)
+	}
+	err = os.Remove("testdir/existent.key")
+	if err != nil {
+		t.Fatal(err)
 	}
 }
 
@@ -691,5 +720,14 @@ func TestPerform_InvalidResponse(t *testing.T) {
 	err = os.Remove("testdir/test.pem")
 	if err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestBootstrapAction_Info(t *testing.T) {
+	if (&BootstrapAction{
+		TokenFilePath: "testdir/test.token",
+		TokenAPI:      "testapi",
+	}).Info() != "bootstrap with token API testapi from path testdir/test.token" {
+		t.Error("wrong info")
 	}
 }

@@ -237,9 +237,10 @@ func TestDownloadAction_Pending_Old(t *testing.T) {
 }
 
 type FakeFetcher struct {
-	prereqs  error
-	data     []byte
-	datafail error
+	prereqs   error
+	data      []byte
+	datafail  error
+	fetchinfo string
 }
 
 func (f *FakeFetcher) PrereqsSatisfied() error {
@@ -250,9 +251,13 @@ func (f *FakeFetcher) Fetch() ([]byte, error) {
 	return f.data, f.datafail
 }
 
+func (f *FakeFetcher) Info() string {
+	return f.fetchinfo
+}
+
 func TestDownloadAction_CheckBlocker_Satisfied(t *testing.T) {
 	da := &DownloadAction{Refresh: time.Hour, Path: "testdir/existent.txt",
-		Fetcher: &FakeFetcher{nil, nil, errors.New("invalid")}}
+		Fetcher: &FakeFetcher{nil, nil, errors.New("invalid"), ""}}
 	if da.CheckBlocker() != nil {
 		t.Error("should not be blocked")
 	}
@@ -260,7 +265,7 @@ func TestDownloadAction_CheckBlocker_Satisfied(t *testing.T) {
 
 func TestDownloadAction_CheckBlocker_Unsatisfied(t *testing.T) {
 	da := &DownloadAction{Refresh: time.Hour, Path: "testdir/existent.txt",
-		Fetcher: &FakeFetcher{errors.New("purposeful error"), nil, errors.New("invalid")}}
+		Fetcher: &FakeFetcher{errors.New("purposeful error"), nil, errors.New("invalid"), ""}}
 	err := da.CheckBlocker()
 	testutil.CheckError(t, err, "purposeful error")
 }
@@ -271,7 +276,7 @@ func TestDownloadAction_Perform(t *testing.T) {
 		t.Fatal(err)
 	}
 	da := &DownloadAction{Refresh: time.Hour, Path: "testdir/result.txt", Mode: 0765,
-		Fetcher: &FakeFetcher{errors.New("purposeful error"), []byte("validated results\n"), nil}}
+		Fetcher: &FakeFetcher{errors.New("purposeful error"), []byte("validated results\n"), nil, ""}}
 	err = da.Perform(nil)
 	if err != nil {
 		t.Fatal(err)
@@ -294,15 +299,36 @@ func TestDownloadAction_Perform(t *testing.T) {
 }
 
 func TestDownloadAction_Perform_InvalidFilename(t *testing.T) {
-	da := &DownloadAction{Refresh: time.Hour, Path: "testdir/nonexistentdir/result.txt", Mode: 0644,
-		Fetcher: &FakeFetcher{errors.New("purposeful error"), []byte("validated results\n"), nil}}
-	err := da.Perform(nil)
-	testutil.CheckError(t, err, "testdir/nonexistentdir/result.txt: no such file or directory")
+	err := fileutil.EnsureIsFolder("testdir")
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = os.Remove("testdir/brokendir")
+	if err != nil && !os.IsNotExist(err) {
+		t.Fatal(err)
+	}
+	err = os.Mkdir("testdir/brokendir", os.FileMode(0))
+	if err != nil {
+		t.Fatal(err)
+	}
+	da := &DownloadAction{Refresh: time.Hour, Path: "testdir/brokendir/result.txt", Mode: 0644,
+		Fetcher: &FakeFetcher{errors.New("purposeful error"), []byte("validated results\n"), nil, ""}}
+	err = da.Perform(nil)
+	testutil.CheckError(t, err, "testdir/brokendir/result.txt: permission denied")
 }
 
 func TestDownloadAction_Perform_FetchFailed(t *testing.T) {
 	da := &DownloadAction{Refresh: time.Hour, Path: "testdir/result.txt", Mode: 0644,
-		Fetcher: &FakeFetcher{errors.New("purposeful error"), nil, errors.New("purposeful failure")}}
+		Fetcher: &FakeFetcher{errors.New("purposeful error"), nil, errors.New("purposeful failure"), ""}}
 	err := da.Perform(nil)
 	testutil.CheckError(t, err, "purposeful failure")
+}
+
+func TestDownloadAction_Info(t *testing.T) {
+	da := &DownloadAction{Refresh: time.Hour, Path: "testdir/result.txt", Mode: 0644, Fetcher: &FakeFetcher{
+		errors.New("should not be used"), nil, errors.New("should not be used"), "test-fetchinfo-test",
+	}}
+	if da.Info() != "download to file testdir/result.txt (mode 644) every 1h0m0s: test-fetchinfo-test" {
+		t.Error("wrong info for action: %s", da.Info())
+	}
 }

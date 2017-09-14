@@ -43,6 +43,24 @@ func TestAPIFetcher_PrereqsSatisfied(t *testing.T) {
 	}
 }
 
+func TestStaticFetcher_Info(t *testing.T) {
+	if (&StaticFetcher{StaticName: "test-static"}).Info() != "static file test-static" {
+		t.Error("wrong info for static file")
+	}
+}
+
+func TestAuthorityFetcher_Info(t *testing.T) {
+	if (&AuthorityFetcher{AuthorityName: "test-authority"}).Info() != "pubkey for authority test-authority" {
+		t.Error("wrong info for authority pubkey")
+	}
+}
+
+func TestAPIFetcher_Info(t *testing.T) {
+	if (&APIFetcher{API: "test-api"}).Info() != "result from api test-api" {
+		t.Error("wrong info for api fetch")
+	}
+}
+
 func launchTestServer(t *testing.T, f http.HandlerFunc) (stop func(), clientcakey *rsa.PrivateKey, clientcacert *x509.Certificate, servercert *x509.Certificate, addr string) {
 	clientcakey, clientcacert = testkeyutil.GenerateTLSRootForTests(t, "test-ca", nil, nil)
 	serverkey, servercert := testkeyutil.GenerateTLSRootForTests(t, "test-ca-2", []string{"localhost"}, nil)

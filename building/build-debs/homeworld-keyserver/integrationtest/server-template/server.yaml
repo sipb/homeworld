@@ -1,0 +1,103 @@
+authoritydir: authorities/
+staticdir: static/
+authentication-authority: keygranting
+servertls: servertls
+
+staticfiles:
+  - cluster.conf
+
+authorities:
+  ssh-host:
+    type: SSH
+    key: ssh_host_ca
+    cert: ssh_host_ca.pub
+
+  etcd-client:
+    type: TLS
+    key: etcd-client.key
+    cert: etcd-client.pem
+
+  keygranting:
+    type: TLS
+    key: granting.key
+    cert: granting.pem
+
+  servertls:
+    type: TLS
+    key: server.key
+    cert: server.pem
+
+accounts:
+  - principal: localhost-test
+    group: nodes
+    limit-ip: true
+    metadata:
+      ip: 127.0.0.1
+      hostname: localhost
+      schedule: false
+
+  - principal: admin-test
+    group: root-admins
+    limit-ip: true   # just because test
+    metadata:
+      ip: 127.0.0.1
+
+
+groups:
+  root-admins:
+  nodes:
+
+grants:
+  # MEMBERSHIP IN THE CLUSTER
+
+  bootstrap:
+    group: root-admins
+    privilege: bootstrap-account
+    scope: nodes
+    lifespan: 1h
+
+  renew-keygrant:
+    group: nodes
+    privilege: sign-tls
+    authority: keygranting
+    lifespan: 960h  # fourty day lifespan
+    ishost: false
+    common-name: (principal)
+
+  # CONFIGURATION ENDPOINT
+
+  get-local-config:
+    group: nodes
+    privilege: construct-configuration
+    contents: |
+      # generated automatically by keyserver
+      HOST_NODE=(hostname)
+      HOST_DNS=(hostname).mit.edu
+      HOST_IP=(ip)
+      SCHEDULE_WORK=(schedule)
+
+  # SERVER CERTIFICATES
+
+  grant-ssh-host:
+    group: nodes
+    privilege: sign-ssh
+    authority: ssh-host
+    lifespan: 1440h  # sixty day lifespan
+    ishost: false
+    common-name: admitted-(principal)
+    allowed-names:
+    - (hostname).mit.edu
+    - (hostname)
+    - (ip)
+
+  grant-etcd-client:
+    group: nodes
+    privilege: sign-tls
+    authority: etcd-client
+    lifespan: 720h  # thirty day lifespan
+    ishost: false
+    common-name: etcd-client-(hostname)
+    allowed-names:
+    - (hostname).mit.edu
+    - (hostname)
+    - (ip)

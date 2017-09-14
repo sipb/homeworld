@@ -13,6 +13,7 @@ import (
 	"keycommon/server"
 	"log"
 	"time"
+	"errors"
 )
 
 // TODO: private key rotation, not just getting new certs
@@ -33,13 +34,24 @@ func Load(configpath string, logger *log.Logger) ([]actloop.Action, error) {
 	s := &state.ClientState{Config: conf, Keyserver: ks}
 	actions := []actloop.Action{}
 	if conf.TokenPath != "" {
-		act, err := bootstrap.PrepareBootstrapAction(s, conf.TokenPath, conf.TokenAPI)
+		// for generating private keys
+		act, err := keygen.PrepareKeygenAction(config.ConfigKey{Type: "tls", Key: conf.KeyPath})
+		if err != nil {
+			return nil, err
+		}
+		if act == nil {
+			return nil, errors.New("expected non-nil result from PrepareKeygenAction")
+		}
+		actions = append(actions, act)
+		// for bootstrapping
+		act, err = bootstrap.PrepareBootstrapAction(s, conf.TokenPath, conf.TokenAPI)
 		if err != nil {
 			return nil, err
 		}
 		actions = append(actions, act)
 	}
 	for _, key := range conf.Keys {
+		// for generating private keys
 		act, err := keygen.PrepareKeygenAction(key)
 		if err != nil {
 			return nil, err
@@ -47,6 +59,7 @@ func Load(configpath string, logger *log.Logger) ([]actloop.Action, error) {
 		if act != nil {
 			actions = append(actions, act)
 		}
+		// for getting certificates for keys
 		act, err = keyreq.PrepareRequestOrRenewKeys(s, key)
 		if err != nil {
 			return nil, err
@@ -54,6 +67,7 @@ func Load(configpath string, logger *log.Logger) ([]actloop.Action, error) {
 		actions = append(actions, act)
 	}
 	for _, dl := range conf.Downloads {
+		// for downloading files and public keys
 		act, err := download.PrepareDownloadAction(s, dl)
 		if err != nil {
 			return nil, err
@@ -70,7 +84,7 @@ func Load(configpath string, logger *log.Logger) ([]actloop.Action, error) {
 // TODO: unit-test this launch better (i.e. the ten second part, etc)
 func Launch(actions []actloop.Action, logger *log.Logger) (stop func()) {
 	loop := actloop.NewActLoop(actions, logger)
-	go loop.Run(time.Second * 10)
+	go loop.Run(time.Second * 2, time.Minute * 5)
 	return loop.Cancel
 }
 

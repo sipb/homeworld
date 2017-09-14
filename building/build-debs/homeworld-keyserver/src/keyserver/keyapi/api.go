@@ -34,7 +34,7 @@ func verifyAccountIP(account *account.Account, request *http.Request) error {
 	}
 	allowed_ip := account.LimitIP
 	if allowed_ip != nil && !allowed_ip.Equal(ip) {
-		return fmt.Errorf("Attempt to interact with API from wrong IP address.")
+		return fmt.Errorf("attempt to interact with API from wrong IP address: %v instead of %v", ip, allowed_ip)
 	}
 	return nil
 }

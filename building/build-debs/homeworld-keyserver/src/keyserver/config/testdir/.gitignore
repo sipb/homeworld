@@ -1,0 +1,5 @@
+selfsig.key
+selfsig.pem
+client-of-selfsig.csr
+client-of-selfsig.key
+client-of-selfsig.pem

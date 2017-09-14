@@ -5,11 +5,13 @@ import (
 	"keyclient/state"
 	"keycommon/reqtarget"
 	"keycommon/server"
+	"fmt"
 )
 
 type DownloadFetcher interface {
 	PrereqsSatisfied() error
 	Fetch() ([]byte, error)
+	Info() string
 }
 
 type AuthorityFetcher struct {
@@ -31,12 +33,20 @@ func (af *AuthorityFetcher) PrereqsSatisfied() error {
 	return nil // so, yes
 }
 
+func (af *AuthorityFetcher) Info() string {
+	return fmt.Sprintf("pubkey for authority %s", af.AuthorityName)
+}
+
 func (af *AuthorityFetcher) Fetch() ([]byte, error) {
 	return af.Keyserver.GetPubkey(af.AuthorityName)
 }
 
 func (sf *StaticFetcher) PrereqsSatisfied() error {
 	return nil // so, yes
+}
+
+func (sf *StaticFetcher) Info() string {
+	return fmt.Sprintf("static file %s", sf.StaticName)
 }
 
 func (sf *StaticFetcher) Fetch() ([]byte, error) {
@@ -49,6 +59,10 @@ func (df *APIFetcher) PrereqsSatisfied() error {
 	} else {
 		return errors.New("No keygranting certificate ready.")
 	}
+}
+
+func (df *APIFetcher) Info() string {
+	return fmt.Sprintf("result from api %s", df.API)
 }
 
 func (df *APIFetcher) Fetch() ([]byte, error) {

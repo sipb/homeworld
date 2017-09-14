@@ -14,6 +14,9 @@ import (
 	"strings"
 	"testing"
 	"time"
+	"util/testkeyutil"
+	"os"
+	"net"
 )
 
 func TestLoadConfiguredKeyserver(t *testing.T) {
@@ -250,6 +253,18 @@ func TestAPIToHTTP_Invalid(t *testing.T) {
 }
 
 func TestRun_Static(t *testing.T) {
+	tlskey, _, tlscert := testkeyutil.GenerateTLSRootPEMsForTests(t, "test-selfsig", []string{"localhost"}, []net.IP{net.IPv4(127, 0, 0, 1)})
+	err := ioutil.WriteFile("../config/testdir/selfsig.key", tlskey, os.FileMode(0600))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove("../config/testdir/selfsig.key")
+	err = ioutil.WriteFile("../config/testdir/selfsig.pem", tlscert, os.FileMode(0644))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove("../config/testdir/selfsig.pem")
+
 	logrecord := bytes.NewBuffer(nil)
 	logger := log.New(logrecord, "", 0)
 	halt, onend, err := Run("../config/testdir/smalltest3.yaml", "127.0.0.1:51234", logger)
@@ -264,7 +279,7 @@ func TestRun_Static(t *testing.T) {
 		}
 	}()
 
-	serverCertAsCA, err := (&config.ConfigAuthority{Type: "TLS", Key: "selfsig.key", Cert: "selfsig.pem"}).Load("../config/testdir")
+	serverCertAsCA, err := authorities.LoadTLSAuthority(tlskey, tlscert)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -297,6 +312,18 @@ func TestRun_Static(t *testing.T) {
 }
 
 func TestRun_Pub(t *testing.T) {
+	tlskey, _, tlscert := testkeyutil.GenerateTLSRootPEMsForTests(t, "test-selfsig", []string{"localhost"}, []net.IP{net.IPv4(127, 0, 0, 1)})
+	err := ioutil.WriteFile("../config/testdir/selfsig.key", tlskey, os.FileMode(0600))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove("../config/testdir/selfsig.key")
+	err = ioutil.WriteFile("../config/testdir/selfsig.pem", tlscert, os.FileMode(0644))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove("../config/testdir/selfsig.pem")
+
 	logrecord := bytes.NewBuffer(nil)
 	logger := log.New(logrecord, "", 0)
 	halt, onend, err := Run("../config/testdir/smalltest3.yaml", "127.0.0.1:51234", logger)
@@ -344,6 +371,30 @@ func TestRun_Pub(t *testing.T) {
 }
 
 func TestRun_API(t *testing.T) {
+	tlskey, _, tlscert := testkeyutil.GenerateTLSRootPEMsForTests(t, "test-selfsig", []string{"localhost"}, []net.IP{net.IPv4(127, 0, 0, 1)})
+	err := ioutil.WriteFile("../config/testdir/selfsig.key", tlskey, os.FileMode(0600))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove("../config/testdir/selfsig.key")
+	err = ioutil.WriteFile("../config/testdir/selfsig.pem", tlscert, os.FileMode(0644))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove("../config/testdir/selfsig.pem")
+
+	clikey, _, clicert := testkeyutil.GenerateTLSKeypairPEMsForTests(t, "my-admin", nil, nil, tlscert, tlskey)
+	err = ioutil.WriteFile("../config/testdir/client-of-selfsig.key", clikey, os.FileMode(0600))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove("../config/testdir/client-of-selfsig.key")
+	err = ioutil.WriteFile("../config/testdir/client-of-selfsig.pem", clicert, os.FileMode(0644))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove("../config/testdir/client-of-selfsig.pem")
+
 	logrecord := bytes.NewBuffer(nil)
 	logger := log.New(logrecord, "", 0)
 	halt, onend, err := Run("../config/testdir/smalltest3.yaml", "127.0.0.1:51234", logger)
@@ -440,7 +491,31 @@ func TestRun_NoConfFile(t *testing.T) {
 }
 
 func TestRun_BadAddress(t *testing.T) {
-	_, _, err := Run("../config/testdir/smalltest3.yaml", "8.8.8.8:1", nil)
+	tlskey, _, tlscert := testkeyutil.GenerateTLSRootPEMsForTests(t, "test-selfsig", []string{"localhost"}, []net.IP{net.IPv4(127, 0, 0, 1)})
+	err := ioutil.WriteFile("../config/testdir/selfsig.key", tlskey, os.FileMode(0600))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove("../config/testdir/selfsig.key")
+	err = ioutil.WriteFile("../config/testdir/selfsig.pem", tlscert, os.FileMode(0644))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove("../config/testdir/selfsig.pem")
+
+	clikey, _, clicert := testkeyutil.GenerateTLSKeypairPEMsForTests(t, "my-admin", nil, nil, tlscert, tlskey)
+	err = ioutil.WriteFile("../config/testdir/client-of-selfsig.key", clikey, os.FileMode(0600))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove("../config/testdir/client-of-selfsig.key")
+	err = ioutil.WriteFile("../config/testdir/client-of-selfsig.pem", clicert, os.FileMode(0644))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove("../config/testdir/client-of-selfsig.pem")
+
+	_, _, err = Run("../config/testdir/smalltest3.yaml", "8.8.8.8:1", nil)
 	if err == nil {
 		t.Error("Expected error.")
 	} else if !strings.Contains(err.Error(), "cannot assign requested address") {

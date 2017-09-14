@@ -13,6 +13,7 @@ import (
 	"time"
 	"util/certutil"
 	"util/csrutil"
+	"util/fileutil"
 )
 
 type RequestOrRenewAction struct {
@@ -61,6 +62,10 @@ func PrepareRequestOrRenewKeys(s *state.ClientState, key config.ConfigKey) (actl
 	}
 }
 
+func (ra *RequestOrRenewAction) Info() string {
+	return fmt.Sprintf("req/renew %s from key %s into cert %s with API %s in advance by %v", ra.Name, ra.CertFile, ra.KeyFile, ra.InAdvance, ra.API)
+}
+
 func (ra *RequestOrRenewAction) Pending() (bool, error) {
 	existing, err := ioutil.ReadFile(ra.CertFile)
 	if err != nil {
@@ -88,6 +93,8 @@ func (ra *RequestOrRenewAction) Pending() (bool, error) {
 func (ra *RequestOrRenewAction) CheckBlocker() error {
 	if ra.State.Keygrant == nil {
 		return errors.New("no keygranting certificate ready")
+	} else if !fileutil.Exists(ra.KeyFile) {
+		return fmt.Errorf("key does not yet exist: %s", ra.KeyFile)
 	} else {
 		return nil
 	}

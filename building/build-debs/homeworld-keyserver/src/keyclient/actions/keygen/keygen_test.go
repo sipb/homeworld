@@ -200,3 +200,9 @@ func TestTLSKeygenAction_Perform_NoCreateFile(t *testing.T) {
 
 	os.Remove("testdir/testinvalid")
 }
+
+func TestTLSKeygenAction_Info(t *testing.T) {
+	if (TLSKeygenAction{"testdir/output.key", 519}).Info() != "generate key testdir/output.key (519 bits)" {
+		t.Error("wrong info")
+	}
+}

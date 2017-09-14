@@ -235,8 +235,16 @@ func TestClientState_ReplaceKeygrantingCert_NoFolder(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	err = os.Remove("testdir/brokendir")
+	if err != nil && !os.IsNotExist(err) {
+		t.Fatal(err)
+	}
+	err = os.Mkdir("testdir/brokendir", os.FileMode(0))
+	if err != nil {
+		t.Fatal(err)
+	}
 	state := &ClientState{Config: config.Config{
-		CertPath: "testdir/nonexistent/testa.pem",
+		CertPath: "testdir/brokendir/testa.pem",
 		KeyPath:  "testdir/testa.key",
 	}}
 	keypem, _, certpem := testkeyutil.GenerateTLSRootPEMsForTests(t, "test", nil, nil)
@@ -245,7 +253,7 @@ func TestClientState_ReplaceKeygrantingCert_NoFolder(t *testing.T) {
 		t.Fatal(err)
 	}
 	err = state.ReplaceKeygrantingCert(certpem)
-	testutil.CheckError(t, err, "testdir/nonexistent/testa.pem: no such file or directory")
+	testutil.CheckError(t, err, "testdir/brokendir/testa.pem: permission denied")
 	err = os.Remove("testdir/testa.key")
 	if err != nil {
 		t.Fatal(err)

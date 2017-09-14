@@ -103,7 +103,7 @@ func (grant *CompiledGrant) CompileToPrivilege(context *Context) (account.Privil
 		if grant.Scope != nil || grant.Contents != "" {
 			return nil, fmt.Errorf("Extraneous parameter(s) provided to sign-tls")
 		}
-		if grant.Authority == nil || grant.IsHost == nil || grant.Lifespan == 0 || grant.CommonName == "" || grant.AllowedNames == nil {
+		if grant.Authority == nil || grant.IsHost == nil || grant.Lifespan == 0 || grant.CommonName == "" {
 			return nil, errors.New("Missing parameter(s) to sign-tls")
 		}
 		return account.NewTLSGrantPrivilege(grant.Authority, *grant.IsHost, grant.Lifespan, grant.CommonName, grant.AllowedNames)

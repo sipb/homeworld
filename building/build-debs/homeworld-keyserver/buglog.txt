@@ -1,0 +1,40 @@
+This is a log of bugs that were found in this code, so that future maintainers can avoid causing the same bugs.
+
+Bugs discovered by unit testing are not considered important bugs, since they were caught by unit testing.
+
+Bugs that made it past unit testing, but were caught during integration testing:
+ * keyclient would exit without running anything because the main loop was in a goroutine
+    - this couldn't be unit-tested, because the main launch wasn't unit tested
+    - no resolution possible, besides "be more careful"
+ * keys were not checked for existence as blockers for certain actions
+    - preconditions were not thoroughly considered for actions.
+    - resolution TODO: check other preconditions
+ * output files did not have their directories constructed for certain outputs
+    - there should be an abstraction for writing a file and creating directories
+    - resolution TODO: provide abstraction
+ * the actloop was counted as unstable even when the only action left was erroring
+    - this was introduced by badly-thought-through unit testing decisions
+    - no resolution possible, besides "be more careful"
+ * error messages started with uppercase letters and ended in punctuation
+    - there was no consistent error message format defined
+    - resolution TODO: define format, make it consistent
+ * keygranting RSA private keys were not always being generated
+    - this was a logic error
+    - uncertain whether there's a good resolution to this
+ * errors were sometimes being logged to the global logger instead of the defined logger
+    - the logging target should be consistent
+    - resolution TODO: make sure nothing is logged via 'log'
+ * keygrant definitions were not allowed to contain zero dns names
+    - this was a logic error, caused by overvalidating inputs
+    - no easy resolution; should pay more attention to valid inputs; should try harder to not write unit tests closely to the code
+ * fixed-expiration certificates were used in unit tests
+    - unit tests should generally generate their certs
+
+Bugs that made it past integration testing, but were caught during deployment into a development cluster:
+ * None yet.
+
+Bugs that affected a later development cluster:
+ * None yet.
+
+Bugs that got past a later development cluster and affected production:
+ * None yet.

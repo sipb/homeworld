@@ -400,7 +400,7 @@ func TestServerEndpoint_Request_RequestGrindToHalt(t *testing.T) {
 	stop, _, _, servercert := launchTestServer(t, func(writer http.ResponseWriter, request *http.Request) {
 		data := [10000]byte{}
 		writer.Write(data[:])
-		time.Sleep(time.Millisecond * 51)
+		time.Sleep(time.Millisecond * 55)
 		writer.Write([]byte("Second line\n"))
 	})
 	defer stop()

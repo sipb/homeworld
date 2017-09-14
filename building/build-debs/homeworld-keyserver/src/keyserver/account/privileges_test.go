@@ -77,24 +77,8 @@ func TestTLSGrantPrivilege_NoAuthority(t *testing.T) {
 	}
 }
 
-func TestTLSGrantPrivilege_NoNames(t *testing.T) {
-	authority := getSSHAuthority(t)
-	_, err := NewTLSGrantPrivilege(authority, false, time.Hour, "test-cert", nil)
-	if err == nil {
-		t.Error("Expected error about bad parameter")
-	} else if !strings.Contains(err.Error(), "parameter") {
-		t.Error("Expected error about bad parameter, not", err)
-	}
-	_, err = NewTLSGrantPrivilege(authority, false, time.Hour, "test-cert", []string{})
-	if err == nil {
-		t.Error("Expected error about bad parameter")
-	} else if !strings.Contains(err.Error(), "parameter") {
-		t.Error("Expected error about bad parameter, not", err)
-	}
-}
-
 func TestTLSGrantPrivilege_NoKeyID(t *testing.T) {
-	authority := getSSHAuthority(t)
+	authority := getTLSAuthority(t)
 	_, err := NewTLSGrantPrivilege(authority, false, time.Hour, "", []string{"localhost"})
 	if err == nil {
 		t.Error("Expected error about bad parameter")

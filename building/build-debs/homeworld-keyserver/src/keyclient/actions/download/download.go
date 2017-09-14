@@ -10,6 +10,8 @@ import (
 	"os"
 	"strconv"
 	"time"
+	"util/fileutil"
+	"path"
 )
 
 type DownloadAction struct {
@@ -43,6 +45,10 @@ func PrepareDownloadAction(s *state.ClientState, d config.ConfigDownload) (actlo
 	}
 }
 
+func (da *DownloadAction) Info() string {
+	return fmt.Sprintf("download to file %s (mode %o) every %v: %s", da.Path, da.Mode, da.Refresh, da.Fetcher.Info())
+}
+
 func (da *DownloadAction) Pending() (bool, error) {
 	if statinfo, err := os.Stat(da.Path); err != nil {
 		if os.IsNotExist(err) {
@@ -70,6 +76,10 @@ func (da *DownloadAction) CheckBlocker() error {
 
 func (da *DownloadAction) Perform(logger *log.Logger) error {
 	data, err := da.Fetcher.Fetch()
+	if err != nil {
+		return err
+	}
+	err = fileutil.EnsureIsFolder(path.Dir(da.Path))
 	if err != nil {
 		return err
 	}

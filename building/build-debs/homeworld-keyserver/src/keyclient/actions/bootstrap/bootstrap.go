@@ -28,6 +28,10 @@ func PrepareBootstrapAction(s *state.ClientState, tokenfilepath string, api stri
 	return &BootstrapAction{State: s, TokenFilePath: tokenfilepath, TokenAPI: api}, nil
 }
 
+func (da *BootstrapAction) Info() string {
+	return fmt.Sprintf("bootstrap with token API %s from path %s", da.TokenAPI, da.TokenFilePath)
+}
+
 func (da *BootstrapAction) getToken() (string, error) {
 	contents, err := ioutil.ReadFile(da.TokenFilePath)
 	if err != nil {
@@ -50,6 +54,9 @@ func (da *BootstrapAction) Pending() (bool, error) {
 }
 
 func (da *BootstrapAction) CheckBlocker() error {
+	if !fileutil.Exists(da.State.Config.KeyPath) {
+		return fmt.Errorf("key does not yet exist: %s", da.State.Config.KeyPath)
+	}
 	return nil
 }
 

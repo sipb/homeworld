@@ -38,11 +38,11 @@ func LoadConfig(configpath string) (Config, error) {
 	config := Config{}
 	configdata, err := ioutil.ReadFile(configpath)
 	if err != nil {
-		return Config{}, fmt.Errorf("While loading configuration: %s", err)
+		return Config{}, fmt.Errorf("while loading configuration: %s", err)
 	}
 	err = yaml.UnmarshalStrict(configdata, &config)
 	if err != nil {
-		return Config{}, fmt.Errorf("While decoding configuration: %s", err)
+		return Config{}, fmt.Errorf("while decoding configuration: %s", err)
 	}
 	return config, nil
 }

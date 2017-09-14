@@ -9,6 +9,7 @@ import (
 	"keycommon/server"
 	"os"
 	"util/fileutil"
+	"path"
 )
 
 type ClientState struct {
@@ -32,7 +33,11 @@ func (s *ClientState) ReloadKeygrantingCert() error {
 }
 
 func (s *ClientState) ReplaceKeygrantingCert(data []byte) error {
-	err := ioutil.WriteFile(s.Config.CertPath, data, os.FileMode(0600))
+	err := fileutil.EnsureIsFolder(path.Dir(s.Config.CertPath)) // TODO: unit test
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile(s.Config.CertPath, data, os.FileMode(0600))
 	if err != nil {
 		return err
 	}

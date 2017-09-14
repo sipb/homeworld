@@ -23,7 +23,7 @@ type TLSSignPrivilege struct {
 }
 
 func NewTLSGrantPrivilege(authority authorities.Authority, ishost bool, lifespan time.Duration, commonname string, dnsnames []string) (Privilege, error) {
-	if authority == nil || lifespan < time.Second || commonname == "" || len(dnsnames) == 0 {
+	if authority == nil || lifespan < time.Second || commonname == "" {
 		return nil, fmt.Errorf("Missing parameter to TLS granting privilege.")
 	}
 	tauth, ok := authority.(*authorities.TLSAuthority)

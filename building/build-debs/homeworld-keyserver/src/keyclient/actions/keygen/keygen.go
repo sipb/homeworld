@@ -36,6 +36,10 @@ func PrepareKeygenAction(k config.ConfigKey) (actloop.Action, error) {
 	}
 }
 
+func (ka TLSKeygenAction) Info() string {
+	return fmt.Sprintf("generate key %s (%d bits)", ka.Keypath, ka.Bits)
+}
+
 func (ka TLSKeygenAction) Pending() (bool, error) {
 	// it's acceptable for the directory to not exist, because we'll just create it later
 	return !fileutil.Exists(ka.Keypath), nil

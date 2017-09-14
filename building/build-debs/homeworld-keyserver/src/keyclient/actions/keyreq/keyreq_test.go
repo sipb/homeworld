@@ -301,14 +301,37 @@ func TestRequestOrRenewAction_CheckBlocker_NoGrant(t *testing.T) {
 	testutil.CheckError(t, blocked, "no keygranting certificate ready")
 }
 
-func TestRequestOrRenewAction_CheckBlocker_YesGrant(t *testing.T) {
+func TestRequestOrRenewAction_CheckBlocker_YesGrant_NoKey(t *testing.T) {
 	blocked := (&RequestOrRenewAction{
 		State: &state.ClientState{
 			Keygrant: &tls.Certificate{}, // stub because it doesn't matter
 		},
+		KeyFile: "testdir/nonexistent.key",
+	}).CheckBlocker()
+	testutil.CheckError(t, blocked, "key does not yet exist: testdir/nonexistent.key")
+}
+
+func TestRequestOrRenewAction_CheckBlocker_YesGrant_YesKey(t *testing.T) {
+	err := fileutil.EnsureIsFolder("testdir")
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = ioutil.WriteFile("testdir/test.key", []byte("test"), os.FileMode(0600))
+	if err != nil {
+		t.Fatal(err)
+	}
+	blocked := (&RequestOrRenewAction{
+		State: &state.ClientState{
+			Keygrant: &tls.Certificate{}, // stub because it doesn't matter
+		},
+		KeyFile: "testdir/test.key",
 	}).CheckBlocker()
 	if blocked != nil {
 		t.Error(blocked)
+	}
+	err = os.Remove("testdir/test.key")
+	if err != nil {
+		t.Fatal(err)
 	}
 }
 
@@ -723,4 +746,17 @@ func TestRequestOrRenewAction_Perform_TLS_NoKey(t *testing.T) {
 	// the actual request
 	err = action.Perform(nil)
 	testutil.CheckError(t, err, "testdir/nonexistent.key: no such file or directory")
+}
+
+func TestRequestOrRenewAction_Info(t *testing.T) {
+	act := &RequestOrRenewAction{
+		KeyFile:  "testdir/testkey.key",
+		CertFile: "testdir/testcert.pem",
+		API:    "testapi",
+		InAdvance: time.Hour * 2,
+		Name: "testname",
+	}
+	if act.Info() != "req/renew testname from key testdir/testkey.key into cert testdir/testcert.pem with API testapi in advance by 2h0m0s" {
+
+	}
 }
