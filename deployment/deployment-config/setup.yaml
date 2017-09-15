@@ -1,0 +1,47 @@
+cluster:
+  external-domain: mit.edu
+  internal-domain: hyades.local
+  etcd-token: homeworld-cluster-8
+
+addresses:
+  cidr-pods: 172.18.0.0/16
+  cidr-services: 172.28.0.0/16
+  service-api: 172.28.0.1
+  service-dns: 172.28.0.2
+
+dns-bootstrap:
+  homeworld.mit.edu: 18.181.2.232
+
+root-admins:
+  - cela@ATHENA.MIT.EDU
+  - ikdc@ATHENA.MIT.EDU
+  - dukhovni@ATHENA.MIT.EDU
+
+nodes:
+  - hostname: eggs-benedict
+    ip: 18.181.0.97
+    kind: master
+
+  - hostname: huevos-rancheros
+    ip: 18.181.0.104
+    kind: master
+
+  - hostname: ole-miss
+    ip: 18.181.0.106
+    kind: master
+
+  - hostname: grilled-cheese
+    ip: 18.181.0.128
+    kind: worker
+
+  - hostname: avocado-burger
+    ip: 18.181.0.129
+    kind: worker
+
+  - hostname: french-toast
+    ip: 18.181.2.232
+    kind: worker
+
+  - hostname: egg-sandwich
+    ip: 18.181.0.253
+    kind: supervisor

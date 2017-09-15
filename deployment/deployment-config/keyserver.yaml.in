@@ -1,4 +1,4 @@
-# THIS IS JUST AN EXAMPLE -- THE ACTUAL CONFIGURATION IS GENERATED DURING DEPLOYMENT, AND NOT FROM THIS
+# this is a template file that will be spliced into cluster-specific configuration
 
 authoritydir: /etc/homeworld/keyserver/authorities/
 staticdir: /etc/homeworld/keyserver/static/
@@ -50,73 +50,19 @@ authorities:
     cert: serviceaccount.pem
 
 accounts:
-  - principal: eggs-benedict.mit.edu
-    group: master-nodes
-    limit-ip: true
-    metadata:
-      ip: 18.181.0.97
-      hostname: eggs-benedict
-      schedule: false
+{{ACCOUNTS}}
 
-  - principal: huevos-rancheros.mit.edu
-    group: master-nodes
-    limit-ip: true
-    metadata:
-      ip: 18.181.0.104
-      hostname: huevos-rancheros
-      schedule: false
+#  - principal: <hostname>.{{DOMAIN}}
+#    group: <master|worker|supervisor>-nodes
+#    limit-ip: true
+#    metadata:
+#      ip: <ip>
+#      hostname: <hostname>
+#      schedule: <true iff worker>
 
-  - principal: ole-miss.mit.edu
-    group: master-nodes
-    limit-ip: true
-    metadata:
-      ip: 18.181.0.106
-      hostname: ole-miss
-      schedule: false
-
-  - principal: grilled-cheese.mit.edu
-    group: worker-nodes
-    limit-ip: true
-    metadata:
-      ip: 18.181.0.128
-      hostname: grilled-cheese
-      schedule: true
-
-  - principal: avocado-burger.mit.edu
-    group: worker-nodes
-    limit-ip: true
-    metadata:
-      ip: 18.181.0.129
-      hostname: avocado-burger
-      schedule: true
-
-  - principal: french-toast.mit.edu
-    group: worker-nodes
-    limit-ip: true
-    metadata:
-      ip: 18.181.2.232
-      hostname: french-toast
-      schedule: true
-
-  - principal: egg-sandwich.mit.edu
-    group: supervisor-nodes
-    limit-ip: true
-    metadata:
-      ip: 18.181.0.253
-      hostname: egg-sandwich
-      schedule: false
-
-  - principal: cela@ATHENA.MIT.EDU
-    disable-direct-auth: true
-    group: root-admins
-
-  - principal: dukhovni@ATHENA.MIT.EDU
-    disable-direct-auth: true
-    group: root-admins
-
-  - principal: ikdc@ATHENA.MIT.EDU
-    disable-direct-auth: true
-    group: root-admins
+#  - principal: <user>@ATHENA.MIT.EDU
+#    disable-direct-auth: true
+#    group: root-admins
 
 groups:
   root-admins:
@@ -176,7 +122,7 @@ grants:
     ishost: false
     common-name: (principal)
 
-  auth-to-kerberos:
+  auth-to-kerberos:  # integration with kerberos gateway
     group: supervisor-nodes
     privilege: impersonate
     scope: root-admins
@@ -189,7 +135,7 @@ grants:
     contents: |
       # generated automatically by keyserver
       HOST_NODE=(hostname)
-      HOST_DNS=(hostname).mit.edu
+      HOST_DNS=(hostname).{{DOMAIN}}
       HOST_IP=(ip)
       SCHEDULE_WORK=(schedule)
 
@@ -203,7 +149,7 @@ grants:
     ishost: true
     common-name: admitted-(principal)
     allowed-names:
-    - (hostname).mit.edu
+    - (hostname).{{DOMAIN}}
     - (hostname)
     - (ip)
 
@@ -215,14 +161,14 @@ grants:
     ishost: true
     common-name: kube-master-(hostname)
     allowed-names:
-    - (hostname).mit.edu
+    - (hostname).{{DOMAIN}}
     - (hostname)
     - kubernetes
     - kubernetes.default
     - kubernetes.default.svc
-    - kubernetes.default.svc.hyades.local
+    - kubernetes.default.svc.{{INTERNAL-DOMAIN}}
     - (ip)
-    - 172.28.0.1
+    - {{SERVICEAPI}}
 
   grant-etcd-server:
     group: master-nodes
@@ -232,7 +178,7 @@ grants:
     ishost: true
     common-name: etcd-server-(hostname)
     allowed-names:
-    - (hostname).mit.edu
+    - (hostname).{{DOMAIN}}
     - (hostname)
     - (ip)
 
@@ -246,7 +192,7 @@ grants:
     ishost: false
     common-name: kube-worker-(hostname)
     allowed-names:
-    - (hostname).mit.edu
+    - (hostname).{{DOMAIN}}
     - (hostname)
     - (ip)
 
@@ -258,7 +204,7 @@ grants:
     ishost: false
     common-name: etcd-client-(hostname)
     allowed-names:
-    - (hostname).mit.edu
+    - (hostname).{{DOMAIN}}
     - (hostname)
     - (ip)
 

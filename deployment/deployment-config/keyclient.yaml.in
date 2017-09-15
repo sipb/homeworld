@@ -1,0 +1,105 @@
+# this is a template file that will be spliced into cluster-specific configuration
+
+keyserver: {{KEYSERVER}}:20557
+authoritypath: /etc/homeworld/keyclient/keyservertls.pem
+
+keypath: /etc/homeworld/keyclient/granting.key
+certpath: /etc/homeworld/keyclient/granting.pem
+
+tokenpath: /etc/homeworld/keyclient/bootstrap.token
+tokenapi: renew-keygrant
+
+downloads:
+  - type: authority
+    name: kubernetes
+    path: /etc/homeworld/authorities/kubernetes.pem
+    refresh: 24h
+    mode: 644
+
+  - type: authority
+    name: ssh-user
+    path: /etc/ssh/ssh_user_ca.pub
+    refresh: 168h   # allow a week for mistakes to be noticed on this one
+    mode: 644
+
+  - type: static
+    name: cluster.conf
+    path: /etc/homeworld/cluster.conf
+    refresh: 24h
+    mode: 644
+
+  - type: api
+    name: get-local-config
+    path: /etc/homeworld/local.conf
+    refresh: 24h
+    mode: 644
+
+[MASTER]  # just for master nodes
+[MASTER]  - type: authority
+[MASTER]    name: serviceaccount
+[MASTER]    path: /etc/homeworld/keys/serviceaccount.pem
+[MASTER]    refresh: 24h
+[MASTER]    mode: 644
+[MASTER]
+[MASTER]  - type: api
+[MASTER]    name: fetch-serviceaccount-key
+[MASTER]    path: /etc/homeworld/keys/serviceaccount.key
+[MASTER]    refresh: 24h
+[MASTER]    mode: 600
+[MASTER]
+[MASTER]  - type: authority
+[MASTER]    name: etcd-client
+[MASTER]    path: /etc/homeworld/authorities/etcd-client.pem
+[MASTER]    refresh: 24h
+[MASTER]    mode: 644
+[MASTER]
+[MASTER]  - type: authority
+[MASTER]    name: etcd-server
+[MASTER]    path: /etc/homeworld/authorities/etcd-server.pem
+[MASTER]    refresh: 24h
+[MASTER]    mode: 644
+
+keys:
+  - name: keygranting
+    type: tls
+    key: /etc/homeworld/keyclient/granting.key
+    cert: /etc/homeworld/keyclient/granting.pem
+    api: renew-keygrant
+    in-advance: 336h   # renew two weeks before expiration
+
+  - name: ssh-host
+    type: ssh-pubkey
+    key: /etc/ssh/ssh_host_rsa_key.pub
+    cert: /etc/ssh/ssh_host_rsa_cert
+    api: grant-ssh-host
+    in-advance: 168h   # renew one week before expiration
+
+[WORKER]    # for both master nodes and worker nodes, but not supervisor nodes
+[WORKER]  - name: kube-worker
+[WORKER]    type: tls
+[WORKER]    key: /etc/homeworld/keys/kubernetes-worker.key
+[WORKER]    cert: /etc/homeworld/keys/kubernetes-worker.pem
+[WORKER]    api: grant-kubernetes-worker
+[WORKER]    in-advance: 168h   # renew one week before expiration
+
+[MASTER]    # just for master nodes
+[MASTER]  - name: kube-master
+[MASTER]    type: tls
+[MASTER]    key: /etc/homeworld/keys/kubernetes-master.key
+[MASTER]    cert: /etc/homeworld/keys/kubernetes-master.pem
+[MASTER]    api: grant-kubernetes-master
+[MASTER]    in-advance: 168h   # renew one week before expiration
+[MASTER]
+[MASTER]  - name: etcd-server
+[MASTER]    type: tls
+[MASTER]    key: /etc/homeworld/keys/etcd-server.key
+[MASTER]    cert: /etc/homeworld/keys/etcd-server.pem
+[MASTER]    api: grant-etcd-server
+[MASTER]    in-advance: 168h   # renew one week before expiration
+[MASTER]
+[MASTER]  - name: etcd-client
+[MASTER]    type: tls
+[MASTER]    key: /etc/homeworld/keys/etcd-client.key
+[MASTER]    cert: /etc/homeworld/keys/etcd-client.pem
+[MASTER]    api: grant-etcd-client
+[MASTER]    in-advance: 168h   # renew one week before expiration

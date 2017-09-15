@@ -1,29 +1,30 @@
+# THIS IS JUST AN EXAMPLE -- THE ACTUAL CONFIGURATION IS GENERATED DURING DEPLOYMENT, AND NOT FROM THIS
 
 keyserver: egg-sandwich.mit.edu:20557
-authoritypath: /etc/hyades/keyclient/keyservertls.pem
+authoritypath: /etc/homeworld/keyclient/keyservertls.pem
 
-keypath: /etc/hyades/keyclient/granting.key
-certpath: /etc/hyades/keyclient/granting.pem
+keypath: /etc/homeworld/keyclient/granting.key
+certpath: /etc/homeworld/keyclient/granting.pem
 
-tokenpath: /etc/hyades/keyclient/bootstrap_token.txt
+tokenpath: /etc/homeworld/keyclient/bootstrap_token.txt
 tokenapi: renew-keygrant
 
 downloads:
   - type: authority
     name: etcd-client
-    path: /etc/hyades/authorities/etcd-client.pem
+    path: /etc/homeworld/authorities/etcd-client.pem
     refresh: 24h
     mode: 644
 
   - type: authority
     name: etcd-server
-    path: /etc/hyades/authorities/etcd-server.pem
+    path: /etc/homeworld/authorities/etcd-server.pem
     refresh: 24h
     mode: 644
 
   - type: authority
     name: kubernetes
-    path: /etc/hyades/authorities/kubernetes.pem
+    path: /etc/homeworld/authorities/kubernetes.pem
     refresh: 24h
     mode: 644
 
@@ -35,13 +36,13 @@ downloads:
 
   - type: static
     name: cluster.conf
-    path: /etc/hyades/cluster.conf
+    path: /etc/homeworld/cluster.conf
     refresh: 24h
     mode: 644
 
   - type: api
     name: get-local-config
-    path: /etc/hyades/local.conf
+    path: /etc/homeworld/local.conf
     refresh: 24h
     mode: 644
 
@@ -49,21 +50,21 @@ downloads:
 
   - type: authority
     name: serviceaccount
-    path: /etc/hyades/keys/serviceaccount.pem
+    path: /etc/homeworld/keys/serviceaccount.pem
     refresh: 24h
     mode: 644
 
   - type: api
     name: fetch-serviceaccount-key
-    path: /etc/hyades/keys/serviceaccount.key
+    path: /etc/homeworld/keys/serviceaccount.key
     refresh: 24h
     mode: 600
 
 keys:
   - name: keygranting
     type: tls
-    key: /etc/hyades/keyclient/granting.key
-    cert: /etc/hyades/keyclient/granting.pem
+    key: /etc/homeworld/keyclient/granting.key
+    cert: /etc/homeworld/keyclient/granting.pem
     api: renew-keygrant
     in-advance: 336h   # renew two weeks before expiration
 
@@ -78,28 +79,28 @@ keys:
 
   - name: kube-worker
     type: tls
-    key: /etc/hyades/keys/kubernetes-worker.key
-    cert: /etc/hyades/keys/kubernetes-worker.pem
+    key: /etc/homeworld/keys/kubernetes-worker.key
+    cert: /etc/homeworld/keys/kubernetes-worker.pem
     api: grant-kubernetes-worker
     in-advance: 168h   # renew one week before expiration
 
   - name: kube-master
     type: tls
-    key: /etc/hyades/keys/kubernetes-master.key
-    cert: /etc/hyades/keys/kubernetes-master.pem
+    key: /etc/homeworld/keys/kubernetes-master.key
+    cert: /etc/homeworld/keys/kubernetes-master.pem
     api: grant-kubernetes-master
     in-advance: 168h   # renew one week before expiration
 
   - name: etcd-server
     type: tls
-    key: /etc/hyades/keys/etcd-server.key
-    cert: /etc/hyades/keys/etcd-server.pem
+    key: /etc/homeworld/keys/etcd-server.key
+    cert: /etc/homeworld/keys/etcd-server.pem
     api: grant-etcd-server
     in-advance: 168h   # renew one week before expiration
 
   - name: etcd-client
     type: tls
-    key: /etc/hyades/keys/etcd-client.key
-    cert: /etc/hyades/keys/etcd-client.pem
+    key: /etc/homeworld/keys/etcd-client.key
+    cert: /etc/homeworld/keys/etcd-client.pem
     api: grant-etcd-client
     in-advance: 168h   # renew one week before expiration
