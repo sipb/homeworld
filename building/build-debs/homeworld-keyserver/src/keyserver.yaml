@@ -200,7 +200,7 @@ grants:
     privilege: sign-ssh
     authority: ssh-host
     lifespan: 1440h  # sixty day lifespan
-    ishost: false
+    ishost: true
     common-name: admitted-(principal)
     allowed-names:
     - (hostname).mit.edu
