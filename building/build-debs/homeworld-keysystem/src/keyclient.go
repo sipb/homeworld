@@ -23,5 +23,5 @@ func main() {
 		logger.Fatal(err)
 	}
 	// hang forever
-	<- make(chan int)
+	<-make(chan int)
 }

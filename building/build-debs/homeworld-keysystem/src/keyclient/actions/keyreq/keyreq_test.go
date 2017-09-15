@@ -750,11 +750,11 @@ func TestRequestOrRenewAction_Perform_TLS_NoKey(t *testing.T) {
 
 func TestRequestOrRenewAction_Info(t *testing.T) {
 	act := &RequestOrRenewAction{
-		KeyFile:  "testdir/testkey.key",
-		CertFile: "testdir/testcert.pem",
-		API:    "testapi",
+		KeyFile:   "testdir/testkey.key",
+		CertFile:  "testdir/testcert.pem",
+		API:       "testapi",
 		InAdvance: time.Hour * 2,
-		Name: "testname",
+		Name:      "testname",
 	}
 	if act.Info() != "req/renew testname from key testdir/testkey.key into cert testdir/testcert.pem with API testapi in advance by 2h0m0s" {
 

@@ -2,10 +2,10 @@ package download
 
 import (
 	"errors"
+	"fmt"
 	"keyclient/state"
 	"keycommon/reqtarget"
 	"keycommon/server"
-	"fmt"
 )
 
 type DownloadFetcher interface {

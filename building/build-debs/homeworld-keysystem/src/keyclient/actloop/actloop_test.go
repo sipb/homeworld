@@ -282,7 +282,7 @@ func TestActLoop_RunSimple(t *testing.T) {
 	logger := log.New(logbuf, "[actloop] ", 0)
 	loop := NewActLoop(actions, logger)
 	go func() { time.Sleep(time.Millisecond * 10); loop.Cancel() }()
-	loop.Run(time.Nanosecond, time.Nanosecond * 30)
+	loop.Run(time.Nanosecond, time.Nanosecond*30)
 	if !actions[0].(*FakeAction).Performed || !actions[1].(*FakeAction).Performed {
 		t.Error("should have been executed")
 	}
@@ -325,7 +325,7 @@ func TestActLoop_CycleTime(t *testing.T) {
 		loop := NewActLoop(actions, logger)
 		go func() { time.Sleep(time.Millisecond * 100); loop.Cancel() }()
 		start := time.Now()
-		loop.Run(time.Millisecond * 10, time.Millisecond * 300)
+		loop.Run(time.Millisecond*10, time.Millisecond*300)
 		if !actions[0].(*FakeAction).Performed || !actions[1].(*FakeAction).Performed || taction.PerformedAt.IsZero() {
 			t.Error("should have been executed")
 		}
@@ -359,7 +359,7 @@ func TestActLoop_StableTime(t *testing.T) {
 			loop.Cancel()
 		}()
 		start := time.Now()
-		loop.Run(time.Millisecond, time.Millisecond * 30)
+		loop.Run(time.Millisecond, time.Millisecond*30)
 		if !actions[0].(*FakeAction).Performed || !actions[1].(*FakeAction).Performed || taction.PerformedAt.IsZero() {
 			t.Error("should have been executed")
 		}

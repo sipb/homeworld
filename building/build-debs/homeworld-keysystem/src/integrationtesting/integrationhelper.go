@@ -1,26 +1,26 @@
 package main
 
 import (
+	"bytes"
+	"crypto/rand"
+	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
-	"crypto/rsa"
-	"math/big"
-	"crypto/rand"
-	"fmt"
-	"time"
-	"net"
 	"encoding/pem"
-	"util/wraputil"
-	"io/ioutil"
-	"os"
-	"golang.org/x/crypto/ssh"
 	"errors"
+	"fmt"
+	"golang.org/x/crypto/ssh"
+	"io/ioutil"
 	"log"
+	"math/big"
+	"net"
+	"os"
 	"path"
 	"sort"
-	"util/fileutil"
 	"strings"
-	"bytes"
+	"time"
+	"util/fileutil"
+	"util/wraputil"
 )
 
 func GenerateKeypair(commonname string, dns []string, ips []net.IP, parentkey *rsa.PrivateKey, parentcert *x509.Certificate) (*rsa.PrivateKey, *x509.Certificate, error) {
@@ -96,7 +96,7 @@ func GenerateKeypairPEMs(commonname string, dns []string, ips []net.IP, parentke
 	}
 	return pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(key)}),
 		pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: cert.Raw}),
-	    nil
+		nil
 }
 
 func GenerateKeypairToFiles(commonname string, dns []string, ips []net.IP, keyout string, certout string, parentkeyin string, parentcertin string) error {
@@ -168,11 +168,11 @@ func GenerateSSHKeypair(keyout string) error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(keyout + ".pub", ssh.MarshalAuthorizedKey(pubkey), os.FileMode(0644))
+	return ioutil.WriteFile(keyout+".pub", ssh.MarshalAuthorizedKey(pubkey), os.FileMode(0644))
 }
 
 func Setup() error {
-	err := GenerateKeypairToFiles("localhost-cert", []string {"localhost"}, []net.IP{ net.IPv4(127, 0, 0, 1) }, "server/authorities/server.key", "server/authorities/server.pem", "", "")
+	err := GenerateKeypairToFiles("localhost-cert", []string{"localhost"}, []net.IP{net.IPv4(127, 0, 0, 1)}, "server/authorities/server.key", "server/authorities/server.pem", "", "")
 	if err != nil {
 		return err
 	}
@@ -208,7 +208,7 @@ func ListRecursiveFiles(directory string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	out := []string {}
+	out := []string{}
 	for _, info := range infos {
 		if info.IsDir() {
 			additional, err := ListRecursiveFiles(path.Join(directory, info.Name()))
@@ -226,17 +226,17 @@ func ListRecursiveFiles(directory string) ([]string, error) {
 	return out, nil
 }
 
-func CheckRecursiveFiles(directory string, expected []string) (error) {
+func CheckRecursiveFiles(directory string, expected []string) error {
 	contents, err := ListRecursiveFiles(directory)
 	if err != nil {
 		return err
 	}
 	// generate maps
-	contentmap := map[string]bool {}
+	contentmap := map[string]bool{}
 	for _, c := range contents {
 		contentmap[c] = true
 	}
-	expectmap := map[string]bool {}
+	expectmap := map[string]bool{}
 	for _, e := range expected {
 		expectmap[e] = true
 	}
@@ -260,8 +260,8 @@ func CheckLog(logfile string, lines []string) error {
 		return err
 	}
 	content := strings.Split(string(filedata), "\n")
-	if content[len(content) - 1] == "" {
-		content = content[:len(content) - 1]
+	if content[len(content)-1] == "" {
+		content = content[:len(content)-1]
 	}
 	if len(content) != len(lines) {
 		return errors.New("wrong number of lines")
@@ -371,7 +371,7 @@ func ValidateSSHCert(certfile string, keyfile string, authorityfile string, comm
 			return auth.Type() == authority.Type() && bytes.Equal(auth.Marshal(), authority.Marshal())
 		},
 	}
-	err = checker.CheckHostKey(hostname + ":22", nil, cert)
+	err = checker.CheckHostKey(hostname+":22", nil, cert)
 	if err != nil {
 		return err
 	}
@@ -389,7 +389,7 @@ func ValidateSSHCert(certfile string, keyfile string, authorityfile string, comm
 }
 
 func Check() error {
-	err := CheckRecursiveFiles("client", []string {
+	err := CheckRecursiveFiles("client", []string{
 		"client.yaml",
 		"client.log",
 		"server.pem",
@@ -409,7 +409,7 @@ func Check() error {
 		return err
 	}
 
-	err = CheckRecursiveFiles("server", []string {
+	err = CheckRecursiveFiles("server", []string{
 		"server.yaml",
 		"server.log",
 		"static/cluster.conf",
@@ -426,7 +426,7 @@ func Check() error {
 		return err
 	}
 
-	err = CheckLog("client/client.log", []string {
+	err = CheckLog("client/client.log", []string{
 		"keygranting cert not yet available: no keygranting certificate found",
 		"action performed: generate key keyclient/granting.key (4096 bits)",
 		"action performed: bootstrap with token API renew-keygrant from path bootstrap.token",
@@ -443,7 +443,7 @@ func Check() error {
 		return err
 	}
 
-	err = CheckLog("server/server.log", []string {
+	err = CheckLog("server/server.log", []string{
 		"Attempting to perform API operation bootstrap for admin-test",
 		"Operation bootstrap for admin-test succeeded.",
 		"Attempting to perform API operation renew-keygrant for localhost-test",
@@ -465,11 +465,11 @@ func Check() error {
 	}
 
 	err = CheckFile("client/local.conf",
-		"# generated automatically by keyserver\n" +
-			"HOST_NODE=localhost\n" +
-	 		"HOST_DNS=localhost.mit.edu\n" +
-	 		"HOST_IP=127.0.0.1\n" +
-	 		"SCHEDULE_WORK=true\n")
+		"# generated automatically by keyserver\n"+
+			"HOST_NODE=localhost\n"+
+			"HOST_DNS=localhost.mit.edu\n"+
+			"HOST_IP=127.0.0.1\n"+
+			"SCHEDULE_WORK=true\n")
 	if err != nil {
 		return err
 	}

@@ -8,10 +8,10 @@ import (
 	"keyclient/state"
 	"log"
 	"os"
+	"path"
 	"strconv"
 	"time"
 	"util/fileutil"
-	"path"
 )
 
 type DownloadAction struct {

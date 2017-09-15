@@ -9,14 +9,14 @@ import (
 	"keyserver/config"
 	"keyserver/verifier"
 	"log"
+	"net"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 	"time"
 	"util/testkeyutil"
-	"os"
-	"net"
 )
 
 func TestLoadConfiguredKeyserver(t *testing.T) {

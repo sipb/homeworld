@@ -8,8 +8,8 @@ import (
 	"keyclient/config"
 	"keycommon/server"
 	"os"
-	"util/fileutil"
 	"path"
+	"util/fileutil"
 )
 
 type ClientState struct {

@@ -1,6 +1,7 @@
 package setup
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"keyclient/actions/bootstrap"
@@ -13,7 +14,6 @@ import (
 	"keycommon/server"
 	"log"
 	"time"
-	"errors"
 )
 
 // TODO: private key rotation, not just getting new certs
@@ -84,7 +84,7 @@ func Load(configpath string, logger *log.Logger) ([]actloop.Action, error) {
 // TODO: unit-test this launch better (i.e. the ten second part, etc)
 func Launch(actions []actloop.Action, logger *log.Logger) (stop func()) {
 	loop := actloop.NewActLoop(actions, logger)
-	go loop.Run(time.Second * 2, time.Minute * 5)
+	go loop.Run(time.Second*2, time.Minute*5)
 	return loop.Cancel
 }
 
