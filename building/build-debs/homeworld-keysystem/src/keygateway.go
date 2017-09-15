@@ -77,7 +77,7 @@ func Process(configfile string) error {
 }
 
 func main() {
-	logger := log.New(os.Stderr, "[keyclient] ", log.Ldate|log.Ltime|log.Lmicroseconds|log.Lshortfile)
+	logger := log.New(os.Stderr, "[keygateway] ", log.Ldate|log.Ltime|log.Lmicroseconds|log.Lshortfile)
 	if len(os.Args) < 2 {
 		logger.Fatal("no configuration file provided")
 	}
