@@ -1,0 +1,6 @@
+keyserver usr/bin
+services/keyserver.service usr/lib/systemd/system
+keyclient usr/bin
+services/keyclient.service usr/lib/systemd/system
+keygateway usr/bin
+services/keygateway.service usr/lib/systemd/system

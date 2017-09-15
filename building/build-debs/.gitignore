@@ -19,6 +19,4 @@ homeworld-etcd_3.1.7.orig.tar.xz
 homeworld-flannel_*.orig.tar.xz
 homeworld-hyperkube_*.orig.tar.xz
 homeworld-rkt_1.27.0.orig.tar.xz
-homeworld-authserver_0.1.*.tar.gz
-homeworld-admitserver_*.tar.gz
-homeworld-admitclient_*.tar.gz
+homeworld-keysystem_*.tar.gz
