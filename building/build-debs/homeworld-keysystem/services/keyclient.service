@@ -1,10 +1,10 @@
 [Unit]
-Description=Homeworld Keyserver
+Description=Homeworld Keyclient
 Requires=network-online.target
 After=network-online.target
 
 [Service]
-ExecStart=/usr/bin/keyserver /etc/homeworld/config/keyserver.conf
+ExecStart=/usr/bin/keyclient /etc/homeworld/config/keyclient.conf
 Restart=always
 RestartSec=10s
 

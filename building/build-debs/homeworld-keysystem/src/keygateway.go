@@ -10,7 +10,7 @@ import (
 	"os"
 )
 
-func HandleRequest(principal string, request_data []byte) ([]byte, error) {
+func HandleRequest(principal string, request_data []byte, configfile string) ([]byte, error) {
 	jsonload := []struct {
 		api  string
 		body string
@@ -26,7 +26,7 @@ func HandleRequest(principal string, request_data []byte) ([]byte, error) {
 		requests[i].Body = req.body
 	}
 
-	_, rt, err := keycommon.LoadKeyserverWithCert("/etc/hyades/keyclient/keyclient.conf")
+	_, rt, err := keycommon.LoadKeyserverWithCert(configfile)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func HandleRequest(principal string, request_data []byte) ([]byte, error) {
 	return json.Marshal(result)
 }
 
-func Process() error {
+func Process(configfile string) error {
 	if os.Getenv("KNC_MECH") != "krb5" {
 		return errors.New("Expected kerberos authentication.")
 	}
@@ -67,7 +67,7 @@ func Process() error {
 		return errors.New("Empty request.")
 	}
 
-	result, err := HandleRequest(kncCreds, request_data)
+	result, err := HandleRequest(kncCreds, request_data, configfile)
 	if err != nil {
 		return err
 	}
@@ -77,9 +77,13 @@ func Process() error {
 }
 
 func main() {
-	err := Process()
+	logger := log.New(os.Stderr, "[keyclient] ", log.Ldate|log.Ltime|log.Lmicroseconds|log.Lshortfile)
+	if len(os.Args) < 2 {
+		logger.Fatal("no configuration file provided")
+	}
+	err := Process(os.Args[1])
 	// TODO: verify that stderr does *not* get sent across knc
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatal(err)
 	}
 }
