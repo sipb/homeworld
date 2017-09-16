@@ -49,5 +49,9 @@ func (k KncServer) SendRequests(reqs []reqtarget.Request) ([]string, error) {
 		return nil, err
 	}
 
+	if len(resps) != len(reqs) {
+		return nil, errors.New("Wrong number of results")
+	}
+
 	return resps, nil
 }
