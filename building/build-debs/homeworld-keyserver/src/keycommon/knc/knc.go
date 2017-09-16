@@ -3,10 +3,16 @@ package knc
 import (
 	"fmt"
 	"os/exec"
+	"encoding/json"
+	"keycommon/reqtarget"
 )
 
-func Request(host string, data []byte) ([]byte, error) {
-	cmd := exec.Command("/usr/bin/knc", fmt.Sprintf("host@%s", host), "20575")
+type KncServer struct {
+	Hostname string
+}
+
+func (k KncServer) kncRequest(data []byte) ([]byte, error) {
+	cmd := exec.Command("/usr/bin/knc", fmt.Sprintf("host@%s", k.Hostname), "20575")
 
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
@@ -24,4 +30,24 @@ func Request(host string, data []byte) ([]byte, error) {
 	}
 
 	return response, nil
+}
+
+func (k KncServer) SendRequests(reqs []reqtarget.Request) ([]string, error) {
+	raw_reqs, err := json.Marshal(reqs)
+	if err != nil {
+		return nil, err
+	}
+
+	raw_resps, err := k.kncRequest(raw_reqs)
+	if err != nil {
+		return nil, err
+	}
+
+	resps := []string{}
+	err = json.Unmarshal(raw_resps, &resps)
+	if err != nil {
+		return nil, err
+	}
+
+	return resps, nil
 }
