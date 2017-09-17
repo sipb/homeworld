@@ -2,6 +2,7 @@ package knc
 
 import (
 	"fmt"
+	"errors"
 	"os/exec"
 	"encoding/json"
 	"keycommon/reqtarget"
