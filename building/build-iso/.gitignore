@@ -4,3 +4,6 @@ preseeded.iso
 homeworld-*.deb
 admission.conf
 admission.pem
+keyclient-*.yaml
+authorized.key
+keyservertls.pem
