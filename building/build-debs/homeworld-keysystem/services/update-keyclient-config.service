@@ -1,0 +1,6 @@
+[Unit]
+Description=homeworld keyclient configuration update
+
+[Service]
+ExecStart=/usr/lib/homeworld/update-keyclient-config.sh
+Restart=never

@@ -1,0 +1,9 @@
+[Unit]
+Description=homeworld keyclient configuration update
+
+[Timer]
+OnBootSec=15sec
+OnUnitActiveSec=30sec
+
+[Install]
+WantedBy=timers.target
