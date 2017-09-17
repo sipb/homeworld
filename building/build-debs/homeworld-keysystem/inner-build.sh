@@ -26,5 +26,7 @@ export GOPATH="${GODIR}:$(pwd)"
 go build src/keyserver/main/keyserver.go
 go build src/keygateway/main/keygateway.go
 go build src/keyclient/main/keyclient.go
+go build src/keygen.go
+go build src/keyinitadmit.go
 
 echo "keysystem built!"

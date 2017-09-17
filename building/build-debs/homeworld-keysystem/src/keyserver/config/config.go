@@ -66,6 +66,14 @@ func LoadConfigFromBytes(data []byte) (*Context, error) {
 	return config.Compile()
 }
 
+func LoadRawConfig(filename string) (*Config, error) {
+	contents, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+	return parseConfigFromBytes(contents)
+}
+
 func LoadConfig(filename string) (*Context, error) {
 	contents, err := ioutil.ReadFile(filename)
 	if err != nil {
