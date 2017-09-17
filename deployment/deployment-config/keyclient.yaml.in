@@ -1,5 +1,7 @@
 # this is a template file that will be spliced into cluster-specific configuration
 
+[BASE]# TEMPORARY-KEYCLIENT-CONFIGURATION
+
 keyserver: {{KEYSERVER}}:20557
 authoritypath: /etc/homeworld/keyclient/keyservertls.pem
 
@@ -24,13 +26,13 @@ downloads:
 
   - type: static
     name: cluster.conf
-    path: /etc/homeworld/cluster.conf
+    path: /etc/homeworld/config/cluster.conf
     refresh: 24h
     mode: 644
 
   - type: api
     name: get-local-config
-    path: /etc/homeworld/local.conf
+    path: /etc/homeworld/config/local.conf
     refresh: 24h
     mode: 644
 

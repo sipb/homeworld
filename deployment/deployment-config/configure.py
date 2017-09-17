@@ -181,10 +181,11 @@ def generate_results(config, target_dir):
     for k,v in config.__dict__.items():
         print(k,"=>",v)
 
-    for node in ["master", "worker", "supervisor"]:
+    for node in ["master", "worker", "base", "supervisor"]:
         tpl = {"KEYSERVER": config.keyserver.hostname + "." + config.external_domain,
                   "MASTER": node == "master",
-                  "WORKER": node != "supervisor"}
+                  "WORKER": node in ("worker", "master"),
+                    "BASE": node == "base"}
         result = kc.template(tpl)
         with open(os.path.join(target_dir, "keyclient-%s.yaml" % node), "w") as f:
             f.write(result)
@@ -198,7 +199,8 @@ def generate_results(config, target_dir):
     metadata:
       ip: {{IP}}
       hostname: {{HOSTNAME}}
-      schedule: {{SCHEDULE}}""", load=False)
+      schedule: {{SCHEDULE}}
+      kind: {{KIND}}""", load=False)
 
     for node in config.nodes:
         tvs = {"HOSTNAME": node.hostname,

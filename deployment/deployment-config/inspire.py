@@ -9,6 +9,10 @@ def operation_ssh(config, node, script):
     cmd = ["echo", "ssh", "root@%s.%s" % (node.hostname, config.external_domain), script]
     return lambda: subprocess.check_call(cmd)
 
+def operation_scp_upload(config, node, source, dest):
+    cmd = ["echo", "scp", source, "root@%s.%s:%s" % (node.hostname, config.external_domain, dest)]
+    return lambda: subprocess.check_call(cmd)
+
 def operation_sleep(delay):
     return lambda: time.sleep(delay)
 
@@ -16,8 +20,37 @@ def generate_operations_for_install(config):
     ops = []
     cluster = [node for node in config.nodes if node.kind != "supervisor"]
     for node in cluster:
-        cmd = "apt-get update && apt-get upgrade -y && apt-get install -y homeworld-services"
+    for node in config.nodes:
+        cmd = "apt-get update && apt-get upgrade -y"
+        if node.kind != "supervisor":
+            cmd += " && apt-get install -y homeworld-services"
         ops.append(("install packages on %s" % node.hostname, operation_ssh(config, node, cmd)))
+    return ops
+
+def generate_operations_for_admit_keyserver(config):
+    ops = []
+    cluster = [node for node in config.nodes if node.kind == "supervisor"]
+    for node in cluster:
+        ops.append(("request bootstrap token for %s" % node.hostname, operation_ssh(config, node, "/usr/bin/keyinitadmit /etc/homeworld/config/keyserver.yaml %s.%s bootstrap-keyinit >/etc/homeworld/keyclient/bootstrap.token" % (node.hostname, config.external_domain))))
+    return ops
+
+def generate_operations_for_setup_gateway(config):
+    ops = []
+    cluster = [node for node in config.nodes if node.kind == "supervisor"]
+    for node in cluster:
+        ops.append(("upload keytab for %s" % node.hostname, operation_scp_upload(config, node, "keytab-%s", "/etc/krb5.keytab")))
+        ops.append(("restart gateway on %s" % node.hostname, operation_ssh(config, node, "systemctl restart keygateway")))
+    return ops
+
+def generate_operations_for_keyinit(config):
+    ops = []
+    cluster = [node for node in config.nodes if node.kind == "supervisor"]
+    for node in cluster:
+        ops.append(("upload authorities to %s" % node.hostname, operation_scp_upload(config, node, "authorities.tgz", "/etc/homeworld/keyserver/authorities/authorities.tgz")))
+        ops.append(("extract authorities on %s" % node.hostname, operation_ssh(config, node, "cd /etc/homeworld/keyserver/authorities/ && tar -xzf authorities.tgz && rm authorities.tgz")))
+        ops.append(("upload cluster config to %s" % node.hostname, operation_scp_upload(config, node, "confgen/cluster.conf", "/etc/homeworld/keyserver/static/cluster.conf")))
+        ops.append(("upload keyserver config to %s" % node.hostname, operation_scp_upload(config, node, "confgen/keyserver.yaml", "/etc/homeworld/keyserver/config/keyserver.yaml")))
+        ops.append(("start keyserver on %s" % node.hostname, operation_ssh(config, node, "systemctl restart keyserver.service")))
     return ops
 
 def generate_operations_for_dns(config, is_install):
@@ -71,6 +104,12 @@ if __name__ == "__main__":
         ops = generate_operations_for_start(config)
     elif sys.argv[1] == "install-packages":
         ops = generate_operations_for_install(config)
+    elif sys.argv[1] == "deploy-keyinit":
+        ops = generate_operations_for_keyinit(config)
+    elif sys.argv[1] == "admit-keyserver":
+        ops = generate_operations_for_admitinit(config)
+    elif sys.argv[1] == "setup-keygateway":
+        ops = generate_operations_for_setup_gateway(config)
     elif sys.argv[1] == "bootstrap-dns":
         ops = generate_operations_for_dns(config, True)
     elif sys.argv[1] == "restore-dns":

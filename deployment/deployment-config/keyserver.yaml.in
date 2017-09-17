@@ -7,6 +7,10 @@ servertls: servertls
 
 staticfiles:
   - cluster.conf
+  - keyclient-base.yaml
+  - keyclient-supervisor.yaml
+  - keyclient-worker.yaml
+  - keyclient-master.yaml
 
 authorities:
   keygranting:
@@ -59,6 +63,7 @@ accounts:
 #      ip: <ip>
 #      hostname: <hostname>
 #      schedule: <true iff worker>
+#      kind: <master|worker|supervisor>
 
 #  - principal: <user>@ATHENA.MIT.EDU
 #    disable-direct-auth: true
@@ -114,6 +119,12 @@ grants:
     scope: nodes
     lifespan: 1h
 
+  bootstrap-keyinit:
+    group: supervisor-nodes
+    privilege: bootstrap-account
+    scope: supervisor-nodes
+    lifespan: 10m
+
   renew-keygrant:
     group: nodes
     privilege: sign-tls
@@ -138,6 +149,7 @@ grants:
       HOST_DNS=(hostname).{{DOMAIN}}
       HOST_IP=(ip)
       SCHEDULE_WORK=(schedule)
+      KIND=(kind)
 
   # SERVER CERTIFICATES
 
