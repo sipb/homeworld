@@ -31,6 +31,10 @@ func NewServerEndpoint(url string, authorities *x509.CertPool) (ServerEndpoint, 
 	return ServerEndpoint{rootCAs: authorities, baseURL: url, timeout: time.Second * 30}, nil
 }
 
+func (s ServerEndpoint) BaseURL() string {
+	return s.baseURL
+}
+
 func (s ServerEndpoint) WithHeader(key string, value string) ServerEndpoint {
 	out := s
 	out.extraHeaders = map[string]string{}

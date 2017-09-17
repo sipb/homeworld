@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"keycommon/endpoint"
 	"keycommon/reqtarget"
+	"keycommon/knc"
+	"net/url"
 )
 
 type authenticated struct {
@@ -21,6 +23,15 @@ func (k *Keyserver) AuthenticateWithToken(token string) (reqtarget.RequestTarget
 
 func (k *Keyserver) AuthenticateWithCert(cert tls.Certificate) (reqtarget.RequestTarget, error) {
 	return &authenticated{k.endpoint.WithCertificate(cert)}, nil
+}
+
+func (k *Keyserver) AuthenticateWithKerberosTickets() (reqtarget.RequestTarget, error) {
+	url, err := url.Parse(k.endpoint.BaseURL())
+	if err != nil {
+		return nil, err
+	}
+
+	return &knc.KncServer{url.Hostname()}, nil
 }
 
 func (a *authenticated) SendRequests(reqs []reqtarget.Request) ([]string, error) {
