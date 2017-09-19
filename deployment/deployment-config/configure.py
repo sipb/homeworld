@@ -246,6 +246,9 @@ def generate_results(config, target_dir):
         for k, v in sorted(cconf.items()):
             f.write("%s=%s\n" % (k, v))
 
+    with open(os.path.join(target_dir, "machine.list"), "w") as f:
+        f.write(",".join("%s.%s" % (node.hostname, config.external_domain) for node in config.nodes) + "\n")
+
 if __name__ == "__main__":
     config = load_setup()
     generate_results(config, "./confgen/")

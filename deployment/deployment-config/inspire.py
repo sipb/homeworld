@@ -49,6 +49,7 @@ def generate_operations_for_keyinit(config):
         ops.append(("upload authorities to %s" % node.hostname, operation_scp_upload(config, node, "authorities.tgz", "/etc/homeworld/keyserver/authorities/authorities.tgz")))
         ops.append(("extract authorities on %s" % node.hostname, operation_ssh(config, node, "cd /etc/homeworld/keyserver/authorities/ && tar -xzf authorities.tgz && rm authorities.tgz")))
         ops.append(("upload cluster config to %s" % node.hostname, operation_scp_upload(config, node, "confgen/cluster.conf", "/etc/homeworld/keyserver/static/cluster.conf")))
+        ops.append(("upload machine list to %s" % node.hostname, operation_scp_upload(config, node, "confgen/machine.list", "/etc/homeworld/keyserver/static/machine.list")))
         ops.append(("upload keyserver config to %s" % node.hostname, operation_scp_upload(config, node, "confgen/keyserver.yaml", "/etc/homeworld/keyserver/config/keyserver.yaml")))
         ops.append(("start keyserver on %s" % node.hostname, operation_ssh(config, node, "systemctl restart keyserver.service")))
     return ops

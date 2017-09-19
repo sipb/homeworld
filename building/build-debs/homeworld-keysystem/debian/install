@@ -3,6 +3,7 @@ keyclient usr/bin
 keygateway usr/bin
 keygen usr/bin
 keyinitadmit usr/bin
+keyreq usr/bin
 services/*.service usr/lib/systemd/system
 services/*.timer usr/lib/systemd/system
 wrappers/*.sh usr/lib/homeworld

@@ -7,10 +7,7 @@ servertls: servertls
 
 staticfiles:
   - cluster.conf
-  - keyclient-base.yaml
-  - keyclient-supervisor.yaml
-  - keyclient-worker.yaml
-  - keyclient-master.yaml
+  - machine.list
 
 authorities:
   keygranting:
