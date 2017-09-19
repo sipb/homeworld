@@ -18,6 +18,8 @@ def operation_sleep(delay):
 
 def generate_operations_for_install(config):
     ops = []
+    cluster = [node for node in config.nodes if node.kind != "supervisor"]
+    for node in cluster:
     for node in config.nodes:
         cmd = "apt-get update && apt-get upgrade -y"
         if node.kind == "supervisor":
@@ -130,6 +132,7 @@ if __name__ == "__main__":
         del sys.argv[1]
     if len(sys.argv) != 2:
         usage()
+    config = configure.load_setup()
     if sys.argv[1] == "start-services":
         ops = generate_operations_for_start(config)
     elif sys.argv[1] == "install-packages":
