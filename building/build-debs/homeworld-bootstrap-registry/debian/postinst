@@ -23,7 +23,6 @@ case "$1" in
         rm -f /etc/nginx/sites-enabled/default
         rm -f /etc/nginx/sites-enabled/homeworld
         ln -s /etc/nginx/sites-available/homeworld /etc/nginx/sites-enabled/
-        systemctl restart nginx
     ;;
 
     abort-upgrade|abort-deconfigure)
