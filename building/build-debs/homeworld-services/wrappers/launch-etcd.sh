@@ -1,11 +1,12 @@
 #!/bin/bash
 set -e -u
 
-source /etc/hyades/cluster.conf
-source /etc/hyades/local.conf
+source /etc/homeworld/config/cluster.conf
+source /etc/homeworld/config/local.conf
 
-TLS_MOUNTPOINT=/etc/hyades/certs/etcd/
-TLS_STORAGE=/etc/hyades/certs/etcd/
+# TODO: only mount the required keys, not everything
+TLS_MOUNTPOINT=/etc/homeworld/
+TLS_STORAGE=/etc/homeworld/
 PERSISTENT_DATA=/var/lib/etcd
 ETCD_IMAGE=/usr/lib/hyades/images/etcd-current-linux-amd64.aci
 
@@ -29,8 +30,8 @@ ETCDOPT+=(--listen-client-urls=https://0.0.0.0:2379 --listen-peer-urls=https://0
 # initial cluster setup
 ETCDOPT+=(--initial-cluster="${ETCD_CLUSTER}" --initial-cluster-token="${ETCD_TOKEN}" --initial-cluster-state=new)
 # client-to-server TLS certs
-ETCDOPT+=(--cert-file="${TLS_MOUNTPOINT}/etcd-self.pem" --key-file="${TLS_MOUNTPOINT}/etcd-self-key.pem" --client-cert-auth --trusted-ca-file="${TLS_MOUNTPOINT}/etcd-ca-client.pem")
+ETCDOPT+=(--cert-file="${TLS_MOUNTPOINT}/keys/etcd-server.pem" --key-file="${TLS_MOUNTPOINT}/keys/etcd-server.key" --client-cert-auth --trusted-ca-file="${TLS_MOUNTPOINT}/authorities/etcd-client.pem")
 # server-to-server TLS certs
-ETCDOPT+=(--peer-cert-file="${TLS_MOUNTPOINT}/etcd-self.pem" --peer-key-file="${TLS_MOUNTPOINT}/etcd-self-key.pem" --peer-client-cert-auth --peer-trusted-ca-file="${TLS_MOUNTPOINT}/etcd-ca.pem")
+ETCDOPT+=(--peer-cert-file="${TLS_MOUNTPOINT}/keys/etcd-server.pem" --peer-key-file="${TLS_MOUNTPOINT}/keys/etcd-server.key" --peer-client-cert-auth --peer-trusted-ca-file="${TLS_MOUNTPOINT}/authorities/etcd-server.pem")
 
 exec rkt run "${HOSTOPT[@]}" "${ETCD_IMAGE}" -- "${ETCDOPT[@]}"

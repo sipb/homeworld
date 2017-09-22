@@ -1,24 +1,24 @@
 #!/bin/bash
 set -e -u
 
-source /etc/hyades/cluster.conf
-source /etc/hyades/local.conf
+source /etc/homeworld/config/cluster.conf
+source /etc/homeworld/config/local.conf
 
-cat >/etc/hyades/kubeconfig <<EOCONFIG
+cat >/etc/homeworld/config/kubeconfig <<EOCONFIG
 current-context: hyades
 apiVersion: v1
 kind: Config
 clusters:
 - cluster:
     api-version: v1
-    certificate-authority: /etc/hyades/certs/kube/kube-ca.pem
+    certificate-authority: /etc/homeworld/authorities/kubernetes.pem
     server: ${APISERVER}
   name: hyades-cluster
 users:
 - name: kubelet-auth
   user:
-    client-certificate: /etc/hyades/certs/kube/kube-cert.pem
-    client-key: /etc/hyades/certs/kube/local-key.pem
+    client-certificate: /etc/homeworld/keys/kubernetes-worker.pem
+    client-key: /etc/homeworld/keys/kubernetes-worker.key
 contexts:
 - context:
     cluster: hyades-cluster
@@ -28,7 +28,7 @@ EOCONFIG
 
 KUBEOPT=()
 # just use one API server for now -- TODO: BETTER HIGH-AVAILABILITY
-KUBEOPT+=(--kubeconfig=/etc/hyades/kubeconfig --require-kubeconfig)
+KUBEOPT+=(--kubeconfig=/etc/homeworld/config/kubeconfig --require-kubeconfig)
 if [ "${SCHEDULE_WORK}" = "true" ]
 then
 	# register as schedulable (i.e. for a worker node)
@@ -47,9 +47,9 @@ KUBEOPT+=(--allow-privileged=true)
 # turn off anonymous authentication
 KUBEOPT+=(--anonymous-auth=false)
 # add kubelet auth certs
-KUBEOPT+=(--tls-cert-file=/etc/hyades/certs/kube/kube-cert.pem --tls-private-key-file=/etc/hyades/certs/kube/local-key.pem)
+KUBEOPT+=(--tls-cert-file=/etc/homeworld/keys/kubernetes-worker.pem --tls-private-key-file=/etc/homeworld/keys/kubernetes-worker.key)
 # add client certificate authority
-KUBEOPT+=(--client-ca-file=/etc/hyades/certs/kube/kube-ca.pem)
+KUBEOPT+=(--client-ca-file=/etc/homeworld/authorities/kubernetes.pem)
 # turn off cloud provider detection
 KUBEOPT+=(--cloud-provider=)
 # use rkt

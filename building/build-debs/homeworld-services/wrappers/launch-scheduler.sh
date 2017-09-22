@@ -2,7 +2,7 @@
 set -e -u
 
 # use known apiserver
-SRVOPT=(--kubeconfig=/etc/hyades/kubeconfig)
+SRVOPT=(--kubeconfig=/etc/homeworld/config/kubeconfig)
 
 SRVOPT+=(--leader-elect)
 
