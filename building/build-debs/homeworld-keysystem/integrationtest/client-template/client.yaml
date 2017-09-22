@@ -33,6 +33,18 @@ downloads:
     refresh: 24h
     mode: 644
 
+  - type: authority
+    name: serviceaccount
+    path: serviceaccount.pem
+    refresh: 24h
+    mode: 644
+
+  - type: api
+    name: fetch-serviceaccount-key
+    path: serviceaccount.key
+    refresh: 24h
+    mode: 600
+
 keys:
   - name: ssh-host
     type: ssh-pubkey

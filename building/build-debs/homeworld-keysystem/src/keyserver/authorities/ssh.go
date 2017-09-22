@@ -92,6 +92,11 @@ func (d *SSHAuthority) Sign(request string, ishost bool, lifespan time.Duration,
 		ValidAfter:      uint64(time.Now().Unix()),
 		ValidBefore:     uint64(time.Now().Add(lifespan).Unix()),
 		ValidPrincipals: principals,
+		Permissions: ssh.Permissions{
+			Extensions: map[string]string {
+				"permit-pty": "",
+			},
+		},
 	}
 
 	err = cert.SignCert(rand.Reader, d.key)

@@ -54,7 +54,8 @@ func (m *ActLoop) Step() (stabilized bool) {
 		for _, blockerr := range blocked_by {
 			m.logger.Printf("actloop blocked by: %s\n", blockerr.Error())
 		}
-		return false
+		// we're calling this 'stable' because the problems won't resolve themselves; if no actions were executed, we're stuck.
+		return true
 	}
 }
 

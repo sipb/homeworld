@@ -18,6 +18,8 @@ echo "Setup process executed."
 
 (cd server && ../../keyserver server.yaml 2>&1 | tee server.log) &
 
+sleep 0.5
+
 curl -sS --cacert client/server.pem --key admin/auth.key --cert admin/auth.pem --data-binary '[{"api": "bootstrap", "body": "localhost-test"}]' https://127.0.0.1:20557/apirequest | cut -d '"' -f 2 >client/bootstrap.token
 
 echo "Token acquired"

@@ -123,6 +123,14 @@ func (grant *CompiledGrant) CompileToPrivilege(context *Context) (account.Privil
 			return nil, errors.New("Missing parameter(s) to construct-configuration")
 		}
 		return account.NewConfigurationPrivilege(grant.Contents)
+	case "fetch-key":
+		if grant.Scope != nil || grant.CommonName != "" || grant.AllowedNames != nil || grant.Lifespan != 0 || grant.IsHost != nil || grant.Contents != "" {
+			return nil, fmt.Errorf("Extraneous parameter(s) provided to fetch-key")
+		}
+		if grant.Authority == nil {
+			return nil, errors.New("Missing parameter(s) to fetch-key")
+		}
+		return account.NewFetchKeyPrivilege(grant.Authority)
 	default:
 		return nil, fmt.Errorf("No such privilege kind: %s", grant.Privilege)
 	}

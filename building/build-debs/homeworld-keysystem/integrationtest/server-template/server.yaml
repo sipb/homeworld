@@ -27,6 +27,11 @@ authorities:
     key: server.key
     cert: server.pem
 
+  serviceaccount:
+    type: static
+    key: serviceaccount.key
+    cert: serviceaccount.pem
+
 accounts:
   - principal: localhost-test
     group: nodes
@@ -41,7 +46,6 @@ accounts:
     limit-ip: true   # just because test
     metadata:
       ip: 127.0.0.1
-
 
 groups:
   root-admins:
@@ -101,3 +105,8 @@ grants:
     - (hostname).mit.edu
     - (hostname)
     - (ip)
+
+  fetch-serviceaccount-key:
+    group: nodes
+    privilege: fetch-key
+    authority: serviceaccount

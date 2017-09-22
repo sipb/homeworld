@@ -55,7 +55,7 @@ func auth_kerberos(logger *log.Logger) (*server.Keyserver, reqtarget.RequestTarg
 		logger.Fatal(err)
 	}
 	// confirm that connection works
-	_, err = rt.SendRequests(nil)
+	_, err = rt.SendRequests([]reqtarget.Request{})
 	if err != nil {
 		logger.Fatal("failed to check connection: ", err)
 	}
@@ -130,7 +130,7 @@ func main() {
 			logger.Fatal(err)
 		}
 		machs := strings.TrimSpace(string(machines))
-		logger.Println("Machines:", machines)
+		logger.Println("Machines:", string(machines))
 
 		known_hosts := path.Join(homedir(logger), ".ssh", "known_hosts")
 		hosts, err := ioutil.ReadFile(known_hosts)

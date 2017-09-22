@@ -21,11 +21,11 @@ func InvokeAPIOperationSet(a *account.Account, context *config.Context, requestB
 	for i, operation := range ops {
 		api, found := operation["api"]
 		if !found {
-			return nil, errors.New("Missing API request in JSON.")
+			return nil, errors.New("missing API request in JSON")
 		}
 		body, found := operation["body"]
 		if !found {
-			return nil, errors.New("Missing body request in JSON.")
+			return nil, errors.New("missing body request in JSON")
 		}
 		result, err := InvokeAPIOperation(ctx, context, api, body, logger)
 		if err != nil {
@@ -39,22 +39,22 @@ func InvokeAPIOperationSet(a *account.Account, context *config.Context, requestB
 func InvokeAPIOperation(ctx *account.OperationContext, gctx *config.Context, API string, requestBody string, logger *log.Logger) (string, error) {
 	grant, found := gctx.Grants[API]
 	if !found {
-		return "", fmt.Errorf("Could not find API request %s", API)
+		return "", fmt.Errorf("could not find API request '%s'", API)
 	}
 	if ctx.Account == nil {
-		return "", errors.New("Missing account during request.")
+		return "", errors.New("missing account during request")
 	}
 	princ := ctx.Account.Principal
 	priv, found := grant.PrivilegeByAccount[princ]
 	if !found {
-		return "", fmt.Errorf("Account %s does not have access to API call %s", princ, API)
+		return "", fmt.Errorf("account %s does not have access to API call %s", princ, API)
 	}
-	logger.Printf("Attempting to perform API operation %s for %s", API, princ)
+	logger.Printf("attempting to perform API operation %s for %s", API, princ)
 	response, err := priv(ctx, requestBody)
 	if err != nil {
-		logger.Printf("Operation %s for %s failed with error: %s", API, princ, err)
+		logger.Printf("operation %s for %s failed with error: %s", API, princ, err)
 		return "", err
 	}
-	logger.Printf("Operation %s for %s succeeded.", API, princ)
+	logger.Printf("operation %s for %s succeeded", API, princ)
 	return response, nil
 }

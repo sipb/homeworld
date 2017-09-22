@@ -60,21 +60,21 @@ func CompileAccounts(context *Context, config *Config) error {
 	context.Accounts = make(map[string]*account.Account)
 	for _, ac := range config.Accounts {
 		if ac.Principal == "" {
-			return fmt.Errorf("An account name is required.")
+			return fmt.Errorf("an account name is required")
 		}
 		_, found := context.Accounts[ac.Principal]
 		if found {
-			return fmt.Errorf("Duplicate account %s", ac.Principal)
+			return fmt.Errorf("duplicate account %s", ac.Principal)
 		}
 		group := context.Groups[ac.Group]
 		if group == nil {
-			return fmt.Errorf("No such group %s (in account %s)", ac.Group, ac.Principal)
+			return fmt.Errorf("no such group %s (in account %s)", ac.Group, ac.Principal)
 		}
 		var limitIP net.IP
 		if ac.LimitIP {
 			limitIP = net.ParseIP(ac.Metadata["ip"])
 			if limitIP == nil {
-				return fmt.Errorf("Invalid IP address: %s", ac.Metadata["ip"])
+				return fmt.Errorf("invalid IP address: %s", ac.Metadata["ip"])
 			}
 		}
 		metadata := map[string]string{"principal": ac.Principal}
@@ -83,6 +83,11 @@ func CompileAccounts(context *Context, config *Config) error {
 		}
 		context.Accounts[ac.Principal] = &account.Account{ac.Principal, group, ac.DisableDirectAuth, metadata, limitIP}
 		for curgroup := group; curgroup != nil; curgroup = curgroup.SubgroupOf {
+			for _, existing := range curgroup.AllMembers {
+				if existing == ac.Principal {
+					return fmt.Errorf("subgroupof cycle detected in config, involving group '%s' and principal '%s'", curgroup.Name, ac.Principal)
+				}
+			}
 			curgroup.AllMembers = append(curgroup.AllMembers, ac.Principal)
 		}
 	}

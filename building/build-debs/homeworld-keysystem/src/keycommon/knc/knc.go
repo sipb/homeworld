@@ -36,18 +36,18 @@ func (k KncServer) kncRequest(data []byte) ([]byte, error) {
 func (k KncServer) SendRequests(reqs []reqtarget.Request) ([]string, error) {
 	raw_reqs, err := json.Marshal(reqs)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("while packing json: %s", err)
 	}
 
 	raw_resps, err := k.kncRequest(raw_reqs)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("while performing request: %s", err)
 	}
 
 	resps := []string{}
 	err = json.Unmarshal(raw_resps, &resps)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("while unpacking json: %s ('%s' -> '%s')", err, raw_reqs, raw_resps)
 	}
 
 	if len(resps) != len(reqs) {

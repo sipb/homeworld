@@ -1,6 +1,7 @@
 /keyclient
 /keyserver
 /keyreq
+/keygateway
 /integrationhelper
 /pkg
 /golang-x-crypto.tar.xz

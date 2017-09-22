@@ -11,19 +11,10 @@ import (
 )
 
 func HandleRequest(principal string, request_data []byte, configfile string) ([]byte, error) {
-	jsonload := []struct {
-		api  string
-		body string
-	}{}
-	err := json.Unmarshal(request_data, jsonload)
+	requests := []reqtarget.Request{}
+	err := json.Unmarshal(request_data, &requests)
 	if err != nil {
 		return nil, err
-	}
-
-	requests := make([]reqtarget.Request, len(jsonload))
-	for i, req := range jsonload {
-		requests[i].API = req.api
-		requests[i].Body = req.body
 	}
 
 	_, rt, err := keycommon.LoadKeyserverWithCert(configfile)
@@ -49,10 +40,6 @@ func HandleRequest(principal string, request_data []byte, configfile string) ([]
 }
 
 func Process(configfile string) error {
-	if os.Getenv("KNC_MECH") != "krb5" {
-		return errors.New("Expected kerberos authentication.")
-	}
-
 	kncCreds := os.Getenv("KNC_CREDS")
 
 	if kncCreds == "" {

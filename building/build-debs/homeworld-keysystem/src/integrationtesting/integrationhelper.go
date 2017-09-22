@@ -192,6 +192,10 @@ func Setup() error {
 	if err != nil {
 		return err
 	}
+	err = GenerateKeypairToFiles("serviceaccount-ca", nil, nil, "server/authorities/serviceaccount.key", "server/authorities/serviceaccount.pem", "", "")
+	if err != nil {
+		return err
+	}
 	err = GenerateKeypairToFiles("admin-test", nil, nil, "admin/auth.key", "admin/auth.pem", "server/authorities/granting.key", "server/authorities/granting.pem")
 	if err != nil {
 		return err
@@ -404,6 +408,8 @@ func Check() error {
 		"ssh_host_rsa_key-cert.pub",
 		"keys/etcd-client.key",
 		"keys/etcd-client.pem",
+		"serviceaccount.key",
+		"serviceaccount.pem",
 	})
 	if err != nil {
 		return err
@@ -421,6 +427,8 @@ func Check() error {
 		"authorities/etcd-client.pem",
 		"authorities/granting.key",
 		"authorities/granting.pem",
+		"authorities/serviceaccount.key",
+		"authorities/serviceaccount.pem",
 	})
 	if err != nil {
 		return err
@@ -437,6 +445,8 @@ func Check() error {
 		"action performed: download to file ssh_host_ca.pub (mode 644) every 168h0m0s: pubkey for authority ssh-host",
 		"action performed: download to file cluster.conf (mode 644) every 24h0m0s: static file cluster.conf",
 		"action performed: download to file local.conf (mode 644) every 24h0m0s: result from api get-local-config",
+		"action performed: download to file serviceaccount.pem (mode 644) every 24h0m0s: pubkey for authority serviceaccount",
+		"action performed: download to file serviceaccount.key (mode 600) every 24h0m0s: result from api fetch-serviceaccount-key",
 		"ACTLOOP STABILIZED",
 	})
 	if err != nil {
@@ -454,6 +464,8 @@ func Check() error {
 		"Operation grant-etcd-client for localhost-test succeeded.",
 		"Attempting to perform API operation get-local-config for localhost-test",
 		"Operation get-local-config for localhost-test succeeded.",
+		"Attempting to perform API operation fetch-serviceaccount-key for localhost-test",
+		"Operation fetch-serviceaccount-key for localhost-test succeeded.",
 	})
 	if err != nil {
 		return err
@@ -479,6 +491,14 @@ func Check() error {
 		return err
 	}
 	err = CheckSameFile("client/ssh_host_ca.pub", "server/authorities/ssh_host_ca.pub")
+	if err != nil {
+		return err
+	}
+	err = CheckSameFile("client/serviceaccount.key", "server/authorities/serviceaccount.key")
+	if err != nil {
+		return err
+	}
+	err = CheckSameFile("client/serviceaccount.pem", "server/authorities/serviceaccount.pem")
 	if err != nil {
 		return err
 	}

@@ -97,8 +97,21 @@ func NewImpersonatePrivilege(getAccount func(string) (*Account, error), scope *G
 func NewConfigurationPrivilege(contents string) (Privilege, error) {
 	return func(_ *OperationContext, request string) (string, error) {
 		if len(request) != 0 {
-			return "", fmt.Errorf("Expected empty request to configuration endpoint.")
+			return "", fmt.Errorf("expected empty request to configuration endpoint")
 		}
 		return contents, nil
+	}, nil
+}
+
+func NewFetchKeyPrivilege(authority authorities.Authority) (Privilege, error) {
+	static, ok := authority.(*authorities.StaticAuthority)
+	if !ok {
+		return nil, fmt.Errorf("can only fetch keys from authorities declared as 'static'")
+	}
+	return func(_ *OperationContext, request string) (string, error) {
+		if len(request) != 0 {
+			return "", fmt.Errorf("Expected empty request to fetch-key endpoint.")
+		}
+		return string(static.GetPrivateKey()), nil
 	}, nil
 }
