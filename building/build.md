@@ -7,7 +7,7 @@ Install packages:
  * cpio
  * genisoimage
 
-You will need to set up a sbuild chroot.
+You will need to set up a sbuild chroot. (See https://github.com/sipb/homeworld/issues/80)
 
 First, build helpers:
 
