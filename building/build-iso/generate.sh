@@ -27,7 +27,7 @@ rmdir loopdir
 chmod +w --recursive cd
 gunzip cd/initrd.gz
 
-PACKAGES="homeworld-apt-setup homeworld-keysystem"
+PACKAGES="homeworld-apt-setup homeworld-knc homeworld-keysystem"
 
 PASS=$(pwgen 20 1)
 echo "Generated password: $PASS"
@@ -45,11 +45,14 @@ done
 
 cp "${KEYSERVER_PUBKEY}" keyservertls.pem
 cp "${CONFGEN_FOLDER}/"keyclient-{base,supervisor,worker,master}.yaml .
-cp "${AUTHORIZED_KEY}" authorized.key
+cp "${AUTHORIZED_KEY}" authorized.pub
+cat sshd_config.for_hyades >sshd_config.new  # it's a symbolic link...
+
+echo "Packages: ${PACKAGES_VERSIONED}"
 
 cpio -o -H newc -A -F cd/initrd <<EOF
 ${PACKAGES_VERSIONED}
-authorized.key
+authorized.pub
 keyservertls.pem
 postinstall.sh
 keyclient-base.yaml
@@ -57,6 +60,7 @@ keyclient-supervisor.yaml
 keyclient-worker.yaml
 keyclient-master.yaml
 preseed.cfg
+sshd_config.new
 EOF
 
 gzip cd/initrd

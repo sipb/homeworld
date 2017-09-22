@@ -5,5 +5,7 @@ homeworld-*.deb
 admission.conf
 admission.pem
 keyclient-*.yaml
-authorized.key
 keyservertls.pem
+authorized.pub
+server.pem
+sshd_config.new
