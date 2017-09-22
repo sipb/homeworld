@@ -10,12 +10,12 @@ addresses:
   service-dns: 172.28.0.2
 
 dns-bootstrap:
-  homeworld.mit.edu: 18.181.2.232
+  homeworld.mit.edu: 18.181.0.253
 
 root-admins:
-  - cela@ATHENA.MIT.EDU
-  - ikdc@ATHENA.MIT.EDU
-  - dukhovni@ATHENA.MIT.EDU
+  - cela/root@ATHENA.MIT.EDU
+  - ikdc/root@ATHENA.MIT.EDU
+  - dukhovni/root@ATHENA.MIT.EDU
 
 nodes:
   - hostname: eggs-benedict

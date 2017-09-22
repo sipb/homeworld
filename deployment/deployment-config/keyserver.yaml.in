@@ -76,7 +76,7 @@ groups:
   worker-nodes:
     subgroupof: kubernetes-nodes
   master-nodes:
-    subgroupof: master-nodes
+    subgroupof: kubernetes-nodes
 
 grants:
 
@@ -198,7 +198,7 @@ grants:
     privilege: sign-tls
     authority: kubernetes
     lifespan: 720h  # thirty day lifespan
-    ishost: false
+    ishost: true
     common-name: kube-worker-(hostname)
     allowed-names:
     - (hostname).{{DOMAIN}}

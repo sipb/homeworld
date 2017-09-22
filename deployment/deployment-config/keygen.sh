@@ -29,7 +29,7 @@ mkdir certgen
 
 echo "generating keys... (this may take a while; be patient!)"
 
-temp-keysystem/usr/bin/keygen confgen/keyserver.yaml certgen/
+temp-keysystem/usr/bin/keygen confgen/keyserver.yaml certgen/ supervisor-nodes
 
 echo "compressing..."
 

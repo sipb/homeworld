@@ -249,6 +249,19 @@ def generate_results(config, target_dir):
     with open(os.path.join(target_dir, "machine.list"), "w") as f:
         f.write(",".join("%s.%s" % (node.hostname, config.external_domain) for node in config.nodes) + "\n")
 
+def generate_cluster_config(config, source_dir, target_dir):
+    if not os.path.isdir(target_dir):
+        os.mkdir(target_dir)
+    vars = {"NETWORK": config.cidr_pods}
+    for config in os.listdir(source_dir):
+        source = os.path.join(source_dir, config)
+        target = os.path.join(target_dir, config)
+        template = Template(source)
+        templated = template.template(vars)
+        with open(target, "w") as f:
+            f.write(templated)
+
 if __name__ == "__main__":
     config = load_setup()
     generate_results(config, "./confgen/")
+    generate_cluster_config(config, "./cluster-template/", "./cluster-gen/")
