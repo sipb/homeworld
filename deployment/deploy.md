@@ -1,121 +1,277 @@
 # How to deploy a Homeworld cluster
 
-## Generating admission keys
+## Basic builds
 
-To generate infrastructural access keys:
-
-    $ cd deployment/admit
-    $ ./generate-secrets ??/secrets/ <AUTHSERVER>.mit.edu
-
-You'll now have the certificate authorities for the admission process and the
-certificate authorities for ongoing cluster access.
-
-## Building the ISO
-
-You will need to install, at the very least:
-
- * build-essential
- * sbuild
- * cpio
- * genisoimage
-
-And probably some other miscellaneous things too.
-
-To build a new ISO, although you don't need everything built, you do need two
+To build a new ISO, although you don't need everything built, you do need three
 packages built:
 
  * homeworld-apt-setup
- * homeworld-admitclient
+ * homeworld-knc
+ * homeworld-keysystem
 
-To do so, you need to build the go compiler first. So:
+See //building/build.md for details.
 
-    $ cd building/build-helpers/helper-go
-    $ ./build.sh
+## Generate configuration and authority keys
 
-    $ cd building/build-debs/homeworld-apt-setup
-    $ ./build-package.sh
+We need to generate the configuration for our cluster:
 
-    $ cd building/build-debs/homeworld-admitclient
-    $ ./build-package.sh
+    $ cd deployment/deployment-config
+    $ ./configure.py
+
+And then, in the same place, the authority tarfile:
+
+    $ ./keygen.sh
+
+## Building the ISO
+
+Now, create an ISO:
 
     $ cd building/build-iso
-    $ ./generate.sh <AUTHSERVER>.mit.edu ??/secrets/admission.pem
+    $ tar -xf ../../deployment/deployment-config/authorities.tgz ./server.pem
+    $ ./generate.sh ../../deployment/deployment-config/confgen server.pem ~/.ssh/id_rsa.pub
 
-Now you should burn and/or upload the .iso that you've just gotten, so that you
-can use it for installing servers. Make a note of the password it generated.
+Now you should burn and/or upload preseeded.iso that you've just gotten, so
+that you can use it for installing servers. Make a note of the password it
+generated.
 
-## Provisioning a server
+For the official homeworld servers:
 
- * Boot the ISO on the target system.
+    $ edit ~/.ssh/config
+        Host toast
+                HostName toastfs-dev.mit.edu
+                User root
+                GSSAPIAuthentication yes
+                GSSAPIKeyExchange no
+                GSSAPIDelegateCredentials no
+    $ scp preseeded.iso toast:/srv/preseeded.iso
+
+## Set up the supervisor operating system
+
+ * Boot the ISO on the hardware
    - Select `Install`
-   - Enter the last two octets of the IP address for the server.
-   - Installation should be entirely automatic besides these two steps.
- * Log into the server directly with the aforementioned root password.
+   - Enter the IP address for the server (18.181.0.253 on our test infrastructure)
+   - Wait a while
+   - Enter "manual" for the bootstrap token (so that your SSH keys will work)
+ * Log into the server directly with your SSH keys
+   - Verify the host keys based on the text printed before the login console
 
-## Set up the authentication server
+## Set up the keyserver
 
- * Request a keytab from accounts@, if necessary.
- * Provision a server as above; set up direct SSH key access for now.
- * Until you've verified that kerberos auth works (below), keep a SSH session
-   open continously, just in case.
+ * Request a keytab from accounts@, if necessary
  * Rotate the keytab (and upgrade its cryptographic strength):
 
        $ k5srvutil -f <keytab> change -e aes256-cts:normal,aes128-cts:normal
          # the following will invalidate current tickets:
        $ k5srvutil -f <keytab> delold
-       $ cp <keytab> <secret-dir>/
-       $ scp <keytab> root@HOSTNAME.mit.edu:/etc/krb5.keytab
 
- * Run `auth/deploy.sh` on `<host> <keytab> auth-login <user-ca>`
- * Make sure you don't have any stale tickets
- * Run `req-cert` and see if it works.
- * Confirm that you can log into the server with kerberos auth.
- * Remove your direct SSH key access.
+ * Configure the supervisor keyserver:
 
-## Set up the admission server
+       $ python3 inspire.py deploy-keyinit
 
-This probably goes on the same box as the authentication server.
+ * Check that the keyserver is running properly:
 
-    $ cd deployment-config
-    $ nano setup.conf
-    $ ./compile-config.py
+       $ tar -xf authorities.tgz ./server.pem
+       $ curl --cacert server.pem https://egg-sandwich.mit.edu:20557/static/machine.list
 
-    $ cd admit
-    $ ./deploy.sh AUTHSERVER.mit.edu ???/secrets ../deployment-config/cluster-config/
+ * Admit the supervisor node to the cluster:
 
-The deployment should finish successfully.
+       $ python3 inspire.py admit-keyserver
+ 
+ * Confirm that the supervisor node was successfully admitted:
 
-## Initial node setup
+       $ ssh root@egg-sandwich.mit.edu stat /etc/homeworld/keyclient/granting.pem
 
- * Provision a server as above.
- * Locally, run `$ admit/prepare-admit.sh ???/secrets AUTHSERVER.mit.edu new-node-hostname`
-     (The hostname should not contain the .mit.edu.)
- * Run `# pull-admit <TOKEN>` on the new server, with the token produced by prepare-admit.sh.
- * Make sure to add the CA key for the server into your known_hosts.
+ * Prepare kerberos gateway
 
-       @cert-authority eggs-benedict.mit.edu,huevos-rancheros.mit.edu,[...] ssh-rsa ...
+       $ cp <keytab> keytab.<shortname>   # i.e. keytab.egg-sandwich; name is used internally by setup-keygateway
+       $ python3 inspire.py setup-keygateway
 
- * Confirm that you can ssh into the server as root with certs gotten from `req-cert`.
+## Request certificates and SSH with them
 
-## Configuration and SSL setup and package installation
+ * Populate ~/.homeworld/keyreq.yaml:
 
- * Run deployment-config/compile-certificates cluster-config/certificates.list <secrets-directory>
- * Run pkg-install-all.sh
- * If this is the first time installing this cluster, run authority-gen.sh
- * Run certify.sh
+       authoritypath: /home/user/.homeworld/server.pem
+       keyserver: <hostname>.mit.edu:20557
 
-## Starting everything
+ * Add keyserver cert:
 
- * Run start-all.sh as generated during the configuration phase
- * Run etcdctl and make sure things work (you may need to generate certs for this)
- * Run kubectl and make sure things work (you may need to generate certs for this)
+       $ tar -xf authorities.tgz ./server.pem
+       $ cp ./server.pem ~/.homeworld/server.pem
 
-## Core cluster services
+ * Setup SSH certificate authority:
 
- * Go into clustered/
- * Generate flannel config: generate.sh ../deployment-config/cluster-config/cluster.conf
- * Deploy: kubectl create -f flannel.yml
- * Verify flannel functionality by using two homeworld.mit.edu/debian containers.
- * Set up DNS: kubectl create -f dns-addon.yml
- * Verify DNS: nslookup kubernetes.default.svc.hyades.local 172.28.0.2
-     "Address: 172.28.0.1"
+       $ keyreq ssh-host
+
+ * Request SSH cert:
+
+       $ keyreq ssh    # if this fails, you might need to make sure you don't have any stale kerberos tickets
+       $ ssh-keygen -L -f ~/.ssh/id_rsa-cert.pub
+       $ ssh-add
+
+ * Configure and test SSH:
+
+       $ # this will deny your current direct access, so keep a SSH session open until you verify this works
+       $ python3 inspire.py just-supervisors configure-ssh
+       $ ssh -v root@<hostname>.mit.edu
+         # ensure that a debug line like this shows up:
+         debug1: Server accepts key: pkalg ssh-rsa-cert-v01@openssh.com blen 1524
+         # (if there's no ssh-rsa-cert-v01, certs might not be set up properly)
+       $ # if that worked, you can close your other SSH session
+
+## Set up each node's operating system
+
+ * Request a bootstrap token:
+
+       $ keyreq bootstrap <hostname>.mit.edu
+
+ * Boot the ISO on the hardware
+   - Select `Install`
+   - Enter the IP address for the server (18.181.X.Y on our test infrastructure)
+   - Wait a while
+   - Enter the bootstrap token
+ * Confirm that the server came up properly (and requested its keys correctly):
+
+        $ ssh root@<hostname>.mit.edu echo works    # you might need to re-request certificates first
+
+## Package installation
+
+ * Install and upgrade packages on all systems:
+
+        $ python3 inspire.py install-packages
+
+## Core cluster bringup
+
+ * Launch services
+
+        $ python3 inspire.py start-services
+
+## Confirm etcd works
+
+ * Get etcd certificates:
+
+        $ keyreq etcd
+
+ * Query etcd cluster health:
+
+        $ etcdctl --cert-file ~/.homeworld/etcd.pem --key-file ~/.homeworld/etcd.key --ca-file ~/.homeworld/etcd-ca.pem --endpoints "<ENDPOINTS FROM CLUSTER.CONF>" cluster-health
+        member 439721bf885a52a5 is healthy: got healthy result from https://18.181.0.104:2379
+        member 61712dffdce48432 is healthy: got healthy result from https://18.181.0.97:2379
+        member f6d798ec325cf15d is healthy: got healthy result from https://18.181.0.106:2379
+
+ * Query etcd cluster members:
+
+        $ etcdctl --cert-file ~/.homeworld/etcd.pem --key-file ~/.homeworld/etcd.key --ca-file ~/.homeworld/etcd-ca.pem --endpoints "<ENDPOINTS FROM CLUSTER.CONF>" cluster-health
+        439721bf885a52a5: name=huevos-rancheros peerURLs=https://18.181.0.104:2380 clientURLs=https://18.181.0.104:2379 isLeader=false
+        61712dffdce48432: name=eggs-benedict peerURLs=https://18.181.0.97:2380 clientURLs=https://18.181.0.97:2379 isLeader=true
+        f6d798ec325cf15d: name=ole-miss peerURLs=https://18.181.0.106:2380 clientURLs=https://18.181.0.106:2379 isLeader=false
+
+## Confirm kubernetes works
+
+ * Get kubernetes certificates, install configuration:
+
+        $ kubereq kube
+        $ cp deployment/local-kubeconfig ~/.kube/config
+
+ * Query default cluster setup:
+
+        $ hyperkube kubectl get nodes
+        NAME               STATUS                     AGE       VERSION
+        avocado-burger     Ready                      16m       v1.7.2+$Format:%h$
+        eggs-benedict      Ready,SchedulingDisabled   16m       v1.7.2+$Format:%h$
+        french-toast       Ready                      16m       v1.7.2+$Format:%h$
+        grilled-cheese     Ready                      16m       v1.7.2+$Format:%h$
+        huevos-rancheros   Ready,SchedulingDisabled   16m       v1.7.2+$Format:%h$
+        ole-miss           Ready,SchedulingDisabled   16m       v1.7.2+$Format:%h$
+        $ hyperkube kubectl get namespaces
+        NAME          STATUS    AGE
+        default       Active    17m
+        kube-public   Active    17m
+        kube-system   Active    17m
+        $ hyperkube kubectl get all --namespace=default
+        NAME             CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+        svc/kubernetes   172.28.0.1   <none>        443/TCP   17m
+        $ hyperkube kubectl get all --namespace=kube-public
+        No resources found.
+        $ hyperkube kubectl get all --namespace=kube-system
+        No resources found.
+
+## Bootstrap cluster DNS
+
+This step is needed when you're hosting the containers for core cluster
+services on the cluster itself.
+
+    $ python3 inspire.py bootstrap-dns
+
+We don't yet have the system to a point where you can stop needing to bootstrap
+DNS, but when that happens, you can turn it back off:
+
+    $ python3 inspire.py restore-dns
+
+## Bootstrap cluster registry
+
+    $ ln -s .../keys-for-homeworld.mit.edu/ ssl
+    $ python3 inspire.py setup-bootstrap-registry
+
+## Confirm container launching
+
+    $ ssh root@<worker-hostname>.mit.edu
+    # rkt run --debug --interactive=true homeworld.mit.edu/debian
+        $ ping 8.8.8.8
+        $ exit
+
+## Core cluster service: flannel
+
+Deploy flannel into the cluster:
+
+    $ cd deployment/deployment-config/cluster-gen/
+    $ hyperkube kubectl create -f flannel.yaml
+
+Wait a bit for propagation.
+
+    $ hyperkube kubectl get pods --namespace=kube-system
+    NAME                    READY     STATUS    RESTARTS   AGE
+    kube-flannel-ds-1r1cx   1/1       Running   0          49s
+    kube-flannel-ds-2cxj5   1/1       Running   0          49s
+    kube-flannel-ds-33rfs   1/1       Running   0          49s
+    kube-flannel-ds-533p8   1/1       Running   0          49s
+    kube-flannel-ds-9sw4x   1/1       Running   0          49s
+    kube-flannel-ds-k52q1   1/1       Running   0          49s
+
+Verify flannel functionality by running flannel tests on two different nodes:
+
+    $ # two nodes
+    $ ssh root@<worker>.mit.edu
+    # rkt run --debug --interactive=true --net=rkt.kubernetes.io homeworld.mit.edu/debian
+        $ ip addr   # make sure this provides a 172.18 IP, and not a 172.16 IP.
+        $ ping <other-172.18-addr>
+
+If the ping works both ways, then flannel works! At least at a basic level.
+
+## Core cluster service: dns-addon
+
+Deploy dns-addon into the cluster:
+
+    $ hyperkube kubectl create -f dns-addon.yaml
+
+Wait for deployment to succeed:
+
+    $ hyperkube kubectl get pods --namespace=kube-system
+    NAME                    READY     STATUS    RESTARTS   AGE
+    kube-dns-v20-69lrg      3/3       Running   0          1m
+    kube-dns-v20-clh2z      3/3       Running   0          1m
+    kube-dns-v20-fpvf9      3/3       Running   0          1m
+
+Verify that DNS works:
+
+    $ ssh root@<worker>.mit.edu
+    # apt-get install dnsutils
+    # nslookup kubernetes.default.svc.hyades.local 172.28.0.2
+    Address: 172.28.0.1
+    # rkt run --debug --interactive=true --net=rkt.kubernetes.io homeworld.mit.edu/debian
+        $ nslookup kubernetes.default.svc.hyades.local 172.28.0.2
+        Address: 172.28.0.1
+
+## Finishing up
+
+Now the cluster is prepared! It sounds like a good time to help develop the
+cluster code further.
