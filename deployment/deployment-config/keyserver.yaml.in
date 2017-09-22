@@ -126,7 +126,7 @@ grants:
     group: nodes
     privilege: sign-tls
     authority: keygranting
-    lifespan: 960h  # fourty day lifespan
+    lifespan: 960h  # forty day lifespan
     ishost: false
     common-name: (principal)
 
