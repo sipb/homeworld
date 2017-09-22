@@ -37,7 +37,23 @@ for x in staging/*.aci staging/*.aci.asc
 do
 	FILENAME="$(basename "$x")"
 	echo "checking $x"
-	if [ ! -e "${DEST}/${FILENAME}" ] || [ "$(wc -c < "${x}")" != "$(wc -c < "${DEST}/${FILENAME}")" ]
+	NEEDS_COPY=false
+	if [ ! -e "${DEST}/${FILENAME}" ]
+	then
+		NEEDS_COPY=true
+	elif [ "$(wc -c < "${x}")" != "$(wc -c < "${DEST}/${FILENAME}")" ]
+	then
+		NEEDS_COPY=true
+	elif [ "${x%.asc}" != "${x}" ]
+        then
+		if cmp --silent "${x}" "${DEST}/${FILENAME}"
+		then
+			true  # do nothing
+		else
+			NEEDS_COPY=true
+		fi
+	fi
+	if "${NEEDS_COPY}"
 	then
 		echo "copying $x"
 		cp -dfT "$x" "${DEST}/${FILENAME}"
