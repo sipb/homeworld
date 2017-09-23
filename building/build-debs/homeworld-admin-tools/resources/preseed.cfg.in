@@ -231,7 +231,7 @@ d-i partman/confirm_nooverwrite boolean true
 # so this will only work if the disks are the same size.
 #d-i partman-auto/disk string /dev/sda /dev/sdb
 
-# Next you need to specify the physical partitions that will be used. 
+# Next you need to specify the physical partitions that will be used.
 #d-i partman-auto/expert_recipe string \
 #      multiraid ::                                         \
 #              1000 5000 4000 raid                          \

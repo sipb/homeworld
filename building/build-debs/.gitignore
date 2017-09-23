@@ -20,3 +20,4 @@ homeworld-flannel_*.orig.tar.xz
 homeworld-hyperkube_*.orig.tar.xz
 homeworld-rkt_1.27.0.orig.tar.xz
 homeworld-keysystem_*.tar.gz
+homeworld-admin-tools_*.tar.gz

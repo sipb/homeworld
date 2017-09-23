@@ -8,8 +8,12 @@ packages built:
  * homeworld-apt-setup
  * homeworld-knc
  * homeworld-keysystem
+ * homeworld-admin-tools
 
 See //building/build.md for details.
+
+You will need to install homeworld-admin-tools and all its dependencies. This
+will provide access to the 'spire' tool.
 
 ## Generate configuration and authority keys
 
@@ -26,9 +30,8 @@ And then, in the same place, the authority tarfile:
 
 Now, create an ISO:
 
-    $ cd building/build-iso
     $ tar -xf ../../deployment/deployment-config/authorities.tgz ./server.pem
-    $ ./generate.sh ../../deployment/deployment-config/confgen server.pem ~/.ssh/id_rsa.pub
+    $ spire iso gen preseeded.iso building/ ./server.pem /deployment/deployment-config/confgen/ ~/.ssh/id_rsa.pub
 
 Now you should burn and/or upload preseeded.iso that you've just gotten, so
 that you can use it for installing servers. Make a note of the password it
