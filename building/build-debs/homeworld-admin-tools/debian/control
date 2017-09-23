@@ -1,0 +1,14 @@
+Source: homeworld-admin-tools
+Section: misc
+Priority: extra
+Maintainer: Cel Skeggs <cela@mit.edu>
+Build-Depends: debhelper (>= 9), zip, python3, sudo, rsync
+Standards-Version: 3.9.6
+Vcs-Git: https://github.com/sipb/homeworld.git
+Vcs-Browser: https://github.com/sipb/homeworld/
+
+Package: homeworld-admin-tools
+Architecture: amd64
+Depends: homeworld-keysystem, python3, rsync
+Description: Homeworld admin-tools package.
+ This package is used for code deployment to Homeworld clusters.
