@@ -37,7 +37,7 @@ func (s *ClientState) ReplaceKeygrantingCert(data []byte) error {
 	if err != nil {
 		return err
 	}
-	err = ioutil.WriteFile(s.Config.CertPath, data, os.FileMode(0600))
+	err = ioutil.WriteFile(s.Config.CertPath, data, os.FileMode(0644))
 	if err != nil {
 		return err
 	}

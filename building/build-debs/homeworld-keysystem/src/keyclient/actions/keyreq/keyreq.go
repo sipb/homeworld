@@ -10,6 +10,7 @@ import (
 	"keycommon/reqtarget"
 	"log"
 	"os"
+	"path/filepath"
 	"time"
 	"util/certutil"
 	"util/csrutil"
@@ -124,6 +125,20 @@ func (ra *RequestOrRenewAction) Perform(_ *log.Logger) error {
 	err = ioutil.WriteFile(ra.CertFile, []byte(cert), os.FileMode(0644))
 	if err != nil {
 		return fmt.Errorf("while writing result: %s", err.Error())
+	}
+	certabs, err := filepath.Abs(ra.CertFile)
+	if err != nil {
+		return err
+	}
+	grantabs, err := filepath.Abs(ra.State.Config.CertPath)
+	if err != nil {
+		return err
+	}
+	if certabs == grantabs {
+		err := ra.State.ReloadKeygrantingCert()
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

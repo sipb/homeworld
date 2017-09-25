@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"keycommon/endpoint"
-	"keycommon/reqtarget"
 	"keycommon/knc"
+	"keycommon/reqtarget"
 	"net/url"
 )
 

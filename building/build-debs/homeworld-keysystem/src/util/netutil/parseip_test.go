@@ -21,6 +21,7 @@ func TestParseSimpleAddresses(t *testing.T) {
 		{"[2001:0db8:85a3:0000:0000:8a2e:0370:7334]:443", net.IP{0x20, 0x01, 0x0d, 0xb8, 0x85, 0xa3, 0x00, 0x00, 0x00, 0x00, 0x8a, 0x2e, 0x03, 0x70, 0x73, 0x34}},
 		{"[fe80::5]:443", net.IP{0xfe, 0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5}},
 		{"[::1]:123", net.IP{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}},
+		{"[::ffff:0808:0808]:123", net.IPv4(8, 8, 8, 8)},
 	}
 	for _, test := range addresses {
 		address, err := ParseRemoteAddress(test.text)

@@ -76,7 +76,7 @@ func TestVerifyAccountIP_BadRequest(t *testing.T) {
 	err := verifyAccountIP(acnt, request)
 	if err == nil {
 		t.Error("Expected error")
-	} else if !strings.Contains(err.Error(), "Invalid request address") {
+	} else if !strings.Contains(err.Error(), "invalid request address") {
 		t.Errorf("Wrong error: %s", err)
 	}
 }

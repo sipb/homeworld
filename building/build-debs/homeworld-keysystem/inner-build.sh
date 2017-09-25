@@ -23,8 +23,8 @@ export GOPATH="${GODIR}:$(pwd)"
 (cd "${GODIR}" && tar -xf "${ROOT}/golang-x-crypto.tar.xz" src)
 (cd "${GODIR}" && tar -xf "${ROOT}/gopkg.in-yaml.v2.tar.xz" src)
 
-go build src/keyserver.go
-go build src/keygateway.go
-go build src/keyclient.go
+go build src/keyserver/main/keyserver.go
+go build src/keygateway/main/keygateway.go
+go build src/keyclient/main/keyclient.go
 
 echo "keysystem built!"

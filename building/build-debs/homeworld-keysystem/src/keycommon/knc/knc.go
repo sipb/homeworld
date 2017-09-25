@@ -1,11 +1,11 @@
 package knc
 
 import (
-	"fmt"
-	"errors"
-	"os/exec"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"keycommon/reqtarget"
+	"os/exec"
 )
 
 type KncServer struct {

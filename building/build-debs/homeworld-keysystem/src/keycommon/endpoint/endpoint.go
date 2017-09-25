@@ -36,21 +36,21 @@ func (s ServerEndpoint) BaseURL() string {
 }
 
 func (s ServerEndpoint) WithHeader(key string, value string) ServerEndpoint {
-	out := s
-	out.extraHeaders = map[string]string{}
-	for k, v := range s.extraHeaders {
-		out.extraHeaders[k] = v
+	oldHeaders := s.extraHeaders
+	s.extraHeaders = map[string]string{}
+	for k, v := range oldHeaders {
+		s.extraHeaders[k] = v
 	}
-	out.extraHeaders[key] = value
-	return out
+	s.extraHeaders[key] = value
+	return s
 }
 
 func (s ServerEndpoint) WithCertificate(cert tls.Certificate) ServerEndpoint {
-	out := s
-	out.certificates = make([]tls.Certificate, len(s.certificates))
-	copy(out.certificates, s.certificates)
-	out.certificates = append(out.certificates, cert)
-	return out
+	oldCerts := s.certificates
+	s.certificates = make([]tls.Certificate, len(oldCerts))
+	copy(s.certificates, oldCerts)
+	s.certificates = append(s.certificates, cert)
+	return s
 }
 
 func (s ServerEndpoint) Request(path string, method string, reqbody []byte) ([]byte, error) {
@@ -62,7 +62,9 @@ func (s ServerEndpoint) Request(path string, method string, reqbody []byte) ([]b
 			TLSClientConfig: &tls.Config{
 				RootCAs:      s.rootCAs,
 				Certificates: s.certificates,
+				MinVersion:   tls.VersionTLS12,
 			},
+			DisableCompression: true,
 		},
 		Timeout: s.timeout,
 	}
