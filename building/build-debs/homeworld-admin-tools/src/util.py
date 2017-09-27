@@ -2,8 +2,8 @@ import os
 import subprocess
 
 
-def readfile(filename: str) -> str:
-    with open(filename) as f:
+def readfile(filename: str) -> bytes:
+    with open(filename, "rb") as f:
         return f.read()
 
 

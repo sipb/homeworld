@@ -12,19 +12,37 @@ packages built:
 
 See //building/build.md for details.
 
+## Installing packages
+
 You will need to install homeworld-admin-tools and all its dependencies. This
 will provide access to the 'spire' tool.
+
+## Setting up a workspace
+
+You need to a set up an environment variable corresponding to a folder that can
+store your cluster's configuration and authorities.
+
+    $ export HOMEWORLD_DIR="$HOME/my-cluster"
+    $ spire config populate
+    $ spire config edit
+
+## Generate authority keys
+
+    $ spire authority gen
 
 ## Generate configuration and authority keys
 
 We need to generate the configuration for our cluster:
 
     $ cd deployment/deployment-config
-    $ ./configure.py
-
-And then, in the same place, the authority tarfile:
-
-    $ ./keygen.sh
+    $ mkdir confgen
+    $ spire config show keyserver.yaml >confgen/keyserver.yaml
+    $ spire config show cluster.conf >confgen/cluster.conf
+    $ spire config show machine.list >confgen/machine.list
+    $ spire config show keyclient-base.yaml >confgen/keyclient-base.yaml
+    $ spire config show keyclient-master.yaml >confgen/keyclient-master.yaml
+    $ spire config show keyclient-worker.yaml >confgen/keyclient-worker.yaml
+    $ spire config show keyclient-supervisor.yaml >confgen/keyclient-supervisor.yaml
 
 ## Building the ISO
 

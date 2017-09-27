@@ -10,7 +10,7 @@ def fail(message: str) -> None:
 def mux_map(desc: str, mapping: dict):
     def usage(err: str = "no command") -> None:
         print("commands:")
-        for name, (desc, subinvoke) in mapping.items():
+        for name, (desc, subinvoke) in sorted(mapping.items()):
             print("  %s: %s" % (name, desc))
         if err is not None:
             fail(err)

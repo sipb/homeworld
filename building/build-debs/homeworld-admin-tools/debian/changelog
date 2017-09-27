@@ -1,3 +1,9 @@
+homeworld-admin-tools (0.1.1) stretch; urgency=medium
+
+  * Initial release
+
+ -- Cel Skeggs <cela@mit.edu>  Wed, 27 Sep 2017 16:38:00 -0400
+
 homeworld-admin-tools (0.1.0) stretch; urgency=medium
 
   * Initial release
