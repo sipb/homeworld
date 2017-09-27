@@ -1,5 +1,3 @@
-# this is a template file that will be spliced into cluster-specific configuration
-
 [BASE]# TEMPORARY-KEYCLIENT-CONFIGURATION
 
 keyserver: {{KEYSERVER}}:20557

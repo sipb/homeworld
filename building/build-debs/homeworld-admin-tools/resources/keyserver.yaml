@@ -1,5 +1,3 @@
-# this is a template file that will be spliced into cluster-specific configuration
-
 authoritydir: /etc/homeworld/keyserver/authorities/
 staticdir: /etc/homeworld/keyserver/static/
 authentication-authority: keygranting
@@ -52,20 +50,6 @@ authorities:
 
 accounts:
 {{ACCOUNTS}}
-
-#  - principal: <hostname>.{{DOMAIN}}
-#    group: <master|worker|supervisor>-nodes
-#    limit-ip: true
-#    metadata:
-#      ip: <ip>
-#      hostname: <hostname>
-#      schedule: <true iff worker>
-#      kind: <master|worker|supervisor>
-
-#  - principal: <user>@ATHENA.MIT.EDU
-#    disable-direct-auth: true
-#    group: root-admins
-
 groups:
   root-admins:
   nodes:

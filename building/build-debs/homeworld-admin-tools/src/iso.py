@@ -32,7 +32,7 @@ def regen_cdpack(source_iso, dest_cdpack):
 
 
 def parse_version_from_debian_changelog(debian_folder, package_name):
-    changelog = util.readfile(os.path.join(debian_folder, "changelog"))
+    changelog = util.readfile(os.path.join(debian_folder, "changelog")).decode()
     current_version_line = changelog.split("\n")[0]
     if "(" not in current_version_line:
         command.fail("invalid changelog file for %s" % package_name)

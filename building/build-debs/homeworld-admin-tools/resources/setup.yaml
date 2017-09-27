@@ -1,0 +1,31 @@
+cluster:
+  external-domain: mit.edu
+  internal-domain: hyades.local
+  etcd-token: <unique-token>
+
+addresses:
+  cidr-pods: 172.18.0.0/16
+  cidr-services: 172.28.0.0/16
+  service-api: 172.28.0.1
+  service-dns: 172.28.0.2
+
+dns-bootstrap:
+  homeworld.mit.edu: <supervisor node>
+
+root-admins:
+  - example/root@ATHENA.MIT.EDU
+
+nodes:
+  # repeat node declarations as needed
+
+  - hostname: master-hostname  # under external-domain as above
+    ip: <ipv4 address>
+    kind: master
+
+  - hostname: worker-hostname
+    ip: <ipv4 address>
+    kind: worker
+
+  - hostname: supervisor-hostname
+    ip: <ipv4 address>
+    kind: supervisor

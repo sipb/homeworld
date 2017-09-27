@@ -1,0 +1,3 @@
+clustered:
+ - dns-addon.yaml
+ - flannel.yaml

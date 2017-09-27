@@ -19,9 +19,7 @@ spec:
     port: 53
     protocol: TCP
 
-
 ---
-
 
 apiVersion: v1
 kind: ReplicationController
