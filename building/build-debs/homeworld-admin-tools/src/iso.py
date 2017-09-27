@@ -1,5 +1,8 @@
+import authority
 import command
 import time
+
+import config
 import resource
 import os
 import tempfile
@@ -7,8 +10,6 @@ import subprocess
 import util
 
 PACKAGES = ("homeworld-apt-setup", "homeworld-knc", "homeworld-keysystem")
-KEYCLIENT_FILES = ("keyclient-base.yaml", "keyclient-supervisor.yaml", "keyclient-worker.yaml", "keyclient-master.yaml")
-
 
 # TODO: refactor this file to be more maintainable
 
@@ -60,14 +61,20 @@ def resolve_packages(repo_building_folder: str, package_names=PACKAGES):
     return binary_package_paths
 
 
-def gen_iso(iso_image, repo_building_folder, keyserver_pubkey, confgen_folder, authorized_key, cdpack=None):
+def gen_iso(iso_image, repo_building_folder, authorized_key, cdpack=None):
     binary_package_paths = resolve_packages(repo_building_folder)
     with tempfile.TemporaryDirectory() as d:
+        inclusion = []
+
         util.copy(authorized_key, os.path.join(d, "authorized.pub"))
-        util.copy(keyserver_pubkey, os.path.join(d, "keyservertls.pem"))
+        util.writefile(os.path.join(d, "keyservertls.pem"), authority.get_authority_key("./server.pem"))
         resource.copy_to("postinstall.sh", os.path.join(d, "postinstall.sh"))
-        for keyclient_file in KEYCLIENT_FILES:
-            util.copy(os.path.join(confgen_folder, keyclient_file), os.path.join(d, keyclient_file))
+        inclusion += ["authorized.pub", "keyservertls.pem", "postinstall.sh"]
+
+        for variant in config.KEYCLIENT_VARIANTS:
+            util.writefile(os.path.join(d, "keyclient-%s.yaml" % variant), config.get_keyclient_yaml(variant).encode())
+            inclusion.append("keyclient-%s.yaml" % variant)
+
         resource.copy_to("sshd_config", os.path.join(d, "sshd_config.new"))
 
         preseeded = resource.get_resource("preseed.cfg.in")
@@ -76,16 +83,17 @@ def gen_iso(iso_image, repo_building_folder, keyserver_pubkey, confgen_folder, a
         preseeded = preseeded.replace(b"{{HASH}}", util.mkpasswd(generated_password))
         util.writefile(os.path.join(d, "preseed.cfg"), preseeded)
 
+        inclusion += ["sshd_config.new", "preseed.cfg"]
+
         for path in binary_package_paths:
             util.copy(path, os.path.join(d, os.path.basename(path)))
+
+        inclusion += [os.path.basename(path) for path in binary_package_paths]
 
         if cdpack is not None:
             subprocess.check_call(["tar", "-C", d, "-xzf", cdpack, "cd"])
         else:
             subprocess.check_output(["tar", "-C", d, "-xz", "cd"], input=resource.get_resource("debian-9.0.0-cdpack.tgz"))
-
-        inclusion = ["authorized.pub", "keyservertls.pem", "postinstall.sh"] + list(KEYCLIENT_FILES) + ["sshd_config.new", "preseed.cfg"]
-        inclusion += [os.path.basename(path) for path in binary_package_paths]
 
         subprocess.check_output(["cpio", "--create", "--append", "--format=newc", "--file=cd/initrd"],
                                 input="".join("%s\n" % filename for filename in inclusion).encode(), cwd=d)

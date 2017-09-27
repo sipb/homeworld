@@ -6,6 +6,7 @@ import resource
 import util
 import subprocess
 import tempfile
+import tarfile
 
 
 def generate() -> None:
@@ -26,6 +27,17 @@ def generate() -> None:
                 raise e
         subprocess.check_call(["tar", "-C", certdir, "-czf", authorities, "."])
         subprocess.check_call(["shred", "--"] + os.listdir(certdir), cwd=certdir)
+
+
+def get_authority_key(keyname) -> bytes:
+    authorities = os.path.join(config.get_project(), "authorities.tgz")
+    if not os.path.exists(authorities):
+        command.fail("authorities.tgz does not exist (run spire authority gen?)")
+    with tarfile.open(authorities, mode="r:gz") as tar:
+        with tar.extractfile(keyname) as f:
+            out = f.read()
+            assert type(out) == bytes
+            return out
 
 
 main_command = command.mux_map("commands about cluster authorities", {

@@ -48,8 +48,7 @@ We need to generate the configuration for our cluster:
 
 Now, create an ISO:
 
-    $ tar -xf ../../deployment/deployment-config/authorities.tgz ./server.pem
-    $ spire iso gen preseeded.iso building/ ./server.pem /deployment/deployment-config/confgen/ ~/.ssh/id_rsa.pub
+    $ spire iso gen preseeded.iso building/ ~/.ssh/id_rsa.pub
 
 Now you should burn and/or upload preseeded.iso that you've just gotten, so
 that you can use it for installing servers. Make a note of the password it
