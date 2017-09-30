@@ -2,7 +2,7 @@ import authority
 import command
 import time
 
-import config
+import configuration
 import resource
 import os
 import tempfile
@@ -67,12 +67,12 @@ def gen_iso(iso_image, repo_building_folder, authorized_key, cdpack=None):
         inclusion = []
 
         util.copy(authorized_key, os.path.join(d, "authorized.pub"))
-        util.writefile(os.path.join(d, "keyservertls.pem"), authority.get_authority_key("./server.pem"))
+        util.writefile(os.path.join(d, "keyservertls.pem"), authority.get_key_by_filename("./server.pem"))
         resource.copy_to("postinstall.sh", os.path.join(d, "postinstall.sh"))
         inclusion += ["authorized.pub", "keyservertls.pem", "postinstall.sh"]
 
-        for variant in config.KEYCLIENT_VARIANTS:
-            util.writefile(os.path.join(d, "keyclient-%s.yaml" % variant), config.get_keyclient_yaml(variant).encode())
+        for variant in configuration.KEYCLIENT_VARIANTS:
+            util.writefile(os.path.join(d, "keyclient-%s.yaml" % variant), configuration.get_keyclient_yaml(variant).encode())
             inclusion.append("keyclient-%s.yaml" % variant)
 
         resource.copy_to("sshd_config", os.path.join(d, "sshd_config.new"))

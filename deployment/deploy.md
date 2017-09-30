@@ -86,7 +86,7 @@ For the official homeworld servers:
 
  * Configure the supervisor keyserver:
 
-       $ python3 inspire.py deploy-keyinit
+       $ spire setup keyserver
 
  * Check that the keyserver is running properly:
 

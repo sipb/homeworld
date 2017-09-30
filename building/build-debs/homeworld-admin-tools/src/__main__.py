@@ -1,14 +1,16 @@
 import sys
 
 import command
-import config
+import configuration
 import authority
 import iso
+import setup
 
 main_command = command.mux_map("invoke a top-level command", {
     "iso": iso.main_command,
-    "config": config.main_command,
+    "config": configuration.main_command,
     "authority": authority.main_command,
+    "setup": setup.main_command,
 })
 
 

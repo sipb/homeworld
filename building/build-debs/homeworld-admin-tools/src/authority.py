@@ -1,7 +1,7 @@
 import os
 
 import command
-import config
+import configuration
 import resource
 import util
 import subprocess
@@ -9,14 +9,22 @@ import tempfile
 import tarfile
 
 
+def get_targz_path(check_exists=True):
+    authorities = os.path.join(configuration.get_project(), "authorities.tgz")
+    if check_exists and not os.path.exists(authorities):
+        command.fail("authorities.tgz does not exist (run spire authority gen?)")
+    return authorities
+
+
 def generate() -> None:
-    authorities = os.path.join(config.get_project(), "authorities.tgz")
+    authorities = get_targz_path(check_exists=False)
     if os.path.exists(authorities):
         command.fail("authorities.tgz already exists")
+    # tempfile.TemporaryDirectory() creates the directory with 0o600, which protects the private keys
     with tempfile.TemporaryDirectory() as d:
         certdir = os.path.join(d, "certdir")
         keyserver_yaml = os.path.join(d, "keyserver.yaml")
-        util.writefile(keyserver_yaml, config.get_keyserver_yaml().encode())
+        util.writefile(keyserver_yaml, configuration.get_keyserver_yaml().encode())
         os.mkdir(certdir)
         try:
             subprocess.check_call(["keygen", keyserver_yaml, certdir, "supervisor-nodes"])
@@ -29,10 +37,8 @@ def generate() -> None:
         subprocess.check_call(["shred", "--"] + os.listdir(certdir), cwd=certdir)
 
 
-def get_authority_key(keyname) -> bytes:
-    authorities = os.path.join(config.get_project(), "authorities.tgz")
-    if not os.path.exists(authorities):
-        command.fail("authorities.tgz does not exist (run spire authority gen?)")
+def get_key_by_filename(keyname) -> bytes:
+    authorities = get_targz_path()
     with tarfile.open(authorities, mode="r:gz") as tar:
         with tar.extractfile(keyname) as f:
             out = f.read()
