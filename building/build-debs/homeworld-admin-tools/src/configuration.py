@@ -8,7 +8,7 @@ import template
 import yaml
 
 
-def get_project():
+def get_project() -> str:
     project_dir = os.getenv("HOMEWORLD_DIR")
     if project_dir is None:
         command.fail("no HOMEWORLD_DIR environment variable declared")
@@ -17,12 +17,12 @@ def get_project():
     return project_dir
 
 
-def get_editor():
+def get_editor() -> str:
     return os.getenv("EDITOR", "nano")
 
 
 class CIDR:
-    def __init__(self, cidr):
+    def __init__(self, cidr: str):
         if cidr.count("/") != 1:
             raise Exception("invalid cidr: %s" % cidr)
         ip, bits = cidr.split("/")
@@ -33,7 +33,7 @@ class CIDR:
         self.bits = bits
         self.cidr = "%s/%d" % (self.ip.ip, self.bits)
 
-    def netmask(self):
+    def netmask(self) -> "IP":
         return IP.from_integer(((1 << (32 - self.bits)) - 1) ^ 0xFFFFFFFF)
 
     def __contains__(self, ip):
@@ -47,7 +47,7 @@ class CIDR:
 
 
 class IP:
-    def __init__(self, ip):
+    def __init__(self, ip: str):
         if ip.count(".") != 3:
             raise Exception("invalid ipv4 address: %s" % ip)
         self.octets = [int(x) for x in ip.split(".")]
@@ -57,7 +57,7 @@ class IP:
         self.ip = "%d.%d.%d.%d" % tuple(self.octets)
 
     @classmethod
-    def from_integer(cls, num):
+    def from_integer(cls, num: int) -> "IP":
         assert 0 <= num <= 0xFFFFFFFF
         octets = (((num & 0xFF000000) >> 24),
                   ((num & 0x00FF0000) >> 16),
@@ -92,7 +92,7 @@ class IP:
 
 
 class Node:
-    def __init__(self, config):
+    def __init__(self, config: dict):
         self.hostname, ip, self.kind = keycheck(config, "hostname", "ip", "kind")
         self.ip = IP(ip)
 
@@ -103,7 +103,7 @@ class Node:
         return "%s node %s (%s)" % (self.kind, self.hostname, self.ip)
 
 
-def keycheck(kvs, *keys, validator=lambda k, v: True):
+def keycheck(kvs: dict, *keys: str, validator=lambda k, v: True):
     for key in kvs.keys():
         if key not in keys:
             command.fail("unexpected key %s in config" % key)
@@ -117,7 +117,7 @@ def keycheck(kvs, *keys, validator=lambda k, v: True):
 
 
 class Config:
-    def __init__(self, kv):
+    def __init__(self, kv: dict):
         v_cluster, v_addresses, v_dns_bootstrap, v_root_admins, v_nodes = \
             keycheck(kv, "cluster", "addresses", "dns-bootstrap", "root-admins", "nodes")
 
@@ -152,11 +152,11 @@ class Config:
                 self.keyserver = node
 
     @classmethod
-    def load_from_string(cls, contents):
+    def load_from_string(cls, contents: bytes):
         return Config(yaml.safe_load(contents))
 
     @classmethod
-    def load_from_file(cls, filepath):
+    def load_from_file(cls, filepath: str):
         return Config.load_from_string(util.readfile(filepath))
 
     @classmethod
@@ -208,7 +208,7 @@ def get_keyserver_yaml() -> str:
 KEYCLIENT_VARIANTS = ("master", "worker", "base", "supervisor")
 
 
-def get_keyclient_yaml(variant):
+def get_keyclient_yaml(variant: str) -> str:
     if variant not in KEYCLIENT_VARIANTS:
         command.fail("invalid variant %s; expected one of %s" % (variant, KEYCLIENT_VARIANTS))
     config = Config.load_from_project()
@@ -219,7 +219,7 @@ def get_keyclient_yaml(variant):
     return template.template("keyclient.yaml", kcli)
 
 
-def get_cluster_conf():
+def get_cluster_conf() -> str:
     config = Config.load_from_project()
 
     apiservers = [node for node in config.nodes if node.kind == "master"]
@@ -241,12 +241,12 @@ def get_cluster_conf():
     return "".join(output)
 
 
-def get_machine_list_file():
+def get_machine_list_file() -> str:
     config = Config.load_from_project()
     return ",".join("%s.%s" % (node.hostname, config.external_domain) for node in config.nodes) + "\n"
 
 
-def populate():
+def populate() -> None:
     setup_yaml = os.path.join(get_project(), "setup.yaml")
     if os.path.exists(setup_yaml):
         command.fail("setup.yaml already exists")
@@ -254,30 +254,30 @@ def populate():
     print("filled out setup.yaml")
 
 
-def edit():
+def edit() -> None:
     setup_yaml = os.path.join(get_project(), "setup.yaml")
     if not os.path.exists(setup_yaml):
         command.fail("setup.yaml does not exist (run spire config populate first?)")
     subprocess.check_call([get_editor(), "--", setup_yaml])
 
 
-def print_keyserver_yaml():
+def print_keyserver_yaml() -> None:
     print(get_keyserver_yaml())
 
 
-def print_keyclient_yaml(variant):
+def print_keyclient_yaml(variant) -> None:
     print(get_keyclient_yaml(variant))
 
 
-def print_cluster_conf():
+def print_cluster_conf() -> None:
     print(get_cluster_conf())
 
 
-def print_machine_list_file():
+def print_machine_list_file() -> None:
     print(get_machine_list_file())
 
 
-def gen_kube_specs(output_dir):
+def gen_kube_specs(output_dir: str) -> None:
     if not os.path.isdir(output_dir):
         os.mkdir(output_dir)
     config = Config.load_from_project()

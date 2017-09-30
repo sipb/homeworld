@@ -37,16 +37,25 @@ def get_argcount(func) -> (int, int):
     return argcount - optionals, argcount
 
 
-def wrap(desc: str, func):
+def wrap(desc: str, func, paramtx=None):
     minarg, maxarg = get_argcount(func)
 
     def invoke(params):
-        expect = ("%d" % minarg if minarg == maxarg else "%d-%d" % (minarg, maxarg))
+        if paramtx:
+            prev = len(params)
+            params, on_end = paramtx(params)
+            rel = len(params) - prev
+            expect = ("%d" % (minarg - rel) if minarg == maxarg else "%d-%d" % (minarg - rel, maxarg - rel))
+        else:
+            on_end = None
+            expect = ("%d" % minarg if minarg == maxarg else "%d-%d" % (minarg, maxarg))
         if len(params) < minarg:
             fail("not enough parameters (expected %s)" % expect)
         if len(params) > maxarg:
             fail("too many parameters (expected %s)" % expect)
-        return func(*params)
+        func(*params)
+        if on_end:
+            on_end()
 
     return desc, invoke
 
