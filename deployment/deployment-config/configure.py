@@ -264,4 +264,3 @@ def generate_cluster_config(config, source_dir, target_dir):
 if __name__ == "__main__":
     config = load_setup()
     generate_results(config, "./confgen/")
-    generate_cluster_config(config, "./cluster-template/", "./cluster-gen/")
