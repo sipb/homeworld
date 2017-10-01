@@ -34,10 +34,9 @@ echo "Generated password: $PASS"
 sed "s|{{HASH}}|$(echo "${PASS}" | mkpasswd -s -m sha-512)|" preseed.cfg.in >preseed.cfg
 
 PACKAGES_VERSIONED=""
-./utils/verify-homeworld-repo.py
 for x in $PACKAGES
 do
-    PACKAGE_VERSIONED="$(./utils/fetch-package-from-repo.py ${x})"
+    PACKAGE_VERSIONED="$(./utils/hpm.py ${x})"
     PACKAGES_VERSIONED="${PACKAGES_VERSIONED}"$'\n'"${PACKAGE_VERSIONED}"
     cp "../build-debs/binaries/${PACKAGE_VERSIONED}" .
 done
