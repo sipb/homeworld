@@ -18,6 +18,8 @@ main_command = command.mux_map("invoke a top-level command", {
     "query": query.main_command,
     "verify": verify.main_command,
     "access": access.main_command,
+    "etcdctl": access.etcdctl_command,
+    "kubectl": access.kubectl_command,
     "infra": infra.main_command,
 })
 

@@ -6,6 +6,7 @@ import resource
 import subprocess
 import template
 import yaml
+import access
 
 
 def get_project() -> str:
@@ -219,18 +220,32 @@ def get_keyclient_yaml(variant: str) -> str:
     return template.template("keyclient.yaml", kcli)
 
 
+def get_etcd_endpoints() -> str:
+    nodes = Config.load_from_project().nodes
+    return ",".join("https://%s:2379" % n.ip for n in nodes if n.kind == "master")
+
+
+def get_apiserver_default() -> str:
+    # TODO: this should be eliminated, because nothing should be specific to this one apiserver
+    config = Config.load_from_project()
+    apiservers = [node for node in config.nodes if node.kind == "master"]
+    if not apiservers:
+        command.fail("no apiserver to select, because no master nodes were configured")
+    return "https://%s:443" % apiservers[0].ip
+
+
 def get_cluster_conf() -> str:
     config = Config.load_from_project()
 
     apiservers = [node for node in config.nodes if node.kind == "master"]
 
-    cconf = {"APISERVER": "https://%s:443" % apiservers[0].ip,
+    cconf = {"APISERVER": get_apiserver_default(),
              "APISERVER_COUNT": len(apiservers),
              "CLUSTER_CIDR": config.cidr_pods,
              "CLUSTER_DOMAIN": config.internal_domain,
              "DOMAIN": config.external_domain,
              "ETCD_CLUSTER": ",".join("%s=https://%s:2380" % (n.hostname, n.ip) for n in apiservers),
-             "ETCD_ENDPOINTS": ",".join("https://%s:2379" % n.ip for n in apiservers),
+             "ETCD_ENDPOINTS": get_etcd_endpoints(),
              "ETCD_TOKEN": config.etcd_token,
              "SERVICE_API": config.service_api,
              "SERVICE_CIDR": config.cidr_services,
@@ -244,6 +259,15 @@ def get_cluster_conf() -> str:
 def get_machine_list_file() -> str:
     config = Config.load_from_project()
     return ",".join("%s.%s" % (node.hostname, config.external_domain) for node in config.nodes) + "\n"
+
+
+def get_local_kubeconfig() -> str:
+    key_path, cert_path, ca_path = access.get_kube_cert_paths()
+    kconf = {"APISERVER": get_apiserver_default(),
+             "AUTHORITY-PATH": ca_path,
+             "CERT-PATH": cert_path,
+             "KEY-PATH": key_path}
+    return template.template("kubeconfig-local.yaml", kconf)
 
 
 def populate() -> None:
@@ -277,6 +301,10 @@ def print_machine_list_file() -> None:
     print(get_machine_list_file())
 
 
+def print_local_kubeconfig() -> None:
+    print(get_local_kubeconfig())
+
+
 def gen_kube_specs(output_dir: str) -> None:
     if not os.path.isdir(output_dir):
         os.mkdir(output_dir)
@@ -300,5 +328,6 @@ main_command = command.mux_map("commands about cluster configuration", {
         "keyclient.yaml": command.wrap("display the specified variant of keyclient.yaml", print_keyclient_yaml),
         "cluster.conf": command.wrap("display the generated cluster.conf", print_cluster_conf),
         "machine.list": command.wrap("display the generated machine.list", print_machine_list_file),
+        "kubeconfig": command.wrap("display the generated local kubeconfig", print_local_kubeconfig),
     }),
 })

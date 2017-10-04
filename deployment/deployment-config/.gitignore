@@ -1,7 +1,0 @@
-__pycache__
-confgen
-cluster-gen
-authorities.tgz
-keytab.*
-/server.pem
-ssl
