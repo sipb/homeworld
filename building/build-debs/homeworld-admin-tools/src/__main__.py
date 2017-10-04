@@ -7,6 +7,8 @@ import iso
 import setup
 import query
 import verify
+import access
+import infra
 
 main_command = command.mux_map("invoke a top-level command", {
     "iso": iso.main_command,
@@ -15,6 +17,8 @@ main_command = command.mux_map("invoke a top-level command", {
     "setup": setup.main_command,
     "query": query.main_command,
     "verify": verify.main_command,
+    "access": access.main_command,
+    "infra": infra.main_command,
 })
 
 

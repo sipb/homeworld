@@ -1,4 +1,6 @@
 import query
+import setup
+import subprocess
 import command
 import configuration
 
@@ -34,6 +36,31 @@ def check_keystatics():
     print("pass: keyserver serving correct static files")
 
 
+def check_online(server=None):
+    config = configuration.Config.load_from_project()
+    if server is None:
+        found = config.nodes
+        if not found:
+            command.fail("no nodes configured")
+    else:
+        found = [node for node in config.nodes if
+                 node.hostname == server or node.ip == server or node.hostname + "." + config.external_domain == server]
+        if not found:
+            command.fail("could not find server '%s' in setup.yaml" % server)
+    any_offline = False
+    for node in found:
+        result = subprocess.check_output(["ssh", "root@%s.%s" % (node.hostname, config.external_domain),
+                                          "echo round-trip"]).decode()
+        is_online = (result == "round-trip\n")
+        if not is_online:
+            any_offline = True
+        print("NODE:", node.hostname.ljust(30), ("[ONLINE]" if is_online else "[OFFLINE]").rjust(10))
+    if any_offline:
+        command.fail("not all nodes were online!")
+    print("All nodes: [ONLINE]")
+
+
 main_command = command.mux_map("commands about verifying the state of a cluster", {
     "keystatics": command.wrap("verify that keyserver static files are being served properly", check_keystatics),
+    "online": command.wrap("check whether a server (or all servers) is/are accepting SSH connections", check_online)
 })

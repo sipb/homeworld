@@ -1,12 +1,12 @@
-import time
-import tempfile
-
 import os
+import subprocess
+import tempfile
+import time
 
 import authority
-import subprocess
-import configuration
 import command
+import configuration
+import resource
 import util
 
 
@@ -38,16 +38,24 @@ class Operations:
     def subprocess(self, name: str, *argv: str, node: configuration.Node=None) -> None:
         self.add_operation(name, lambda: subprocess.check_call(argv), node=node)
 
+    def pause(self, name: str, duration):
+        self.add_operation(name, lambda: time.sleep(duration))
+
     def _ssh_get_login(self, node: configuration.Node) -> str:  # returns root@<HOSTNAME>.<EXTERNAL_DOMAIN>
         return "root@%s.%s" % (node.hostname, self._config.external_domain)
 
-    def ssh_raw(self, name: str, node: configuration.Node, script: str, in_directory: str=None) -> None:
+    def ssh_raw(self, name: str, node: configuration.Node, script: str, in_directory: str=None, redirect_to: str=None)\
+            -> None:
+        if redirect_to:
+            script = "(%s) >%s" % (script, escape_shell(redirect_to))
         if in_directory:
             script = "cd %s && %s" % (escape_shell(in_directory), script)
         self.subprocess(name, "ssh", self._ssh_get_login(node), script, node=node)
 
-    def ssh(self, name: str, node: configuration.Node, *argv: str, in_directory: str=None) -> None:
-        self.ssh_raw(name, node, " ".join(escape_shell(param) for param in argv), in_directory=in_directory)
+    def ssh(self, name: str, node: configuration.Node, *argv: str, in_directory: str=None, redirect_to: str=None)\
+            -> None:
+        self.ssh_raw(name, node, " ".join(escape_shell(param) for param in argv),
+                     in_directory=in_directory, redirect_to=redirect_to)
 
     def ssh_mkdir(self, name: str, node: configuration.Node, *paths: str, with_parents: bool=True) -> None:
         options = ["-p"] if with_parents else []
@@ -73,6 +81,8 @@ class Operations:
 AUTHORITY_DIR = "/etc/homeworld/keyserver/authorities"
 STATICS_DIR = "/etc/homeworld/keyserver/static"
 CONFIG_DIR = "/etc/homeworld/config"
+KEYCLIENT_DIR = "/etc/homeworld/keyclient"
+KEYTAB_PATH = "/etc/krb5.keytab"
 
 
 def setup_keyserver(ops: Operations, config: configuration.Config) -> None:
@@ -93,6 +103,54 @@ def setup_keyserver(ops: Operations, config: configuration.Config) -> None:
         ops.ssh("start keyserver on @HOST", node, "systemctl", "restart", "keyserver.service")
 
 
+def admit_keyserver(ops: Operations, config: configuration.Config) -> None:
+    for node in config.nodes:
+        if node.kind != "supervisor":
+            continue
+        domain = node.hostname + "." + config.external_domain
+        ops.ssh("request bootstrap token for @HOST", node,
+                "keyinitadmit", CONFIG_DIR + "/keyserver.yaml", domain, "bootstrap-keyinit",
+                redirect_to=KEYCLIENT_DIR + "/bootstrap.token")
+        # TODO: do we need to poke the keyclient to make sure it tries again?
+        # TODO: don't wait five seconds if it isn't necessary
+        ops.pause("giving admission time to complete...", 5.0)  # 5 seconds
+        # if it doesn't exist, this command will fail.
+        ops.ssh("confirm that @HOST was admitted", node, "test", "-e", KEYCLIENT_DIR + "/granting.pem")
+
+
+def setup_keygateway(ops: Operations, config: configuration.Config) -> None:
+    for node in config.nodes:
+        if node.kind != "supervisor":
+            continue
+        keytab = os.path.join(configuration.get_project(), "keytab.%s" % node.hostname)
+        ops.ssh("confirm no existing keytab on @HOST", node, "test", "!", "-e", KEYTAB_PATH)
+        ops.ssh_upload_path("upload keytab for @HOST", node, keytab, KEYTAB_PATH)
+        ops.ssh("restart keygateway on @HOST", node, "systemctl", "restart", "keygateway")
+
+
+def setup_supervisor_ssh(ops: Operations, config: configuration.Config) -> None:
+    for node in config.nodes:
+        if node.kind != "supervisor":
+            continue
+        ssh_config = resource.get_resource("sshd_config")
+        ops.ssh_upload_bytes("upload new ssh configuration to @HOST", node, ssh_config, "/etc/ssh/sshd_config")
+        ops.ssh("reload ssh configuration on @HOST", node, "systemctl", "restart", "ssh")
+
+
+def setup_services(ops: Operations, config: configuration.Config) -> None:
+    for node in config.nodes:
+        if node.kind == "master":
+            ops.ssh("start etcd on master @HOST", node, "/usr/lib/hyades/start-master-etcd.sh")
+    ops.pause("pause for etcd startup", 2)
+    for node in config.nodes:
+        if node.kind == "master":
+            ops.ssh("start all on master @HOST", node, "/usr/lib/hyades/start-master.sh")
+    ops.pause("pause for kubernetes startup", 2)
+    for node in config.nodes:
+        if node.kind == "worker":
+            ops.ssh("start all on worker @HOST", node, "/usr/lib/hyades/start-worker.sh")
+
+
 def wrapop(desc: str, f):
     def wrap_param_tx(params):
         config = configuration.Config.load_from_project()
@@ -103,4 +161,8 @@ def wrapop(desc: str, f):
 
 main_command = command.mux_map("commands about setting up a cluster", {
     "keyserver": wrapop("deploy keys and configuration for keyserver; start keyserver", setup_keyserver),
+    "self-admit": wrapop("admit the keyserver into the cluster during bootstrapping", admit_keyserver),
+    "keygateway": wrapop("deploy keytab and start keygateway", setup_keygateway),
+    "supervisor-ssh": wrapop("configure supervisor SSH access", setup_supervisor_ssh),
+    "services": wrapop("bring-up all cluster services in sequence", setup_services),
 })

@@ -32,7 +32,7 @@ func usage(logger *log.Logger) {
 	    "these depend on ~/.homeworld/keyreq.yaml being configured properly\n")
 }
 
-func homedir(logger *log.Logger) string {
+func homedir_DEPRECATED(logger *log.Logger) string {
 	usr, err := user.Current()
 	if err != nil {
 		logger.Fatal(err)
@@ -40,16 +40,20 @@ func homedir(logger *log.Logger) string {
 	return usr.HomeDir
 }
 
-func get_keyserver(logger *log.Logger) *server.Keyserver {
-	ks, _, err := keycommon.LoadKeyserver(path.Join(homedir(logger), ".homeworld", "keyreq.yaml"))
+func get_keyserver(logger *log.Logger, authority_path string, keyserver_domain string) *server.Keyserver {
+	authoritydata, err := ioutil.ReadFile(authority_path)
+	if err != nil {
+		logger.Fatalf("while loading authority: %s", err)
+	}
+	ks, err := server.NewKeyserver(authoritydata, keyserver_domain)
 	if err != nil {
 		logger.Fatal(err)
 	}
 	return ks
 }
 
-func auth_kerberos(logger *log.Logger) (*server.Keyserver, reqtarget.RequestTarget) {
-	ks := get_keyserver(logger)
+func auth_kerberos(logger *log.Logger, authority_path string, keyserver_domain string) (*server.Keyserver, reqtarget.RequestTarget) {
+	ks := get_keyserver(logger, authority_path, keyserver_domain)
 	rt, err := ks.AuthenticateWithKerberosTickets()
 	if err != nil {
 		logger.Fatal(err)
@@ -62,39 +66,6 @@ func auth_kerberos(logger *log.Logger) (*server.Keyserver, reqtarget.RequestTarg
 	return ks, rt
 }
 
-func replace_cert_authority(hostlines []string, machs string, pubkey []byte) ([]string, error) {
-	remove_index := -1
-	for i, line := range hostlines {
-		marker, _, _, comment, _, err := ssh.ParseKnownHosts([]byte(line))
-		if err != nil {
-			continue
-		}
-		if marker != "cert-authority" {
-			continue
-		}
-		if comment != "homeworld-keydef" {
-			continue
-		}
-		remove_index = i
-	}
-	if remove_index != -1 {
-		hostlines = append(hostlines[:remove_index], hostlines[remove_index+1:]...)
-	}
-	public, _, _, _, err := ssh.ParseAuthorizedKey(pubkey)
-	if err != nil {
-		return nil, err
-	}
-	if hostlines[len(hostlines) - 1] == "" {
-		hostlines = hostlines[:len(hostlines) - 1]
-	}
-	if strings.Contains(machs, "\n") || strings.Contains(machs, " ") {
-		return nil, errors.New("bad spacing on machine list")
-	}
-	entry := fmt.Sprintf("@cert-authority %s %s %s homeworld-keydef", machs, public.Type(), base64.StdEncoding.EncodeToString(public.Marshal()))
-	hostlines = append(hostlines, entry, "")
-	return hostlines, nil
-}
-
 func main() {
 	logger := log.New(os.Stderr, "[keyreq] ", log.Ldate|log.Ltime|log.Lmicroseconds|log.Lshortfile)
 	if len(os.Args) < 2 {
@@ -102,50 +73,23 @@ func main() {
 		return
 	}
 	switch os.Args[1] {
-	case "ssh":
-		_, rt := auth_kerberos(logger)
-		id_rsa_pub, err := ioutil.ReadFile(path.Join(homedir(logger), ".ssh", "id_rsa.pub"))
+	case "ssh-cert": // called programmatically
+		if len(os.Args) < 6 {
+			logger.Fatal("not enough parameters to keyreq ssh-cert <authority-path> <keyserver-domain> <ssh.pub-in> <ssh-cert-output>")
+		}
+		_, rt := auth_kerberos(logger, os.Args[2], os.Args[3])
+		ssh_pubkey, err := ioutil.ReadFile(os.Args[4])
 		if err != nil {
 			logger.Fatal(err)
 		}
-		req, err := reqtarget.SendRequest(rt, "access-ssh", string(id_rsa_pub))
+		req, err := reqtarget.SendRequest(rt, "access-ssh", string(ssh_pubkey))
 		if err != nil {
 			logger.Fatal(err)
 		}
 		if req == "" {
 			logger.Fatal("empty result")
 		}
-		err = ioutil.WriteFile(path.Join(homedir(logger), ".ssh", "id_rsa-cert.pub"), []byte(req), os.FileMode(0644))
-		if err != nil {
-			logger.Fatal(err)
-		}
-	case "ssh-host":
-		ks := get_keyserver(logger)
-		pubkey, err := ks.GetPubkey("ssh-host")
-		if err != nil {
-			logger.Fatal(err)
-		}
-		machines, err := ks.GetStatic("machine.list")
-		if err != nil {
-			logger.Fatal(err)
-		}
-		machs := strings.TrimSpace(string(machines))
-		logger.Println("Machines:", string(machines))
-
-		known_hosts := path.Join(homedir(logger), ".ssh", "known_hosts")
-		hosts, err := ioutil.ReadFile(known_hosts)
-		if err != nil {
-			if os.IsNotExist(err) {
-				hosts = nil
-			} else {
-				logger.Fatal(err)
-			}
-		}
-		new_hosts, err := replace_cert_authority(strings.Split(string(hosts), "\n"), machs, pubkey)
-		if err != nil {
-			logger.Fatal(err)
-		}
-		err = ioutil.WriteFile(known_hosts, []byte(strings.Join(new_hosts, "\n")), os.FileMode(0644))
+		err = ioutil.WriteFile(os.Args[5], []byte(req), os.FileMode(0644))
 		if err != nil {
 			logger.Fatal(err)
 		}
@@ -167,11 +111,11 @@ func main() {
 		if req == "" {
 			logger.Fatal("empty result")
 		}
-		err = ioutil.WriteFile(path.Join(homedir(logger), ".homeworld", "kube.key"), privkey, os.FileMode(0600))
+		err = ioutil.WriteFile(path.Join(homedir_DEPRECATED(logger), ".homeworld", "kube.key"), privkey, os.FileMode(0600))
 		if err != nil {
 			logger.Fatal(err)
 		}
-		err = ioutil.WriteFile(path.Join(homedir(logger), ".homeworld", "kube.pem"), []byte(req), os.FileMode(0644))
+		err = ioutil.WriteFile(path.Join(homedir_DEPRECATED(logger), ".homeworld", "kube.pem"), []byte(req), os.FileMode(0644))
 		if err != nil {
 			logger.Fatal(err)
 		}
@@ -179,7 +123,7 @@ func main() {
 		if err != nil {
 			logger.Fatal(err)
 		}
-		err = ioutil.WriteFile(path.Join(homedir(logger), ".homeworld", "kube-ca.pem"), ca, os.FileMode(0644))
+		err = ioutil.WriteFile(path.Join(homedir_DEPRECATED(logger), ".homeworld", "kube-ca.pem"), ca, os.FileMode(0644))
 		if err != nil {
 			logger.Fatal(err)
 		}
@@ -202,11 +146,11 @@ func main() {
 		if req == "" {
 			logger.Fatal("empty result")
 		}
-		err = ioutil.WriteFile(path.Join(homedir(logger), ".homeworld", "etcd.key"), privkey, os.FileMode(0600))
+		err = ioutil.WriteFile(path.Join(homedir_DEPRECATED(logger), ".homeworld", "etcd.key"), privkey, os.FileMode(0600))
 		if err != nil {
 			logger.Fatal(err)
 		}
-		err = ioutil.WriteFile(path.Join(homedir(logger), ".homeworld", "etcd.pem"), []byte(req), os.FileMode(0644))
+		err = ioutil.WriteFile(path.Join(homedir_DEPRECATED(logger), ".homeworld", "etcd.pem"), []byte(req), os.FileMode(0644))
 		if err != nil {
 			logger.Fatal(err)
 		}
@@ -214,17 +158,17 @@ func main() {
 		if err != nil {
 			logger.Fatal(err)
 		}
-		err = ioutil.WriteFile(path.Join(homedir(logger), ".homeworld", "etcd-ca.pem"), ca, os.FileMode(0644))
+		err = ioutil.WriteFile(path.Join(homedir_DEPRECATED(logger), ".homeworld", "etcd-ca.pem"), ca, os.FileMode(0644))
 		if err != nil {
 			logger.Fatal(err)
 		}
-	case "bootstrap":
-		if len(os.Args) < 3 {
-			logger.Fatal("bootstrap requires a principal")
+	case "bootstrap-token":
+		if len(os.Args) < 5 {
+			logger.Fatal("not enough parameters to keyreq bootstrap-token <authority-path> <keyserver-domain> <principal>")
 			return
 		}
-		_, rt := auth_kerberos(logger)
-		token, err := reqtarget.SendRequest(rt, "bootstrap", os.Args[2])
+		_, rt := auth_kerberos(logger, os.Args[2], os.Args[3])
+		token, err := reqtarget.SendRequest(rt, "bootstrap", os.Args[4])
 		if err != nil {
 			logger.Fatal(err)
 		}
