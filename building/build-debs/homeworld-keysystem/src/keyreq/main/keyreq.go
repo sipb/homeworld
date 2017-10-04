@@ -21,25 +21,6 @@ import (
 	"util/csrutil"
 )
 
-func usage(logger *log.Logger) {
-	logger.Fatal("invalid usage\nusage: keyreq ssh\n  request a SSH cert for ~/.ssh/id_rsa.pub, placing it in ~/.ssh/id_rsa-cert.pub\n" +
-		"usage: keyreq ssh-host\n  place the @ca-certificates directive into ~/.ssh/known_hosts\n" +
-		"usage: keyreq kube\n  generate a key and request a kubernetes auth cert, placing them in ~/.homeworld/kube.{pem,key}\n" +
-		"  (also, put the kubernetes CA cert in ~/.homeworld/kube-ca.pem)\n" +
-		"usage: keyreq etcd\n  generate a key and request an etcd auth cert, placing them in ~/.homeworld/etcd.{pem,key}\n" +
-		"  (also, put the etcd CA cert in ~/.homeworld/etcd-ca.pem)\n" +
-		"usage: keyreq bootstrap <server-principal>\n  request a bootstrap token for a server\n\n" +
-	    "these depend on ~/.homeworld/keyreq.yaml being configured properly\n")
-}
-
-func homedir_DEPRECATED(logger *log.Logger) string {
-	usr, err := user.Current()
-	if err != nil {
-		logger.Fatal(err)
-	}
-	return usr.HomeDir
-}
-
 func get_keyserver(logger *log.Logger, authority_path string, keyserver_domain string) *server.Keyserver {
 	authoritydata, err := ioutil.ReadFile(authority_path)
 	if err != nil {
@@ -69,7 +50,7 @@ func auth_kerberos(logger *log.Logger, authority_path string, keyserver_domain s
 func main() {
 	logger := log.New(os.Stderr, "[keyreq] ", log.Ldate|log.Ltime|log.Lmicroseconds|log.Lshortfile)
 	if len(os.Args) < 2 {
-		usage(logger)
+		logger.Fatal("keyreq should only be used by scripts that already know how to invoke it")
 		return
 	}
 	switch os.Args[1] {
@@ -93,8 +74,12 @@ func main() {
 		if err != nil {
 			logger.Fatal(err)
 		}
-	case "kube":
-		ks, rt := auth_kerberos(logger)
+	case "kube-cert":
+		if len(os.Args) < 7 {
+			logger.Fatal("not enough parameters to keyreq kube-cert <authority-path> <keyserver-domain> <privkey-out> <cert-out> <ca-out>")
+			return
+		}
+		ks, rt := auth_kerberos(logger, os.Args[2], os.Args[3])
 		pkey, err := rsa.GenerateKey(rand.Reader, 2048) // smaller key sizes are okay, because these are limited to a short period
 		if err != nil {
 			logger.Fatal(err)
@@ -111,11 +96,11 @@ func main() {
 		if req == "" {
 			logger.Fatal("empty result")
 		}
-		err = ioutil.WriteFile(path.Join(homedir_DEPRECATED(logger), ".homeworld", "kube.key"), privkey, os.FileMode(0600))
+		err = ioutil.WriteFile(path.Join(os.Args[4], ".homeworld", "kube.key"), privkey, os.FileMode(0600))
 		if err != nil {
 			logger.Fatal(err)
 		}
-		err = ioutil.WriteFile(path.Join(homedir_DEPRECATED(logger), ".homeworld", "kube.pem"), []byte(req), os.FileMode(0644))
+		err = ioutil.WriteFile(path.Join(os.Args[5], ".homeworld", "kube.pem"), []byte(req), os.FileMode(0644))
 		if err != nil {
 			logger.Fatal(err)
 		}
@@ -123,13 +108,17 @@ func main() {
 		if err != nil {
 			logger.Fatal(err)
 		}
-		err = ioutil.WriteFile(path.Join(homedir_DEPRECATED(logger), ".homeworld", "kube-ca.pem"), ca, os.FileMode(0644))
+		err = ioutil.WriteFile(path.Join(os.Args[6], ".homeworld", "kube-ca.pem"), ca, os.FileMode(0644))
 		if err != nil {
 			logger.Fatal(err)
 		}
-	case "etcd":
+	case "etcd-cert":
 		// TODO: deduplicate code
-		ks, rt := auth_kerberos(logger)
+		if len(os.Args) < 7 {
+			logger.Fatal("not enough parameters to keyreq etcd-cert <authority-path> <keyserver-domain> <privkey-out> <cert-out> <ca-out>")
+			return
+		}
+		ks, rt := auth_kerberos(logger, os.Args[2], os.Args[3])
 		pkey, err := rsa.GenerateKey(rand.Reader, 2048) // smaller key sizes are okay, because these are limited to a short period
 		if err != nil {
 			logger.Fatal(err)
@@ -146,11 +135,11 @@ func main() {
 		if req == "" {
 			logger.Fatal("empty result")
 		}
-		err = ioutil.WriteFile(path.Join(homedir_DEPRECATED(logger), ".homeworld", "etcd.key"), privkey, os.FileMode(0600))
+		err = ioutil.WriteFile(os.Args[4], privkey, os.FileMode(0600))
 		if err != nil {
 			logger.Fatal(err)
 		}
-		err = ioutil.WriteFile(path.Join(homedir_DEPRECATED(logger), ".homeworld", "etcd.pem"), []byte(req), os.FileMode(0644))
+		err = ioutil.WriteFile(os.Args[5], []byte(req), os.FileMode(0644))
 		if err != nil {
 			logger.Fatal(err)
 		}
@@ -158,7 +147,7 @@ func main() {
 		if err != nil {
 			logger.Fatal(err)
 		}
-		err = ioutil.WriteFile(path.Join(homedir_DEPRECATED(logger), ".homeworld", "etcd-ca.pem"), ca, os.FileMode(0644))
+		err = ioutil.WriteFile(os.Args[6], ca, os.FileMode(0644))
 		if err != nil {
 			logger.Fatal(err)
 		}
@@ -174,6 +163,6 @@ func main() {
 		}
 		os.Stdout.WriteString(token + "\n")
 	default:
-		usage(logger)
+		logger.Fatal("keyreq should only be used by scripts that already know how to invoke it")
 	}
 }

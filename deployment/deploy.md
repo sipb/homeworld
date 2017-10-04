@@ -30,20 +30,6 @@ store your cluster's configuration and authorities.
 
     $ spire authority gen
 
-## Generate configuration and authority keys
-
-We need to generate the configuration for our cluster:
-
-    $ cd deployment/deployment-config
-    $ mkdir confgen
-    $ spire config show keyserver.yaml >confgen/keyserver.yaml
-    $ spire config show cluster.conf >confgen/cluster.conf
-    $ spire config show machine.list >confgen/machine.list
-    $ spire config show keyclient-base.yaml >confgen/keyclient-base.yaml
-    $ spire config show keyclient-master.yaml >confgen/keyclient-master.yaml
-    $ spire config show keyclient-worker.yaml >confgen/keyclient-worker.yaml
-    $ spire config show keyclient-supervisor.yaml >confgen/keyclient-supervisor.yaml
-
 ## Building the ISO
 
 Now, create an ISO:
@@ -149,34 +135,26 @@ For the official homeworld servers:
 
 ## Confirm etcd works
 
- * Get etcd certificates:
-
-        $ keyreq etcd
-
  * Query etcd cluster health:
 
-        $ etcdctl --cert-file ~/.homeworld/etcd.pem --key-file ~/.homeworld/etcd.key --ca-file ~/.homeworld/etcd-ca.pem --endpoints "<ENDPOINTS FROM CLUSTER.CONF>" cluster-health
+        $ spire etcdctl cluster-health
+        rotating etcd certs...
         member 439721bf885a52a5 is healthy: got healthy result from https://18.181.0.104:2379
         member 61712dffdce48432 is healthy: got healthy result from https://18.181.0.97:2379
         member f6d798ec325cf15d is healthy: got healthy result from https://18.181.0.106:2379
 
  * Query etcd cluster members:
 
-        $ etcdctl --cert-file ~/.homeworld/etcd.pem --key-file ~/.homeworld/etcd.key --ca-file ~/.homeworld/etcd-ca.pem --endpoints "<ENDPOINTS FROM CLUSTER.CONF>" cluster-health
+        $ spire etcdctl cluster-health member list
         439721bf885a52a5: name=huevos-rancheros peerURLs=https://18.181.0.104:2380 clientURLs=https://18.181.0.104:2379 isLeader=false
         61712dffdce48432: name=eggs-benedict peerURLs=https://18.181.0.97:2380 clientURLs=https://18.181.0.97:2379 isLeader=true
         f6d798ec325cf15d: name=ole-miss peerURLs=https://18.181.0.106:2380 clientURLs=https://18.181.0.106:2379 isLeader=false
 
 ## Confirm kubernetes works
 
- * Get kubernetes certificates, install configuration:
-
-        $ kubereq kube
-        $ cp deployment/local-kubeconfig ~/.kube/config
-
  * Query default cluster setup:
 
-        $ hyperkube kubectl get nodes
+        $ spire kubectl get nodes
         NAME               STATUS                     AGE       VERSION
         avocado-burger     Ready                      16m       v1.7.2+$Format:%h$
         eggs-benedict      Ready,SchedulingDisabled   16m       v1.7.2+$Format:%h$
@@ -184,17 +162,17 @@ For the official homeworld servers:
         grilled-cheese     Ready                      16m       v1.7.2+$Format:%h$
         huevos-rancheros   Ready,SchedulingDisabled   16m       v1.7.2+$Format:%h$
         ole-miss           Ready,SchedulingDisabled   16m       v1.7.2+$Format:%h$
-        $ hyperkube kubectl get namespaces
+        $ spire kubectl get namespaces
         NAME          STATUS    AGE
         default       Active    17m
         kube-public   Active    17m
         kube-system   Active    17m
-        $ hyperkube kubectl get all --namespace=default
+        $ spire kubectl get all --namespace=default
         NAME             CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
         svc/kubernetes   172.28.0.1   <none>        443/TCP   17m
-        $ hyperkube kubectl get all --namespace=kube-public
+        $ spire kubectl get all --namespace=kube-public
         No resources found.
-        $ hyperkube kubectl get all --namespace=kube-system
+        $ spire kubectl get all --namespace=kube-system
         No resources found.
 
 ## Bootstrap cluster DNS
@@ -202,17 +180,17 @@ For the official homeworld servers:
 This step is needed when you're hosting the containers for core cluster
 services on the cluster itself.
 
-    $ python3 inspire.py bootstrap-dns
+    $ spire setup dns-bootstrap
 
 We don't yet have the system to a point where you can stop needing to bootstrap
 DNS, but when that happens, you can turn it back off:
 
-    $ python3 inspire.py restore-dns
+    $ spire setup stop-dns-bootstrap
 
 ## Bootstrap cluster registry
 
-    $ ln -s .../keys-for-homeworld.mit.edu/ ssl
-    $ python3 inspire.py setup-bootstrap-registry
+    $ ln -s .../keys-for-homeworld.mit.edu/ $HOMEWORLD_DIR/https-certs
+    $ spire setup bootstrap-registry
 
 ## Confirm container launching
 

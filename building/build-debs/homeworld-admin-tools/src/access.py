@@ -9,20 +9,23 @@ import util
 import base64
 import binascii
 
-DEFAULT_ROTATE_INTERVAL = 60 * 60 * 2  # rotate local private key every two hours (if we happen to renew)
+DEFAULT_ROTATE_INTERVAL = 60 * 60 * 2  # rotate local key every two hours (if we happen to renew)
 DEFAULT_SHORTLIVED_RSA_BITS = 2048
+
+
+def needs_rotate(path, interval=DEFAULT_ROTATE_INTERVAL):
+    try:
+        result = os.stat(path)
+        time_since_last_rotate = time.time() - result.st_mtime
+        return time_since_last_rotate >= interval
+    except FileNotFoundError:
+        return True
 
 
 def create_or_rotate_custom_ssh_key(interval=DEFAULT_ROTATE_INTERVAL, bits=DEFAULT_SHORTLIVED_RSA_BITS):
     project_dir = configuration.get_project()
     keypath = os.path.join(project_dir, "ssh-key")
-    try:
-        result = os.stat(keypath)
-        time_since_last_rotate = time.time() - result.st_mtime
-        needs_rotate = time_since_last_rotate >= interval
-    except FileNotFoundError:
-        needs_rotate = True
-    if needs_rotate:
+    if needs_rotate(keypath, interval):
         if os.path.exists(keypath):
             os.remove(keypath)
         if os.path.exists(keypath + ".pub"):
@@ -111,6 +114,43 @@ def update_known_hosts():
     util.writefile(known_hosts_path, ("\n".join(known_hosts_new) + "\n").encode())
 
 
+def get_kube_cert_paths():
+    project_dir = configuration.get_project()
+    return os.path.join(project_dir, "kube-access.key"),\
+           os.path.join(project_dir, "kube-access.pem"),\
+           os.path.join(project_dir, "kube-ca.pem")
+
+
+def dispatch_etcdctl(*params):
+    project_dir = configuration.get_project()
+    endpoints = configuration.get_etcd_endpoints()
+
+    etcd_key_path = os.path.join(project_dir, "etcd-access.key")
+    etcd_cert_path = os.path.join(project_dir, "etcd-access.pem")
+    etcd_ca_path = os.path.join(project_dir, "etcd-ca.pem")
+    if needs_rotate(etcd_cert_path):
+        print("rotating etcd certs...")
+        call_keyreq("etcd-cert", etcd_key_path, etcd_cert_path, etcd_ca_path)
+
+    subprocess.check_call(["etcdctl", "--cert-file", etcd_cert_path, "--key-file", etcd_key_path,
+                           "--ca-file", etcd_ca_path, "--endpoints", endpoints] + list(params))
+
+
+def dispatch_kubectl(*params):
+    kubeconfig_data = configuration.get_local_kubeconfig()
+    key_path, cert_path, ca_path = get_kube_cert_paths()
+
+    if needs_rotate(cert_path):
+        print("rotating kubernetes certs...")
+        call_keyreq("kube-cert", key_path, cert_path, ca_path)
+
+    with tempfile.TemporaryDirectory() as f:
+        kubeconfig_path = os.path.join(f, "temp-kubeconfig")
+        subprocess.check_call(["hyperkube", "kubectl", "--kubeconfig", kubeconfig_path] + list(params))
+
+
+etcdctl_command = command.wrap("invoke commands through the etcdctl wrapper", dispatch_etcdctl)
+kubectl_command = command.wrap("invoke commands through the kubectl wrapper", dispatch_kubectl)
 main_command = command.mux_map("commands about establishing access to a cluster", {
     "ssh": command.wrap("request SSH access to the cluster and add it to the SSH agent", access_ssh_with_add),
     "ssh-fetch": command.wrap("request SSH access to the cluster but do not register it with the agent", access_ssh),

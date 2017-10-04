@@ -151,6 +151,44 @@ def setup_services(ops: Operations, config: configuration.Config) -> None:
             ops.ssh("start all on worker @HOST", node, "/usr/lib/hyades/start-worker.sh")
 
 
+def modify_dns_bootstrap(ops: Operations, config: configuration.Config, is_install: bool) -> None:
+    for node in config.nodes:
+        if node.kind == "supervisor":
+            continue
+        strip_cmd = "grep -vF AUTO-HOMEWORLD-BOOTSTRAP /etc/hosts >/etc/hosts.new && mv /etc/hosts.new /etc/hosts"
+        ops.ssh_raw("strip bootstrapped dns on @HOST", node, strip_cmd)
+        if is_install:
+            for hostname, ip in config.dns_bootstrap.items():
+                new_hosts_line = "%s\t%s # AUTO-HOMEWORLD-BOOTSTRAP" % (ip, hostname)
+                strip_cmd = "echo %s >>/etc/hosts" % escape_shell(new_hosts_line)
+                ops.ssh_raw("bootstrap dns on @HOST: %s" % hostname, node, strip_cmd)
+
+
+def setup_dns_bootstrap(ops: Operations, config: configuration.Config) -> None:
+    modify_dns_bootstrap(ops, config, True)
+
+
+def teardown_dns_bootstrap(ops: Operations, config: configuration.Config) -> None:
+    modify_dns_bootstrap(ops, config, False)
+
+
+REGISTRY_HOSTNAME = "homeworld.mit.edu"
+
+
+def setup_bootstrap_registry(ops: Operations, config: configuration.Config) -> None:
+    https_cert_dir = os.path.join(configuration.get_project(), "https-certs")
+    for node in config.nodes:
+        if node.kind != "supervisor":
+            continue
+        keypath = os.path.join(https_cert_dir, "%s.key" % REGISTRY_HOSTNAME)
+        certpath = os.path.join(https_cert_dir, "%s.pem" % REGISTRY_HOSTNAME)
+
+        ops.ssh_mkdir("create ssl cert directory on @HOST", node, "/etc/homeworld/ssl")
+        ops.ssh_upload_path("upload %s key to @HOST" % REGISTRY_HOSTNAME, node, keypath, "/etc/homeworld/ssl/%s.key" % REGISTRY_HOSTNAME)
+        ops.ssh_upload_path("upload %s cert to @HOST" % REGISTRY_HOSTNAME, node, certpath, "/etc/homeworld/ssl/%s.pem" % REGISTRY_HOSTNAME)
+        ops.ssh("restart nginx on @HOST", node, "systemctl", "restart", "nginx")
+
+
 def wrapop(desc: str, f):
     def wrap_param_tx(params):
         config = configuration.Config.load_from_project()
@@ -164,5 +202,8 @@ main_command = command.mux_map("commands about setting up a cluster", {
     "self-admit": wrapop("admit the keyserver into the cluster during bootstrapping", admit_keyserver),
     "keygateway": wrapop("deploy keytab and start keygateway", setup_keygateway),
     "supervisor-ssh": wrapop("configure supervisor SSH access", setup_supervisor_ssh),
-    "services": wrapop("bring-up all cluster services in sequence", setup_services),
+    "services": wrapop("bring up all cluster services in sequence", setup_services),
+    "dns-bootstrap": wrapop("switch cluster nodes into 'bootstrapped DNS' mode", setup_dns_bootstrap),
+    "stop-dns-bootstrap": wrapop("switch cluster nodes out of 'bootstrapped DNS' mode", teardown_dns_bootstrap),
+    "bootstrap-registry": wrapop("bring up the bootstrap container registry on the supervisor nodes", setup_bootstrap_registry),
 })
