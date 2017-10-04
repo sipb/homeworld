@@ -1,0 +1,118 @@
+import time
+import os
+import command
+import subprocess
+import configuration
+import tempfile
+import authority
+import util
+import base64
+import binascii
+
+DEFAULT_ROTATE_INTERVAL = 60 * 60 * 2  # rotate local private key every two hours (if we happen to renew)
+DEFAULT_SHORTLIVED_RSA_BITS = 2048
+
+
+def create_or_rotate_custom_ssh_key(interval=DEFAULT_ROTATE_INTERVAL, bits=DEFAULT_SHORTLIVED_RSA_BITS):
+    project_dir = configuration.get_project()
+    keypath = os.path.join(project_dir, "ssh-key")
+    try:
+        result = os.stat(keypath)
+        time_since_last_rotate = time.time() - result.st_mtime
+        needs_rotate = time_since_last_rotate >= interval
+    except FileNotFoundError:
+        needs_rotate = True
+    if needs_rotate:
+        if os.path.exists(keypath):
+            os.remove(keypath)
+        if os.path.exists(keypath + ".pub"):
+            os.remove(keypath + ".pub")
+        if os.path.exists(keypath + "-cert.pub"):
+            os.remove(keypath + "-cert.pub")
+        # 2048 bits is sufficient for a key only used for the duration of the certificate (probably four hours)
+        subprocess.check_call(["ssh-keygen",
+                               "-f", keypath,                 # output file
+                               "-t", "rsa", "-b", str(bits),  # a <bits>-bit RSA key
+                               "-C", "autogen-homeworld",     # generic comment
+                               "-N", ""])                     # no passphrase
+    return keypath
+
+
+def call_keyreq(command, *params, collect=False):
+    config = configuration.Config.load_from_project()
+    keyserver_domain = config.keyserver.hostname + "." + config.external_domain + ":20557"
+
+    invoke_variant = subprocess.check_output if collect else subprocess.check_call
+
+    with tempfile.TemporaryDirectory() as tdir:
+        https_cert_path = os.path.join(tdir, "server.pem")
+        util.writefile(https_cert_path, authority.get_key_by_filename("./server.pem"))
+        return invoke_variant(["keyreq", command, https_cert_path, keyserver_domain] + list(params))
+
+
+def access_ssh(add_to_agent=False):
+    keypath = create_or_rotate_custom_ssh_key()
+    call_keyreq("ssh-cert", keypath + ".pub", keypath + "-cert.pub")
+    print("===== v CERTIFICATE DETAILS v =====")
+    subprocess.check_call(["ssh-keygen", "-L", "-f", keypath + "-cert.pub"])
+    print("===== ^ CERTIFICATE DETAILS ^ =====")
+    if add_to_agent:
+        # TODO: clear old identities
+        subprocess.check_call(["ssh-add", "--", keypath])
+
+
+def access_ssh_with_add():
+    access_ssh(add_to_agent=True)
+
+
+HOMEWORLD_KNOWN_HOSTS_MARKER = "homeworld-keydef"
+
+
+def _is_homeworld_keydef_line(line):
+    return line.startswith("@cert-authority ") and line.endswith(" " + HOMEWORLD_KNOWN_HOSTS_MARKER)
+
+
+def _replace_cert_authority(known_hosts_lines: list, machine_list: str, pubkey: bytes) -> list:
+    # unlike the original golang implementation, machine_list is trusted and locally-generated, so no validation is
+    # necessary.
+    pubkey_parts = pubkey.split(b" ")
+
+    if len(pubkey_parts):
+        command.fail("invalid CA pubkey while parsing certificate authority")
+    if pubkey_parts[0] != b"ssh-rsa":
+        command.fail("unexpected CA type (%s instead of ssh-rsa) while parsing certificate authority" % pubkey_parts[0])
+    try:
+        b64data = base64.b64decode(pubkey_parts[1], validate=True)
+    except binascii.Error as e:
+        command.fail("invalid base64-encoded pubkey: %s" % e)
+
+    rebuilt = [line for line in known_hosts_lines if not _is_homeworld_keydef_line(line)]
+    rebuilt.append("@cert-authority %s ssh-rsa %s %s"
+                   % (machine_list, base64.b64encode(b64data).decode(), HOMEWORLD_KNOWN_HOSTS_MARKER))
+    return rebuilt
+
+
+def update_known_hosts():
+    # uses local copies of machine list and ssh-host pubkey
+    # TODO: eliminate now-redundant machine.list download from keyserver
+    machines = configuration.get_machine_list_file().strip()
+    cert_authority_pubkey = authority.get_key_by_filename("./ssh_host_ca.pub")
+    homedir = os.getenv("HOME")
+    if homedir is None:
+        command.fail("could not determine home directory, so could not find ~/.ssh/known_hosts")
+    known_hosts_path = os.path.join(homedir, ".ssh", "known_hosts")
+    known_hosts_old = util.readfile(known_hosts_path).decode().split("\n") if os.path.exists(known_hosts_path) else []
+
+    if known_hosts_old and not known_hosts_old[-1]:
+        known_hosts_old.pop()
+
+    known_hosts_new = _replace_cert_authority(known_hosts_old, machines, cert_authority_pubkey)
+
+    util.writefile(known_hosts_path, ("\n".join(known_hosts_new) + "\n").encode())
+
+
+main_command = command.mux_map("commands about establishing access to a cluster", {
+    "ssh": command.wrap("request SSH access to the cluster and add it to the SSH agent", access_ssh_with_add),
+    "ssh-fetch": command.wrap("request SSH access to the cluster but do not register it with the agent", access_ssh),
+    "update-known-hosts": command.wrap("update ~/.ssh/known_hosts file with @ca-certificates directive", update_known_hosts)
+})

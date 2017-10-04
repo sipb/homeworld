@@ -94,43 +94,25 @@ For the official homeworld servers:
 
  * Admit the supervisor node to the cluster:
 
-       $ python3 inspire.py admit-keyserver
- 
- * Confirm that the supervisor node was successfully admitted:
+       $ spire setup self-admit
 
-       $ ssh root@egg-sandwich.mit.edu stat /etc/homeworld/keyclient/granting.pem
+ * Prepare kerberos gateway:
 
- * Prepare kerberos gateway
-
-       $ cp <keytab> keytab.<shortname>   # i.e. keytab.egg-sandwich; name is used internally by setup-keygateway
-       $ python3 inspire.py setup-keygateway
+       $ cp <keytab> $HOMEWORLD_DIR/keytab.<hostname>   # i.e. keytab.egg-sandwich
+       $ spire setup keygateway
 
 ## Request certificates and SSH with them
 
- * Populate ~/.homeworld/keyreq.yaml:
-
-       authoritypath: /home/user/.homeworld/server.pem
-       keyserver: <hostname>.mit.edu:20557
-
- * Add keyserver cert:
-
-       $ tar -xf authorities.tgz ./server.pem
-       $ cp ./server.pem ~/.homeworld/server.pem
-
- * Setup SSH certificate authority:
-
-       $ keyreq ssh-host
-
  * Request SSH cert:
 
-       $ keyreq ssh    # if this fails, you might need to make sure you don't have any stale kerberos tickets
+       $ spire access update-known-hosts    # set up certificate authority in ~/.ssh/known_hosts
+       $ spire access ssh    # if this fails, you might need to make sure you don't have any stale kerberos tickets
        $ ssh-keygen -L -f ~/.ssh/id_rsa-cert.pub
-       $ ssh-add
 
  * Configure and test SSH:
 
        $ # this will deny your current direct access, so keep a SSH session open until you verify this works
-       $ python3 inspire.py just-supervisors configure-ssh
+       $ spire setup supervisor-ssh
        $ ssh -v root@<hostname>.mit.edu
          # ensure that a debug line like this shows up:
          debug1: Server accepts key: pkalg ssh-rsa-cert-v01@openssh.com blen 1524
@@ -141,7 +123,8 @@ For the official homeworld servers:
 
  * Request a bootstrap token:
 
-       $ keyreq bootstrap <hostname>.mit.edu
+       $ spire infra admit <hostname>.mit.edu
+       Token granted for <hostname>.mit.edu: '<TOKEN>'
 
  * Boot the ISO on the hardware
    - Select `Install`
@@ -150,19 +133,19 @@ For the official homeworld servers:
    - Enter the bootstrap token
  * Confirm that the server came up properly (and requested its keys correctly):
 
-        $ ssh root@<hostname>.mit.edu echo works    # you might need to re-request certificates first
+        $ spire verify online <hostname>      # you might need to re-request certificates first
 
 ## Package installation
 
  * Install and upgrade packages on all systems:
 
-        $ python3 inspire.py install-packages
+        $ spire infra install-packages
 
 ## Core cluster bringup
 
  * Launch services
 
-        $ python3 inspire.py start-services
+        $ spire setup services
 
 ## Confirm etcd works
 
