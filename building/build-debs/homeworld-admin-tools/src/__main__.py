@@ -5,12 +5,16 @@ import configuration
 import authority
 import iso
 import setup
+import query
+import verify
 
 main_command = command.mux_map("invoke a top-level command", {
     "iso": iso.main_command,
     "config": configuration.main_command,
     "authority": authority.main_command,
     "setup": setup.main_command,
+    "query": query.main_command,
+    "verify": verify.main_command,
 })
 
 
