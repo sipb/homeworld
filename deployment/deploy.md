@@ -90,8 +90,7 @@ For the official homeworld servers:
 
  * Check that the keyserver is running properly:
 
-       $ tar -xf authorities.tgz ./server.pem
-       $ curl --cacert server.pem https://egg-sandwich.mit.edu:20557/static/machine.list
+       $ spire verify keystatics
 
  * Admit the supervisor node to the cluster:
 
