@@ -1,15 +1,11 @@
 # Hyades Provisioning
 
-Etherpad: http://etherpad.mit.edu/p/hyades-provisioning-todo
-
-AFS: /afs/sipb/project/hyades/provisioning
-
 # Subfolders
 
 Top-level:
 
  * building: code and scripts for creating binaries and uploading them to repositories
- * deployment: code and scripts for deploying or operating a cluster
+ * docs: information on building and deploying a cluster
  * design: (incomplete) design documents for the system.
 
 In more detail:
@@ -17,15 +13,9 @@ In more detail:
  * building/build-helpers: build scripts for intermediate tools (i.e. Go)
  * building/build-acis: container build scripts
  * building/build-debs: debian package build scripts
- * building/build-iso: installation ISO build scripts
  * building/upstream: vendored upstream source packages (stored in a separate Git repository; see pull-upstream.sh)
  * building/upload-acis: uploading containers to the registry
  * building/upload-debs: uploading debian packages to the repository
-
- * deployment/admit: deployment scripts for admission server
- * deployment/auth: deployment scripts for authentication server
- * deployment/clustered: configuration files and scripts for code that runs on the cluster
- * deployment/deployment-config: files and scripts for configuring a cluster and setting up certificates
 
 # Repository Security
 
@@ -58,4 +48,4 @@ reasonably complete unit tests before merging.
 
 # Contact
 
-Current developer: cela. Contact over zephyr (-c hyades) or email @mit.edu.
+Project lead: cela. Contact over zephyr (-c hyades) or email @mit.edu.
