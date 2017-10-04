@@ -10,7 +10,7 @@ packages built:
  * homeworld-keysystem
  * homeworld-admin-tools
 
-See //building/build.md for details.
+See [build.md](build.md) for details.
 
 ## Installing packages
 
