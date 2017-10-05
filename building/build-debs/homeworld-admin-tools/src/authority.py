@@ -26,6 +26,7 @@ def generate() -> None:
         keyserver_yaml = os.path.join(d, "keyserver.yaml")
         util.writefile(keyserver_yaml, configuration.get_keyserver_yaml().encode())
         os.mkdir(certdir)
+        print("generating authorities...")
         try:
             subprocess.check_call(["keygen", keyserver_yaml, certdir, "supervisor-nodes"])
         except FileNotFoundError as e:
@@ -33,6 +34,7 @@ def generate() -> None:
                 command.fail("could not find keygen binary. is the homeworld-keyserver dependency installed?")
             else:
                 raise e
+        print("packing authorities...")
         subprocess.check_call(["tar", "-C", certdir, "-czf", authorities, "."])
         subprocess.check_call(["shred", "--"] + os.listdir(certdir), cwd=certdir)
 

@@ -310,7 +310,9 @@ def gen_kube_specs(output_dir: str) -> None:
         os.mkdir(output_dir)
     config = Config.load_from_project()
 
-    vars = {"NETWORK": config.cidr_pods}
+    vars = {"NETWORK": config.cidr_pods,
+            "SERVIP_DNS": config.service_dns,
+            "INTERNAL_DOMAIN": config.internal_domain}
 
     clustered, = keycheck(yaml.safe_load(resource.get_resource("clustered/list.yaml")), "clustered",
                           validator=lambda _, x: type(x) == list)

@@ -1,3 +1,5 @@
+import inspect
+
 
 class CommandFailedException(Exception):
     pass
@@ -34,7 +36,10 @@ def mux_map(desc: str, mapping: dict):
 def get_argcount(func) -> (int, int):
     argcount = func.__code__.co_argcount
     optionals = len(func.__defaults__) if func.__defaults__ else 0
-    return argcount - optionals, argcount
+    lower_bound, upper_bound = argcount - optionals, argcount
+    if func.__code__.co_flags & inspect.CO_VARARGS:
+        upper_bound = None
+    return lower_bound, upper_bound
 
 
 def wrap(desc: str, func, paramtx=None):
@@ -45,13 +50,18 @@ def wrap(desc: str, func, paramtx=None):
             prev = len(params)
             params, on_end = paramtx(params)
             rel = len(params) - prev
-            expect = ("%d" % (minarg - rel) if minarg == maxarg else "%d-%d" % (minarg - rel, maxarg - rel))
         else:
             on_end = None
-            expect = ("%d" % minarg if minarg == maxarg else "%d-%d" % (minarg, maxarg))
+            rel = 0
+        if maxarg is None:
+            expect = "%d-" % (minarg - rel)
+        elif maxarg == minarg:
+            expect = "%d" % (minarg - rel)
+        else:
+            expect = "%d-%d" % (minarg - rel, maxarg - rel)
         if len(params) < minarg:
             fail("not enough parameters (expected %s)" % expect)
-        if len(params) > maxarg:
+        if maxarg is not None and len(params) > maxarg:
             fail("too many parameters (expected %s)" % expect)
         func(*params)
         if on_end:

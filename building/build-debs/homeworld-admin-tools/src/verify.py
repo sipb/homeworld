@@ -49,9 +49,12 @@ def check_online(server=None):
             command.fail("could not find server '%s' in setup.yaml" % server)
     any_offline = False
     for node in found:
-        result = subprocess.check_output(["ssh", "root@%s.%s" % (node.hostname, config.external_domain),
+        try:
+            result = subprocess.check_output(["ssh", "root@%s.%s" % (node.hostname, config.external_domain),
                                           "echo round-trip"]).decode()
-        is_online = (result == "round-trip\n")
+            is_online = (result == "round-trip\n")
+        except subprocess.CalledProcessError:
+            is_online = False
         if not is_online:
             any_offline = True
         print("NODE:", node.hostname.ljust(30), ("[ONLINE]" if is_online else "[OFFLINE]").rjust(10))
