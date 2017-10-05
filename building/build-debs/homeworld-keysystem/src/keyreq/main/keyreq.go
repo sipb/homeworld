@@ -3,17 +3,9 @@ package main
 import (
 	"log"
 	"os"
-	"keycommon"
-	"os/user"
-	"path"
 	"keycommon/reqtarget"
 	"io/ioutil"
 	"keycommon/server"
-	"strings"
-	"golang.org/x/crypto/ssh"
-	"encoding/base64"
-	"fmt"
-	"errors"
 	"crypto/rsa"
 	"crypto/rand"
 	"encoding/pem"
@@ -96,11 +88,11 @@ func main() {
 		if req == "" {
 			logger.Fatal("empty result")
 		}
-		err = ioutil.WriteFile(path.Join(os.Args[4], ".homeworld", "kube.key"), privkey, os.FileMode(0600))
+		err = ioutil.WriteFile(os.Args[4], privkey, os.FileMode(0600))
 		if err != nil {
 			logger.Fatal(err)
 		}
-		err = ioutil.WriteFile(path.Join(os.Args[5], ".homeworld", "kube.pem"), []byte(req), os.FileMode(0644))
+		err = ioutil.WriteFile(os.Args[5], []byte(req), os.FileMode(0644))
 		if err != nil {
 			logger.Fatal(err)
 		}
@@ -108,7 +100,7 @@ func main() {
 		if err != nil {
 			logger.Fatal(err)
 		}
-		err = ioutil.WriteFile(path.Join(os.Args[6], ".homeworld", "kube-ca.pem"), ca, os.FileMode(0644))
+		err = ioutil.WriteFile(os.Args[6], ca, os.FileMode(0644))
 		if err != nil {
 			logger.Fatal(err)
 		}
