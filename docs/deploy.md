@@ -34,7 +34,7 @@ store your cluster's configuration and authorities.
 
 Now, create an ISO:
 
-    $ spire iso gen preseeded.iso building/ ~/.ssh/id_rsa.pub
+    $ spire iso gen preseeded.iso ~/.ssh/id_rsa.pub   # this key is used for direct access during cluster setup
 
 Now you should burn and/or upload preseeded.iso that you've just gotten, so
 that you can use it for installing servers. Make a note of the password it
@@ -73,10 +73,7 @@ For the official homeworld servers:
  * Configure the supervisor keyserver:
 
        $ spire setup keyserver
-
- * Check that the keyserver is running properly:
-
-       $ spire verify keystatics
+       $ spire verify keystatics   # make sure the keyserver is running
 
  * Admit the supervisor node to the cluster:
 
@@ -93,7 +90,6 @@ For the official homeworld servers:
 
        $ spire access update-known-hosts    # set up certificate authority in ~/.ssh/known_hosts
        $ spire access ssh    # if this fails, you might need to make sure you don't have any stale kerberos tickets
-       $ ssh-keygen -L -f ~/.ssh/id_rsa-cert.pub
 
  * Configure and test SSH:
 
@@ -142,10 +138,11 @@ For the official homeworld servers:
         member 439721bf885a52a5 is healthy: got healthy result from https://18.181.0.104:2379
         member 61712dffdce48432 is healthy: got healthy result from https://18.181.0.97:2379
         member f6d798ec325cf15d is healthy: got healthy result from https://18.181.0.106:2379
+        cluster is healthy
 
  * Query etcd cluster members:
 
-        $ spire etcdctl cluster-health member list
+        $ spire etcdctl member list
         439721bf885a52a5: name=huevos-rancheros peerURLs=https://18.181.0.104:2380 clientURLs=https://18.181.0.104:2379 isLeader=false
         61712dffdce48432: name=eggs-benedict peerURLs=https://18.181.0.97:2380 clientURLs=https://18.181.0.97:2379 isLeader=true
         f6d798ec325cf15d: name=ole-miss peerURLs=https://18.181.0.106:2380 clientURLs=https://18.181.0.106:2379 isLeader=false
@@ -189,7 +186,8 @@ DNS, but when that happens, you can turn it back off:
 
 ## Bootstrap cluster registry
 
-    $ ln -s .../keys-for-homeworld.mit.edu/ $HOMEWORLD_DIR/https-certs
+    $ mkdir $HOMEWORLD_DIR/https-certs
+    $ cp homeworld.mit.edu.key homeworld.mit.edu.pem $HOMEWORLD_DIR/https-certs
     $ spire setup bootstrap-registry
 
 ## Confirm container launching
@@ -203,12 +201,13 @@ DNS, but when that happens, you can turn it back off:
 
 Deploy flannel into the cluster:
 
-    $ cd deployment/deployment-config/cluster-gen/
-    $ hyperkube kubectl create -f flannel.yaml
+    $ mkdir cluster-gen
+    $ spire config gen-kube cluster-gen
+    $ spire kubectl create -f cluster-gen/flannel.yaml
 
 Wait a bit for propagation.
 
-    $ hyperkube kubectl get pods --namespace=kube-system
+    $ spire kubectl get pods --namespace=kube-system
     NAME                    READY     STATUS    RESTARTS   AGE
     kube-flannel-ds-1r1cx   1/1       Running   0          49s
     kube-flannel-ds-2cxj5   1/1       Running   0          49s
@@ -219,7 +218,7 @@ Wait a bit for propagation.
 
 Verify flannel functionality by running flannel tests on two different nodes:
 
-    $ # two nodes
+    $ # on two different nodes
     $ ssh root@<worker>.mit.edu
     # rkt run --debug --interactive=true --net=rkt.kubernetes.io homeworld.mit.edu/debian
         $ ip addr   # make sure this provides a 172.18 IP, and not a 172.16 IP.
@@ -231,11 +230,11 @@ If the ping works both ways, then flannel works! At least at a basic level.
 
 Deploy dns-addon into the cluster:
 
-    $ hyperkube kubectl create -f dns-addon.yaml
+    $ spire kubectl create -f dns-addon.yaml
 
 Wait for deployment to succeed:
 
-    $ hyperkube kubectl get pods --namespace=kube-system
+    $ spire kubectl get pods --namespace=kube-system
     NAME                    READY     STATUS    RESTARTS   AGE
     kube-dns-v20-69lrg      3/3       Running   0          1m
     kube-dns-v20-clh2z      3/3       Running   0          1m
