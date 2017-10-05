@@ -25,6 +25,9 @@ All commits in this repository are signed with GPG:
           EEA3 1BFF 4443 04AB B246  A0B6 C634 D042 0F82 5B91
     uid           [ultimate] Cel A. Skeggs <cela [at] mit [dot] edu>
 
+(Obviously, you should be verifying this key out-of-band, not by checking it
+against this page.)
+
 Write access on GitHub is restricted to the hyades-provisioning team.
 
 These security measures exist due to scripts from this repository being used on
