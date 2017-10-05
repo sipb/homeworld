@@ -4,7 +4,7 @@ cd "$(dirname "$0")"
 source ../common/debian.sh
 
 RELEASE="stretch"
-DEBVER=20170919T214547Z
+DEBVER=20171004T154711Z
 
 debian_bootstrap
 
