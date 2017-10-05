@@ -8,6 +8,7 @@ import os
 import tempfile
 import subprocess
 import util
+import packages
 
 PACKAGES = ("homeworld-apt-setup", "homeworld-knc", "homeworld-keysystem")
 
@@ -32,43 +33,14 @@ def regen_cdpack(source_iso, dest_cdpack):
         subprocess.check_call(["tar", "-czf", dest_cdpack, "-C", d, os.path.basename(cddir)])
 
 
-def parse_version_from_debian_changelog(debian_folder, package_name):
-    changelog = util.readfile(os.path.join(debian_folder, "changelog")).decode()
-    current_version_line = changelog.split("\n")[0]
-    if "(" not in current_version_line:
-        command.fail("invalid changelog file for %s" % package_name)
-    version = current_version_line.split("(")[1].split(")")[0]
-    if "/" in version:
-        command.fail("invalid version for %s" % package_name)
-    return version
-
-
-def resolve_packages(repo_building_folder: str, package_names=PACKAGES):
-    build_debs = os.path.join(repo_building_folder, "build-debs")
-    if not os.path.isdir(build_debs):
-        command.fail("expected build-debs folder inside %s" % repo_building_folder)
-
-    binary_package_paths = []
-    for package_name in package_names:
-        version = parse_version_from_debian_changelog(os.path.join(build_debs, package_name, "debian"), package_name)
-
-        binary_package_path = os.path.join(build_debs, "binaries", "%s_%s_amd64.deb" % (package_name, version))
-        if not os.path.exists(binary_package_path):
-            command.fail("could not find binary package for %s at version %s" % (package_name, version))
-
-        binary_package_paths.append(binary_package_path)
-
-    return binary_package_paths
-
-
-def gen_iso(iso_image, repo_building_folder, authorized_key, cdpack=None):
-    binary_package_paths = resolve_packages(repo_building_folder)
+def gen_iso(iso_image, authorized_key, cdpack=None):
     with tempfile.TemporaryDirectory() as d:
         inclusion = []
 
         util.copy(authorized_key, os.path.join(d, "authorized.pub"))
         util.writefile(os.path.join(d, "keyservertls.pem"), authority.get_key_by_filename("./server.pem"))
         resource.copy_to("postinstall.sh", os.path.join(d, "postinstall.sh"))
+        os.chmod(os.path.join(d, "postinstall.sh"), 0o755)
         inclusion += ["authorized.pub", "keyservertls.pem", "postinstall.sh"]
 
         for variant in configuration.KEYCLIENT_VARIANTS:
@@ -85,10 +57,12 @@ def gen_iso(iso_image, repo_building_folder, authorized_key, cdpack=None):
 
         inclusion += ["sshd_config.new", "preseed.cfg"]
 
-        for path in binary_package_paths:
-            util.copy(path, os.path.join(d, os.path.basename(path)))
-
-        inclusion += [os.path.basename(path) for path in binary_package_paths]
+        for package_name, (short_filename, package_bytes) in packages.verified_download_full(PACKAGES).items():
+            assert "/" not in short_filename, "invalid package name: %s for %s" % (short_filename, package_name)
+            assert short_filename.startswith(package_name + "_"), "invalid package name: %s for %s" % (short_filename, package_name)
+            assert short_filename.endswith("_amd64.deb"), "invalid package name: %s for %s" % (short_filename, package_name)
+            util.writefile(os.path.join(d, short_filename), package_bytes)
+            inclusion.append(short_filename)
 
         if cdpack is not None:
             subprocess.check_call(["tar", "-C", d, "-xzf", cdpack, "cd"])

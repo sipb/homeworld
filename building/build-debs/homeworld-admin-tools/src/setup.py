@@ -50,7 +50,7 @@ class Operations:
             script = "(%s) >%s" % (script, escape_shell(redirect_to))
         if in_directory:
             script = "cd %s && %s" % (escape_shell(in_directory), script)
-        self.subprocess(name, "ssh", self._ssh_get_login(node), script, node=node)
+        self.subprocess(name, "ssh", "-o", "StrictHostKeyChecking=yes", "-o", "ConnectTimeout=1", self._ssh_get_login(node), script, node=node)
 
     def ssh(self, name: str, node: configuration.Node, *argv: str, in_directory: str=None, redirect_to: str=None)\
             -> None:
@@ -62,7 +62,7 @@ class Operations:
         self.ssh(name, node, "mkdir", *(options + ["--"] + list(paths)))
 
     def ssh_upload_path(self, name: str, node: configuration.Node, source_path: str, dest_path: str) -> None:
-        self.subprocess(name, "scp", "--", source_path, self._ssh_get_login(node) + ":" + dest_path, node=node)
+        self.subprocess(name, "scp", "-o", "StrictHostKeyChecking=yes", "-o", "ConnectTimeout=1", "--", source_path, self._ssh_get_login(node) + ":" + dest_path, node=node)
 
     def ssh_upload_bytes(self, name: str, node: configuration.Node, source_bytes: bytes, dest_path: str) -> None:
         dest_rel = self._ssh_get_login(node) + ":" + dest_path
@@ -72,7 +72,7 @@ class Operations:
             with tempfile.TemporaryDirectory() as scratchdir:
                 scratchpath = os.path.join(scratchdir, "scratch")
                 util.writefile(scratchpath, source_bytes)
-                subprocess.check_call(["scp", "--", scratchpath, dest_rel])
+                subprocess.check_call(["scp", "-o", "StrictHostKeyChecking=yes", "-o", "ConnectTimeout=1", "--", scratchpath, dest_rel])
                 os.remove(scratchpath)
 
         self.add_operation(name, upload_bytes, node=node)
@@ -112,8 +112,9 @@ def admit_keyserver(ops: Operations, config: configuration.Config) -> None:
                 "keyinitadmit", CONFIG_DIR + "/keyserver.yaml", domain, "bootstrap-keyinit",
                 redirect_to=KEYCLIENT_DIR + "/bootstrap.token")
         # TODO: do we need to poke the keyclient to make sure it tries again?
-        # TODO: don't wait five seconds if it isn't necessary
-        ops.pause("giving admission time to complete...", 5.0)  # 5 seconds
+        # TODO: don't wait four seconds if it isn't necessary
+        ops.ssh("kick keyclient daemon on @HOST", node, "systemctl", "restart", "keyclient")
+        ops.pause("giving admission time to complete...", 4.0)  # 4 seconds
         # if it doesn't exist, this command will fail.
         ops.ssh("confirm that @HOST was admitted", node, "test", "-e", KEYCLIENT_DIR + "/granting.pem")
 
@@ -135,6 +136,8 @@ def setup_supervisor_ssh(ops: Operations, config: configuration.Config) -> None:
         ssh_config = resource.get_resource("sshd_config")
         ops.ssh_upload_bytes("upload new ssh configuration to @HOST", node, ssh_config, "/etc/ssh/sshd_config")
         ops.ssh("reload ssh configuration on @HOST", node, "systemctl", "restart", "ssh")
+        ops.ssh("shift aside old authorized_keys on @HOST", node,
+                "mv", "/root/.ssh/authorized_keys", "/root/original_authorized_keys")
 
 
 def setup_services(ops: Operations, config: configuration.Config) -> None:

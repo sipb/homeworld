@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e -u
 
-rm -rf spire spire.zip src/resources
+rm -rf spire spire.zip src/resources src/__pycache__ resources/__pycache__
 cp -RT resources src/resources
 (cd src && zip -r ../spire.zip *)
 

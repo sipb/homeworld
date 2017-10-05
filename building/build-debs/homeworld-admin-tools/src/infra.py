@@ -6,7 +6,7 @@ import setup
 
 def infra_admit(server_principal: str) -> None:
     token = access.call_keyreq("bootstrap-token", server_principal, collect=True)
-    print("Token granted for %s: '%s'" % (server_principal, token.decode()))
+    print("Token granted for %s: '%s'" % (server_principal, token.decode().strip()))
 
 
 def infra_install_packages(ops: setup.Operations, config: configuration.Config) -> None:

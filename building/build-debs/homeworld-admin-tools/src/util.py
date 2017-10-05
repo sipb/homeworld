@@ -1,4 +1,5 @@
 import os
+import hashlib
 import subprocess
 
 
@@ -28,3 +29,11 @@ def pwgen(length: int) -> bytes:
 
 def mkpasswd(password: bytes, hash: str="sha-512") -> bytes:
     return subprocess.check_output(["mkpasswd", "--stdin", "--method=%s" % hash], input=password).strip()
+
+
+def sha256sum_file(filename: str) -> str:
+    return sha256sum_data(readfile(filename))
+
+
+def sha256sum_data(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()

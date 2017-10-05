@@ -80,7 +80,7 @@ def _replace_cert_authority(known_hosts_lines: list, machine_list: str, pubkey: 
     # necessary.
     pubkey_parts = pubkey.split(b" ")
 
-    if len(pubkey_parts):
+    if len(pubkey_parts) != 2:
         command.fail("invalid CA pubkey while parsing certificate authority")
     if pubkey_parts[0] != b"ssh-rsa":
         command.fail("unexpected CA type (%s instead of ssh-rsa) while parsing certificate authority" % pubkey_parts[0])
@@ -112,6 +112,7 @@ def update_known_hosts():
     known_hosts_new = _replace_cert_authority(known_hosts_old, machines, cert_authority_pubkey)
 
     util.writefile(known_hosts_path, ("\n".join(known_hosts_new) + "\n").encode())
+    print("~/.ssh/known_hosts updated")
 
 
 def get_kube_cert_paths():
@@ -146,6 +147,7 @@ def dispatch_kubectl(*params):
 
     with tempfile.TemporaryDirectory() as f:
         kubeconfig_path = os.path.join(f, "temp-kubeconfig")
+        util.writefile(kubeconfig_path, kubeconfig_data.encode())
         subprocess.check_call(["hyperkube", "kubectl", "--kubeconfig", kubeconfig_path] + list(params))
 
 
