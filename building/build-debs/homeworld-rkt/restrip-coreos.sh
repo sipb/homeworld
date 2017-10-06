@@ -8,7 +8,7 @@
 
 set -e -u
 cd "$(dirname "$0")"
-find rkt-1.27.0/ -name '*.manifest' -print0 | grep -z amd64 | xargs -0 cat -- | sort -u >coreos-manifest.txt
+find rkt-1.29.0/ -name '*.manifest' -print0 | grep -z amd64 | xargs -0 cat -- | sort -u >coreos-manifest.txt
 zcat coreos_production_pxe_image.cpio.gz | cpio -i --to-stdout usr.squashfs >coreos_squashfs
 rm -rf coreos_minimal_dir
 unsquashfs -d coreos_minimal_dir -e coreos-manifest.txt coreos_squashfs

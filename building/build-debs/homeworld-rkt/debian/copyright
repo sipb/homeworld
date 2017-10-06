@@ -1,6 +1,6 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: rkt
-Source: rkt-1.27.0.tar.xz
+Source: rkt-1.29.0.tar.xz
 
 Files: *
 Copyright: 201X Various Authors

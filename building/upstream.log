@@ -23,7 +23,7 @@
 
   compress: gunzip, xz
 
-- output: kubernetes-src
+- output: kubernetes-src-v1.9.2.tar.xz
   last: 2018-01-29
 
   source: https://dl.k8s.io/v1.9.2/kubernetes-src.tar.gz
@@ -34,3 +34,13 @@
   comment: mostly matches manual git-archive export, except for a couple of minor versioning differences, as expected
 
   compress: gunzip, xz
+
+- output: rkt-1.29.0.tar.xz
+  last: 2018-01-31
+
+  git: https://github.com/rkt/rkt
+  tag: v1.29.0
+  compress: xz
+
+  signing-key: 18AD5014C99EF7E3BA5F6CE950BDD3E0FC8A365E
+  signing-key-retrieved-from: https://coreos.com/security/app-signing-key/

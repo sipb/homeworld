@@ -1,3 +1,9 @@
+homeworld-rkt (1.29.0-1) stretch; urgency=medium
+
+  * Updated debian version
+
+ -- Cel Skeggs <cela@mit.edu>  Tue, 30 Jan 2018 15:28:43 -0500
+
 homeworld-rkt (1.27.0-6) stretch; urgency=medium
 
   * Updated debian version

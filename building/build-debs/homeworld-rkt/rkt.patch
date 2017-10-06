@@ -1,5 +1,5 @@
---- rkt-1.27.0/stage1/usr_from_kvm/qemu.mk	2017-05-15 04:19:46.000000000 -0400
-+++ rkt-1.27.0/stage1/usr_from_kvm/qemu.mk	2017-06-28 00:16:03.104844850 -0400
+--- rkt-1.29.0/stage1/usr_from_kvm/qemu.mk	2017-05-15 04:19:46.000000000 -0400
++++ rkt-1.29.0/stage1/usr_from_kvm/qemu.mk	2017-06-28 00:16:03.104844850 -0400
 @@ -1,6 +1,8 @@
  $(call setup-stamp-file,QEMU_STAMP)
  QEMU_TMPDIR := $(UFK_TMPDIR)/qemu
