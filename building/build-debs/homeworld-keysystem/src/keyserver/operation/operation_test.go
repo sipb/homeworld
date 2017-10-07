@@ -50,10 +50,10 @@ func TestInvokeAPIOperation(t *testing.T) {
 	} else if err.Error() != "A testing error." {
 		t.Error("Wrong error.")
 	}
-	lines := []string{"Attempting to perform API operation test-api for test-account",
-		"Operation test-api for test-account succeeded.",
-		"Attempting to perform API operation test-api for test-account-2",
-		"Operation test-api for test-account-2 failed with error: A testing error.",
+	lines := []string{"attempting to perform API operation test-api for test-account",
+		"operation test-api for test-account succeeded",
+		"attempting to perform API operation test-api for test-account-2",
+		"operation test-api for test-account-2 failed with error: A testing error.",
 		""}
 	found := strings.Split(buf.String(), "\n")
 	if len(lines) != len(found) {
@@ -61,7 +61,7 @@ func TestInvokeAPIOperation(t *testing.T) {
 	} else {
 		for i, expect := range lines {
 			if found[i] != expect {
-				t.Error("Log line mismatch.")
+				t.Errorf("Log line mismatch: \"%s\" instead of \"%s\"", found[i], expect)
 			}
 		}
 	}
@@ -75,7 +75,7 @@ func TestInvokeAPIOperation_NoAPI(t *testing.T) {
 	_, err := InvokeAPIOperation(&opctx, &gctx, "test-api", "gemstone", logger)
 	if err == nil {
 		t.Error("Expected error.")
-	} else if !strings.Contains(err.Error(), "Could not find API request") {
+	} else if !strings.Contains(err.Error(), "could not find API request") {
 		t.Error("Wrong error.")
 	}
 	if buf.String() != "" {
@@ -97,7 +97,7 @@ func TestInvokeAPIOperation_NoAccount(t *testing.T) {
 	_, err := InvokeAPIOperation(&opctx, &gctx, "test-api", "gemstone", logger)
 	if err == nil {
 		t.Error("Expected error.")
-	} else if !strings.Contains(err.Error(), "Missing account") {
+	} else if !strings.Contains(err.Error(), "missing account") {
 		t.Error("Wrong error.")
 	}
 	if buf.String() != "" {
@@ -158,10 +158,10 @@ func TestInvokeAPIOperationSet(t *testing.T) {
 	} else if string(result) != "[\"cheap plastic arm, made in china\",\"cheap 3d-printed leg, made in our basement\"]" {
 		t.Errorf("Wrong result %s", string(result))
 	}
-	lines := []string{"Attempting to perform API operation test-api-2 for test-account",
-		"Operation test-api-2 for test-account succeeded.",
-		"Attempting to perform API operation test-api for test-account",
-		"Operation test-api for test-account succeeded.",
+	lines := []string{"attempting to perform API operation test-api-2 for test-account",
+		"operation test-api-2 for test-account succeeded",
+		"attempting to perform API operation test-api for test-account",
+		"operation test-api for test-account succeeded",
 		""}
 	found := strings.Split(buf.String(), "\n")
 	if len(lines) != len(found) {
@@ -213,10 +213,10 @@ func TestInvokeAPIOperationSet_Delegate(t *testing.T) {
 	} else if string(result) != "[\"\",\"cheap 3d-printed head, made in our basement\"]" {
 		t.Errorf("Wrong result %s", string(result))
 	}
-	lines := []string{"Attempting to perform API operation test-api for test-account",
-		"Operation test-api for test-account succeeded.",
-		"Attempting to perform API operation test-api-2 for test-account-2",
-		"Operation test-api-2 for test-account-2 succeeded.",
+	lines := []string{"attempting to perform API operation test-api for test-account",
+		"operation test-api for test-account succeeded",
+		"attempting to perform API operation test-api-2 for test-account-2",
+		"operation test-api-2 for test-account-2 succeeded",
 		""}
 	found := strings.Split(buf.String(), "\n")
 	if len(lines) != len(found) {
@@ -250,7 +250,7 @@ func TestInvokeAPIOperationSet_FailAPI(t *testing.T) {
 	_, err := InvokeAPIOperationSet(nil, nil, []byte("[{}]"), logger)
 	if err == nil {
 		t.Error("Expected error.")
-	} else if !strings.Contains(err.Error(), "Missing API") {
+	} else if !strings.Contains(err.Error(), "missing API") {
 		t.Errorf("Wrong error: %s", err)
 	}
 	if buf.String() != "" {
@@ -264,7 +264,7 @@ func TestInvokeAPIOperationSet_FailBody(t *testing.T) {
 	_, err := InvokeAPIOperationSet(nil, nil, []byte("[{\"api\": \"destroy-all-humans\"}]"), logger)
 	if err == nil {
 		t.Error("Expected error.")
-	} else if !strings.Contains(err.Error(), "Missing body") {
+	} else if !strings.Contains(err.Error(), "missing body") {
 		t.Errorf("Wrong error: %s", err)
 	}
 	if buf.String() != "" {
@@ -292,7 +292,7 @@ func TestInvokeAPIOperationSet_FailOperation(t *testing.T) {
 	_, err := InvokeAPIOperationSet(nil, &config.Context{}, []byte("[{\"api\": \"invalid-request\", \"body\": \"unused\"}]"), logger)
 	if err == nil {
 		t.Error("Expected error.")
-	} else if !strings.Contains(err.Error(), "Could not find API request") {
+	} else if !strings.Contains(err.Error(), "could not find API request") {
 		t.Errorf("Wrong error: %s", err)
 	}
 	if buf.String() != "" {

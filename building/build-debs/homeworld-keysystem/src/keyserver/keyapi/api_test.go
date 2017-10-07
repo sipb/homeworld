@@ -504,8 +504,8 @@ func TestConfiguredKeyserver_HandleAPIRequest(t *testing.T) {
 	} else if recorder.Body.String() != "[\"hello world\"]" {
 		t.Error("Wrong body.")
 	}
-	if logrecord.String() != "Attempting to perform API operation test-api for test-account\nOperation test-api for test-account succeeded.\n" {
-		t.Error("Wrong logs.")
+	if logrecord.String() != "attempting to perform API operation test-api for test-account\noperation test-api for test-account succeeded\n" {
+		t.Error("Wrong logs:", logrecord.String())
 	}
 }
 
@@ -582,7 +582,7 @@ func TestConfiguredKeyserver_HandleAPIRequest_NoSuchGrant(t *testing.T) {
 	err := ks.HandleAPIRequest(recorder, request)
 	if err == nil {
 		t.Error("Expected error")
-	} else if !strings.Contains(err.Error(), "Could not find API request") {
+	} else if !strings.Contains(err.Error(), "could not find API request") {
 		t.Errorf("Wrong error: %s", err)
 	}
 	if logrecord.String() != "" {

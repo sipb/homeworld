@@ -335,7 +335,6 @@ func TestCompileAccounts_RecursiveMembership(t *testing.T) {
 func TestCompileAccounts_Fail(t *testing.T) {
 	test_group := &account.Group{
 		Name:       "test-group",
-		AllMembers: []string{},
 	}
 	for _, test := range []struct {
 		account ConfigAccount
@@ -355,7 +354,7 @@ func TestCompileAccounts_Fail(t *testing.T) {
 				Metadata:  map[string]string{"abc": "def", "ip": "192.168.0.1"},
 				Group:     "test-group",
 			},
-			errbody: "Duplicate account",
+			errbody: "duplicate account",
 		},
 		{
 			account: ConfigAccount{
@@ -363,7 +362,7 @@ func TestCompileAccounts_Fail(t *testing.T) {
 				Metadata:  map[string]string{"abc": "def", "ip": "192.168.0.1"},
 				Group:     "missing-group",
 			},
-			errbody: "No such group",
+			errbody: "no such group",
 		},
 		{
 			account: ConfigAccount{
@@ -372,7 +371,7 @@ func TestCompileAccounts_Fail(t *testing.T) {
 				Group:     "test-group",
 				LimitIP:   true,
 			},
-			errbody: "Invalid IP address",
+			errbody: "invalid IP address",
 		},
 	} {
 		ctx := Context{
@@ -380,6 +379,7 @@ func TestCompileAccounts_Fail(t *testing.T) {
 				"test-group": test_group,
 			},
 		}
+		test_group.AllMembers = nil
 		if err := CompileAccounts(&ctx, &Config{
 			Accounts: []ConfigAccount{
 				{
@@ -392,7 +392,7 @@ func TestCompileAccounts_Fail(t *testing.T) {
 		}); err == nil {
 			t.Error("Expected an error!")
 		} else if !strings.Contains(err.Error(), test.errbody) {
-			t.Errorf("Expected error than contains '%s', not %s", test.errbody, err)
+			t.Errorf("Expected error that contains \"%s\", not \"%s\"", test.errbody, err)
 		}
 	}
 }

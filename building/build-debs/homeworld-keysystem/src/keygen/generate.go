@@ -9,43 +9,35 @@ import (
 	"crypto/x509"
 	"io/ioutil"
 	"path"
-	"math/big"
 	"crypto/x509/pkix"
 	"time"
 	"golang.org/x/crypto/ssh"
 	"errors"
+	"fmt"
+	"util/certutil"
 )
 
 const AUTHORITY_BITS = 4096
 
 func GenerateTLSSelfSignedCert(key *rsa.PrivateKey, name string, present_as []string) ([]byte, error) {
-	serialNumber, err := rand.Int(rand.Reader, (&big.Int{}).Exp(big.NewInt(2), big.NewInt(159), nil))
-	if err != nil {
-		return nil, err
-	}
-
 	issueat := time.Now()
 
-	extKeyUsage := []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth}
-
 	certTemplate := &x509.Certificate{
-		SignatureAlgorithm: x509.SHA256WithRSA,
-
 		KeyUsage:    x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
-		ExtKeyUsage: extKeyUsage,
+		ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 
 		BasicConstraintsValid: true,
 		IsCA:       true,
 		MaxPathLen: 1,
 
-		SerialNumber: serialNumber,
-
 		NotBefore: issueat,
-		NotAfter:  time.Unix(time.Now().Unix() + 86400 * 1000000, 0), // one million days in the future
+		NotAfter:  time.Unix(issueat.Unix() + 86400 * 1000000, 0), // one million days in the future
 
 		Subject:     pkix.Name{CommonName: "homeworld-authority-" + name},
 		DNSNames:    present_as,
 	}
+
+	return certutil.FinishCertificate(certTemplate, certTemplate, key.Public(), key)
 
 	cert, err := x509.CreateCertificate(rand.Reader, certTemplate, certTemplate, key.Public(), key)
 	if err != nil {
@@ -73,7 +65,7 @@ func GenerateKeys(cfg *config.Config, dir string, keyserver_group string) error 
 		if err != nil {
 			return err
 		}
-		if authority.Type == "TLS" {
+		if authority.Type == "TLS" || authority.Type == "static" {
 			present_as := []string{}
 			if name == cfg.ServerTLS {
 				for _, account := range cfg.Accounts {
@@ -91,7 +83,7 @@ func GenerateKeys(cfg *config.Config, dir string, keyserver_group string) error 
 			if err != nil {
 				return err
 			}
-		} else {
+		} else if authority.Type == "SSH" {
 			// SSH authorities are just pubkeys
 			pkey, err := ssh.NewPublicKey(privkey.Public())
 			if err != nil {
@@ -102,6 +94,8 @@ func GenerateKeys(cfg *config.Config, dir string, keyserver_group string) error 
 			if err != nil {
 				return err
 			}
+		} else {
+			return fmt.Errorf("invalid authority type: %s", authority.Type)
 		}
 	}
 	return nil

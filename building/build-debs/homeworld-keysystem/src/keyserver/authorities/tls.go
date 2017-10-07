@@ -2,21 +2,19 @@ package authorities
 
 import (
 	"bytes"
-	"crypto/rand"
 	"crypto/rsa"
 	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
-	"encoding/pem"
 	"errors"
 	"fmt"
-	"math/big"
 	"net"
 	"net/http"
 	"time"
 
 	"keyserver/verifier"
 	"util/wraputil"
+	"util/certutil"
 )
 
 type TLSAuthority struct {
@@ -100,30 +98,16 @@ func (t *TLSAuthority) Sign(request string, ishost bool, lifespan time.Duration,
 
 	issue_at := time.Now()
 
-	serialNumber, err := rand.Int(rand.Reader, (&big.Int{}).Exp(big.NewInt(2), big.NewInt(159), nil))
-	if err != nil {
-		return "", err
-	}
-
-	extKeyUsage := []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}
-	if ishost {
-		extKeyUsage = append(extKeyUsage, x509.ExtKeyUsageServerAuth)
-	}
-
 	dns_names, IPs := partitionDNSNamesAndIPs(names)
 
-	certTemplate := x509.Certificate{
-		SignatureAlgorithm: x509.SHA256WithRSA,
-
+	certTemplate := &x509.Certificate{
 		KeyUsage:    x509.KeyUsageDigitalSignature,
-		ExtKeyUsage: extKeyUsage,
+		ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 
 		BasicConstraintsValid: true,
 		IsCA:           false,
 		MaxPathLen:     0,
 		MaxPathLenZero: true,
-
-		SerialNumber: serialNumber,
 
 		NotBefore: issue_at,
 		NotAfter:  issue_at.Add(lifespan),
@@ -133,11 +117,15 @@ func (t *TLSAuthority) Sign(request string, ishost bool, lifespan time.Duration,
 		IPAddresses: IPs,
 	}
 
-	signed_cert, err := x509.CreateCertificate(rand.Reader, &certTemplate, t.cert, csr.PublicKey, t.key)
+	if ishost {
+		certTemplate.ExtKeyUsage = append(certTemplate.ExtKeyUsage, x509.ExtKeyUsageServerAuth)
+	}
+
+	signed_cert, err := certutil.FinishCertificate(certTemplate, t.cert, csr.PublicKey, t.key)
 	if err != nil {
 		return "", err
 	}
-	return string(pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: signed_cert})), nil
+	return string(signed_cert), nil
 }
 
 func partitionDNSNamesAndIPs(names []string) ([]string, []net.IP) {

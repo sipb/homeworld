@@ -29,6 +29,9 @@ Bugs that made it past unit testing, but were caught during integration testing:
     - no easy resolution; should pay more attention to valid inputs; should try harder to not write unit tests closely to the code
  * fixed-expiration certificates were used in unit tests
     - unit tests should generally generate their certs
+ * a new authority type (static authorities) were incorrectly treated as SSH authorities
+    - logic should never assume that the authority type is one of a limited number of types
+    - resolution TODO: make sure nothing else makes these assumptions
 
 Bugs that made it past integration testing, but were caught during deployment into a development cluster:
  * None yet.

@@ -190,8 +190,8 @@ func TestActLoop_Step_BlockedAction_One(t *testing.T) {
 	logbuf := bytes.NewBuffer(nil)
 	logger := log.New(logbuf, "[actloop] ", 0)
 	loop := NewActLoop(actions, logger)
-	if loop.Step() {
-		t.Error("should not be stabilized")
+	if !loop.Step() {
+		t.Error("should be 'stabilized'")
 	}
 	if logbuf.String() != "[actloop] ACTLOOP BLOCKED (1)\n[actloop] actloop blocked by: uncloggable blockage\n" {
 		t.Error("should not have logged:", logbuf.String())
@@ -203,8 +203,8 @@ func TestActLoop_Step_BlockedAction_Three(t *testing.T) {
 	logbuf := bytes.NewBuffer(nil)
 	logger := log.New(logbuf, "", 0)
 	loop := NewActLoop(actions, logger)
-	if loop.Step() {
-		t.Error("should not be stabilized")
+	if !loop.Step() {
+		t.Error("should be 'stabilized'")
 	}
 	if logbuf.String() != "ACTLOOP BLOCKED (3)\nactloop blocked by: uncloggable blockage A\nactloop blocked by: uncloggable blockage B\nactloop blocked by: uncloggable blockage C\n" {
 		t.Error("should not have logged:", logbuf.String())

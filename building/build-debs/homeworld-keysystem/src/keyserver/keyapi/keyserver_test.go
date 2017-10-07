@@ -191,7 +191,7 @@ func TestAPIToHTTP_API(t *testing.T) {
 			t.Errorf("Result mismatch: %s", string(data))
 		}
 	}
-	if logrecord.String() != "Attempting to perform API operation test-1 for my-admin\nOperation test-1 for my-admin succeeded.\n" {
+	if logrecord.String() != "attempting to perform API operation test-1 for my-admin\noperation test-1 for my-admin succeeded\n" {
 		t.Errorf("Wrong logs: %s", logrecord.String())
 	}
 }
@@ -221,7 +221,7 @@ func TestAPIToHTTP_API_Fail(t *testing.T) {
 			t.Errorf("Wrong error body: %s", string(data))
 		}
 	}
-	if logrecord.String() != "API request failed with error: Could not find API request nonexistent\n" {
+	if logrecord.String() != "API request failed with error: could not find API request 'nonexistent'\n" {
 		t.Errorf("Wrong logs: %s", logrecord.String())
 	}
 }
@@ -476,7 +476,7 @@ func TestRun_API(t *testing.T) {
 	if string(result) != "[\"and now, there will be cake\"]" {
 		t.Error("Mismatch result.")
 	}
-	if logrecord.String() != "Attempting to perform API operation test-2 for my-admin\nOperation test-2 for my-admin succeeded.\nAttempting to perform API operation test-1 for my-server\nOperation test-1 for my-server succeeded.\n" {
+	if logrecord.String() != "attempting to perform API operation test-2 for my-admin\noperation test-2 for my-admin succeeded\nattempting to perform API operation test-1 for my-server\noperation test-1 for my-server succeeded\n" {
 		t.Error("Wrong logs.")
 	}
 }
