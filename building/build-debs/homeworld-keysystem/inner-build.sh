@@ -27,7 +27,7 @@ go build src/keyserver/main/keyserver.go
 go build src/keygateway/main/keygateway.go
 go build src/keyclient/main/keyclient.go
 go build src/keygen/main/keygen.go
-go build src/keyinitadmit/keyinitadmit.go
-go build src/keyreq/keyreq.go
+go build src/keyinitadmit/main/keyinitadmit.go
+go build src/keyreq/main/keyreq.go
 
 echo "keysystem built!"
