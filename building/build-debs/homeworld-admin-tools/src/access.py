@@ -120,14 +120,14 @@ def update_known_hosts():
     print("~/.ssh/known_hosts updated")
 
 
-def get_kube_cert_paths():
+def get_kube_cert_paths() -> (str, str, str):
     project_dir = configuration.get_project()
     return os.path.join(project_dir, "kube-access.key"),\
            os.path.join(project_dir, "kube-access.pem"),\
            os.path.join(project_dir, "kube-ca.pem")
 
 
-def dispatch_etcdctl(*params):
+def call_etcdctl(params: list, return_result: bool):
     project_dir = configuration.get_project()
     endpoints = configuration.get_etcd_endpoints()
 
@@ -138,11 +138,20 @@ def dispatch_etcdctl(*params):
         print("rotating etcd certs...")
         call_keyreq("etcd-cert", etcd_key_path, etcd_cert_path, etcd_ca_path)
 
-    subprocess.check_call(["etcdctl", "--cert-file", etcd_cert_path, "--key-file", etcd_key_path,
-                           "--ca-file", etcd_ca_path, "--endpoints", endpoints] + list(params))
+    args = ["etcdctl", "--cert-file", etcd_cert_path, "--key-file", etcd_key_path,
+                       "--ca-file", etcd_ca_path, "--endpoints", endpoints] + list(params)
+
+    if return_result:
+        return subprocess.check_output(args)
+    else:
+        subprocess.check_call(args)
 
 
-def dispatch_kubectl(*params):
+def dispatch_etcdctl(*params: str):
+    call_etcdctl(params, False)
+
+
+def call_kubectl(params, return_result: bool):
     kubeconfig_data = configuration.get_local_kubeconfig()
     key_path, cert_path, ca_path = get_kube_cert_paths()
 
@@ -153,7 +162,15 @@ def dispatch_kubectl(*params):
     with tempfile.TemporaryDirectory() as f:
         kubeconfig_path = os.path.join(f, "temp-kubeconfig")
         util.writefile(kubeconfig_path, kubeconfig_data.encode())
-        subprocess.check_call(["hyperkube", "kubectl", "--kubeconfig", kubeconfig_path] + list(params))
+        args = ["hyperkube", "kubectl", "--kubeconfig", kubeconfig_path] + list(params)
+        if return_result:
+            return subprocess.check_output(args)
+        else:
+            subprocess.check_call(args)
+
+
+def dispatch_kubectl(*params: str):
+    call_kubectl(params, False)
 
 
 etcdctl_command = command.wrap("invoke commands through the etcdctl wrapper", dispatch_etcdctl)
