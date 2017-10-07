@@ -53,9 +53,14 @@ def call_keyreq(command, *params, collect=False):
         return invoke_variant(["keyreq", command, https_cert_path, keyserver_domain] + list(params))
 
 
-def access_ssh(add_to_agent=False):
+def renew_ssh_cert() -> str:
     keypath = create_or_rotate_custom_ssh_key()
     call_keyreq("ssh-cert", keypath + ".pub", keypath + "-cert.pub")
+    return keypath
+
+
+def access_ssh(add_to_agent=False):
+    keypath = renew_ssh_cert()
     print("===== v CERTIFICATE DETAILS v =====")
     subprocess.check_call(["ssh-keygen", "-L", "-f", keypath + "-cert.pub"])
     print("===== ^ CERTIFICATE DETAILS ^ =====")

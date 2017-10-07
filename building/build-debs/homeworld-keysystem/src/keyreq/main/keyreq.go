@@ -46,6 +46,12 @@ func main() {
 		return
 	}
 	switch os.Args[1] {
+	case "check":
+		if len(os.Args) < 4 {
+			logger.Fatal("not enough parameters to keyreq ssh-cert <authority-path> <keyserver-domain>")
+		}
+		// just by calling this, we confirm that we do have access to the server. yay!
+		_, _ = auth_kerberos(logger, os.Args[2], os.Args[3])
 	case "ssh-cert": // called programmatically
 		if len(os.Args) < 6 {
 			logger.Fatal("not enough parameters to keyreq ssh-cert <authority-path> <keyserver-domain> <ssh.pub-in> <ssh-cert-output>")

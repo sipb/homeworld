@@ -69,6 +69,7 @@ For the official homeworld servers:
        $ k5srvutil -f <keytab> change -e aes256-cts:normal,aes128-cts:normal
          # the following will invalidate current tickets:
        $ k5srvutil -f <keytab> delold
+       $ cp <keytab> $HOMEWORLD_DIR/keytab.<hostname>   # i.e. keytab.egg-sandwich
 
  * Configure the supervisor keyserver:
 
@@ -81,8 +82,8 @@ For the official homeworld servers:
 
  * Prepare kerberos gateway:
 
-       $ cp <keytab> $HOMEWORLD_DIR/keytab.<hostname>   # i.e. keytab.egg-sandwich
        $ spire setup keygateway
+       $ spire verify keygateway
 
 ## Request certificates and SSH with them
 
@@ -95,6 +96,7 @@ For the official homeworld servers:
 
        $ # this will deny your current direct access, so keep a SSH session open until you verify this works
        $ spire setup supervisor-ssh
+       $ spire verify ssh-with-certs
        $ ssh -v root@<hostname>.mit.edu
          # ensure that a debug line like this shows up:
          debug1: Server accepts key: pkalg ssh-rsa-cert-v01@openssh.com blen 1524

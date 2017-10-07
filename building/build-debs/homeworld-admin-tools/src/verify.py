@@ -1,8 +1,11 @@
 import query
+import tempfile
+import os
 import setup
 import subprocess
 import command
 import configuration
+import access
 
 
 def compare_multiline(a, b):
@@ -63,7 +66,30 @@ def check_online(server=None):
     print("All nodes: [ONLINE]")
 
 
+def check_keygateway():
+    try:
+        access.call_keyreq("check")
+    except subprocess.CalledProcessError as e:
+        command.fail("Keygateway check failed: %s" % e)
+    print("Keygateway access confirmed.")
+
+
+def check_ssh_with_certs(hostname=None):
+    config = configuration.Config.load_from_project()
+    if hostname is None:
+        if config.keyserver is None:
+            command.fail("no keyserver found")
+        hostname = config.keyserver.hostname
+    env = dict(os.environ)
+    del env["SSH_AUTH_SOCK"]
+    del env["SSH_AGENT_PID"]
+    keypath = access.renew_ssh_cert()
+    subprocess.check_output(["ssh", "-i", keypath, "root@%s.%s" % (hostname, config.external_domain), "echo confirmed"], env=env)
+
+
 main_command = command.mux_map("commands about verifying the state of a cluster", {
     "keystatics": command.wrap("verify that keyserver static files are being served properly", check_keystatics),
-    "online": command.wrap("check whether a server (or all servers) is/are accepting SSH connections", check_online)
+    "keygateway": command.wrap("verify that the keygateway has been properly started", check_keygateway),
+    "online": command.wrap("check whether a server (or all servers) is/are accepting SSH connections", check_online),
+    "ssh-with-certs": command.wrap("check if certificate-based SSH access works", check_ssh_with_certs),
 })
