@@ -15,7 +15,7 @@ homeworld-rkt_*.tar.gz
 homeworld-apt-setup_*.tar.gz
 homeworld-bootstrap-registry_*.tar.gz
 
-homeworld-etcd_3.1.7.orig.tar.xz
+homeworld-etcd_*.orig.tar.xz
 homeworld-flannel_*.orig.tar.xz
 homeworld-hyperkube_*.orig.tar.xz
 homeworld-rkt_1.27.0.orig.tar.xz
