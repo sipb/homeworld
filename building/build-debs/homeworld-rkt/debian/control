@@ -9,6 +9,7 @@ Vcs-Browser: https://github.com/sipb/homeworld/
 
 Package: homeworld-rkt
 Architecture: any
-Depends: ${misc:Depends}, ${shlibs:Depends}, adduser, dbus, systemd, iptables
+Pre-Depends: adduser
+Depends: ${misc:Depends}, ${shlibs:Depends}, dbus, systemd, iptables
 Description: Homeworld rkt package.
  This package is used for code deployment to Homeworld clusters.
