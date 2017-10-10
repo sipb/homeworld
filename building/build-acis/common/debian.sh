@@ -80,6 +80,10 @@ function clean_pycache() {
 	rm -rf "${ROOTFS}/usr/lib/python3.5/__pycache__"
 }
 
+function clean_resolv_conf() {
+	rm -rf "${ROOTFS}/etc/resolv.conf"
+}
+
 function write_debian_image() {
 	UPDATE_TIMESTAMP="$(echo "${DEBVER}" | sed 's/^\([0-9][0-9][0-9][0-9]\)\([0-9][0-9]\)\([0-9][0-9]\)T\([0-9][0-9]\)\([0-9][0-9]\)\([0-9][0-9]\)Z$/\1-\2-\3 \4:\5:\6 +0000/')"
 

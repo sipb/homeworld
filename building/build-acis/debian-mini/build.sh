@@ -13,5 +13,6 @@ clean_apt_files
 clean_ld_aux
 clean_doc_files
 clean_locales
+clean_resolv_conf
 
 write_debian_image
