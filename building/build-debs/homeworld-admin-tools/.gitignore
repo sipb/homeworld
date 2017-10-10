@@ -1,4 +1,4 @@
 /spire.zip
 /spire
-debian-9.0.0-amd64-mini.iso
-debian-9.0.0-cdpack.tgz
+debian-*-amd64-mini.iso
+debian-*-cdpack.tgz
