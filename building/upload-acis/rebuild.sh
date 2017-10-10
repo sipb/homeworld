@@ -28,7 +28,7 @@ do
 	find_latest "$x-stretch." "$x-latest"
 done
 
-find_latest "flannel-0.8.0-" "flannel-latest"
+find_latest "flannel-0.9.0-" "flannel-latest"
 
 sleep 0.1
 

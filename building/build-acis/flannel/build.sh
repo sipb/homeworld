@@ -3,8 +3,8 @@ set -e -u
 cd "$(dirname "$0")"
 source ../common/container-build-helpers.sh
 
-FLANNEL_VER="0.8.0"
-REVISION="4"
+FLANNEL_VER="0.9.0"
+REVISION="1"
 VERSION="${FLANNEL_VER}-${REVISION}"
 
 DEBVER="stretch.20171009T161948Z"
