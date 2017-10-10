@@ -22,12 +22,7 @@ def regen_cdpack(source_iso, dest_cdpack):
         os.mkdir(loopdir)
         cddir = os.path.join(d, "cd")
         os.mkdir(cddir)
-        subprocess.check_call(["sudo", "mount", "-o", "loop", "--", source_iso, loopdir])
-        try:
-            subprocess.check_call(
-                ["rsync", "--quiet", "--archive", "--hard-links", "--exclude=TRANS.TBL", loopdir + "/", cddir])
-        finally:
-            subprocess.check_call(["sudo", "umount", loopdir])
+        subprocess.check_call(["bsdtar", "-xf", source_iso, "-C", cddir])
         subprocess.check_call(["chmod", "+w", "--recursive", cddir])
         subprocess.check_call(["gunzip", os.path.join(cddir, "initrd.gz")])
         subprocess.check_call(["tar", "-czf", dest_cdpack, "-C", d, os.path.basename(cddir)])
