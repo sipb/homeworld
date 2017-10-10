@@ -9,6 +9,6 @@ Vcs-Browser: https://github.com/sipb/homeworld/
 
 Package: homeworld-keysystem
 Architecture: amd64
-Depends: homeworld-knc
+Depends: ${misc:Depends}, ${shlibs:Depends}, homeworld-knc
 Description: Homeworld keysystem package.
  This package is used for code deployment to Homeworld clusters.

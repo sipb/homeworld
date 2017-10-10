@@ -9,5 +9,6 @@ Vcs-Browser: https://github.com/sipb/homeworld/
 
 Package: homeworld-apt-setup
 Architecture: any
+Depends: ${misc:Depends}
 Description: Homeworld apt repository setup package.
  This package is used for code deployment to Homeworld clusters.

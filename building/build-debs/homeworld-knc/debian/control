@@ -9,6 +9,6 @@ Vcs-Browser: https://github.com/sipb/homeworld/
 
 Package: homeworld-knc
 Architecture: any
-Depends: krb5-user, libgssapi-krb5-2
+Depends: ${misc:Depends}, ${shlibs:Depends}
 Description: Homeworld knc package.
  This package is used for code deployment to Homeworld clusters.
