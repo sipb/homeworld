@@ -1,4 +1,5 @@
 import query
+import time
 import threading
 import tempfile
 import os
@@ -92,15 +93,15 @@ def check_ssh_with_certs(hostname=None):
         result = subprocess.check_output(["ssh", "-i", keypath, "root@%s.%s" % (hostname, config.external_domain), "echo confirmed"], env=env)
     except subprocess.CalledProcessError as e:
         command.fail("ssh check failed: %s" % e)
-    if result != "confirmed":
-        command.fail("unexpected result from ssh check")
+    if result != b"confirmed\n":
+        command.fail("unexpected result from ssh check: '%s'" % result.decode())
     print("ssh access confirmed!")
 
 
 def check_etcd_health():
     config = configuration.Config.load_from_project()
     result = access.call_etcdctl(["cluster-health"], return_result=True)
-    lines = result.strip().split("\n")
+    lines = result.strip().decode().split("\n")
     if lines.pop() != "cluster is healthy":
         command.fail("cluster did not report as healthy!")
     member_ids = []
@@ -118,7 +119,7 @@ def check_etcd_health():
             command.fail("did not find expected healthy result info for: %s" % server_name)
         member_ids.append(line.split(" ")[1])
 
-    result = access.call_etcdctl(["member", "list"], return_result=True)
+    result = access.call_etcdctl(["member", "list"], return_result=True).decode()
     found_member_ids = []
     servers = []
     leader_count = 0
@@ -143,8 +144,8 @@ def check_etcd_health():
     if leader_count != 1:
         command.fail("wrong number of leaders")
 
-    if sorted(servers) != sorted(node.hostname for node in config.nodes):
-        command.fail("invalid detected set of servers")
+    if sorted(servers) != sorted(node.hostname for node in config.nodes if node.kind == "master"):
+        command.fail("invalid detected set of servers: %s" % servers)
 
     if member_ids != found_member_ids:
         command.fail("member id list mismatch")
@@ -154,11 +155,11 @@ def check_etcd_health():
 
 def get_kubectl_json(*params: str):
     raw = access.call_kubectl(list(params) + ["-o", "json"], return_result=True)
-    return json.loads(raw)
+    return json.loads(raw.decode())
 
 
 def check_kube_health():
-    expected_kubernetes_version = "v1.7.2"
+    expected_kubernetes_version = "v1.8.0"
     config = configuration.Config.load_from_project()
 
     # verify nodes
@@ -178,16 +179,16 @@ def check_kube_health():
             nodeID = node["spec"]["externalID"]
             if nodeID not in nodes_remaining:
                 command.fail("invalid or duplicate node: %s" % nodeID)
-            node = nodes_remaining[nodeID]
+            node_obj = nodes_remaining[nodeID]
             del nodes_remaining[nodeID]
-            if node.kind == "master":
+            if node_obj.kind == "master":
                 if node["spec"].get("unschedulable", None) is not True:
                     command.fail("expected master node to be unschedulable")
             else:
-                assert node.kind == "worker"
+                assert node_obj.kind == "worker"
                 if node["spec"].get("unschedulable", None):
                     command.fail("expected worker node to be schedulable")
-            conditions = {condobj.type: condobj.status for condobj in node["status"]["conditions"]}
+            conditions = {condobj["type"]: condobj["status"] for condobj in node["status"]["conditions"]}
             if conditions["DiskPressure"] != "False":
                 command.fail("expected no disk pressure")
             if conditions["MemoryPressure"] != "False":
@@ -250,14 +251,14 @@ def check_aci_pull():
     container_command = "ping -c 1 8.8.8.8 && echo 'PING RESULT SUCCESS' || echo 'PING RESULT FAIL'"
     server_command = ["rkt", "run", "--pull-policy=update", "homeworld.mit.edu/debian", "--exec", "/bin/bash", "--", "-c",
                       setup.escape_shell(container_command)]
-    results = subprocess.check_output(["ssh", "root@%s.%s" % (worker, config.external_domain), "--"] + server_command)
-    last_line = results.strip().split(b"\n")[-1]
+    results = subprocess.check_output(["ssh", "root@%s.%s" % (worker.hostname, config.external_domain), "--"] + server_command)
+    last_line = results.replace(b"\r\n",b"\n").replace(b"\0",b'').strip().split(b"\n")[-1]
     if b"PING RESULT FAIL" in last_line:
         if b"PING RESULT SUCCESS" in last_line:
             command.fail("should not have seen both success and failure markers in last line")
         command.fail("cluster network probably not up (could not ping 8.8.8.8)")
     elif b"PING RESULT SUCCESS" not in last_line:
-        command.fail("container does not seem to have launched properly; container launches are likely broken")
+        command.fail("container does not seem to have launched properly; container launches are likely broken (line = %s)" % repr(last_line))
     print("container seems to be launched, with the correct network!")
 
 
@@ -288,13 +289,11 @@ def check_flannel_kubeinfo():
             if pod["status"]["phase"] != "Running":
                 command.fail("pod was not running: %s: %s" % (name, pod["status"]["phase"]))
 
-            conditions = {condobj.type: condobj.status for condobj in pod["status"]["conditions"]}
+            conditions = {condobj["type"]: condobj["status"] for condobj in pod["status"]["conditions"]}
             if conditions["Initialized"] != "True":
                 command.fail("pod not yet initialized")
             if conditions["Ready"] != "True":
                 command.fail("pod not yet ready")
-            if conditions["PodScheduled"] != "True":
-                command.fail("pod not yet scheduled")
 
             if len(pod["status"]["containerStatuses"]) != 1:
                 command.fail("expected only one container")
@@ -330,41 +329,41 @@ def check_flannel_function():
 
     def listen():
         try:
-            container_command = "ip -o addr show dev eth0 to 172.18/16 primary && sleep 5"
-            server_command = ["rkt", "run", "--net=rkt.kubernetes.io", "homeworld.mit.edu/debian", "--", "-c", container_command]
-            cmd = ["ssh", "root@%s.%s" % (worker_listener, config.external_domain), "--"] + server_command
-            with subprocess.Popen(cmd) as process:
-                stdout, stderr = process.communicate(None, timeout=1)
-                if stderr:
-                    command.fail("found data on stderr from trying to run ip addr: '%s'" % repr(stderr.decode()))
-                if b"scope" not in stdout:
-                    command.fail("could not find scope line in ip addr output")
-                parts = stdout.split(b" ")
-                if b"inet" not in parts:
+            container_command = "ip -o addr show dev eth0 to 172.18/16 primary && sleep 15"
+            server_command = ["rkt", "run", "--net=rkt.kubernetes.io", "homeworld.mit.edu/debian", "--", "-c", setup.escape_shell(container_command)]
+            cmd = ["ssh", "root@%s.%s" % (worker_listener.hostname, config.external_domain), "--"] + server_command
+            with subprocess.Popen(cmd, stdout=subprocess.PIPE, bufsize=1, universal_newlines=True) as process:
+                stdout = process.stdout.readline()
+                if "scope" not in stdout:
+                    command.fail("could not find scope line in ip addr output (%s)" % repr(stdout))
+                parts = stdout.split(" ")
+                if "inet" not in parts:
                     command.fail("could not find inet address in ip addr output")
-                address = parts[parts.index(b"inet") + 1]
-                if not address.endswith(b"/32"):
-                    command.fail("expected address that ended in /32, not '%s'" % address.decode())
-                if address.count(b".") != 3:
-                    command.fail("expected valid IPv4 address")
-                if not address.decode().replace(".", "").isdigit():
-                    command.fail("expected valid IPv4 address")
+                address = parts[parts.index("inet") + 1]
+                if not address.endswith("/24"):
+                    command.fail("expected address that ended in /24, not '%s'" % address)
+                address = address[:-3]
+                if address.count(".") != 3:
+                    command.fail("expected valid IPv4 address, not '%s'" % address)
+                if not address.replace(".", "").isdigit():
+                    command.fail("expected valid IPv4 address, not '%s'" % address)
                 found_address[0] = address
                 event.set()
+                process.communicate(timeout=20)
         finally:
             event.set()
         return True
 
     def talk():
-        if not event.wait(5):
+        if not event.wait(25):
             command.fail("timed out while waiting for IPv4 address of listener")
         address = found_address[0]
         if address is None:
             command.fail("no address was specified by listener")
         container_command = "ping -c 1 %s && echo 'PING RESULT SUCCESS' || echo 'PING RESULT FAIL'" % address
         server_command = ["rkt", "run", "homeworld.mit.edu/debian", "--exec", "/bin/bash", "--", "-c", setup.escape_shell(container_command)]
-        results = subprocess.check_output(["ssh", "root@%s.%s" % (worker_talker, config.external_domain), "--"] + server_command)
-        last_line = results.strip().split(b"\n")[-1]
+        results = subprocess.check_output(["ssh", "root@%s.%s" % (worker_talker.hostname, config.external_domain), "--"] + server_command)
+        last_line = results.replace(b"\r\n",b"\n").replace(b"\0",b'').strip().split(b"\n")[-1]
         if b"PING RESULT FAIL" in last_line:
             command.fail("was not able to ping the target container; is flannel working?")
         elif b"PING RESULT SUCCESS" not in last_line:
@@ -401,7 +400,7 @@ def check_dns_kubeinfo():
             if pod["status"]["phase"] != "Running":
                 command.fail("pod was not running: %s: %s" % (name, pod["status"]["phase"]))
 
-            conditions = {condobj.type: condobj.status for condobj in pod["status"]["conditions"]}
+            conditions = {condobj["type"]: condobj["status"] for condobj in pod["status"]["conditions"]}
             if conditions["Initialized"] != "True":
                 command.fail("pod not yet initialized")
             if conditions["Ready"] != "True":
@@ -434,10 +433,10 @@ def check_dns_function():
 
     container_command = "nslookup kubernetes.default.svc.hyades.local 172.28.0.2"
     server_command = ["rkt", "run", "homeworld.mit.edu/debian", "--exec", "/bin/bash", "--", "-c", setup.escape_shell(container_command)]
-    results = subprocess.check_output(["ssh", "root@%s.%s" % (worker, config.external_domain), "--"] + server_command)
-    last_line = results.strip().split(b"\n")[-1]
-    if last_line != b"Address: 172.28.0.1":
-        command.fail("unexpected last line: '%s'" % repr(last_line.decode()))
+    results = subprocess.check_output(["ssh", "root@%s.%s" % (worker.hostname, config.external_domain), "--"] + server_command)
+    last_line = results.replace(b"\r\n",b"\n").replace(b"\0",b'').strip().split(b"\n")[-1]
+    if not last_line.endswith(b"Address: 172.28.0.1"):
+        command.fail("unexpected last line: %s" % repr(last_line.decode()))
 
     print("dns-addon seems to work!")
 

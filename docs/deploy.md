@@ -141,7 +141,7 @@ Deploy flannel into the cluster:
 Wait a bit for propagation... (if this doesn't work, keep trying for a bit)
 
     $ spire verify flannel-run
-    $ spire verify flannel-listen
+    $ spire verify flannel-ping
 
 ## Core cluster service: dns-addon
 
