@@ -3,7 +3,7 @@ Section: misc
 Priority: extra
 Maintainer: Cel Skeggs <cela@mit.edu>
 Build-Depends: debhelper (>= 9), git
-Standards-Version: 3.9.6
+Standards-Version: 4.1.1
 Vcs-Git: https://github.com/sipb/homeworld.git
 Vcs-Browser: https://github.com/sipb/homeworld/
 
