@@ -58,7 +58,5 @@ KUBEOPT+=(--container-runtime rkt)
 KUBEOPT+=(--pod-manifest-path=/etc/hyades/manifests/)
 # DNS
 KUBEOPT+=(--cluster-dns "${SERVICE_DNS}" --cluster-domain "${CLUSTER_DOMAIN}")
-# experimental options to better enforce env config
-KUBEOPT+=(--experimental-fail-swap-on)
 
 exec /usr/bin/hyperkube kubelet "${KUBEOPT[@]}"
