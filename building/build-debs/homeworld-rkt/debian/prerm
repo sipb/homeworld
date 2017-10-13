@@ -5,14 +5,14 @@ case "$1" in
     remove)
         if [ -z "$2" ]
         then
-            if [ -f /usr/bin/rkt ]; then
-                if [ -n "$(/usr/bin/rkt list --no-legend | awk '{print $4}' | grep running)" ]; then
-                    printf "rkt/prerm error: detected running containers.\n"
+            if command -v rkt > /dev/null; then
+                if rkt list --no-legend | awk '{print $4}' | grep -q running; then
+                    printf 'rkt/prerm error: detected running containers.\n'
                     exit 1
                 fi
-                /usr/bin/rkt gc --grace-period=0s
-                if [ -n "$(grep "/var/lib/rkt/pods/run/" /proc/mounts)" ]; then
-                    printf "rkt/prerm error: detected active mounts in [/var/lib/rkt].\n"
+                rkt gc --grace-period=0s
+                if grep -q "/var/lib/rkt/pods/run/" /proc/mounts; then
+                    printf 'rkt/prerm error: detected active mounts in [/var/lib/rkt].\n'
                     exit 1
                 fi
             fi
