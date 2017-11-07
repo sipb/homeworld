@@ -57,7 +57,7 @@ function ensure_sudo() {
 	if [[ "$EUID" != "0" ]]
 	then
 		echo "Sudoing..."
-		exec sudo "$0" "$@"
+		exec sudo TMPDIR="${TMPDIR:-}" "$0" "$@"
 		exit 1
 	fi
 }
