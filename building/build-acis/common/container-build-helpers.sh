@@ -14,6 +14,8 @@ GO_TGZ="${HELPERS}/go-bin-${GO_VER}.tgz"
 ACI_BRIEF="$(basename "${ROOT}")"
 ACI_NAME="homeworld.mit.edu/${ACI_BRIEF}"
 
+BUILDACI="debian-build"
+
 function common_setup() {
 	ensure_sudo
 	ensure_amd64
@@ -148,7 +150,7 @@ function finish_acbuild() {
 # rkt builder
 
 function init_builder() {
-	BUILDENV="${OUTPUT_DIR}/debian-build-${BUILDVER}-linux-amd64.aci"
+	BUILDENV="${OUTPUT_DIR}/${BUILDACI}-${BUILDVER}-linux-amd64.aci"
 	BUILDDIR="${TMPBUILDDIR}/build"
 	rm -rf "${BUILDDIR}"
 	mkdir "${BUILDDIR}"
