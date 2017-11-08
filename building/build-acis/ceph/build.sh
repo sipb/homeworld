@@ -4,7 +4,7 @@ cd "$(dirname "$0")"
 source ../common/container-build-helpers.sh
 
 CEPH_VER="12.2.1"
-REVISION="1"
+REVISION="3"
 VERSION="${CEPH_VER}-${REVISION}"
 
 BUILDACI="ceph-build"
@@ -49,6 +49,12 @@ function gen_cmake() {
 BUILDSCRIPT_GEN+=(gen_cmake)
 run_builder
 
+STRIPPABLE="ceph-authtool ceph-bluestore-tool ceph-conf ceph-dencoder ceph-mds ceph-mgr ceph-mon ceph-objectstore-tool ceph-osd ceph-syn rados radosgw radosgw-admin radosgw-es radosgw-object-expirer radosgw-token rbd rbd-mirror rbd-nbd rbd-replay rbd-replay-prep"
+for to_strip in ${STRIPPABLE}
+do
+	strip "${DESTDIR}/usr/bin/${to_strip}"
+done
+
 # build container
 
 start_acbuild_from "debian-mini" "${DEBVER}"
@@ -57,6 +63,6 @@ $ACBUILD copy-to-dir "${DESTDIR}/usr/lib/python2.7/dist-packages/"* /usr/lib/pyt
 $ACBUILD copy-to-dir "${DESTDIR}/usr/lib/x86_64-linux-gnu/"* /usr/lib/x86_64-linux-gnu/
 $ACBUILD copy-to-dir "${DESTDIR}/usr/libexec/"* /usr/libexec/
 $ACBUILD copy-to-dir "${DESTDIR}/usr/sbin/"* /usr/sbin/
-add_packages_to_acbuild cryptsetup-bin debianutils findutils gdisk grep logrotate psmisc xfsprogs btrfs-tools ntp python-cherrypy3 python-openssl python-pecan python-werkzeug python-flask parted python-prettytable python-requests mime-support
+add_packages_to_acbuild cryptsetup-bin debianutils findutils gdisk grep logrotate psmisc xfsprogs btrfs-tools ntp python-cherrypy3 python-openssl python-pecan python-werkzeug python-flask parted python-prettytable python-requests mime-support libibverbs1 libnss3 libaio1 libleveldb1v5 libgoogle-perftools4 libcurl3-gnutls libbabeltrace1
 $ACBUILD set-exec -- /bin/bash
 finish_acbuild
