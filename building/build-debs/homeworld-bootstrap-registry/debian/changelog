@@ -1,3 +1,9 @@
+homeworld-bootstrap-registry (0.1.5) stretch; urgency=medium
+
+  * Updated debian version
+
+ -- Cel Skeggs <cela@mit.edu>  Fri, 01 Dec 2017 21:36:28 -0500
+
 homeworld-bootstrap-registry (0.1.4) stretch; urgency=medium
 
   * Updated debian version
