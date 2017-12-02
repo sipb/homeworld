@@ -8,6 +8,7 @@ import command
 import configuration
 import resource
 import util
+import keycrypt
 
 
 def escape_shell(param: str) -> str:
@@ -90,10 +91,12 @@ def setup_keyserver(ops: Operations, config: configuration.Config) -> None:
         if node.kind != "supervisor":
             continue
         ops.ssh_mkdir("create directories on @HOST", node, AUTHORITY_DIR, STATICS_DIR, CONFIG_DIR)
-        ops.ssh_upload_path("upload authorities to @HOST", node,
-                            authority.get_targz_path(), AUTHORITY_DIR + "/authorities.tgz")
-        ops.ssh_raw("extract authorities on @HOST", node,
-                    "tar -xzf authorities.tgz && rm authorities.tgz", in_directory=AUTHORITY_DIR)
+        for name, data in authority.iterate_keys_decrypted():
+            # TODO: keep these keys in memory
+            if "/" in name:
+                command.fail("found key in upload list with invalid filename")
+            # TODO: avoid keeping these keys in memory for this long
+            ops.ssh_upload_bytes("upload authority %s to @HOST" % name, node, data, os.path.join(AUTHORITY_DIR, name))
         ops.ssh_upload_bytes("upload cluster config to @HOST", node,
                              configuration.get_cluster_conf().encode(), STATICS_DIR + "/cluster.conf")
         ops.ssh_upload_bytes("upload machine list to @HOST", node,
@@ -123,9 +126,11 @@ def setup_keygateway(ops: Operations, config: configuration.Config) -> None:
     for node in config.nodes:
         if node.kind != "supervisor":
             continue
-        keytab = os.path.join(configuration.get_project(), "keytab.%s" % node.hostname)
+        # keytab is stored encrypted in the configuration folder
+        keytab = os.path.join(configuration.get_project(), "keytab.%s.crypt" % node.hostname)
+        decrypted = keycrypt.gpg_decrypt_to_memory(keytab)
         ops.ssh("confirm no existing keytab on @HOST", node, "test", "!", "-e", KEYTAB_PATH)
-        ops.ssh_upload_path("upload keytab for @HOST", node, keytab, KEYTAB_PATH)
+        ops.ssh_upload_bytes("upload keytab for @HOST", node, decrypted, KEYTAB_PATH)
         ops.ssh("restart keygateway on @HOST", node, "systemctl", "restart", "keygateway")
 
 
@@ -179,15 +184,16 @@ REGISTRY_HOSTNAME = "homeworld.mit.edu"
 
 
 def setup_bootstrap_registry(ops: Operations, config: configuration.Config) -> None:
-    https_cert_dir = os.path.join(configuration.get_project(), "https-certs")
     for node in config.nodes:
         if node.kind != "supervisor":
             continue
-        keypath = os.path.join(https_cert_dir, "%s.key" % REGISTRY_HOSTNAME)
-        certpath = os.path.join(https_cert_dir, "%s.pem" % REGISTRY_HOSTNAME)
+        keypath = os.path.join(configuration.get_project(), "https.%s.key.crypt" % REGISTRY_HOSTNAME)
+        certpath = os.path.join(configuration.get_project(), "https.%s.pem" % REGISTRY_HOSTNAME)
+
+        keydata = keycrypt.gpg_decrypt_to_memory(keypath)
 
         ops.ssh_mkdir("create ssl cert directory on @HOST", node, "/etc/homeworld/ssl")
-        ops.ssh_upload_path("upload %s key to @HOST" % REGISTRY_HOSTNAME, node, keypath, "/etc/homeworld/ssl/%s.key" % REGISTRY_HOSTNAME)
+        ops.ssh_upload_bytes("upload %s key to @HOST" % REGISTRY_HOSTNAME, node, keydata, "/etc/homeworld/ssl/%s.key" % REGISTRY_HOSTNAME)
         ops.ssh_upload_path("upload %s cert to @HOST" % REGISTRY_HOSTNAME, node, certpath, "/etc/homeworld/ssl/%s.pem" % REGISTRY_HOSTNAME)
         ops.ssh("restart nginx on @HOST", node, "systemctl", "restart", "nginx")
 

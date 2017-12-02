@@ -10,11 +10,34 @@ TODO: instructions on setting this up.
 ## Setting up a workspace
 
 You need to a set up an environment variable corresponding to a folder that can
-store your cluster's configuration and authorities.
+store your cluster's configuration and authorities. Assuming that your disaster
+recovery key (see below) is well-protected, this folder can be a publicly-
+readable git repository.
 
     $ export HOMEWORLD_DIR="$HOME/my-cluster"
     $ spire config populate
     $ spire config edit
+
+## Setting up secure key storage
+
+You need to choose a location to hold the disaster recovery key for your
+cluster. If your cluster is for development purposes, it will suffice to store
+it locally, but for production clusters it should be stored offline on
+something like an encrypted USB drive.
+
+    $ export HOMEWORLD_DISASTER="/media/usb-crypt/homeworld-disaster"
+
+This key will be used to encrypt the private authority keys.
+
+**WARNING**: because gpg's `--passphrase-file` option is used, only the first
+line from the file will be used as the key!
+
+Recommended method of generating the passphrase:
+
+    $ pwgen -s 160 1 >$HOMEWORLD_DISASTER
+
+Make sure that you do not do this on a multi-user system, or that you've
+otherwise protected the file that you're writing out from others.
 
 ## Generate authority keys
 
@@ -53,13 +76,18 @@ For the official homeworld servers:
 
 ## Set up the keyserver
 
- * Request a keytab from accounts@, if necessary
- * Rotate the keytab (and upgrade its cryptographic strength):
+TODO: update this section, because keytabs are now encrypted
 
-       $ k5srvutil -f <keytab> change -e aes256-cts:normal,aes128-cts:normal
-         # the following will invalidate current tickets:
-       $ k5srvutil -f <keytab> delold
-       $ cp <keytab> $HOMEWORLD_DIR/keytab.<hostname>   # i.e. keytab.egg-sandwich
+ * Request a keytab from accounts@, if necessary
+ * Import the keytab into the project:
+
+       $ spire keytab import <hostname> <path-to-keytab>
+
+ * Rotate the keytab (which includes upgrading its cryptographic strength):
+
+       $ spire keytab rotate <hostname>
+         # the following means invalidating current tickets:
+       $ spire keytab delold <hostname>
 
  * Configure the supervisor keyserver:
 
@@ -124,8 +152,7 @@ For the official homeworld servers:
 This step is needed when you're hosting the containers for core cluster
 services on the cluster itself.
 
-    $ mkdir $HOMEWORLD_DIR/https-certs
-    $ cp homeworld.mit.edu.key homeworld.mit.edu.pem $HOMEWORLD_DIR/https-certs
+    $ spire https import homeworld.mit.edu ./homeworld.mit.edu.key ./homeworld.mit.edu.pem
     $ spire setup dns-bootstrap
     $ spire setup bootstrap-registry
     $ spire verify aci-pull
@@ -147,7 +174,7 @@ Wait a bit for propagation... (if this doesn't work, keep trying for a bit)
 
 Deploy dns-addon into the clustesr:
 
-    $ spire kubectl create -f dns-addon.yaml
+    $ spire kubectl create -f cluster-gen/dns-addon.yaml
 
 Wait a bit for propagation... (if this doesn't work, keep trying for a bit)
 

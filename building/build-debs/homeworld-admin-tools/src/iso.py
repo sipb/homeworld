@@ -33,7 +33,7 @@ def gen_iso(iso_image, authorized_key, cdpack=None):
         inclusion = []
 
         util.copy(authorized_key, os.path.join(d, "authorized.pub"))
-        util.writefile(os.path.join(d, "keyservertls.pem"), authority.get_key_by_filename("./server.pem"))
+        util.writefile(os.path.join(d, "keyservertls.pem"), authority.get_pubkey_by_filename("./server.pem"))
         resource.copy_to("postinstall.sh", os.path.join(d, "postinstall.sh"))
         os.chmod(os.path.join(d, "postinstall.sh"), 0o755)
         inclusion += ["authorized.pub", "keyservertls.pem", "postinstall.sh"]

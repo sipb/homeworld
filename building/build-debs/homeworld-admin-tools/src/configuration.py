@@ -152,6 +152,9 @@ class Config:
                     command.fail("in config: multiple supervisors not yet supported")
                 self.keyserver = node
 
+    def has_node(self, node_name: str) -> bool:
+        return any(node.hostname == node_name for node in self.nodes)
+
     @classmethod
     def load_from_string(cls, contents: bytes):
         return Config(yaml.safe_load(contents))

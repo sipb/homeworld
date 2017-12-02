@@ -49,7 +49,7 @@ def call_keyreq(command, *params, collect=False):
 
     with tempfile.TemporaryDirectory() as tdir:
         https_cert_path = os.path.join(tdir, "server.pem")
-        util.writefile(https_cert_path, authority.get_key_by_filename("./server.pem"))
+        util.writefile(https_cert_path, authority.get_pubkey_by_filename("./server.pem"))
         return invoke_variant(["keyreq", command, https_cert_path, keyserver_domain] + list(params))
 
 
@@ -104,7 +104,7 @@ def update_known_hosts():
     # uses local copies of machine list and ssh-host pubkey
     # TODO: eliminate now-redundant machine.list download from keyserver
     machines = configuration.get_machine_list_file().strip()
-    cert_authority_pubkey = authority.get_key_by_filename("./ssh_host_ca.pub")
+    cert_authority_pubkey = authority.get_pubkey_by_filename("./ssh_host_ca.pub")
     homedir = os.getenv("HOME")
     if homedir is None:
         command.fail("could not determine home directory, so could not find ~/.ssh/known_hosts")
