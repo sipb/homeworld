@@ -21,7 +21,7 @@ def check_pem_type(filepath, expect):
         first_line = f.readline()
     if not first_line.startswith("-----BEGIN ") or not first_line.rstrip().endswith("-----"):
         command.fail("not a PEM file: %s" % filepath)
-    pem_header_type = first_line[len("-----BEGIN "):-len("-----")]
+    pem_header_type = first_line.rstrip()[len("-----BEGIN "):-len("-----")]
     if pem_header_type != expect:
         command.fail("incorrect PEM header: expected %s, not %s" % (expect, pem_header_type))
 
@@ -53,7 +53,6 @@ def keytab_op(node, op):
             operation = ["k5srvutil", "-f", keytab_temp, "delold"]
         else:
             command.fail("internal error: no such operation %s" % op)
-        operation = ["echo", "k5srvutil currently commented out until this is verified to work"]
         subprocess.check_call(operation)
         keycrypt.gpg_encrypt_file(keytab_temp, keytab_target)
     os.remove(keytab_source)
@@ -66,6 +65,23 @@ def rotate_keytab(node):
 
 def delold_keytab(node):
     return keytab_op(node, "delold")
+
+
+def list_keytabs(keytab=None):
+    keytabs = [".".join(kt.split(".")[1:-1]) for kt in os.listdir(configuration.get_project())
+               if kt.startswith("keytab.") and kt.endswith(".crypt")]
+    if keytab is not None:
+        if keytab not in keytabs:
+            command.fail("no keytab found for: %s" % keytab)
+        keytabs = [keytab]
+    with tempfile.TemporaryDirectory() as d:
+        keytab_dest = os.path.join(d, "keytab.decrypt")
+        for kt in keytabs:
+            keytab_source = os.path.join(configuration.get_project(), "keytab.%s.crypt" % kt)
+            keycrypt.gpg_decrypt_file(keytab_source, keytab_dest)
+            print("== listing for %s ==" % kt)
+            subprocess.check_call(["k5srvutil", "-f", keytab_dest, "list"])
+            os.remove(keytab_dest)
 
 
 def export_keytab(node, keytab_file):
@@ -89,6 +105,7 @@ keytab_command = command.mux_map("commands about keytabs granted by external sou
     "import": command.wrap("import and encrypt a keytab for a particular server", import_keytab),
     "rotate": command.wrap("decrypt, rotate, and re-encrypt the keytab for a particular server", rotate_keytab),
     "delold": command.wrap("decrypt, delete old entries from, and re-encrypt a keytab", delold_keytab),
+    "list": command.wrap("decrypt and list one or all of the stored keytabs", list_keytabs),
     "export": command.wrap("decrypt and export the keytab for a particular server", export_keytab),
 })
 

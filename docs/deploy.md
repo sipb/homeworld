@@ -14,6 +14,10 @@ store your cluster's configuration and authorities. Assuming that your disaster
 recovery key (see below) is well-protected, this folder can be a publicly-
 readable git repository.
 
+WARNING: SUPPORT FOR GIT IS STILL IN PROGRESS; DO NOT USE IT UNLESS YOU KNOW
+WHAT YOU ARE DOING. ESPECIALLY DO NOT CHECK IN ANY FILES THAT YOU ARE NOT 100%
+CERTAIN ARE ENCRYPTED.
+
     $ export HOMEWORLD_DIR="$HOME/my-cluster"
     $ spire config populate
     $ spire config edit
@@ -42,6 +46,23 @@ otherwise protected the file that you're writing out from others.
 ## Generate authority keys
 
     $ spire authority gen
+
+## Acquire upstream keys
+
+ * Request a keytab from accounts@, if necessary
+ * Import the keytab into the project:
+
+       $ spire keytab import <hostname> <path-to-keytab>
+
+ * Rotate the keytab (which includes upgrading its cryptographic strength):
+
+       $ spire keytab rotate <hostname>
+         # the following means invalidating current tickets:
+       $ spire keytab delold <hostname>
+
+ * If you are running your own homeworld bootstrap container registry, import the HTTPS key and certificate:
+
+       $ spire https import homeworld.mit.edu ./homeworld.mit.edu.key ./homeworld.mit.edu.pem
 
 ## Building the ISO
 
@@ -75,19 +96,6 @@ For the official homeworld servers:
    - Verify the host keys based on the text printed before the login console
 
 ## Set up the keyserver
-
-TODO: update this section, because keytabs are now encrypted
-
- * Request a keytab from accounts@, if necessary
- * Import the keytab into the project:
-
-       $ spire keytab import <hostname> <path-to-keytab>
-
- * Rotate the keytab (which includes upgrading its cryptographic strength):
-
-       $ spire keytab rotate <hostname>
-         # the following means invalidating current tickets:
-       $ spire keytab delold <hostname>
 
  * Configure the supervisor keyserver:
 
@@ -152,7 +160,6 @@ TODO: update this section, because keytabs are now encrypted
 This step is needed when you're hosting the containers for core cluster
 services on the cluster itself.
 
-    $ spire https import homeworld.mit.edu ./homeworld.mit.edu.key ./homeworld.mit.edu.pem
     $ spire setup dns-bootstrap
     $ spire setup bootstrap-registry
     $ spire verify aci-pull

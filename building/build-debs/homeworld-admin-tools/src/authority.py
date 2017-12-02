@@ -37,6 +37,7 @@ def generate() -> None:
                 raise e
         print("encrypting authorities...")
         cryptdir = os.path.join(d, "cryptdir")
+        os.mkdir(cryptdir)
         for filename in os.listdir(certdir):
             if filename.endswith(".pub") or filename.endswith(".pem"):
                 # public keys; copy over without encryption

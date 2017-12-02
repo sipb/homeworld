@@ -1,6 +1,6 @@
 import authority
 import command
-import time
+import datetime
 
 import configuration
 import resource
@@ -9,6 +9,7 @@ import tempfile
 import subprocess
 import util
 import packages
+import keycrypt
 
 PACKAGES = ("homeworld-apt-setup", "homeworld-knc", "homeworld-keysystem")
 
@@ -26,6 +27,27 @@ def regen_cdpack(source_iso, dest_cdpack):
         subprocess.check_call(["chmod", "+w", "--recursive", cddir])
         subprocess.check_call(["gunzip", os.path.join(cddir, "initrd.gz")])
         subprocess.check_call(["tar", "-czf", dest_cdpack, "-C", d, os.path.basename(cddir)])
+
+
+def add_password_to_log(password):
+    passwords = os.path.join(configuration.get_project(), "passwords")
+    if not os.path.isdir(passwords):
+        os.mkdir(passwords)
+    passfile = os.path.join(passwords, "at-%s.gpg" % datetime.datetime.now().isoformat())
+    util.writefile(passfile, keycrypt.gpg_encrypt_in_memory(password))
+
+
+def list_passphrases():
+    passwords = os.path.join(configuration.get_project(), "passwords")
+    if not os.path.isdir(passwords):
+        command.fail("no passwords stored")
+    print("Passphrases:")
+    for passfile in os.listdir(passwords):
+        if passfile.startswith("at-") and passfile.endswith(".gpg"):
+            date = passfile[3:-4]
+            passph = keycrypt.gpg_decrypt_to_memory(os.path.join(passwords, passfile)).decode()
+            print("   ", date, "=>", passph)
+    print("End of list.")
 
 
 def gen_iso(iso_image, authorized_key, cdpack=None):
@@ -46,7 +68,8 @@ def gen_iso(iso_image, authorized_key, cdpack=None):
 
         preseeded = resource.get_resource("preseed.cfg.in")
         generated_password = util.pwgen(20)
-        print("generated password:", generated_password.decode())
+        add_password_to_log(generated_password)
+        print("generated password added to log")
         preseeded = preseeded.replace(b"{{HASH}}", util.mkpasswd(generated_password))
         util.writefile(os.path.join(d, "preseed.cfg"), preseeded)
 
@@ -79,4 +102,5 @@ def gen_iso(iso_image, authorized_key, cdpack=None):
 main_command = command.mux_map("commands about building installation ISOs", {
     "regen-cdpack": command.wrap("regenerate cdpack from upstream ISO", regen_cdpack),
     "gen": command.wrap("generate ISO", gen_iso),
+    "passphrases": command.wrap("decrypt a list of passphrases used by recently-generated ISOs", list_passphrases),
 })

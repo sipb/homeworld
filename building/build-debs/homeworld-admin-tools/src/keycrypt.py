@@ -19,27 +19,35 @@ def get_keypath() -> str:
 def gpg_encrypt_file(source_file: str, dest_file: str) -> None:
     keypath = get_keypath()
 
-    encrypt_command = ["gpg", "--passphrase-file", keypath, "--symmetric", "--cipher-algo", CIPHER_ALGO,
+    encrypt_command = ["gpg", "--batch", "--passphrase-file", keypath, "--symmetric", "--cipher-algo", CIPHER_ALGO,
                        "--output", dest_file, source_file]
     subprocess.check_call(encrypt_command)
+
+
+def gpg_encrypt_in_memory(contents: bytes) -> bytes:
+    keypath = get_keypath()
+
+    encrypt_command = ["gpg", "--batch", "--passphrase-file", keypath, "--symmetric", "--cipher-algo", CIPHER_ALGO]
+    return subprocess.check_output(encrypt_command, input=contents)
 
 
 def gpg_decrypt_in_memory(contents: bytes) -> bytes:
     keypath = get_keypath()
 
-    decrypt_command = ["gpg", "--passphrase-file", keypath, "--decrypt"]
-    return subprocess.check_output(decrypt_command, input=contents)
+    decrypt_command = ["gpg", "--batch", "--passphrase-file", keypath, "--decrypt"]
+    return subprocess.check_output(decrypt_command, input=contents, stderr=subprocess.DEVNULL)
 
 
 def gpg_decrypt_to_memory(source_file: str) -> bytes:
     keypath = get_keypath()
 
-    decrypt_command = ["gpg", "--passphrase-file", keypath, "--decrypt", source_file]
-    return subprocess.check_output(decrypt_command)
+    decrypt_command = ["gpg", "--batch", "--passphrase-file", keypath, "--decrypt", source_file]
+    return subprocess.check_output(decrypt_command, stderr=subprocess.DEVNULL)
 
 
 def gpg_decrypt_file(source_file: str, dest_file: str) -> None:
     keypath = get_keypath()
 
-    encrypt_command = ["gpg", "--passphrase-file", keypath, "--decrypt", "--output", dest_file, source_file]
-    subprocess.check_call(encrypt_command)
+    decrypt_command = ["gpg", "--batch", "--passphrase-file", keypath, "--decrypt", "--output", dest_file, source_file]
+    subprocess.check_call(decrypt_command, stderr=subprocess.DEVNULL)
+
