@@ -308,20 +308,27 @@ def print_local_kubeconfig() -> None:
     print(get_local_kubeconfig())
 
 
-def gen_kube_specs(output_dir: str) -> None:
-    if not os.path.isdir(output_dir):
-        os.mkdir(output_dir)
+def get_kube_spec_vars() -> dict:
     config = Config.load_from_project()
 
-    vars = {"NETWORK": config.cidr_pods,
+    return {"NETWORK": config.cidr_pods,
             "SERVIP_DNS": config.service_dns,
             "INTERNAL_DOMAIN": config.internal_domain}
 
+
+def gen_kube_specs(output_dir: str) -> None:
+    if not os.path.isdir(output_dir):
+        os.mkdir(output_dir)
     clustered, = keycheck(yaml.safe_load(resource.get_resource("clustered/list.yaml")), "clustered",
                           validator=lambda _, x: type(x) == list)
+    vars = get_kube_spec_vars()
     for configname in clustered:
         templated = template.template("clustered/%s" % configname, vars)
         util.writefile(os.path.join(output_dir, configname), templated.encode())
+
+
+def get_single_kube_spec(name: str) -> str:
+    return template.template("clustered/%s" % name, get_kube_spec_vars())
 
 
 main_command = command.mux_map("commands about cluster configuration", {

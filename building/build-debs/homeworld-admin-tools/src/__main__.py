@@ -10,6 +10,8 @@ import verify
 import access
 import infra
 import keys
+import seq
+import deploy
 
 main_command = command.mux_map("invoke a top-level command", {
     "iso": iso.main_command,
@@ -24,6 +26,8 @@ main_command = command.mux_map("invoke a top-level command", {
     "etcdctl": access.etcdctl_command,
     "kubectl": access.kubectl_command,
     "infra": infra.main_command,
+    "seq": seq.main_command,
+    "deploy": deploy.main_command,
 })
 
 

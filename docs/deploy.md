@@ -1,11 +1,11 @@
-# How to deploy a Homeworld cluster
-
-## Installing packages
+# Installing packages
 
 You will need to install homeworld-admin-tools and all its dependencies. This
 will provide access to the 'spire' tool.
 
 TODO: instructions on setting this up.
+
+# Setting up a new cluster from scratch
 
 ## Setting up a workspace
 
@@ -19,8 +19,6 @@ WHAT YOU ARE DOING. ESPECIALLY DO NOT CHECK IN ANY FILES THAT YOU ARE NOT 100%
 CERTAIN ARE ENCRYPTED.
 
     $ export HOMEWORLD_DIR="$HOME/my-cluster"
-    $ spire config populate
-    $ spire config edit
 
 ## Setting up secure key storage
 
@@ -43,11 +41,18 @@ Recommended method of generating the passphrase:
 Make sure that you do not do this on a multi-user system, or that you've
 otherwise protected the file that you're writing out from others.
 
-## Generate authority keys
+## Configuring the cluster
+
+Set up the configuration:
+
+    $ spire config populate
+    $ spire config edit
+
+## Generating authority keys
 
     $ spire authority gen
 
-## Acquire upstream keys
+## Acquiring upstream keys
 
  * Request a keytab from accounts@, if necessary
  * Import the keytab into the project:
@@ -64,11 +69,44 @@ otherwise protected the file that you're writing out from others.
 
        $ spire https import homeworld.mit.edu ./homeworld.mit.edu.key ./homeworld.mit.edu.pem
 
+Now you can consider putting this folder in Git, and then move on to 'Deploying a prepared cluster' below.
+
+## Uploading to Git
+
+SEE ABOVE FOR WARNINGS ABOUT USING GIT FOR THIS.
+
+    $ cd $HOMEWORLD_DIR
+    $ git init
+    $ git add setup.yaml authorities.tgz keytab.*.crypt https.*    # be VERY CAREFUL about what you're adding!
+    $ git commit
+    $ git remote add origin ...
+    $ git push -u origin master
+
+# Deploying a prepared cluster
+
+## Cloning existing cluster configuration
+
+Skip this step if you're starting a new cluster.
+
+To download existing configuration:
+
+    $ export HOMEWORLD_DIR="$HOME/my-cluster"
+    $ export HOMEWORLD_DISASTER="/media/usb-crypt/homeworld-disaster"
+    $ git clone git@github.com:sipb/hyades-cluster $HOMEWORLD_DIR
+
+Make sure to verify that you have the correct commit hash, out of band.
+
+## Set SSH configuration
+
+Configure SSH so that it has the correct certificate authority in ~/.ssh/known_hosts for members of the cluster:
+
+    $ spire access update-known-hosts
+
 ## Building the ISO
 
 Now, create an ISO:
 
-    $ spire iso gen preseeded.iso ~/.ssh/id_rsa.pub   # this key is used for direct access during cluster setup
+    $ spire iso gen preseeded.iso ~/.ssh/id_rsa.pub   # this SSH key is used for direct access during cluster setup
 
 Now you should burn and/or upload preseeded.iso that you've just gotten, so
 that you can use it for installing servers. Make a note of the password it
@@ -95,82 +133,51 @@ For the official homeworld servers:
  * Log into the server directly with your SSH keys
    - Verify the host keys based on the text printed before the login console
 
-## Set up the keyserver
+## Setting up the supervisor node
 
- * Configure the supervisor keyserver:
+Set up the keysystem:
 
-       $ spire setup keyserver
-       $ spire verify keystatics   # make sure the keyserver is running
+    $ spire seq keysystem
 
- * Admit the supervisor node to the cluster:
+Set up SSH:
 
-       $ spire setup self-admit
-
- * Prepare kerberos gateway:
-
-       $ spire setup keygateway
-       $ spire verify keygateway
-
-## Request certificates and SSH with them
-
- * Request SSH cert:
-
-       $ spire access update-known-hosts    # set up certificate authority in ~/.ssh/known_hosts
-       $ spire access ssh    # if this fails, you might need to make sure you don't have any stale kerberos tickets
-
- * Configure and test SSH:
-
-       $ # this will deny your current direct access, so keep a SSH session open until you verify this works
-       $ spire setup supervisor-ssh
-       $ spire verify ssh-with-certs
-       $ # if that worked, you can close your other SSH session
+      # if this fails, you might need to make sure you don't have any stale kerberos tickets
+    $ spire seq ssh
+      # (this command includes the automatic execution of `spire access ssh`)
 
 ## Set up each node's operating system
 
- * Request a bootstrap token:
+Request bootstrap tokens:
 
-       $ spire infra admit <hostname>.mit.edu
-       Token granted for <hostname>.mit.edu: '<TOKEN>'
+    $ spire infra admit-all
 
- * Boot the ISO on the hardware
+Boot the ISO on each piece of hardware
    - Select `Install`
-   - Enter the IP address for the server (18.181.X.Y on our test infrastructure)
+   - Enter the IP address for the server
    - Wait a while
    - Enter the bootstrap token
- * Confirm that the server came up properly (and requested its keys correctly):
 
-        $ spire verify online <hostname>      # you might need to re-request certificates first
+Confirm that all of the servers came up properly (and requested their keys
+correctly):
 
-## Package installation
-
- * Install and upgrade packages on all systems:
-
-        $ spire infra install-packages
+    $ spire verify online
 
 ## Core cluster bringup
 
- * Launch services
+Bring up the core cluster:
 
-        $ spire setup services
-        $ spire verify etcd        # cursory inspection of etcd
-        $ spire verify kubernetes  # cursory inspection of kubernetes
+    $ spire seq core
 
-## Bootstrap cluster registry
+If and only if you're hosting the containers for core cluster services on the
+cluster itself:
 
-This step is needed when you're hosting the containers for core cluster
-services on the cluster itself.
-
-    $ spire setup dns-bootstrap
-    $ spire setup bootstrap-registry
-    $ spire verify aci-pull
+    $ spire seq registry
 
 ## Core cluster service: flannel
 
 Deploy flannel into the cluster:
 
-    $ mkdir cluster-gen
-    $ spire config gen-kube cluster-gen
-    $ spire kubectl create -f cluster-gen/flannel.yaml
+    $ spire deploy flannel
 
 Wait a bit for propagation... (if this doesn't work, keep trying for a bit)
 
@@ -181,7 +188,7 @@ Wait a bit for propagation... (if this doesn't work, keep trying for a bit)
 
 Deploy dns-addon into the clustesr:
 
-    $ spire kubectl create -f cluster-gen/dns-addon.yaml
+    $ spire deploy dns-addon
 
 Wait a bit for propagation... (if this doesn't work, keep trying for a bit)
 
