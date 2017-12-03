@@ -141,8 +141,10 @@ def setup_supervisor_ssh(ops: Operations, config: configuration.Config) -> None:
         ssh_config = resource.get_resource("sshd_config")
         ops.ssh_upload_bytes("upload new ssh configuration to @HOST", node, ssh_config, "/etc/ssh/sshd_config")
         ops.ssh("reload ssh configuration on @HOST", node, "systemctl", "restart", "ssh")
-        ops.ssh("shift aside old authorized_keys on @HOST", node,
-                "mv", "/root/.ssh/authorized_keys", "/root/original_authorized_keys")
+        ops.ssh_raw("shift aside old authorized_keys on @HOST", node,
+                "if [ -f /root/.ssh/authorized_keys ]; then " +
+                "mv /root/.ssh/authorized_keys " +
+                "/root/original_authorized_keys; fi")
 
 
 def setup_services(ops: Operations, config: configuration.Config) -> None:
