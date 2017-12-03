@@ -24,7 +24,7 @@ func GenerateTLSSelfSignedCert(key *rsa.PrivateKey, name string, present_as []st
 
 	certTemplate := &x509.Certificate{
 		KeyUsage:    x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
-		ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+		ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth, x509.ExtKeyUsageClientAuth},
 
 		BasicConstraintsValid: true,
 		IsCA:       true,
@@ -38,13 +38,6 @@ func GenerateTLSSelfSignedCert(key *rsa.PrivateKey, name string, present_as []st
 	}
 
 	return certutil.FinishCertificate(certTemplate, certTemplate, key.Public(), key)
-
-	cert, err := x509.CreateCertificate(rand.Reader, certTemplate, certTemplate, key.Public(), key)
-	if err != nil {
-		return nil, err
-	}
-
-	return pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: cert}), nil
 }
 
 func GenerateKeys(cfg *config.Config, dir string, keyserver_group string) error {

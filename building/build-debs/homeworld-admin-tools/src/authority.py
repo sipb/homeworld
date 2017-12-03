@@ -77,7 +77,10 @@ def iterate_keys():  # yields (name, contents) pairs
 
 def iterate_keys_decrypted():  # yields (name, contents) pairs
     for name, contents in iterate_keys():
-        yield name, keycrypt.gpg_decrypt_in_memory(contents)
+        if name.endswith(".pub") or name.endswith(".pem"):
+            yield name, contents
+        else:
+            yield name, keycrypt.gpg_decrypt_in_memory(contents)
 
 
 main_command = command.mux_map("commands about cluster authorities", {

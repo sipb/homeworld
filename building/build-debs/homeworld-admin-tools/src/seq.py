@@ -1,4 +1,5 @@
 import command
+import time
 import deploy
 import infra
 import access
@@ -43,6 +44,23 @@ def sequence_ssh(ops: setup.Operations, config: configuration.Config) -> None:
     ops.add_operation("verify ssh access to supervisor", verify.check_ssh_with_certs)
 
 
+def iterative_verifier(verifier, max_time):
+    def ver():
+        end_time = time.time() + max_time
+        while True:
+            try:
+                verifier()
+                return
+            except Exception as e:
+                if time.time() >= end_time:
+                    raise e
+                print("Verification failed:", e)
+                print("RETRYING...")
+            time.sleep(1)
+
+    return ver
+
+
 def sequence_core(ops: setup.Operations, config: configuration.Config) -> None:
     # ** Install and upgrade packages on all systems **
     # spire infra install-packages
@@ -51,10 +69,13 @@ def sequence_core(ops: setup.Operations, config: configuration.Config) -> None:
     # ** Launch services **
     # spire setup services
     setup.setup_services(ops, config)
+
     # spire verify etcd
-    ops.add_operation("verify that etcd has launched successfully", verify.check_etcd_health)
+    ops.add_operation("verify that etcd has launched successfully",
+                      iterative_verifier(verify.check_etcd_health, 10.0))
     # spire verify kubernetes
-    ops.add_operation("verify that kubernetes has launched successfully", verify.check_kube_health)
+    ops.add_operation("verify that kubernetes has launched successfully",
+                      iterative_verifier(verify.check_kube_health, 5.0))
 
 
 def sequence_registry(ops: setup.Operations, config: configuration.Config) -> None:

@@ -10,7 +10,7 @@ def launch_spec(spec_name):
     with tempfile.TemporaryDirectory() as d:
         specfile = os.path.join(d, "spec.yaml")
         util.writefile(specfile, configuration.get_single_kube_spec(spec_name).encode())
-        access.call_kubectl(["create", "-f", specfile])
+        access.call_kubectl(["create", "-f", specfile], return_result=False)
 
 
 main_command = command.mux_map("commands to deploy systems onto the kubernetes cluster", {

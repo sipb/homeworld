@@ -16,11 +16,11 @@ def infra_admit_all() -> None:
         if node.kind == "supervisor":
             continue
         principal = node.hostname + "." + config.external_domain
-        token = access.call_keyreq("bootstrap-token", principal, collect=True)
-        tokens[node] = (node.kind, node.ip, token)
+        token = access.call_keyreq("bootstrap-token", principal, collect=True).decode().strip()
+        tokens[node.hostname] = (node.kind, node.ip, token)
     print("host".center(16, "="), "kind".center(8, "="), "ip".center(14, "="), "token".center(21, "="))
     for key, (kind, ip, token) in sorted(tokens.items()):
-        print(key.rjust(16), kind.center(8), ip.center(14), token.ljust(21))
+        print(key.rjust(16), kind.center(8), str(ip).center(14), token.ljust(21))
     print("host".center(16, "="), "kind".center(8, "="), "ip".center(14, "="), "token".center(21, "="))
 
 

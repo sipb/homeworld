@@ -270,42 +270,42 @@ def check_flannel_kubeinfo():
     pods = get_kubectl_json("get", "pods", "--namespace=kube-system", "--selector=app=flannel")
     try:
         if pods["apiVersion"] != "v1":
-            command.fail("wrong API version for kubectl result")
+            command.fail("FLANNEL FAILED: wrong API version for kubectl result")
         if pods["kind"] != "List":
-            command.fail("wrong output format from kubectl")
+            command.fail("FLANNEL FAILED: wrong output format from kubectl")
         found_nodes = set()
         for pod in pods["items"]:
             if pod["apiVersion"] != "v1":
-                command.fail("wrong API version for kubectl result")
+                command.fail("FLANNEL FAILED: wrong API version for kubectl result")
             if pod["kind"] != "Pod":
-                command.fail("wrong output format from kubectl")
+                command.fail("FLANNEL FAILED: wrong output format from kubectl")
             name = pod["metadata"]["name"]
             if not name.startswith("kube-flannel-ds-"):
-                command.fail("expected kube-flannel-ds container, not %s" % name)
+                command.fail("FLANNEL FAILED: expected kube-flannel-ds container, not %s" % name)
             node_name = pod["spec"]["nodeName"]
             if node_name in found_nodes:
-                command.fail("duplicate flannel on node: %s" % node_name)
+                command.fail("FLANNEL FAILED: duplicate flannel on node: %s" % node_name)
             found_nodes.add(node_name)
             if pod["status"]["phase"] != "Running":
-                command.fail("pod was not running: %s: %s" % (name, pod["status"]["phase"]))
+                command.fail("FLANNEL FAILED: pod was not running: %s: %s" % (name, pod["status"]["phase"]))
 
             conditions = {condobj["type"]: condobj["status"] for condobj in pod["status"]["conditions"]}
             if conditions["Initialized"] != "True":
-                command.fail("pod not yet initialized")
+                command.fail("FLANNEL FAILED: pod not yet initialized")
             if conditions["Ready"] != "True":
-                command.fail("pod not yet ready")
+                command.fail("FLANNEL FAILED: pod not yet ready")
 
             if len(pod["status"]["containerStatuses"]) != 1:
-                command.fail("expected only one container")
+                command.fail("FLANNEL FAILED: expected only one container")
             if pod["status"]["containerStatuses"][0]["ready"] is not True:
-                command.fail("expected container to be ready")
+                command.fail("FLANNEL FAILED: expected container to be ready")
 
         if found_nodes != {node.hostname for node in config.nodes if node.kind != "supervisor"}:
-            command.fail("did not find proper set of nodes")
+            command.fail("FLANNEL FAILED: did not find proper set of nodes")
     except ValueError as e:
-        command.fail("failed to parse kubectl result json: %s" % e)
+        command.fail("FLANNEL FAILED: failed to parse kubectl result json: %s" % e)
     except KeyError as e:
-        command.fail("missing key while parsing kubectl result json: %s" % e)
+        command.fail("FLANNEL FAILED: missing key while parsing kubectl result json: %s" % e)
 
     print("flannel appears to be launched!")
 
@@ -323,6 +323,7 @@ def check_flannel_function():
     assert worker_talker != worker_listener
 
     print("trying flannel functionality test with", worker_talker, "talking and", worker_listener, "listening")
+    print("this may take a minute... please be patient")
 
     found_address = [None]
     event = threading.Event()
@@ -361,7 +362,7 @@ def check_flannel_function():
         if address is None:
             command.fail("no address was specified by listener")
         container_command = "ping -c 1 %s && echo 'PING RESULT SUCCESS' || echo 'PING RESULT FAIL'" % address
-        server_command = ["rkt", "run", "homeworld.mit.edu/debian", "--exec", "/bin/bash", "--", "-c", setup.escape_shell(container_command)]
+        server_command = ["rkt", "run", "--net=rkt.kubernetes.io", "homeworld.mit.edu/debian", "--exec", "/bin/bash", "--", "-c", setup.escape_shell(container_command)]
         results = subprocess.check_output(["ssh", "root@%s.%s" % (worker_talker.hostname, config.external_domain), "--"] + server_command)
         last_line = results.replace(b"\r\n",b"\n").replace(b"\0",b'').strip().split(b"\n")[-1]
         if b"PING RESULT FAIL" in last_line:
