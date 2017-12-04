@@ -190,23 +190,13 @@ cluster itself:
 
 Deploy flannel into the cluster:
 
-    $ spire deploy flannel
-
-Wait a bit for propagation... (if this doesn't work, keep trying for a bit)
-
-    $ spire verify flannel-run
-    $ spire verify flannel-ping
+    $ spire seq flannel
 
 ## Core cluster service: dns-addon
 
 Deploy dns-addon into the clustesr:
 
-    $ spire deploy dns-addon
-
-Wait a bit for propagation... (if this doesn't work, keep trying for a bit)
-
-    $ spire verify dns-addon-run
-    $ spire verify dns-addon-query
+    $ spire seq dns-addon
 
 ## Finishing up
 

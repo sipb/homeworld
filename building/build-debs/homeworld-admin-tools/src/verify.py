@@ -323,7 +323,14 @@ def check_flannel_function():
     assert worker_talker != worker_listener
 
     print("trying flannel functionality test with", worker_talker, "talking and", worker_listener, "listening")
-    print("this may take a minute... please be patient")
+    print("checking launch on both systems...")
+
+    # this is here to make sure both servers have pulled the relevant containers
+    server_command = ["rkt", "run", "--net=rkt.kubernetes.io", "homeworld.mit.edu/debian", "--", "-c", "/bin/true"]
+    for worker in (worker_talker, worker_listener):
+        subprocess.check_call(["ssh", "root@%s.%s" % (worker.hostname, config.external_domain), "--"] + server_command)
+
+    print("ready -- this may take a minute... please be patient")
 
     found_address = [None]
     event = threading.Event()

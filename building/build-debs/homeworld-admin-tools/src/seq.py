@@ -44,7 +44,7 @@ def sequence_ssh(ops: setup.Operations, config: configuration.Config) -> None:
     ops.add_operation("verify ssh access to supervisor", verify.check_ssh_with_certs)
 
 
-def iterative_verifier(verifier, max_time):
+def iterative_verifier(verifier, max_time, pause=2.0):
     def ver():
         end_time = time.time() + max_time
         while True:
@@ -56,7 +56,7 @@ def iterative_verifier(verifier, max_time):
                     raise e
                 print("Verification failed:", e)
                 print("RETRYING...")
-            time.sleep(1)
+            time.sleep(pause)
 
     return ver
 
@@ -72,10 +72,10 @@ def sequence_core(ops: setup.Operations, config: configuration.Config) -> None:
 
     # spire verify etcd
     ops.add_operation("verify that etcd has launched successfully",
-                      iterative_verifier(verify.check_etcd_health, 10.0))
+                      iterative_verifier(verify.check_etcd_health, 20.0))
     # spire verify kubernetes
     ops.add_operation("verify that kubernetes has launched successfully",
-                      iterative_verifier(verify.check_kube_health, 5.0))
+                      iterative_verifier(verify.check_kube_health, 10.0))
 
 
 def sequence_registry(ops: setup.Operations, config: configuration.Config) -> None:
@@ -84,9 +84,23 @@ def sequence_registry(ops: setup.Operations, config: configuration.Config) -> No
     ops.add_operation("verify that acis can be pulled from the registry", verify.check_aci_pull)
 
 
+def sequence_flannel(ops: setup.Operations, config: configuration.Config) -> None:
+    ops.add_operation("deploy or update flannel", lambda: deploy.launch_spec("flannel.yaml"))
+    ops.add_operation("verify that flannel is online", iterative_verifier(verify.check_flannel_kubeinfo, 60.0))
+    ops.add_operation("verify that flannel is functioning", verify.check_flannel_function)
+
+
+def sequence_dns_addon(ops: setup.Operations, config: configuration.Config) -> None:
+    ops.add_operation("deploy or update dns-addon", lambda: deploy.launch_spec("dns-addon.yaml"))
+    ops.add_operation("verify that dns-addon is online", iterative_verifier(verify.check_dns_kubeinfo, 60.0))
+    ops.add_operation("verify that dns-addon is functioning", verify.check_dns_function)
+
+
 main_command = command.mux_map("commands about running large sequences of cluster bring-up automatically", {
     "keysystem": setup.wrapop("set up and verify functionality of the keyserver and keygateway", sequence_keysystem),
     "ssh": setup.wrapop("set up and verify ssh access to the supervisor node", sequence_ssh),
     "core": setup.wrapop("set up and verify core infrastructure operation", sequence_core),
     "registry": setup.wrapop("set up and verify the bootstrap container registry", sequence_registry),
+    "flannel": setup.wrapop("set up and verify the flannel core service", sequence_flannel),
+    "dns-addon": setup.wrapop("set up and verify the dns-addon core service", sequence_dns_addon),
 })
