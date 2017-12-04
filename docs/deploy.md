@@ -1,9 +1,20 @@
 # Installing packages
 
-You will need to install homeworld-admin-tools and all its dependencies. This
-will provide access to the 'spire' tool.
+To set up the apt repository:
 
-TODO: instructions on setting this up.
+    $ wget http://web.mit.edu/hyades/homeworld-apt-setup.deb
+    $ wget http://web.mit.edu/hyades/homeworld-apt-setup.deb.asc
+    $ gpg --verify homeworld-apt-setup.deb.asc
+       ^^ IF THIS FAILS (or you haven't verified cela's key in person before),
+          DELETE YOUR DOWNLOADS AND DO NOT CONTINUE
+    $ sudo dpkg -i homeworld-apt-setup.deb
+
+To install homeworld-admin-tools:
+
+    $ sudo apt-get update
+    $ sudo apt-get install homeworld-admin-tools
+
+This will provide access to the 'spire' tool.
 
 # Setting up a new cluster from scratch
 
