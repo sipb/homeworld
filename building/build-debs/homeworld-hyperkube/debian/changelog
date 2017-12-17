@@ -1,3 +1,9 @@
+homeworld-hyperkube (1.8.0-2) stretch; urgency=medium
+
+  * Updated release
+
+ -- Cel Skeggs <cela@mit.edu>  Sun, 17 Dec 2017 16:26:37 -0500
+
 homeworld-hyperkube (1.8.0-1) stretch; urgency=medium
 
   * Updated release

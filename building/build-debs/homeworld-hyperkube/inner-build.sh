@@ -23,7 +23,8 @@ export GOPATH="${GODIR}"
 
 (cd "${KUBE}" && tar -xf "${ROOT}/kubernetes-src-v${VERSION}.tar.xz")
 
-(cd "${KUBE}" && patch -p1 <"${ROOT}/kubernetes.patch")
+(cd "${KUBE}" && patch -p1 <"${ROOT}/fetch-aci.patch")
+(cd "${KUBE}" && patch -p1 <"${ROOT}/multihosts.patch")
 
 (cd "${KUBE}" && make)
 

@@ -1,0 +1,1441 @@
+commit f96793d738293590db1ad4fb94138651a426d3ed
+Author: Cel A. Skeggs <cela@mit.edu>
+Date:   Sun Dec 17 16:02:22 2017 -0500
+
+    RESTClient should be able to communicate with multiple api servers
+    
+    Next options are available for a client that wants to tolerate api server failures:
+    - virtual ip, eg managed by keepalived, with all clients connected
+      to that ip
+    - dns a records, and rely on golang client to try all of them
+    - use kubernetes service ip
+    First two options are providing addiotnal overhead, especially for environments
+    that are not running in the cloud infrastructure.
+    And in some cases it is simply not possible to rely on kubernetes service ip.
+    
+    This change allows to use multiple server endpoints in RESTClient and
+    rotate them if necessary. During normal operation RESTClient will stick
+    to single, randomly selected, endpoint. And new one will be selected only
+    if requests to the api server will start to fail repeatedly.
+    
+    kubectl config set-cluster was extended with additional options
+    to configure multiple servers:
+    
+    ```
+    kubectl config set-cluster dind --servers=http://10.0.0.1,http://10.0.0.2
+    
+    clusters:
+    - cluster:
+        servers:
+        - http://10.0.0.1
+        - http://10.0.0.2
+      name: test
+    ```
+    
+    And --server and --servers and not mutually exclusive:
+    
+    ```
+    kubectl config set-cluster dind --servers=http://10.0.0.2 --server=http://10.0.0.1
+    
+    clusters:
+    - cluster:
+        server: http://10.0.0.1
+        servers:
+        - http://10.0.0.1
+    ```
+    
+    Conflicts:
+    	staging/src/k8s.io/client-go/rest/config.go
+    	test/e2e/framework/framework.go
+
+diff --git a/pkg/client/tests/remotecommand_test.go b/pkg/client/tests/remotecommand_test.go
+index 6ea8a96..77eaac3 100644
+--- a/pkg/client/tests/remotecommand_test.go
++++ b/pkg/client/tests/remotecommand_test.go
+@@ -220,12 +220,12 @@ func TestStream(t *testing.T) {
+ 
+ 			server := httptest.NewServer(fakeServer(t, name, exec, testCase.Stdin, testCase.Stdout, testCase.Stderr, testCase.Error, testCase.Tty, testCase.MessageCount, testCase.ServerProtocols))
+ 
+-			url, _ := url.ParseRequestURI(server.URL)
++			u, _ := url.ParseRequestURI(server.URL)
+ 			config := restclient.ContentConfig{
+ 				GroupVersion:         &schema.GroupVersion{Group: "x"},
+ 				NegotiatedSerializer: testapi.Default.NegotiatedSerializer(),
+ 			}
+-			c, err := restclient.NewRESTClient(url, "", config, -1, -1, nil, nil)
++			c, err := restclient.NewRESTClient([]*url.URL{u}, "", config, -1, -1, nil, nil)
+ 			if err != nil {
+ 				t.Fatalf("failed to create a client: %v", err)
+ 			}
+diff --git a/pkg/client/unversioned/helper_test.go b/pkg/client/unversioned/helper_test.go
+index 5296610..eaf82d9 100644
+--- a/pkg/client/unversioned/helper_test.go
++++ b/pkg/client/unversioned/helper_test.go
+@@ -159,7 +159,7 @@ func TestSetsCodec(t *testing.T) {
+ 		var versionedPath string
+ 		err := SetKubernetesDefaults(conf)
+ 		if err == nil {
+-			_, versionedPath, err = restclient.DefaultServerURL(conf.Host, conf.APIPath, *conf.GroupVersion, false)
++			_, versionedPath, err = restclient.DefaultServerURLsForHosts([]string{conf.Host}, conf.APIPath, *conf.GroupVersion, false)
+ 		}
+ 
+ 		switch {
+diff --git a/pkg/kubectl/cmd/clusterinfo.go b/pkg/kubectl/cmd/clusterinfo.go
+index 71871a9..6fda2cc 100644
+--- a/pkg/kubectl/cmd/clusterinfo.go
++++ b/pkg/kubectl/cmd/clusterinfo.go
+@@ -20,6 +20,7 @@ import (
+ 	"fmt"
+ 	"io"
+ 	"strconv"
++	"strings"
+ 
+ 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+ 	"k8s.io/kubernetes/pkg/api"
+@@ -64,6 +65,9 @@ func RunClusterInfo(f cmdutil.Factory, out io.Writer, cmd *cobra.Command) error
+ 		return err
+ 	}
+ 	printService(out, "Kubernetes master", client.Host)
++	if len(client.AlternateHosts) > 0 {
++		printService(out, "Kubernetes alternate masters", strings.Join(client.AlternateHosts, ","))
++	}
+ 
+ 	cmdNamespace := cmdutil.GetFlagString(cmd, "namespace")
+ 	if cmdNamespace == "" {
+diff --git a/pkg/kubectl/cmd/config/create_cluster.go b/pkg/kubectl/cmd/config/create_cluster.go
+index 388869a..7c5d76c 100644
+--- a/pkg/kubectl/cmd/config/create_cluster.go
++++ b/pkg/kubectl/cmd/config/create_cluster.go
+@@ -37,6 +37,7 @@ type createClusterOptions struct {
+ 	configAccess          clientcmd.ConfigAccess
+ 	name                  string
+ 	server                flag.StringFlag
++	servers               []string
+ 	insecureSkipTLSVerify flag.Tristate
+ 	certificateAuthority  flag.StringFlag
+ 	embedCAData           flag.Tristate
+@@ -63,7 +64,7 @@ func NewCmdConfigSetCluster(out io.Writer, configAccess clientcmd.ConfigAccess)
+ 	options := &createClusterOptions{configAccess: configAccess}
+ 
+ 	cmd := &cobra.Command{
+-		Use:     fmt.Sprintf("set-cluster NAME [--%v=server] [--%v=path/to/certificate/authority] [--%v=true]", clientcmd.FlagAPIServer, clientcmd.FlagCAFile, clientcmd.FlagInsecure),
++		Use:     fmt.Sprintf("set-cluster NAME [--%v=server] [--%v=servers] [--%v=path/to/certificate/authority] [--%v=true]", clientcmd.FlagAPIServer, clientcmd.FlagAPIServers, clientcmd.FlagCAFile, clientcmd.FlagInsecure),
+ 		Short:   i18n.T("Sets a cluster entry in kubeconfig"),
+ 		Long:    create_cluster_long,
+ 		Example: create_cluster_example,
+@@ -77,6 +78,7 @@ func NewCmdConfigSetCluster(out io.Writer, configAccess clientcmd.ConfigAccess)
+ 	options.insecureSkipTLSVerify.Default(false)
+ 
+ 	cmd.Flags().Var(&options.server, clientcmd.FlagAPIServer, clientcmd.FlagAPIServer+" for the cluster entry in kubeconfig")
++	cmd.Flags().StringSliceVar(&options.servers, clientcmd.FlagAPIServers, nil, "Use servers to specify list of API servers, can be used with or without --server.")
+ 	f := cmd.Flags().VarPF(&options.insecureSkipTLSVerify, clientcmd.FlagInsecure, "", clientcmd.FlagInsecure+" for the cluster entry in kubeconfig")
+ 	f.NoOptDefVal = "true"
+ 	cmd.Flags().Var(&options.certificateAuthority, clientcmd.FlagCAFile, "Path to "+clientcmd.FlagCAFile+" file for the cluster entry in kubeconfig")
+@@ -119,6 +121,9 @@ func (o *createClusterOptions) modifyCluster(existingCluster clientcmdapi.Cluste
+ 	if o.server.Provided() {
+ 		modifiedCluster.Server = o.server.Value()
+ 	}
++	if len(o.servers) > 0 {
++		modifiedCluster.Servers = o.servers
++	}
+ 	if o.insecureSkipTLSVerify.Provided() {
+ 		modifiedCluster.InsecureSkipTLSVerify = o.insecureSkipTLSVerify.Value()
+ 		// Specifying insecure mode clears any certificate authority
+diff --git a/pkg/kubectl/cmd/create_rolebinding_test.go b/pkg/kubectl/cmd/create_rolebinding_test.go
+index b7153b9..ff5aaf6 100644
+--- a/pkg/kubectl/cmd/create_rolebinding_test.go
++++ b/pkg/kubectl/cmd/create_rolebinding_test.go
+@@ -136,5 +136,6 @@ func (c *RoleBindingRESTClient) Post() *restclient.Request {
+ 		serializers.StreamingSerializer = info.StreamSerializer.Serializer
+ 		serializers.Framer = info.StreamSerializer.Framer
+ 	}
+-	return restclient.NewRequest(c, "POST", &url.URL{Host: "localhost"}, c.VersionedAPIPath, config, serializers, nil, nil)
++	u := &url.URL{Host: "localhost"}
++	return restclient.NewRequest(c, "POST", restclient.NewURLContainer([]*url.URL{u}), c.VersionedAPIPath, config, serializers, nil, nil)
+ }
+diff --git a/staging/src/k8s.io/client-go/rest/BUILD b/staging/src/k8s.io/client-go/rest/BUILD
+index f349bdd..54142bd 100644
+--- a/staging/src/k8s.io/client-go/rest/BUILD
++++ b/staging/src/k8s.io/client-go/rest/BUILD
+@@ -15,6 +15,7 @@ go_test(
+         "request_test.go",
+         "url_utils_test.go",
+         "urlbackoff_test.go",
++        "urlcontainer_test.go",
+     ],
+     library = ":go_default_library",
+     deps = [
+@@ -53,6 +54,7 @@ go_library(
+         "transport.go",
+         "url_utils.go",
+         "urlbackoff.go",
++        "urlcontainer.go",
+         "versions.go",
+         "zz_generated.deepcopy.go",
+     ],
+diff --git a/staging/src/k8s.io/client-go/rest/client.go b/staging/src/k8s.io/client-go/rest/client.go
+index 524e0d8..54f1036 100644
+--- a/staging/src/k8s.io/client-go/rest/client.go
++++ b/staging/src/k8s.io/client-go/rest/client.go
+@@ -59,8 +59,8 @@ type Interface interface {
+ //
+ // Most consumers should use client.New() to get a Kubernetes API client.
+ type RESTClient struct {
+-	// base is the root URL for all invocations of the client
+-	base *url.URL
++	// base URLContainer with all urls that can be used for communication with api servers
++	base *URLContainer
+ 	// versionedAPIPath is a path segment connecting the base URL to the resource root
+ 	versionedAPIPath string
+ 
+@@ -91,14 +91,18 @@ type Serializers struct {
+ // NewRESTClient creates a new RESTClient. This client performs generic REST functions
+ // such as Get, Put, Post, and Delete on specified paths.  Codec controls encoding and
+ // decoding of responses from the server.
+-func NewRESTClient(baseURL *url.URL, versionedAPIPath string, config ContentConfig, maxQPS float32, maxBurst int, rateLimiter flowcontrol.RateLimiter, client *http.Client) (*RESTClient, error) {
+-	base := *baseURL
+-	if !strings.HasSuffix(base.Path, "/") {
+-		base.Path += "/"
++func NewRESTClient(baseURLs []*url.URL, versionedAPIPath string, config ContentConfig, maxQPS float32, maxBurst int, rateLimiter flowcontrol.RateLimiter, client *http.Client) (*RESTClient, error) {
++	cleanURLs := make([]*url.URL, 0, len(baseURLs))
++	for _, u := range baseURLs {
++		cleanURL := *u
++		if !strings.HasSuffix(cleanURL.Path, "/") {
++			cleanURL.Path += "/"
++		}
++		cleanURL.RawQuery = ""
++		cleanURL.Fragment = ""
++		cleanURLs = append(cleanURLs, &cleanURL)
+ 	}
+-	base.RawQuery = ""
+-	base.Fragment = ""
+-
++	urlContainer := NewURLContainer(cleanURLs)
+ 	if config.GroupVersion == nil {
+ 		config.GroupVersion = &schema.GroupVersion{}
+ 	}
+@@ -117,7 +121,7 @@ func NewRESTClient(baseURL *url.URL, versionedAPIPath string, config ContentConf
+ 		throttle = rateLimiter
+ 	}
+ 	return &RESTClient{
+-		base:             &base,
++		base:             urlContainer,
+ 		versionedAPIPath: versionedAPIPath,
+ 		contentConfig:    config,
+ 		serializers:      *serializers,
+diff --git a/staging/src/k8s.io/client-go/rest/client_test.go b/staging/src/k8s.io/client-go/rest/client_test.go
+index 3096cc1..c1be42e 100644
+--- a/staging/src/k8s.io/client-go/rest/client_test.go
++++ b/staging/src/k8s.io/client-go/rest/client_test.go
+@@ -36,6 +36,7 @@ import (
+ 	"k8s.io/apimachinery/pkg/types"
+ 	"k8s.io/apimachinery/pkg/util/diff"
+ 	"k8s.io/client-go/kubernetes/scheme"
++	"k8s.io/client-go/util/flowcontrol"
+ 	utiltesting "k8s.io/client-go/util/testing"
+ )
+ 
+@@ -85,6 +86,85 @@ func TestDoRequestSuccess(t *testing.T) {
+ 	validate(testParam, t, body, fakeHandler)
+ }
+ 
++func TestDoRequestWithMultipleHosts(t *testing.T) {
++	successServer, _, _ := testServerEnv(t, 200)
++	defer successServer.Close()
++	invalidURL := "http://127.0.0.1:30767/"
++	validURL := successServer.URL + "/"
++	for _, test := range []struct {
++		msg           string
++		alternateURLs []string
++		requests      int
++		atMostFailed  int
++		validURL      string
++	}{
++		{
++			msg:           "if there is valid url - client will find it and stick to it",
++			alternateURLs: []string{validURL, invalidURL},
++			requests:      3,
++			atMostFailed:  1,
++			validURL:      validURL,
++		},
++		{
++			msg:           "in the absence of valid url - client will switch URL after each request",
++			alternateURLs: []string{invalidURL, invalidURL},
++			requests:      4,
++			atMostFailed:  4,
++			validURL:      invalidURL,
++		},
++	} {
++		t.Log("Running test: ", test.msg)
++		client, err := restClientWithAlternateURLs(test.alternateURLs...)
++		if err != nil {
++			t.Fatal(err)
++		}
++		client.base.initializeRateLimiter = func(_ float32, _ int) flowcontrol.RateLimiter {
++			return flowcontrol.NewFakeNeverRateLimiter()
++		}
++		client.base.renewRateLimiter()
++		var failed int
++		for i := 0; i < test.requests; i++ {
++			_, err := client.Get().Prefix("test").Do().Raw()
++			if err != nil {
++				failed++
++				t.Log(err)
++			}
++		}
++		if failed > test.atMostFailed {
++			t.Errorf("%s: Unexpected number of failed requests: Expected %v, Got %v", test.msg, test.atMostFailed, failed)
++		}
++		if test.validURL != client.base.Get().String() {
++			t.Errorf("%s: Unexpected valid url list: Expected %v != Got %v", test.msg, test.validURL, validURL)
++		}
++	}
++}
++
++func TestDoMultipleRequestsWithTokenBucketRateLimiter(t *testing.T) {
++	successServer, _, _ := testServerEnv(t, 200)
++	defer successServer.Close()
++	invalidURL := "http://127.0.0.1:30767/"
++	validURL := successServer.URL + "/"
++	client, err := restClientWithAlternateURLs(invalidURL, validURL)
++	if err != nil {
++		t.Fatal(err)
++	}
++	client.base.initializeRateLimiter = func(errorps float32, burst int) flowcontrol.RateLimiter {
++		return flowcontrol.NewTokenBucketRateLimiter(errorps, burst)
++	}
++	client.base.errorps = float32(1)
++	client.base.burst = 10
++	client.base.renewRateLimiter()
++	for i := 0; i <= 20; i++ {
++		_, err := client.Get().Prefix("test").Do().Raw()
++		if err != nil {
++			t.Log(err)
++		}
++	}
++	if actualURL := client.base.Get().String(); actualURL != validURL {
++		t.Errorf("After amount of errors will surpass limits defined in RateLimiter - actual URL should be valid: %v", actualURL)
++	}
++}
++
+ func TestDoRequestFailed(t *testing.T) {
+ 	status := &metav1.Status{
+ 		Code:    http.StatusNotFound,
+@@ -330,7 +410,7 @@ func testServerEnv(t *testing.T, statusCode int) (*httptest.Server, *utiltesting
+ }
+ 
+ func restClient(testServer *httptest.Server) (*RESTClient, error) {
+-	c, err := RESTClientFor(&Config{
++	return RESTClientFor(&Config{
+ 		Host: testServer.URL,
+ 		ContentConfig: ContentConfig{
+ 			GroupVersion:         &v1.SchemeGroupVersion,
+@@ -339,5 +419,17 @@ func restClient(testServer *httptest.Server) (*RESTClient, error) {
+ 		Username: "user",
+ 		Password: "pass",
+ 	})
+-	return c, err
++}
++
++func restClientWithAlternateURLs(alternateURLs ...string) (*RESTClient, error) {
++	return RESTClientFor(&Config{
++		AlternateHosts: alternateURLs,
++		ContentConfig: ContentConfig{
++			GroupVersion:         &v1.SchemeGroupVersion,
++			NegotiatedSerializer: serializer.DirectCodecFactory{CodecFactory: scheme.Codecs},
++		},
++
++		Username: "user",
++		Password: "pass",
++	})
+ }
+diff --git a/staging/src/k8s.io/client-go/rest/config.go b/staging/src/k8s.io/client-go/rest/config.go
+index 57848c8..a44387c 100644
+--- a/staging/src/k8s.io/client-go/rest/config.go
++++ b/staging/src/k8s.io/client-go/rest/config.go
+@@ -117,11 +117,31 @@ type Config struct {
+ 	// Dial specifies the dial function for creating unencrypted TCP connections.
+ 	Dial func(network, addr string) (net.Conn, error)
+ 
++	// AlternateHosts is additional hosts that can be used for purpose of fault tolerance
++	AlternateHosts []string
++
+ 	// Version forces a specific version to be used (if registered)
+ 	// Do we need this?
+ 	// Version string
+ }
+ 
++// AllHosts combines Host and AlternateHosts into single slice
++func (c *Config) Hosts() []string {
++	var hosts []string
++	if len(c.Host) > 0 {
++		hosts = make([]string, 0, 1+len(c.AlternateHosts))
++		hosts = append(hosts, c.Host)
++	} else {
++		hosts = make([]string, 0, len(c.AlternateHosts))
++	}
++	for _, host := range c.AlternateHosts {
++		if host != c.Host {
++			hosts = append(hosts, host)
++		}
++	}
++	return hosts
++}
++
+ // ImpersonationConfig has all the available impersonation options
+ type ImpersonationConfig struct {
+ 	// UserName is the username to impersonate on each request.
+@@ -199,7 +219,7 @@ func RESTClientFor(config *Config) (*RESTClient, error) {
+ 		burst = DefaultBurst
+ 	}
+ 
+-	baseURL, versionedAPIPath, err := defaultServerUrlFor(config)
++	hosts, versionedAPIPath, err := defaultServerUrlsFor(config)
+ 	if err != nil {
+ 		return nil, err
+ 	}
+@@ -216,8 +236,7 @@ func RESTClientFor(config *Config) (*RESTClient, error) {
+ 			httpClient.Timeout = config.Timeout
+ 		}
+ 	}
+-
+-	return NewRESTClient(baseURL, versionedAPIPath, config.ContentConfig, qps, burst, config.RateLimiter, httpClient)
++	return NewRESTClient(hosts, versionedAPIPath, config.ContentConfig, qps, burst, config.RateLimiter, httpClient)
+ }
+ 
+ // UnversionedRESTClientFor is the same as RESTClientFor, except that it allows
+@@ -227,7 +246,7 @@ func UnversionedRESTClientFor(config *Config) (*RESTClient, error) {
+ 		return nil, fmt.Errorf("NeogitatedSerializer is required when initializing a RESTClient")
+ 	}
+ 
+-	baseURL, versionedAPIPath, err := defaultServerUrlFor(config)
++	hosts, versionedAPIPath, err := defaultServerUrlsFor(config)
+ 	if err != nil {
+ 		return nil, err
+ 	}
+@@ -251,7 +270,7 @@ func UnversionedRESTClientFor(config *Config) (*RESTClient, error) {
+ 		versionConfig.GroupVersion = &v
+ 	}
+ 
+-	return NewRESTClient(baseURL, versionedAPIPath, versionConfig, config.QPS, config.Burst, config.RateLimiter, httpClient)
++	return NewRESTClient(hosts, versionedAPIPath, versionConfig, config.QPS, config.Burst, config.RateLimiter, httpClient)
+ }
+ 
+ // SetKubernetesDefaults sets default values on the provided client config for accessing the
+@@ -347,12 +366,24 @@ func InClusterConfig() (*Config, error) {
+ //
+ // Note: the Insecure flag is ignored when testing for this value, so MITM attacks are
+ // still possible.
+-func IsConfigTransportTLS(config Config) bool {
+-	baseURL, _, err := defaultServerUrlFor(&config)
++func IsConfigTransportTLS(config Config) (bool, error) {
++	hosts, _, err := defaultServerUrlsFor(&config)
++	// TODO Propagate errors from defaultServerUrlsFor
+ 	if err != nil {
+-		return false
++		return false, nil
++	}
++	allHttps := 0
++	for _, host := range hosts {
++		if host.Scheme == "https" {
++			allHttps++
++		}
++	}
++	if allHttps == 0 {
++		return false, nil
++	} else if allHttps == len(hosts) {
++		return true, nil
+ 	}
+-	return baseURL.Scheme == "https"
++	return false, fmt.Errorf("https and http can't be mixed, hosts: %v", hosts)
+ }
+ 
+ // LoadTLSFiles copies the data from the CertFile, KeyFile, and CAFile fields into the CertData,
+@@ -403,10 +434,11 @@ func AddUserAgent(config *Config, userAgent string) *Config {
+ func AnonymousClientConfig(config *Config) *Config {
+ 	// copy only known safe fields
+ 	return &Config{
+-		Host:          config.Host,
+-		APIPath:       config.APIPath,
+-		Prefix:        config.Prefix,
+-		ContentConfig: config.ContentConfig,
++		Host:           config.Host,
++		AlternateHosts: config.AlternateHosts,
++		APIPath:        config.APIPath,
++		Prefix:         config.Prefix,
++		ContentConfig:  config.ContentConfig,
+ 		TLSClientConfig: TLSClientConfig{
+ 			Insecure:   config.Insecure,
+ 			ServerName: config.ServerName,
+diff --git a/staging/src/k8s.io/client-go/rest/config_test.go b/staging/src/k8s.io/client-go/rest/config_test.go
+index ff851e6..e2c351b 100644
+--- a/staging/src/k8s.io/client-go/rest/config_test.go
++++ b/staging/src/k8s.io/client-go/rest/config_test.go
+@@ -42,6 +42,7 @@ func TestIsConfigTransportTLS(t *testing.T) {
+ 	testCases := []struct {
+ 		Config       *Config
+ 		TransportTLS bool
++		Err          bool
+ 	}{
+ 		{
+ 			Config:       &Config{},
+@@ -80,15 +81,46 @@ func TestIsConfigTransportTLS(t *testing.T) {
+ 			},
+ 			TransportTLS: true,
+ 		},
++		{
++			Config: &Config{
++				Host:           "https://localhost",
++				AlternateHosts: []string{"https://10.10.0.2", "https://10.10.0.3"},
++			},
++			TransportTLS: true,
++		},
++		{
++			Config: &Config{
++				AlternateHosts: []string{"https://10.10.0.2", "https://10.10.0.3"},
++			},
++			TransportTLS: true,
++		},
++		{
++			Config: &Config{
++				Host:           "http://localhost",
++				AlternateHosts: []string{"https://10.10.0.2", "https://10.10.0.3"},
++			},
++			Err: true,
++		},
++		{
++			Config: &Config{
++				Host:           "https://10.10.0.1",
++				AlternateHosts: []string{"http://10.10.0.2", "https://10.10.0.3"},
++			},
++			Err: true,
++		},
+ 	}
+-	for _, testCase := range testCases {
++	for i, testCase := range testCases {
+ 		if err := SetKubernetesDefaults(testCase.Config); err != nil {
+-			t.Errorf("setting defaults failed for %#v: %v", testCase.Config, err)
++			t.Errorf("%d: setting defaults failed for %#v: %v", i, testCase.Config, err)
+ 			continue
+ 		}
+-		useTLS := IsConfigTransportTLS(*testCase.Config)
+-		if testCase.TransportTLS != useTLS {
+-			t.Errorf("expected %v for %#v", testCase.TransportTLS, testCase.Config)
++		useTLS, err := IsConfigTransportTLS(*testCase.Config)
++		isErr := err != nil
++		if isErr != testCase.Err {
++			t.Errorf("%d: Unexpected error %v", i, err)
++		}
++		if !isErr && testCase.TransportTLS != useTLS {
++			t.Errorf("%d: expected %v for %#v", i, testCase.TransportTLS, testCase.Config)
+ 		}
+ 	}
+ }
+diff --git a/staging/src/k8s.io/client-go/rest/fake/fake.go b/staging/src/k8s.io/client-go/rest/fake/fake.go
+index db2c01c..b371b92 100644
+--- a/staging/src/k8s.io/client-go/rest/fake/fake.go
++++ b/staging/src/k8s.io/client-go/rest/fake/fake.go
+@@ -107,7 +107,8 @@ func (c *RESTClient) request(verb string) *restclient.Request {
+ 		serializers.StreamingSerializer = info.StreamSerializer.Serializer
+ 		serializers.Framer = info.StreamSerializer.Framer
+ 	}
+-	return restclient.NewRequest(c, verb, &url.URL{Host: "localhost"}, c.VersionedAPIPath, config, serializers, nil, nil)
++	u := &url.URL{Host: "localhost"}
++	return restclient.NewRequest(c, verb, restclient.NewURLContainer([]*url.URL{u}), c.VersionedAPIPath, config, serializers, nil, nil)
+ }
+ 
+ func (c *RESTClient) Do(req *http.Request) (*http.Response, error) {
+diff --git a/staging/src/k8s.io/client-go/rest/request.go b/staging/src/k8s.io/client-go/rest/request.go
+index 1709824..25a6778 100644
+--- a/staging/src/k8s.io/client-go/rest/request.go
++++ b/staging/src/k8s.io/client-go/rest/request.go
+@@ -82,9 +82,10 @@ type Request struct {
+ 	client HTTPClient
+ 	verb   string
+ 
+-	baseURL     *url.URL
+-	content     ContentConfig
+-	serializers Serializers
++	baseURL      *url.URL
++	urlContainer *URLContainer
++	content      ContentConfig
++	serializers  Serializers
+ 
+ 	// generic components accessible via method setters
+ 	pathPrefix string
+@@ -112,25 +113,26 @@ type Request struct {
+ }
+ 
+ // NewRequest creates a new request helper object for accessing runtime.Objects on a server.
+-func NewRequest(client HTTPClient, verb string, baseURL *url.URL, versionedAPIPath string, content ContentConfig, serializers Serializers, backoff BackoffManager, throttle flowcontrol.RateLimiter) *Request {
++func NewRequest(client HTTPClient, verb string, urlContainer *URLContainer, versionedAPIPath string, content ContentConfig, serializers Serializers, backoff BackoffManager, throttle flowcontrol.RateLimiter) *Request {
+ 	if backoff == nil {
+ 		glog.V(2).Infof("Not implementing request backoff strategy.")
+ 		backoff = &NoBackoff{}
+ 	}
+-
++	baseURL := urlContainer.Get()
+ 	pathPrefix := "/"
+ 	if baseURL != nil {
+ 		pathPrefix = path.Join(pathPrefix, baseURL.Path)
+ 	}
+ 	r := &Request{
+-		client:      client,
+-		verb:        verb,
+-		baseURL:     baseURL,
+-		pathPrefix:  path.Join(pathPrefix, versionedAPIPath),
+-		content:     content,
+-		serializers: serializers,
+-		backoffMgr:  backoff,
+-		throttle:    throttle,
++		client:       client,
++		verb:         verb,
++		baseURL:      baseURL,
++		urlContainer: urlContainer,
++		pathPrefix:   path.Join(pathPrefix, versionedAPIPath),
++		content:      content,
++		serializers:  serializers,
++		backoffMgr:   backoff,
++		throttle:     throttle,
+ 	}
+ 	switch {
+ 	case len(content.AcceptContentTypes) > 0:
+@@ -504,6 +506,7 @@ func (r *Request) Watch() (watch.Interface, error) {
+ 		if net.IsProbableEOF(err) {
+ 			return watch.NewEmptyWatch(), nil
+ 		}
++		r.urlContainer.Exclude(r.baseURL)
+ 		return nil, err
+ 	}
+ 	if resp.StatusCode != http.StatusOK {
+@@ -571,6 +574,7 @@ func (r *Request) Stream() (io.ReadCloser, error) {
+ 		}
+ 	}
+ 	if err != nil {
++		r.urlContainer.Exclude(r.baseURL)
+ 		return nil, err
+ 	}
+ 
+@@ -655,6 +659,7 @@ func (r *Request) request(fn func(*http.Request, *http.Response)) error {
+ 			// We are not automatically retrying "write" operations, as
+ 			// they are not idempotent.
+ 			if !net.IsConnectionReset(err) || r.verb != "GET" {
++				r.urlContainer.Exclude(r.baseURL)
+ 				return err
+ 			}
+ 			// For the purpose of retry, we set the artificial "retry-after" response.
+diff --git a/staging/src/k8s.io/client-go/rest/request_test.go b/staging/src/k8s.io/client-go/rest/request_test.go
+index 0691fc7..fc68616 100755
+--- a/staging/src/k8s.io/client-go/rest/request_test.go
++++ b/staging/src/k8s.io/client-go/rest/request_test.go
+@@ -54,11 +54,11 @@ import (
+ )
+ 
+ func TestNewRequestSetsAccept(t *testing.T) {
+-	r := NewRequest(nil, "get", &url.URL{Path: "/path/"}, "", ContentConfig{}, Serializers{}, nil, nil)
++	r := NewRequest(nil, "get", NewURLContainer([]*url.URL{{Path: "/path/"}}), "", ContentConfig{}, Serializers{}, nil, nil)
+ 	if r.headers.Get("Accept") != "" {
+ 		t.Errorf("unexpected headers: %#v", r.headers)
+ 	}
+-	r = NewRequest(nil, "get", &url.URL{Path: "/path/"}, "", ContentConfig{ContentType: "application/other"}, Serializers{}, nil, nil)
++	r = NewRequest(nil, "get", NewURLContainer([]*url.URL{{Path: "/path/"}}), "", ContentConfig{ContentType: "application/other"}, Serializers{}, nil, nil)
+ 	if r.headers.Get("Accept") != "application/other, */*" {
+ 		t.Errorf("unexpected headers: %#v", r.headers)
+ 	}
+@@ -83,7 +83,7 @@ func TestRequestSetsHeaders(t *testing.T) {
+ 	config := defaultContentConfig()
+ 	config.ContentType = "application/other"
+ 	serializers := defaultSerializers(t)
+-	r := NewRequest(server, "get", &url.URL{Path: "/path"}, "", config, serializers, nil, nil)
++	r := NewRequest(server, "get", NewURLContainer([]*url.URL{{Path: "/path"}}), "", config, serializers, nil, nil)
+ 
+ 	// Check if all "issue" methods are setting headers.
+ 	_ = r.Do()
+@@ -116,33 +116,33 @@ func TestRequestWithErrorWontChange(t *testing.T) {
+ }
+ 
+ func TestRequestPreservesBaseTrailingSlash(t *testing.T) {
+-	r := &Request{baseURL: &url.URL{}, pathPrefix: "/path/"}
++	r := &Request{urlContainer: &URLContainer{}, baseURL: &url.URL{}, pathPrefix: "/path/"}
+ 	if s := r.URL().String(); s != "/path/" {
+ 		t.Errorf("trailing slash should be preserved: %s", s)
+ 	}
+ }
+ 
+ func TestRequestAbsPathPreservesTrailingSlash(t *testing.T) {
+-	r := (&Request{baseURL: &url.URL{}}).AbsPath("/foo/")
++	r := (&Request{urlContainer: &URLContainer{}, baseURL: &url.URL{}}).AbsPath("/foo/")
+ 	if s := r.URL().String(); s != "/foo/" {
+ 		t.Errorf("trailing slash should be preserved: %s", s)
+ 	}
+ 
+-	r = (&Request{baseURL: &url.URL{}}).AbsPath("/foo/")
++	r = (&Request{urlContainer: &URLContainer{}, baseURL: &url.URL{}}).AbsPath("/foo/")
+ 	if s := r.URL().String(); s != "/foo/" {
+ 		t.Errorf("trailing slash should be preserved: %s", s)
+ 	}
+ }
+ 
+ func TestRequestAbsPathJoins(t *testing.T) {
+-	r := (&Request{baseURL: &url.URL{}}).AbsPath("foo/bar", "baz")
++	r := (&Request{urlContainer: &URLContainer{}, baseURL: &url.URL{}}).AbsPath("foo/bar", "baz")
+ 	if s := r.URL().String(); s != "foo/bar/baz" {
+ 		t.Errorf("trailing slash should be preserved: %s", s)
+ 	}
+ }
+ 
+ func TestRequestSetsNamespace(t *testing.T) {
+-	r := (&Request{
++	r := (&Request{urlContainer: &URLContainer{},
+ 		baseURL: &url.URL{
+ 			Path: "/",
+ 		},
+@@ -157,7 +157,7 @@ func TestRequestSetsNamespace(t *testing.T) {
+ }
+ 
+ func TestRequestOrdersNamespaceInPath(t *testing.T) {
+-	r := (&Request{
++	r := (&Request{urlContainer: &URLContainer{},
+ 		baseURL:    &url.URL{},
+ 		pathPrefix: "/test/",
+ 	}).Name("bar").Resource("baz").Namespace("foo")
+@@ -167,7 +167,7 @@ func TestRequestOrdersNamespaceInPath(t *testing.T) {
+ }
+ 
+ func TestRequestOrdersSubResource(t *testing.T) {
+-	r := (&Request{
++	r := (&Request{urlContainer: &URLContainer{},
+ 		baseURL:    &url.URL{},
+ 		pathPrefix: "/test/",
+ 	}).Name("bar").Resource("baz").Namespace("foo").Suffix("test").SubResource("a", "b")
+@@ -177,16 +177,16 @@ func TestRequestOrdersSubResource(t *testing.T) {
+ }
+ 
+ func TestRequestSetTwiceError(t *testing.T) {
+-	if (&Request{}).Name("bar").Name("baz").err == nil {
++	if (&Request{urlContainer: &URLContainer{}}).Name("bar").Name("baz").err == nil {
+ 		t.Errorf("setting name twice should result in error")
+ 	}
+-	if (&Request{}).Namespace("bar").Namespace("baz").err == nil {
++	if (&Request{urlContainer: &URLContainer{}}).Namespace("bar").Namespace("baz").err == nil {
+ 		t.Errorf("setting namespace twice should result in error")
+ 	}
+-	if (&Request{}).Resource("bar").Resource("baz").err == nil {
++	if (&Request{urlContainer: &URLContainer{}}).Resource("bar").Resource("baz").err == nil {
+ 		t.Errorf("setting resource twice should result in error")
+ 	}
+-	if (&Request{}).SubResource("bar").SubResource("baz").err == nil {
++	if (&Request{urlContainer: &URLContainer{}}).SubResource("bar").SubResource("baz").err == nil {
+ 		t.Errorf("setting subresource twice should result in error")
+ 	}
+ }
+@@ -201,7 +201,7 @@ func TestInvalidSegments(t *testing.T) {
+ 	}
+ 	for _, invalidSegment := range invalidSegments {
+ 		for setterName, setter := range setters {
+-			r := &Request{}
++			r := &Request{urlContainer: &URLContainer{}}
+ 			setter(invalidSegment, r)
+ 			if r.err == nil {
+ 				t.Errorf("%s: %s: expected error, got none", setterName, invalidSegment)
+@@ -211,7 +211,7 @@ func TestInvalidSegments(t *testing.T) {
+ }
+ 
+ func TestRequestParam(t *testing.T) {
+-	r := (&Request{}).Param("foo", "a")
++	r := (&Request{urlContainer: &URLContainer{}}).Param("foo", "a")
+ 	if !reflect.DeepEqual(r.params, url.Values{"foo": []string{"a"}}) {
+ 		t.Errorf("should have set a param: %#v", r)
+ 	}
+@@ -224,7 +224,7 @@ func TestRequestParam(t *testing.T) {
+ }
+ 
+ func TestRequestVersionedParams(t *testing.T) {
+-	r := (&Request{content: ContentConfig{GroupVersion: &v1.SchemeGroupVersion}}).Param("foo", "a")
++	r := (&Request{urlContainer: &URLContainer{}, content: ContentConfig{GroupVersion: &v1.SchemeGroupVersion}}).Param("foo", "a")
+ 	if !reflect.DeepEqual(r.params, url.Values{"foo": []string{"a"}}) {
+ 		t.Errorf("should have set a param: %#v", r)
+ 	}
+@@ -240,7 +240,7 @@ func TestRequestVersionedParams(t *testing.T) {
+ }
+ 
+ func TestRequestVersionedParamsFromListOptions(t *testing.T) {
+-	r := &Request{content: ContentConfig{GroupVersion: &v1.SchemeGroupVersion}}
++	r := &Request{urlContainer: &URLContainer{}, content: ContentConfig{GroupVersion: &v1.SchemeGroupVersion}}
+ 	r.VersionedParams(&metav1.ListOptions{ResourceVersion: "1"}, scheme.ParameterCodec)
+ 	if !reflect.DeepEqual(r.params, url.Values{
+ 		"resourceVersion": []string{"1"},
+@@ -259,7 +259,7 @@ func TestRequestVersionedParamsFromListOptions(t *testing.T) {
+ }
+ 
+ func TestRequestURI(t *testing.T) {
+-	r := (&Request{}).Param("foo", "a")
++	r := (&Request{urlContainer: &URLContainer{}}).Param("foo", "a")
+ 	r.Prefix("other")
+ 	r.RequestURI("/test?foo=b&a=b&c=1&c=2")
+ 	if r.pathPrefix != "/test" {
+@@ -295,7 +295,7 @@ func defaultSerializers(t *testing.T) Serializers {
+ 
+ func TestRequestBody(t *testing.T) {
+ 	// test unknown type
+-	r := (&Request{}).Body([]string{"test"})
++	r := (&Request{urlContainer: &URLContainer{}}).Body([]string{"test"})
+ 	if r.err == nil || r.body != nil {
+ 		t.Errorf("should have set err and left body nil: %#v", r)
+ 	}
+@@ -307,13 +307,13 @@ func TestRequestBody(t *testing.T) {
+ 	}
+ 	defer f.Close()
+ 	os.Remove(f.Name())
+-	r = (&Request{}).Body(f.Name())
++	r = (&Request{urlContainer: &URLContainer{}}).Body(f.Name())
+ 	if r.err == nil || r.body != nil {
+ 		t.Errorf("should have set err and left body nil: %#v", r)
+ 	}
+ 
+ 	// test unencodable api object
+-	r = (&Request{content: defaultContentConfig()}).Body(&NotAnAPIObject{})
++	r = (&Request{urlContainer: &URLContainer{}, content: defaultContentConfig()}).Body(&NotAnAPIObject{})
+ 	if r.err == nil || r.body != nil {
+ 		t.Errorf("should have set err and left body nil: %#v", r)
+ 	}
+@@ -338,7 +338,7 @@ func TestResultIntoWithNoBodyReturnsErr(t *testing.T) {
+ 
+ func TestURLTemplate(t *testing.T) {
+ 	uri, _ := url.Parse("http://localhost")
+-	r := NewRequest(nil, "POST", uri, "", ContentConfig{GroupVersion: &schema.GroupVersion{Group: "test"}}, Serializers{}, nil, nil)
++	r := NewRequest(nil, "POST", NewURLContainer([]*url.URL{uri}), "", ContentConfig{GroupVersion: &schema.GroupVersion{Group: "test"}}, Serializers{}, nil, nil)
+ 	r.Prefix("pre1").Resource("r1").Namespace("ns").Name("nm").Param("p0", "v0")
+ 	full := r.URL()
+ 	if full.String() != "http://localhost/pre1/namespaces/ns/r1/nm?p0=v0" {
+@@ -400,7 +400,7 @@ func TestTransformResponse(t *testing.T) {
+ 		{Response: &http.Response{StatusCode: 200, Body: ioutil.NopCloser(bytes.NewReader(invalid))}, Data: invalid},
+ 	}
+ 	for i, test := range testCases {
+-		r := NewRequest(nil, "", uri, "", defaultContentConfig(), defaultSerializers(t), nil, nil)
++		r := NewRequest(nil, "", NewURLContainer([]*url.URL{uri}), "", defaultContentConfig(), defaultSerializers(t), nil, nil)
+ 		if test.Response.Body == nil {
+ 			test.Response.Body = ioutil.NopCloser(bytes.NewReader([]byte{}))
+ 		}
+@@ -551,7 +551,7 @@ func TestTransformResponseNegotiate(t *testing.T) {
+ 		serializers.RenegotiatedDecoder = negotiator.invoke
+ 		contentConfig := defaultContentConfig()
+ 		contentConfig.ContentType = test.ContentType
+-		r := NewRequest(nil, "", uri, "", contentConfig, serializers, nil, nil)
++		r := NewRequest(nil, "", NewURLContainer([]*url.URL{uri}), "", contentConfig, serializers, nil, nil)
+ 		if test.Response.Body == nil {
+ 			test.Response.Body = ioutil.NopCloser(bytes.NewReader([]byte{}))
+ 		}
+@@ -679,7 +679,7 @@ func TestTransformUnstructuredError(t *testing.T) {
+ 	}
+ 
+ 	for i, testCase := range testCases {
+-		r := &Request{
++		r := &Request{urlContainer: &URLContainer{},
+ 			content:      defaultContentConfig(),
+ 			serializers:  defaultSerializers(t),
+ 			resourceName: testCase.Name,
+@@ -736,15 +736,15 @@ func TestRequestWatch(t *testing.T) {
+ 		Empty   bool
+ 	}{
+ 		{
+-			Request: &Request{err: errors.New("bail")},
++			Request: &Request{urlContainer: &URLContainer{}, err: errors.New("bail")},
+ 			Err:     true,
+ 		},
+ 		{
+-			Request: &Request{baseURL: &url.URL{}, pathPrefix: "%"},
++			Request: &Request{urlContainer: &URLContainer{}, baseURL: &url.URL{}, pathPrefix: "%"},
+ 			Err:     true,
+ 		},
+ 		{
+-			Request: &Request{
++			Request: &Request{urlContainer: &URLContainer{},
+ 				client: clientFunc(func(req *http.Request) (*http.Response, error) {
+ 					return nil, errors.New("err")
+ 				}),
+@@ -753,7 +753,7 @@ func TestRequestWatch(t *testing.T) {
+ 			Err: true,
+ 		},
+ 		{
+-			Request: &Request{
++			Request: &Request{urlContainer: &URLContainer{},
+ 				content:     defaultContentConfig(),
+ 				serializers: defaultSerializers(t),
+ 				client: clientFunc(func(req *http.Request) (*http.Response, error) {
+@@ -770,7 +770,7 @@ func TestRequestWatch(t *testing.T) {
+ 			},
+ 		},
+ 		{
+-			Request: &Request{
++			Request: &Request{urlContainer: &URLContainer{},
+ 				content:     defaultContentConfig(),
+ 				serializers: defaultSerializers(t),
+ 				client: clientFunc(func(req *http.Request) (*http.Response, error) {
+@@ -787,7 +787,7 @@ func TestRequestWatch(t *testing.T) {
+ 			},
+ 		},
+ 		{
+-			Request: &Request{
++			Request: &Request{urlContainer: &URLContainer{},
+ 				content:     defaultContentConfig(),
+ 				serializers: defaultSerializers(t),
+ 				client: clientFunc(func(req *http.Request) (*http.Response, error) {
+@@ -807,7 +807,7 @@ func TestRequestWatch(t *testing.T) {
+ 			},
+ 		},
+ 		{
+-			Request: &Request{
++			Request: &Request{urlContainer: &URLContainer{},
+ 				serializers: defaultSerializers(t),
+ 				client: clientFunc(func(req *http.Request) (*http.Response, error) {
+ 					return nil, io.EOF
+@@ -817,7 +817,7 @@ func TestRequestWatch(t *testing.T) {
+ 			Empty: true,
+ 		},
+ 		{
+-			Request: &Request{
++			Request: &Request{urlContainer: &URLContainer{},
+ 				serializers: defaultSerializers(t),
+ 				client: clientFunc(func(req *http.Request) (*http.Response, error) {
+ 					return nil, &url.Error{Err: io.EOF}
+@@ -827,7 +827,8 @@ func TestRequestWatch(t *testing.T) {
+ 			Empty: true,
+ 		},
+ 		{
+-			Request: &Request{
++
++			Request: &Request{urlContainer: &URLContainer{},
+ 				serializers: defaultSerializers(t),
+ 				client: clientFunc(func(req *http.Request) (*http.Response, error) {
+ 					return nil, errors.New("http: can't write HTTP request on broken connection")
+@@ -837,7 +838,7 @@ func TestRequestWatch(t *testing.T) {
+ 			Empty: true,
+ 		},
+ 		{
+-			Request: &Request{
++			Request: &Request{urlContainer: &URLContainer{},
+ 				serializers: defaultSerializers(t),
+ 				client: clientFunc(func(req *http.Request) (*http.Response, error) {
+ 					return nil, errors.New("foo: connection reset by peer")
+@@ -879,15 +880,15 @@ func TestRequestStream(t *testing.T) {
+ 		ErrFn   func(error) bool
+ 	}{
+ 		{
+-			Request: &Request{err: errors.New("bail")},
++			Request: &Request{urlContainer: &URLContainer{}, err: errors.New("bail")},
+ 			Err:     true,
+ 		},
+ 		{
+-			Request: &Request{baseURL: &url.URL{}, pathPrefix: "%"},
++			Request: &Request{urlContainer: &URLContainer{}, baseURL: &url.URL{}, pathPrefix: "%"},
+ 			Err:     true,
+ 		},
+ 		{
+-			Request: &Request{
++			Request: &Request{urlContainer: &URLContainer{},
+ 				client: clientFunc(func(req *http.Request) (*http.Response, error) {
+ 					return nil, errors.New("err")
+ 				}),
+@@ -896,7 +897,7 @@ func TestRequestStream(t *testing.T) {
+ 			Err: true,
+ 		},
+ 		{
+-			Request: &Request{
++			Request: &Request{urlContainer: &URLContainer{},
+ 				client: clientFunc(func(req *http.Request) (*http.Response, error) {
+ 					return &http.Response{
+ 						StatusCode: http.StatusUnauthorized,
+@@ -992,15 +993,15 @@ func TestRequestDo(t *testing.T) {
+ 		Err     bool
+ 	}{
+ 		{
+-			Request: &Request{err: errors.New("bail")},
++			Request: &Request{urlContainer: &URLContainer{}, err: errors.New("bail")},
+ 			Err:     true,
+ 		},
+ 		{
+-			Request: &Request{baseURL: &url.URL{}, pathPrefix: "%"},
++			Request: &Request{urlContainer: &URLContainer{}, baseURL: &url.URL{}, pathPrefix: "%"},
+ 			Err:     true,
+ 		},
+ 		{
+-			Request: &Request{
++			Request: &Request{urlContainer: &URLContainer{},
+ 				client: clientFunc(func(req *http.Request) (*http.Response, error) {
+ 					return nil, errors.New("err")
+ 				}),
+@@ -1160,7 +1161,7 @@ func TestCheckRetryClosesBody(t *testing.T) {
+ func TestConnectionResetByPeerIsRetried(t *testing.T) {
+ 	count := 0
+ 	backoff := &testBackoffManager{}
+-	req := &Request{
++	req := &Request{urlContainer: &URLContainer{},
+ 		verb: "GET",
+ 		client: clientFunc(func(req *http.Request) (*http.Response, error) {
+ 			count++
+@@ -1477,7 +1478,7 @@ func TestAbsPath(t *testing.T) {
+ 		{"/p1/api/p2", "/api/r1", "/api/", "/p1/api/p2/api/"},
+ 	} {
+ 		u, _ := url.Parse("http://localhost:123" + tc.configPrefix)
+-		r := NewRequest(nil, "POST", u, "", ContentConfig{GroupVersion: &schema.GroupVersion{Group: "test"}}, Serializers{}, nil, nil).Prefix(tc.resourcePrefix).AbsPath(tc.absPath)
++		r := NewRequest(nil, "POST", NewURLContainer([]*url.URL{u}), "", ContentConfig{GroupVersion: &schema.GroupVersion{Group: "test"}}, Serializers{}, nil, nil).Prefix(tc.resourcePrefix).AbsPath(tc.absPath)
+ 		if r.pathPrefix != tc.wantsAbsPath {
+ 			t.Errorf("test case %d failed, unexpected path: %q, expected %q", i, r.pathPrefix, tc.wantsAbsPath)
+ 		}
+@@ -1660,7 +1661,7 @@ func testRESTClient(t testing.TB, srv *httptest.Server) *RESTClient {
+ 		}
+ 	}
+ 	versionedAPIPath := defaultResourcePathWithPrefix("", "", "", "")
+-	client, err := NewRESTClient(baseURL, versionedAPIPath, defaultContentConfig(), 0, 0, nil, nil)
++	client, err := NewRESTClient([]*url.URL{baseURL}, versionedAPIPath, defaultContentConfig(), 0, 0, nil, nil)
+ 	if err != nil {
+ 		t.Fatalf("failed to create a client: %v", err)
+ 	}
+diff --git a/staging/src/k8s.io/client-go/rest/url_utils.go b/staging/src/k8s.io/client-go/rest/url_utils.go
+index 14f9465..6fec0f8 100644
+--- a/staging/src/k8s.io/client-go/rest/url_utils.go
++++ b/staging/src/k8s.io/client-go/rest/url_utils.go
+@@ -27,9 +27,9 @@ import (
+ // DefaultServerURL converts a host, host:port, or URL string to the default base server API path
+ // to use with a Client at a given API version following the standard conventions for a
+ // Kubernetes API.
+-func DefaultServerURL(host, apiPath string, groupVersion schema.GroupVersion, defaultTLS bool) (*url.URL, string, error) {
++func DefaultServerURL(host string, defaultTLS bool) (*url.URL, error) {
+ 	if host == "" {
+-		return nil, "", fmt.Errorf("host must be a URL or a host:port pair")
++		return nil, fmt.Errorf("host must be a URL or a host:port pair")
+ 	}
+ 	base := host
+ 	hostURL, err := url.Parse(base)
+@@ -40,11 +40,32 @@ func DefaultServerURL(host, apiPath string, groupVersion schema.GroupVersion, de
+ 		}
+ 		hostURL, err = url.Parse(scheme + base)
+ 		if err != nil {
+-			return nil, "", err
++			return nil, err
+ 		}
+ 		if hostURL.Path != "" && hostURL.Path != "/" {
+-			return nil, "", fmt.Errorf("host must be a URL or a host:port pair: %q", base)
++			return nil, fmt.Errorf("host must be a URL or a host:port pair: %q", base)
++		}
++
++	}
++	return hostURL, nil
++}
++
++// DefaultServerURLsForHosts converts a collection of hosts, host:port pairs, or URL strings to the default base server API path
++// to use with a Client at a given API version following the standard conventions for a Kubernetes API.
++// If hosts are empty - localhost will be added.
++func DefaultServerURLsForHosts(hosts []string, apiPath string, groupVersion schema.GroupVersion, defaultTLS bool) ([]*url.URL, string, error) {
++	if len(hosts) == 0 {
++		hosts = []string{"localhost"}
++	}
++
++	var hostsURLs []*url.URL
++
++	for _, host := range hosts {
++		hostURL, err := DefaultServerURL(host, defaultTLS)
++		if err != nil {
++			return nil, "", err
+ 		}
++		hostsURLs = append(hostsURLs, hostURL)
+ 	}
+ 
+ 	// hostURL.Path is optional; a non-empty Path is treated as a prefix that is to be applied to
+@@ -61,30 +82,23 @@ func DefaultServerURL(host, apiPath string, groupVersion schema.GroupVersion, de
+ 	// Add the version to the end of the path
+ 	if len(groupVersion.Group) > 0 {
+ 		versionedAPIPath = path.Join(versionedAPIPath, groupVersion.Group, groupVersion.Version)
+-
+ 	} else {
+ 		versionedAPIPath = path.Join(versionedAPIPath, groupVersion.Version)
+-
+ 	}
+ 
+-	return hostURL, versionedAPIPath, nil
++	return hostsURLs, versionedAPIPath, nil
+ }
+ 
+-// defaultServerUrlFor is shared between IsConfigTransportTLS and RESTClientFor. It
++// defaultServerUrlsFor is shared between IsConfigTransportTLS and RESTClientFor. It
+ // requires Host and Version to be set prior to being called.
+-func defaultServerUrlFor(config *Config) (*url.URL, string, error) {
++func defaultServerUrlsFor(config *Config) ([]*url.URL, string, error) {
+ 	// TODO: move the default to secure when the apiserver supports TLS by default
+ 	// config.Insecure is taken to mean "I want HTTPS but don't bother checking the certs against a CA."
+ 	hasCA := len(config.CAFile) != 0 || len(config.CAData) != 0
+ 	hasCert := len(config.CertFile) != 0 || len(config.CertData) != 0
+ 	defaultTLS := hasCA || hasCert || config.Insecure
+-	host := config.Host
+-	if host == "" {
+-		host = "localhost"
+-	}
+-
+ 	if config.GroupVersion != nil {
+-		return DefaultServerURL(host, config.APIPath, *config.GroupVersion, defaultTLS)
++		return DefaultServerURLsForHosts(config.Hosts(), config.APIPath, *config.GroupVersion, defaultTLS)
+ 	}
+-	return DefaultServerURL(host, config.APIPath, schema.GroupVersion{}, defaultTLS)
++	return DefaultServerURLsForHosts(config.Hosts(), config.APIPath, schema.GroupVersion{}, defaultTLS)
+ }
+diff --git a/staging/src/k8s.io/client-go/rest/url_utils_test.go b/staging/src/k8s.io/client-go/rest/url_utils_test.go
+index 6321678..dcc3a04 100644
+--- a/staging/src/k8s.io/client-go/rest/url_utils_test.go
++++ b/staging/src/k8s.io/client-go/rest/url_utils_test.go
+@@ -41,7 +41,7 @@ func TestValidatesHostParameter(t *testing.T) {
+ 		{"host/server", "", "", true},
+ 	}
+ 	for i, testCase := range testCases {
+-		u, versionedAPIPath, err := DefaultServerURL(testCase.Host, testCase.APIPath, v1.SchemeGroupVersion, false)
++		hosts, versionedAPIPath, err := DefaultServerURLsForHosts([]string{testCase.Host}, testCase.APIPath, v1.SchemeGroupVersion, false)
+ 		switch {
+ 		case err == nil && testCase.Err:
+ 			t.Errorf("expected error but was nil")
+@@ -51,7 +51,11 @@ func TestValidatesHostParameter(t *testing.T) {
+ 			continue
+ 		case err != nil:
+ 			continue
++		case len(hosts) != 1:
++			t.Errorf("unexpected length of returned hosts %v", hosts)
++			continue
+ 		}
++		u := hosts[0]
+ 		u.Path = path.Join(u.Path, versionedAPIPath)
+ 		if e, a := testCase.URL, u.String(); e != a {
+ 			t.Errorf("%d: expected host %s, got %s", i, e, a)
+diff --git a/staging/src/k8s.io/client-go/rest/urlcontainer.go b/staging/src/k8s.io/client-go/rest/urlcontainer.go
+new file mode 100644
+index 0000000..3733b77
+--- /dev/null
++++ b/staging/src/k8s.io/client-go/rest/urlcontainer.go
+@@ -0,0 +1,118 @@
++/*
++Copyright 2017 The Kubernetes Authors.
++
++Licensed under the Apache License, Version 2.0 (the "License");
++you may not use this file except in compliance with the License.
++You may obtain a copy of the License at
++
++    http://www.apache.org/licenses/LICENSE-2.0
++
++Unless required by applicable law or agreed to in writing, software
++distributed under the License is distributed on an "AS IS" BASIS,
++WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++See the License for the specific language governing permissions and
++limitations under the License.
++*/
++
++package rest
++
++import (
++	"math/rand"
++	"net/url"
++	"sync"
++	"time"
++
++	"k8s.io/client-go/util/flowcontrol"
++)
++
++const (
++	defaultErrorRate  float32 = 5
++	defaultErrorBurst         = 10
++)
++
++// NewURLContainer initialezes URLContainer instance and returns pointer,
++// randomly selects URL that will be considered valid
++func NewURLContainer(urls []*url.URL) *URLContainer {
++	c := &URLContainer{
++		order:   urls,
++		errorps: defaultErrorRate,
++		burst:   defaultErrorBurst,
++		initializeRateLimiter: func(errorps float32, burst int) flowcontrol.RateLimiter {
++			return flowcontrol.NewTokenBucketRateLimiter(errorps, burst)
++		},
++	}
++	c.renewRateLimiter()
++	c.renewStickyURL()
++	return c
++
++}
++
++// URLContainer tolerates burst of errors and sticks to currently selected url
++type URLContainer struct {
++	m            sync.RWMutex
++	stickyURL    *url.URL
++	stickyURLnum int
++	ratelimiter  flowcontrol.RateLimiter
++
++	order   []*url.URL
++	errorps float32
++	burst   int
++
++	initializeRateLimiter func(errorps float32, burst int) flowcontrol.RateLimiter
++}
++
++// Get returns valid URL, if only single URL provided it will be returned
++func (c *URLContainer) Get() *url.URL {
++	if len(c.order) == 1 {
++		return c.order[0]
++	}
++	c.m.RLock()
++	defer c.m.RUnlock()
++	return c.stickyURL
++}
++
++func (c *URLContainer) renewStickyURL() {
++	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
++	if c.stickyURL != nil {
++		// if URL was once selected - we need to choose any not that one
++		c.stickyURLnum = findRngIntExcludingProvided(rng, c.stickyURLnum, len(c.order))
++	} else {
++		// if URL wasnt selected - choose any
++		c.stickyURLnum = rng.Intn(len(c.order))
++	}
++	c.stickyURL = c.order[c.stickyURLnum]
++}
++
++func (c *URLContainer) renewRateLimiter() {
++	c.ratelimiter = c.initializeRateLimiter(c.errorps, c.burst)
++}
++
++// Exclude updates rate limiter for given URL and will try to select another valid URL
++// incase given one will become invalid. If only single URL is provided to container - this method
++// will have no effect
++func (c *URLContainer) Exclude(u *url.URL) {
++	if len(c.order) == 1 {
++		return
++	}
++	c.m.Lock()
++	defer c.m.Unlock()
++	if c.stickyURL != u {
++		return
++	}
++	if !c.ratelimiter.TryAccept() {
++		c.renewStickyURL()
++		c.renewRateLimiter()
++	}
++}
++
++func findRngIntExcludingProvided(rng *rand.Rand, toExclude, length int) int {
++	if length <= 1 && toExclude == 0 {
++		panic("length should be greater than 1 if first element needs to be excluded")
++	}
++	for {
++		result := rng.Intn(length)
++		if result != toExclude {
++			return result
++		}
++	}
++}
+diff --git a/staging/src/k8s.io/client-go/rest/urlcontainer_test.go b/staging/src/k8s.io/client-go/rest/urlcontainer_test.go
+new file mode 100644
+index 0000000..fde6e20
+--- /dev/null
++++ b/staging/src/k8s.io/client-go/rest/urlcontainer_test.go
+@@ -0,0 +1,54 @@
++/*
++Copyright 2017 The Kubernetes Authors.
++
++Licensed under the Apache License, Version 2.0 (the "License");
++you may not use this file except in compliance with the License.
++You may obtain a copy of the License at
++
++    http://www.apache.org/licenses/LICENSE-2.0
++
++Unless required by applicable law or agreed to in writing, software
++distributed under the License is distributed on an "AS IS" BASIS,
++WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++See the License for the specific language governing permissions and
++limitations under the License.
++*/
++
++package rest
++
++import (
++	"fmt"
++	"net/url"
++	"testing"
++
++	"k8s.io/client-go/util/flowcontrol"
++)
++
++func TestStickyURLContainer(t *testing.T) {
++	urls := make([]*url.URL, 0, 2)
++	for i := 0; i < 2; i++ {
++		u, _ := url.Parse(fmt.Sprintf("http://localhost:808%d", i))
++		urls = append(urls, u)
++	}
++	container := &URLContainer{
++		order: urls,
++		initializeRateLimiter: func(_ float32, _ int) flowcontrol.RateLimiter {
++			return flowcontrol.NewFakeNeverRateLimiter()
++		},
++	}
++	container.renewRateLimiter()
++	container.renewStickyURL()
++	firstURL := container.Get()
++	container.Exclude(firstURL)
++	secondURL := container.Get()
++	if secondURL == firstURL {
++		t.Errorf("After first exclude container should change URL from first one")
++	}
++	if gotURL := container.Get(); gotURL != secondURL {
++		t.Errorf("After first exclude container should use second URL as valid, but got %v", gotURL)
++	}
++	container.Exclude(secondURL)
++	if gotURL := container.Get(); gotURL != firstURL {
++		t.Errorf("After second exclude container should return back to first URL, but got %v", gotURL)
++	}
++}
+diff --git a/staging/src/k8s.io/client-go/rest/versions.go b/staging/src/k8s.io/client-go/rest/versions.go
+index 9d41812..22d55ca 100644
+--- a/staging/src/k8s.io/client-go/rest/versions.go
++++ b/staging/src/k8s.io/client-go/rest/versions.go
+@@ -46,10 +46,11 @@ func ServerAPIVersions(c *Config) (groupVersions []string, err error) {
+ 	configCopy := *c
+ 	configCopy.GroupVersion = nil
+ 	configCopy.APIPath = ""
+-	baseURL, _, err := defaultServerUrlFor(&configCopy)
++	hosts, _, err := defaultServerUrlsFor(&configCopy)
+ 	if err != nil {
+ 		return nil, err
+ 	}
++	baseURL := hosts[0]
+ 	// Get the groupVersions exposed at /api
+ 	originalPath := baseURL.Path
+ 	baseURL.Path = path.Join(originalPath, legacyAPIPath)
+diff --git a/staging/src/k8s.io/client-go/tools/clientcmd/api/types.go b/staging/src/k8s.io/client-go/tools/clientcmd/api/types.go
+index 407dec8..ea6eb2c 100644
+--- a/staging/src/k8s.io/client-go/tools/clientcmd/api/types.go
++++ b/staging/src/k8s.io/client-go/tools/clientcmd/api/types.go
+@@ -65,6 +65,8 @@ type Cluster struct {
+ 	LocationOfOrigin string
+ 	// Server is the address of the kubernetes cluster (https://hostname:port).
+ 	Server string `json:"server"`
++	// Servers is an array of addresses to the kubernetes apiservers with the format: (https://hostname:port). Joined with Server in restclient, duplicate Server will be removed.
++	Servers []string `json:"servers,omitempty"`
+ 	// InsecureSkipTLSVerify skips the validity check for the server's certificate. This will make your HTTPS connections insecure.
+ 	// +optional
+ 	InsecureSkipTLSVerify bool `json:"insecure-skip-tls-verify,omitempty"`
+diff --git a/staging/src/k8s.io/client-go/tools/clientcmd/api/v1/types.go b/staging/src/k8s.io/client-go/tools/clientcmd/api/v1/types.go
+index 5356813..3eca966 100644
+--- a/staging/src/k8s.io/client-go/tools/clientcmd/api/v1/types.go
++++ b/staging/src/k8s.io/client-go/tools/clientcmd/api/v1/types.go
+@@ -61,6 +61,8 @@ type Preferences struct {
+ type Cluster struct {
+ 	// Server is the address of the kubernetes cluster (https://hostname:port).
+ 	Server string `json:"server"`
++	// Servers is an array of addresses to the kubernetes apiservers with the format: (https://hostname:port). Joined with Server in restclient, duplicate Server will be removed.
++	Servers []string `json:"servers,omitempty"`
+ 	// InsecureSkipTLSVerify skips the validity check for the server's certificate. This will make your HTTPS connections insecure.
+ 	// +optional
+ 	InsecureSkipTLSVerify bool `json:"insecure-skip-tls-verify,omitempty"`
+diff --git a/staging/src/k8s.io/client-go/tools/clientcmd/api/v1/zz_generated.deepcopy.go b/staging/src/k8s.io/client-go/tools/clientcmd/api/v1/zz_generated.deepcopy.go
+index b123a9f..5224c04 100644
+Binary files a/staging/src/k8s.io/client-go/tools/clientcmd/api/v1/zz_generated.deepcopy.go and b/staging/src/k8s.io/client-go/tools/clientcmd/api/v1/zz_generated.deepcopy.go differ
+diff --git a/staging/src/k8s.io/client-go/tools/clientcmd/api/zz_generated.deepcopy.go b/staging/src/k8s.io/client-go/tools/clientcmd/api/zz_generated.deepcopy.go
+index b787f0d..fac4c89 100644
+Binary files a/staging/src/k8s.io/client-go/tools/clientcmd/api/zz_generated.deepcopy.go and b/staging/src/k8s.io/client-go/tools/clientcmd/api/zz_generated.deepcopy.go differ
+diff --git a/staging/src/k8s.io/client-go/tools/clientcmd/client_config.go b/staging/src/k8s.io/client-go/tools/clientcmd/client_config.go
+index a8698af..d54d8ac 100644
+--- a/staging/src/k8s.io/client-go/tools/clientcmd/client_config.go
++++ b/staging/src/k8s.io/client-go/tools/clientcmd/client_config.go
+@@ -104,6 +104,21 @@ func (config *DirectClientConfig) RawConfig() (clientcmdapi.Config, error) {
+ 	return config.config, nil
+ }
+ 
++// cleanHost cleans URI, checks if any opaque data is present and
++// path is longer than 1 symbol.
++func cleanHost(host string) (string, error) {
++	u, err := url.ParseRequestURI(host)
++	if err != nil {
++		return "", err
++	}
++	if u.Opaque != "" && len(u.Path) <= 1 {
++		return "", fmt.Errorf("Host: %v has opaque data or path is too short.", host)
++	}
++	u.RawQuery = ""
++	u.Fragment = ""
++	return u.String(), nil
++}
++
+ // ClientConfig implements ClientConfig
+ func (config *DirectClientConfig) ClientConfig() (*restclient.Config, error) {
+ 	// check that getAuthInfo, getContext, and getCluster do not return an error.
+@@ -139,11 +154,19 @@ func (config *DirectClientConfig) ClientConfig() (*restclient.Config, error) {
+ 		}
+ 		clientConfig.Timeout = timeout
+ 	}
+-
+-	if u, err := url.ParseRequestURI(clientConfig.Host); err == nil && u.Opaque == "" && len(u.Path) > 1 {
+-		u.RawQuery = ""
+-		u.Fragment = ""
+-		clientConfig.Host = u.String()
++	host, err := cleanHost(configClusterInfo.Server)
++	if err == nil {
++		clientConfig.Host = host
++	} else {
++		clientConfig.Host = configClusterInfo.Server
++	}
++	for _, server := range configClusterInfo.Servers {
++		host, err = cleanHost(server)
++		if err == nil {
++			clientConfig.AlternateHosts = append(clientConfig.AlternateHosts, host)
++		} else {
++			clientConfig.AlternateHosts = append(clientConfig.AlternateHosts, server)
++		}
+ 	}
+ 	if len(configAuthInfo.Impersonate) > 0 {
+ 		clientConfig.Impersonate = restclient.ImpersonationConfig{
+@@ -154,7 +177,12 @@ func (config *DirectClientConfig) ClientConfig() (*restclient.Config, error) {
+ 	}
+ 
+ 	// only try to read the auth information if we are secure
+-	if restclient.IsConfigTransportTLS(*clientConfig) {
++	isTLS, err := restclient.IsConfigTransportTLS(*clientConfig)
++	if err != nil {
++		return nil, err
++	}
++	if isTLS {
++
+ 		var err error
+ 
+ 		// mergo is a first write wins for map value and a last writing wins for interface values
+diff --git a/staging/src/k8s.io/client-go/tools/clientcmd/overrides.go b/staging/src/k8s.io/client-go/tools/clientcmd/overrides.go
+index bfca032..73ed9b8 100644
+--- a/staging/src/k8s.io/client-go/tools/clientcmd/overrides.go
++++ b/staging/src/k8s.io/client-go/tools/clientcmd/overrides.go
+@@ -145,6 +145,7 @@ const (
+ 	FlagContext          = "context"
+ 	FlagNamespace        = "namespace"
+ 	FlagAPIServer        = "server"
++	FlagAPIServers       = "servers"
+ 	FlagInsecure         = "insecure-skip-tls-verify"
+ 	FlagCertFile         = "client-certificate"
+ 	FlagKeyFile          = "client-key"
+diff --git a/test/integration/etcd/etcd_storage_path_test.go b/test/integration/etcd/etcd_storage_path_test.go
+index b631514..7145e06 100644
+--- a/test/integration/etcd/etcd_storage_path_test.go
++++ b/test/integration/etcd/etcd_storage_path_test.go
+@@ -880,7 +880,10 @@ func (c *allClient) verb(verb string, gvk schema.GroupVersionKind) (*restclient.
+ 	if gvk.Group == kapi.GroupName {
+ 		apiPath = "/api"
+ 	}
+-	baseURL, versionedAPIPath, err := restclient.DefaultServerURL(c.config.Host, apiPath, gvk.GroupVersion(), true)
++	baseURLs, versionedAPIPath, err := restclient.DefaultServerURLsForHosts([]string{c.config.Host}, apiPath, gvk.GroupVersion(), true)
++	if len(baseURLs) != 1 {
++		return nil, fmt.Errorf("Expected to have one returned URL, but got %+v", baseURLs)
++	}
+ 	if err != nil {
+ 		return nil, err
+ 	}
+@@ -891,7 +894,7 @@ func (c *allClient) verb(verb string, gvk schema.GroupVersionKind) (*restclient.
+ 	if err != nil {
+ 		return nil, err
+ 	}
+-	return restclient.NewRequest(c.client, verb, baseURL, versionedAPIPath, contentConfig, *serializers, c.backoff, c.config.RateLimiter), nil
++	return restclient.NewRequest(c.client, verb, restclient.NewURLContainer(baseURLs), versionedAPIPath, contentConfig, *serializers, c.backoff, c.config.RateLimiter), nil
+ }
+ 
+ func (c *allClient) create(stub, ns string, mapping *meta.RESTMapping, all *[]cleanupData) error {
