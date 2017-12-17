@@ -9,6 +9,6 @@ Vcs-Browser: https://github.com/sipb/homeworld/
 
 Package: homeworld-admin-tools
 Architecture: amd64
-Depends: ${misc:Depends}, homeworld-keysystem, homeworld-hyperkube, homeworld-etcd, libarchive-tools | bsdtar, python3, python3-yaml, pwgen, genisoimage
+Depends: ${misc:Depends}, homeworld-keysystem, homeworld-hyperkube, homeworld-etcd, libarchive-tools | bsdtar, python3, python3-yaml, pwgen, genisoimage, whois
 Description: Homeworld admin-tools package.
  This package is used for code deployment to Homeworld clusters.
