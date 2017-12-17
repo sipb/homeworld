@@ -16,13 +16,13 @@ def get_targz_path(check_exists=True):
         command.fail("authorities.tgz does not exist (run spire authority gen?)")
     return authorities
 
-def encrypted_name(filename):
+def name_for_encrypted_file(filename):
     return filename + ENCRYPTED_EXTENSION
 
-def decrypted_name(encrypted_filename):
-    if encrypted_filename.endswith(ENCRYPTED_EXTENSION):
-        return encrypted_filename[:-len(ENCRYPTED_EXTENSION)]
-    raise ValueError("Filename " + encrypted_filename + " does not have expected suffix '" + ENCRYPTED_EXTENSION + "'.")
+def name_for_decrypted_file(name_of_encrypted_file):
+    if name_of_encrypted_file.endswith(ENCRYPTED_EXTENSION):
+        return name_of_encrypted_file[:-len(ENCRYPTED_EXTENSION)]
+    raise ValueError("Filename " + name_of_encrypted_file + " does not have expected suffix '" + ENCRYPTED_EXTENSION + "'.")
     
 def generate() -> None:
     authorities = get_targz_path(check_exists=False)
@@ -87,7 +87,7 @@ def iterate_keys_decrypted():  # yields (name, contents) pairs
         if name.endswith(".pub") or name.endswith(".pem"):
             yield name, contents
         else:
-            yield decrypted_name(name), keycrypt.gpg_decrypt_in_memory(contents)
+            yield name_for_decrypted_file(name), keycrypt.gpg_decrypt_in_memory(contents)
 
 
 main_command = command.mux_map("commands about cluster authorities", {
