@@ -9,6 +9,10 @@ Install packages:
 
 You will need to set up a sbuild chroot. (See https://github.com/sipb/homeworld/issues/80)
 
+# Pull required libraries and images from upstream
+    $ cd //building
+    $ ./pull-upstream.sh
+
 # Build helpers
 
     $ cd //building/build-helpers/helper-go/
