@@ -4,7 +4,8 @@ set -e -u
 source /etc/homeworld/config/cluster.conf
 source /etc/homeworld/config/local.conf
 
-cat >/etc/homeworld/config/kubeconfig <<EOCONFIG
+TMP_KUBECONFIG="/etc/homeworld/config/kubeconfig-tmp.$$"
+cat >"$TMP_KUBECONFIG" <<EOCONFIG
 current-context: hyades
 apiVersion: v1
 kind: Config
@@ -12,7 +13,15 @@ clusters:
 - cluster:
     api-version: v1
     certificate-authority: /etc/homeworld/authorities/kubernetes.pem
-    server: ${APISERVER}
+    servers:
+EOCONFIG
+
+for apiserver in ${APISERVERS}
+do
+    echo "    - ${apiserver}" >>"$TMP_KUBECONFIG"
+done
+
+cat >>"$TMP_KUBECONFIG" <<EOCONFIG
   name: hyades-cluster
 users:
 - name: kubelet-auth
@@ -25,6 +34,8 @@ contexts:
     user: kubelet-auth
   name: hyades
 EOCONFIG
+
+mv "$TMP_KUBECONFIG" /etc/homeworld/config/kubeconfig
 
 KUBEOPT=()
 # just use one API server for now -- TODO: BETTER HIGH-AVAILABILITY

@@ -231,13 +231,13 @@ def get_etcd_endpoints() -> str:
     return ",".join("https://%s:2379" % n.ip for n in nodes if n.kind == "master")
 
 
-def get_apiserver_default() -> str:
+def get_apiservers() -> str:
     # TODO: this should be eliminated, because nothing should be specific to this one apiserver
     config = Config.load_from_project()
     apiservers = [node for node in config.nodes if node.kind == "master"]
     if not apiservers:
-        command.fail("no apiserver to select, because no master nodes were configured")
-    return "https://%s:443" % apiservers[0].ip
+        command.fail("no apiservers to select, because no master nodes were configured")
+    return ["https://%s:443" % apiserver.ip for apiserver in apiservers]
 
 
 def get_cluster_conf() -> str:
@@ -245,7 +245,7 @@ def get_cluster_conf() -> str:
 
     apiservers = [node for node in config.nodes if node.kind == "master"]
 
-    cconf = {"APISERVER": get_apiserver_default(),
+    cconf = {"APISERVERS": " ".join(get_apiservers()),
              "APISERVER_COUNT": len(apiservers),
              "CLUSTER_CIDR": config.cidr_pods,
              "CLUSTER_DOMAIN": config.internal_domain,
@@ -269,7 +269,7 @@ def get_machine_list_file() -> str:
 
 def get_local_kubeconfig() -> str:
     key_path, cert_path, ca_path = access.get_kube_cert_paths()
-    kconf = {"APISERVER": get_apiserver_default(),
+    kconf = {"APISERVERS": "\n".join("    - %s" % get_apiservers()),
              "AUTHORITY-PATH": ca_path,
              "CERT-PATH": cert_path,
              "KEY-PATH": key_path}
