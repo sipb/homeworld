@@ -9,6 +9,8 @@ To set up the apt repository:
           DELETE YOUR DOWNLOADS AND DO NOT CONTINUE
     $ sudo dpkg -i homeworld-apt-setup.deb
 
+(You can also just build homeworld-apt-setup yourself.)
+
 To install homeworld-admin-tools:
 
     $ sudo apt-get update
