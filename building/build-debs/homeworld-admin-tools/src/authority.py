@@ -15,7 +15,9 @@ def get_targz_path(check_exists=True):
         command.fail("authorities.tgz does not exist (run spire authority gen?)")
     return authorities
 
-
+def encrypted_name(filename):
+    return filename + ".encrypted"
+    
 def generate() -> None:
     authorities = get_targz_path(check_exists=False)
     if os.path.exists(authorities):
@@ -44,7 +46,7 @@ def generate() -> None:
                 util.copy(os.path.join(certdir, filename), os.path.join(cryptdir, filename))
             else:
                 # private keys; encrypt when copying
-                keycrypt.gpg_encrypt_file(os.path.join(certdir, filename), os.path.join(cryptdir, filename))
+                keycrypt.gpg_encrypt_file(os.path.join(certdir, filename), os.path.join(cryptdir, encrypted_name(filename)))
         subprocess.check_call(["shred", "--"] + os.listdir(certdir), cwd=certdir)
         print("packing authorities...")
         subprocess.check_call(["tar", "-C", cryptdir, "-czf", authorities, "."])
@@ -59,7 +61,6 @@ def get_pubkey_by_filename(keyname) -> bytes:
             out = f.read()
             assert type(out) == bytes
             return out
-
 
 def iterate_keys():  # yields (name, contents) pairs
     authorities = get_targz_path()
