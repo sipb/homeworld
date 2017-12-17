@@ -9,12 +9,15 @@ import yaml
 import access
 
 
-def get_project() -> str:
+def get_project(create_dir_if_missing=False) -> str:
     project_dir = os.getenv("HOMEWORLD_DIR")
     if project_dir is None:
         command.fail("no HOMEWORLD_DIR environment variable declared")
     if not os.path.isdir(project_dir):
-        command.fail("HOMEWORLD_DIR (%s) is not a directory that exists" % project_dir)
+        if create_dir_if_missing:
+            os.mkdir(project_dir)
+        else:
+            command.fail("HOMEWORLD_DIR (%s) is not a directory that exists" % project_dir)
     return project_dir
 
 
@@ -274,7 +277,7 @@ def get_local_kubeconfig() -> str:
 
 
 def populate() -> None:
-    setup_yaml = os.path.join(get_project(), "setup.yaml")
+    setup_yaml = os.path.join(get_project(create_dir_if_missing=True), "setup.yaml")
     if os.path.exists(setup_yaml):
         command.fail("setup.yaml already exists")
     resource.copy_to("setup.yaml", setup_yaml)
