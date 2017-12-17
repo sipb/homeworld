@@ -8,6 +8,7 @@ import tempfile
 import tarfile
 import keycrypt
 
+ENCRYPTED_EXTENSION = ".encrypted"
 
 def get_targz_path(check_exists=True):
     authorities = os.path.join(configuration.get_project(), "authorities.tgz")
@@ -16,7 +17,12 @@ def get_targz_path(check_exists=True):
     return authorities
 
 def encrypted_name(filename):
-    return filename + ".encrypted"
+    return filename + ENCRYPTED_EXTENSION
+
+def decrypted_name(encrypted_filename):
+    if encrypted_filename.endswith(ENCRYPTED_EXTENSION):
+        return encrypted_filename[:-len(ENCRYPTED_EXTENSION)]
+    raise ValueError("Filename " + encrypted_filename + " does not have expected suffix '" + ENCRYPTED_EXTENSION + "'.")
     
 def generate() -> None:
     authorities = get_targz_path(check_exists=False)
@@ -45,7 +51,7 @@ def generate() -> None:
                 # public keys; copy over without encryption
                 util.copy(os.path.join(certdir, filename), os.path.join(cryptdir, filename))
             else:
-                # private keys; encrypt when copying
+                # private keys; encrypt when copying, and rename encrypted version for clarity.
                 keycrypt.gpg_encrypt_file(os.path.join(certdir, filename), os.path.join(cryptdir, encrypted_name(filename)))
         subprocess.check_call(["shred", "--"] + os.listdir(certdir), cwd=certdir)
         print("packing authorities...")
@@ -81,7 +87,7 @@ def iterate_keys_decrypted():  # yields (name, contents) pairs
         if name.endswith(".pub") or name.endswith(".pem"):
             yield name, contents
         else:
-            yield name, keycrypt.gpg_decrypt_in_memory(contents)
+            yield decrypted_name(name), keycrypt.gpg_decrypt_in_memory(contents)
 
 
 main_command = command.mux_map("commands about cluster authorities", {

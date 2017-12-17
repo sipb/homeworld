@@ -1,3 +1,9 @@
+homeworld-admin-tools (0.1.27) stretch; urgency=medium
+
+  * Updated debian release.
+
+ -- Matthew Ince <3cnfsat@gmail.com>  Sun, 17 Dec 2017 18:07:47 -0500
+
 homeworld-admin-tools (0.1.26) stretch; urgency=medium
 
   * Updated debian release
