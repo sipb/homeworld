@@ -3,9 +3,12 @@
 Install packages:
 
  * build-essential
+ * debhelper
+ * debootstrap
+ * python3
  * sbuild
- * cpio
- * genisoimage
+ * sudo
+ * systemd-container
 
 You will need to set up a sbuild chroot. (See https://github.com/sipb/homeworld/issues/80)
 
