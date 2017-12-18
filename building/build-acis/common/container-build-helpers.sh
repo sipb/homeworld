@@ -224,7 +224,7 @@ function run_builder() {
 	RKT_OPTS+=(--volume "build,kind=host,source=${BUILDDIR},readOnly=false")
 	RKT_OPTS+=(--mount volume=build,target=/build)
 
-	DNS_ADDR="$(python3 -c 'with open("/etc/resolv.conf") as f: print(*[line.split(" ")[1].strip() for line in f if line.startswith("nameserver ")][:1])')"
+	DNS_ADDR="$(awk '$1=="nameserver" {print $2; exit}' /etc/resolv.conf)"
 	RKT_OPTS+=(--dns="${DNS_ADDR}")
 
 	# run the script

@@ -5,7 +5,6 @@ Install packages:
  * build-essential
  * debhelper
  * debootstrap
- * python3
  * sbuild
  * sudo
  * systemd-container
