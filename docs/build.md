@@ -40,6 +40,7 @@ To upload packages, ONLY IF YOU ARE SUPPOSED TO RELEASE YOUR CHANGES:
 Install rkt from package (used in development environment for running builder containers):
 
     $ dpkg -i //building/build-debs/binaries/homeworld-rkt_<newest>.deb
+    $ apt install -f    # if needed to resolve dependencies
 
 To build containers:
 
