@@ -20,6 +20,7 @@ sed -i "s/^VERSION=.*$/VERSION=${VERSION}/" acbuild/build
 GLDFLAGS="-X github.com/appc/acbuild/lib.Version=${VERSION}"
 
 export GOROOT="$(pwd)/go"
+export PATH="$GOROOT/bin${PATH:+:$PATH}"
 
 cd acbuild
 
