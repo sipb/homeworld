@@ -2,12 +2,12 @@
 
 If you're re-deploying the cluster for development, you will need:
 
-* A Debian installation (or Debian VM) -- note that we do not support any other environments.
+* A Debian Stretch installation (or VM) -- note that we do not support any other environments.
 * The disaster recovery key.
 * Access to [hyades-cluster](https://github.mit.edu/sipb/hyades-cluster), where we store the current cluster configuration. You will need to have set up SSH keys with github.mit.edu.
 * Your Kerberos identity in the root-admins secion of ``setup.yaml``. If it isn't there, you can just add it in yourself.
 * Access to toastfs-dev (the machine which hosts the development cluster). You will need a Kerberos root instance as a prerequisite to this.
-* Any VNC viewer. For example, TightVNC (``sudo apt-get install xtightvncviewer``), but it has an annoying bug where it crashes on window resizes. [TigerVNC](https://github.com/TigerVNC/tigervnc/releases) also works, but requires manual installation.
+* Any VNC viewer. These instructions are based on [TigerVNC](https://github.com/TigerVNC/tigervnc/releases) (``sudo apt-get install tigervnc``).
 
 # Installing packages
 
@@ -51,6 +51,11 @@ This key will be used to encrypt the private authority keys.
 
 **WARNING**: because gpg's `--passphrase-file` option is used, only the first line from the file will be used as the key!
 
+**WARNING**: The disaster recovery key is used to encrypt upstream keys. If you are rotating the disaster recovery key, you should first decrypt the upstream keys:
+
+    $ spire keytab export egg-sandwich egg-keytab
+    $ spire https export homeworld.mit.edu ./homeworld.mit.edu.key ./homeworld.mit.edu.pem
+
 Recommended method of generating the passphrase:
 
     $ pwgen -s 160 1 >$HOMEWORLD_DISASTER
@@ -70,7 +75,7 @@ Set up the configuration:
 
 ## Acquiring upstream keys
 
-**WARNING**: If you're re-deploying the cluster for development, you should not be following this section. Critically, you should not rotate the keytab, or you'd need to distribute the new keytab to everyone. Follow [Deploying a prepared cluster](#deploying-a-prepared-cluster) instead.
+**WARNING**: If you're re-deploying the cluster for development, you should not be following this section (unless you are encrypting upstream keys with a newly generated disaster recovery key). Critically, you should not rotate the keytab, or you'd need to distribute the new keytab to everyone. Follow [Deploying a prepared cluster](#deploying-a-prepared-cluster) instead.
 
  * Request a keytab from accounts@, if necessary
  * Import the keytab into the project:
@@ -118,13 +123,6 @@ To download existing configuration:
 
 Make sure to verify that you have the correct commit hash, out of band.
 
-## Extracting upstream keys
-
-For the development cluster, we already have upstream keys. Extract them from the configuration like so:
-
-    $ spire keytab export egg-sandwich egg-keytab
-    $ spire https export homeworld.mit.edu ./homeworld.mit.edu.key ./homeworld.mit.edu.pem
-
 # Configuring SSH
 
 Configure SSH so that it has the correct certificate authority in ~/.ssh/known_hosts for members of the cluster:
@@ -137,9 +135,9 @@ Now, create an ISO:
 
     $ spire iso gen preseeded.iso ~/.ssh/id_rsa.pub   # this SSH key is used for direct access during cluster setup
 
-Now you should burn and/or upload preseeded.iso that you've just gotten, so that you can use it for installing servers. Make a note of the password it generated.
+Now you should burn and/or upload preseeded.iso that you've just gotten, so that you can use it for installing servers.
 
-For development on the official homeworld development servers (the LocalForward lines set up port forwarding for VNC):
+For development on the official homeworld servers (the LocalForward lines set up port forwarding for VNC):
 
     $ edit ~/.ssh/config
         Host toast
@@ -148,6 +146,7 @@ For development on the official homeworld development servers (the LocalForward 
                 GSSAPIAuthentication yes
                 GSSAPIKeyExchange no
                 GSSAPIDelegateCredentials no
+                PreferredAuthentications gssapi-with-mic
                 LocalForward 5901 localhost:5901
                 LocalForward 5902 localhost:5902
                 LocalForward 5903 localhost:5903
@@ -155,24 +154,26 @@ For development on the official homeworld development servers (the LocalForward 
                 LocalForward 5905 localhost:5905
                 LocalForward 5906 localhost:5906
                 LocalForward 5910 localhost:5910
+
+        # Note that you will need Kerberos tickets
+        # (generate them with kinit)
+        # to access the development server.
     $ scp preseeded.iso toast:/srv/preseeded.iso
-        # If you get a password prompt, DON'T give it anything.
-        # You should generate Kerberos tickets (kinit) before
-        # attempting to access the development server, otherwise
-        # SSH will fallback to password authentication.
 
 # Setting up the machines
 
 ## For development only: Rebuilding the virtual machines
 
-For development, we're using a set of virtual machines on toast. To simulate cluster bringup, we destroy all the virtual machines and rebuild them using a script on toast. On toast (access toast with ``ssh toast``):
+For development, we're using a set of virtual machines on toast. To simulate cluster bringup, we destroy all the virtual machines and rebuild them using a script on toastfs-dev. On toastfs-dev (access with ``ssh toast``):
 
-    $ ~/hyades/rebuild-homeworld-cluster.sh /srv/preseeded.iso
+    # ~/hyades/rebuild-homeworld-cluster.sh /srv/preseeded.iso
 
 You can then access the virtual machines using VNC. For example, using TigerVNC:
 
     $ vncviewer localhost:5910 # supervisor node
     $ for i in `seq 1 6`; do vncviewer localhost:590$i & done
+
+Note that you will need a toastfs-dev SSH session running so that VNC can communicate through it (via LocalForward).
 
 ## Setting up the supervisor operating system
 
@@ -182,9 +183,8 @@ You can then access the virtual machines using VNC. For example, using TigerVNC:
    - Wait a while
    - Enter "manual" for the bootstrap token (so that your SSH keys will work)
  * Log into the server directly with your SSH keys
+   - For example, ``ssh root@egg-sandwich.mit.edu``. You might need to remove previous SSH host keys from known_hosts if you've set up the cluster before.
    - Verify the host keys based on the text printed before the login console
-
-For example, ``ssh root@egg-sandwich.mit.edu``. You might need to remove previous SSH hostkeys from known_hosts if you've set up the cluster before.
 
 ## Setting up ssh-agent
 
@@ -232,7 +232,7 @@ Confirm that all of the servers came up properly (and requested their keys
 correctly):
 
     $ spire verify online
-      # if this fails, it's possible that your ssh-agent might be borked and you need to restart it.
+      # if this fails, it's possible that your ssh-agent might be broken and you need to restart it.
 
 # Core cluster bringup
 
