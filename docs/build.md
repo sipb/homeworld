@@ -11,6 +11,12 @@ Install packages:
 
 You will need to set up a sbuild chroot. (See https://github.com/sipb/homeworld/issues/80)
 
+That will let you build everything as described here.  If you also want to be able to build spire outside of the sbuild chroot (not described here), install these packages too:
+
+ * libarchive-tools
+ * python3-yaml
+ * zip
+
 # Pull required libraries and images from upstream
     $ cd building
     $ ./pull-upstream.sh
