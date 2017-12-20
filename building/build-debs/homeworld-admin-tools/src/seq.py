@@ -14,7 +14,8 @@ def sequence_keysystem(ops: setup.Operations) -> None:
     # spire setup keyserver
     setup.setup_keyserver(ops)
     # spire verify keystatics
-    ops.add_operation("verify that keyserver static files can be fetched", verify.check_keystatics)
+    ops.add_operation("verify that keyserver static files can be fetched",
+        iterative_verifier(verify.check_keystatics, 10.0))
 
     # ** Admit the supervisor node to the cluster **
 

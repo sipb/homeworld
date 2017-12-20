@@ -1,12 +1,19 @@
 import inspect
 
 
+ANSI_ESCAPE_CODE_RED = "\x1b[1;31m"
+ANSI_ESCAPE_CODE_YELLOW = "\x1b[1;33m"
+ANSI_ESCAPE_CODE_RESET = "\x1b[1;0m"
+
+
 class CommandFailedException(Exception):
-    pass
+    def __init__(self, message, hint):
+        super().__init__(message)
+        self.hint = hint
 
 
-def fail(message: str) -> None:
-    raise CommandFailedException(str(message))
+def fail(message: str, hint: str = None) -> None:
+    raise CommandFailedException(message, hint)
 
 
 def mux_map(desc: str, mapping: dict):
@@ -76,5 +83,7 @@ def main_invoke(command, params):
         invoke(params)
         return 0
     except CommandFailedException as e:
-        print('\x1b[1;31m' + 'command failed: ' + str(e) + '\x1b[0m')
+        print(ANSI_ESCAPE_CODE_RED + 'command failed: ' + str(e) + ANSI_ESCAPE_CODE_RESET)
+        if e.hint is not None:
+            print(ANSI_ESCAPE_CODE_YELLOW + e.hint + ANSI_ESCAPE_CODE_RESET)
         return 1

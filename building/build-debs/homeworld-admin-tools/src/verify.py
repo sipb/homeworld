@@ -71,10 +71,7 @@ def check_online(server=None):
 
 
 def check_keygateway():
-    try:
-        access.call_keyreq("check")
-    except subprocess.CalledProcessError as e:
-        command.fail("keygateway check failed: %s" % e)
+    access.call_keyreq("check")
     print("keygateway access confirmed.")
 
 

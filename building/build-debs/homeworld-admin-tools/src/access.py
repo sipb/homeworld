@@ -41,7 +41,7 @@ def create_or_rotate_custom_ssh_key(interval=DEFAULT_ROTATE_INTERVAL, bits=DEFAU
     return keypath
 
 
-def call_keyreq(command, *params, collect=False):
+def call_keyreq(keyreq_command, *params, collect=False):
     config = configuration.get_config()
     keyserver_domain = config.keyserver.hostname + "." + config.external_domain + ":20557"
 
@@ -50,7 +50,15 @@ def call_keyreq(command, *params, collect=False):
     with tempfile.TemporaryDirectory() as tdir:
         https_cert_path = os.path.join(tdir, "server.pem")
         util.writefile(https_cert_path, authority.get_pubkey_by_filename("./server.pem"))
-        return invoke_variant(["keyreq", command, https_cert_path, keyserver_domain] + list(params))
+        try:
+            return invoke_variant(["keyreq", keyreq_command, https_cert_path, keyserver_domain] + list(params))
+        except subprocess.CalledProcessError as e:
+            if e.returncode == 1:
+                fail_hint = "do you have valid kerberos tickets?\n" \
+                    "or, your connection to the server might be faulty.\n" \
+                    "or, the server's keygateway might be broken."
+                command.fail("keyreq failed: %s" % e, fail_hint)
+            raise e
 
 
 def renew_ssh_cert() -> str:
@@ -67,10 +75,9 @@ def access_ssh(add_to_agent=False):
     if add_to_agent:
         # TODO: clear old identities
         if subprocess.call(["ssh-add", "--", keypath]) != 0:
-            print("ssh-add returned non-zero exit code. do you have a ssh-agent?")
-            print("or, perhaps your agent is broken; consider killing it and launching a new one.")
-            command.fail("*** ssh-add failed! ***")
-
+            fail_hint = "ssh-add returned non-zero exit code. do you have a ssh-agent?\n" \
+                "or, perhaps your agent is broken; consider killing it and launching a new one."
+            command.fail("*** ssh-add failed! ***", fail_hint)
 
 def access_ssh_with_add():
     access_ssh(add_to_agent=True)

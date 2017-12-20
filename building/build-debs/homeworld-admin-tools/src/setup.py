@@ -1,6 +1,6 @@
 import os
-import tempfile
 import time
+import subprocess
 
 import authority
 import command
@@ -59,15 +59,7 @@ class Operations:
         self.add_operation(name, lambda: ssh.check_scp_up(node, source_path, dest_path), node=node)
 
     def ssh_upload_bytes(self, name: str, node: configuration.Node, source_bytes: bytes, dest_path: str) -> None:
-        def upload_bytes() -> None:
-            # tempfile.TemporaryDirectory() creates the directory with 0o600, which protects the data if it's sensitive
-            with tempfile.TemporaryDirectory() as scratchdir:
-                scratchpath = os.path.join(scratchdir, "scratch")
-                util.writefile(scratchpath, source_bytes)
-                ssh.check_scp_up(node, scratchpath, dest_path)
-                os.remove(scratchpath)
-
-        self.add_operation(name, upload_bytes, node=node)
+        self.add_operation(name, lambda: ssh.upload_bytes(node, source_bytes, dest_path), node=node)
 
 
 AUTHORITY_DIR = "/etc/homeworld/keyserver/authorities"
@@ -115,7 +107,7 @@ def admit_keyserver(ops: Operations) -> None:
         ops.ssh("confirm that @HOST was admitted", node, "test", "-e", KEYCLIENT_DIR + "/granting.pem")
 
 
-def setup_keygateway(ops: Operations) -> None:
+def modify_keygateway(ops: Operations, overwrite_keytab: bool) -> None:
     config = configuration.get_config()
     for node in config.nodes:
         if node.kind != "supervisor":
@@ -123,9 +115,30 @@ def setup_keygateway(ops: Operations) -> None:
         # keytab is stored encrypted in the configuration folder
         keytab = os.path.join(configuration.get_project(), "keytab.%s.crypt" % node.hostname)
         decrypted = keycrypt.gpg_decrypt_to_memory(keytab)
-        ops.ssh("confirm no existing keytab on @HOST", node, "test", "!", "-e", KEYTAB_PATH)
-        ops.ssh_upload_bytes("upload keytab for @HOST", node, decrypted, KEYTAB_PATH)
+        def safe_upload_keytab():
+            if not overwrite_keytab:
+                try:
+                    existing_keytab = ssh.check_ssh_output(node, "cat", KEYTAB_PATH)
+                except subprocess.CalledProcessError as e_test:
+                    # if there is no existing keytab, cat will fail with error code 1
+                    if e_test.returncode != 1:
+                        command.fail(e_test)
+                    print("no existing keytab found, uploading local keytab")
+                else:
+                    if existing_keytab != decrypted:
+                        command.fail("existing keytab does not match local keytab")
+                    return # existing keytab matches local keytab, no action required
+            ssh.upload_bytes(node, decrypted, KEYTAB_PATH)
+        ops.add_operation("upload keytab for @HOST", safe_upload_keytab, node)
         ops.ssh("restart keygateway on @HOST", node, "systemctl", "restart", "keygateway")
+
+
+def setup_keygateway(ops: Operations) -> None:
+    modify_keygateway(ops, False)
+
+
+def update_keygateway(ops: Operations) -> None:
+    modify_keygateway(ops, True)
 
 
 def setup_supervisor_ssh(ops: Operations) -> None:
@@ -209,6 +222,7 @@ main_command = command.mux_map("commands about setting up a cluster", {
     "keyserver": wrapop("deploy keys and configuration for keyserver; start keyserver", setup_keyserver),
     "self-admit": wrapop("admit the keyserver into the cluster during bootstrapping", admit_keyserver),
     "keygateway": wrapop("deploy keytab and start keygateway", setup_keygateway),
+    "update-keygateway": wrapop("update keytab and restart keygateway", update_keygateway),
     "supervisor-ssh": wrapop("configure supervisor SSH access", setup_supervisor_ssh),
     "services": wrapop("bring up all cluster services in sequence", setup_services),
     "dns-bootstrap": wrapop("switch cluster nodes into 'bootstrapped DNS' mode", setup_dns_bootstrap),
