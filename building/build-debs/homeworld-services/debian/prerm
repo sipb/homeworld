@@ -19,7 +19,7 @@ set -e
 
 case "$1" in
     remove)
-        systemctl stop apiserver.service etcd.service flannel.service kube-ctrlmgr.service kubelet.service kube-proxy.service kube-scheduler.service
+        systemctl stop apiserver.service etcd.service kube-ctrlmgr.service kubelet.service kube-proxy.service kube-scheduler.service
     ;;
 
     upgrade|deconfigure)
