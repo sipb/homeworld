@@ -10,25 +10,25 @@ def fail(message: str) -> None:
 
 
 def mux_map(desc: str, mapping: dict):
-    def usage(err: str = "no command") -> None:
+    def usage() -> None:
         print("commands:")
         for name, (desc, subinvoke) in sorted(mapping.items()):
             print("  %s: %s" % (name, desc))
-        if err is not None:
-            fail(err)
 
     def invoke(params):
         if not params:
             usage()
+            print("no command")
         elif params[0] not in mapping:
-            usage("unknown command: %s" % params[0])
+            usage()
+            fail("unknown command: %s" % params[0])
         else:
             desc, subinvoke = mapping[params[0]]
             subinvoke(params[1:])
 
     if "usage" not in mapping:
         mapping = dict(mapping)
-        mapping["usage"] = ("ask for this usage info", lambda _: usage(None))
+        mapping["usage"] = ("ask for this usage info", lambda _: usage())
 
     return desc, invoke
 
@@ -76,5 +76,5 @@ def main_invoke(command, params):
         invoke(params)
         return 0
     except CommandFailedException as e:
-        print(e)
+        print('\x1b[1;31m' + 'command failed: ' + str(e) + '\x1b[0m')
         return 1
