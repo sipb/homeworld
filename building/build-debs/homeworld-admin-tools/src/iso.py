@@ -29,11 +29,11 @@ def regen_cdpack(source_iso, dest_cdpack):
         subprocess.check_call(["tar", "-czf", dest_cdpack, "-C", d, os.path.basename(cddir)])
 
 
-def add_password_to_log(password):
+def add_password_to_log(password, creation_time):
     passwords = os.path.join(configuration.get_project(), "passwords")
     if not os.path.isdir(passwords):
         os.mkdir(passwords)
-    passfile = os.path.join(passwords, "at-%s.gpg" % datetime.datetime.now().isoformat())
+    passfile = os.path.join(passwords, "at-%s.gpg" % creation_time)
     util.writefile(passfile, keycrypt.gpg_encrypt_in_memory(password))
 
 
@@ -68,9 +68,10 @@ def gen_iso(iso_image, authorized_key, cdpack=None):
 
         preseeded = resource.get_resource("preseed.cfg.in")
         generated_password = util.pwgen(20)
-        add_password_to_log(generated_password)
+        creation_time = datetime.datetime.now().isoformat()
+        add_password_to_log(generated_password, creation_time)
         print("generated password added to log")
-        preseeded = preseeded.replace(b"{{HASH}}", util.mkpasswd(generated_password))
+        preseeded = preseeded.replace(b"{{HASH}}", util.mkpasswd(generated_password)).replace(b"{{BUILDDATE}}", creation_time.encode())
         util.writefile(os.path.join(d, "preseed.cfg"), preseeded)
 
         inclusion += ["sshd_config.new", "preseed.cfg"]

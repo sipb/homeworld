@@ -1,9 +1,17 @@
 #!/bin/sh
 echo "launching postinstall"
 
+BUILDDATE="$1"
+
 . /usr/share/debconf/confmodule
 
 set -e -u
+
+if [ "$BUILDDATE" = "" ]
+then
+    echo "invalid build date" 1>&2
+    exit 1
+fi
 
 # install packages
 cp /homeworld-*.deb /target/
@@ -49,6 +57,7 @@ then
     fi
 fi
 
+echo "ISO used to install this node generated at: ${BUILDDATE}" >>/target/etc/issue
 echo "SSH host key fingerprints: (as of install)" >>/target/etc/issue
 for x in /target/etc/ssh/ssh_host_*.pub
 do
