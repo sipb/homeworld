@@ -66,7 +66,10 @@ def access_ssh(add_to_agent=False):
     print("===== ^ CERTIFICATE DETAILS ^ =====")
     if add_to_agent:
         # TODO: clear old identities
-        subprocess.check_call(["ssh-add", "--", keypath])
+        if subprocess.call(["ssh-add", "--", keypath]) != 0:
+            print("ssh-add returned non-zero exit code. do you have a ssh-agent?")
+            print("or, perhaps your agent is broken; consider killing it and launching a new one.")
+            command.fail("*** ssh-add failed! ***")
 
 
 def access_ssh_with_add():
