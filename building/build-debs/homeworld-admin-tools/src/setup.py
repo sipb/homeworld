@@ -17,9 +17,8 @@ def escape_shell(param: str) -> str:
 
 
 class Operations:
-    def __init__(self, config: configuration.Config):
+    def __init__(self):
         self._ops = []
-        self._config = config
 
     def add_operation(self, name: str, callback, node: configuration.Node=None) -> None:
         if node:
@@ -86,7 +85,8 @@ KEYCLIENT_DIR = "/etc/homeworld/keyclient"
 KEYTAB_PATH = "/etc/krb5.keytab"
 
 
-def setup_keyserver(ops: Operations, config: configuration.Config) -> None:
+def setup_keyserver(ops: Operations) -> None:
+    config = configuration.get_config()
     for node in config.nodes:
         if node.kind != "supervisor":
             continue
@@ -106,7 +106,8 @@ def setup_keyserver(ops: Operations, config: configuration.Config) -> None:
         ops.ssh("start keyserver on @HOST", node, "systemctl", "restart", "keyserver.service")
 
 
-def admit_keyserver(ops: Operations, config: configuration.Config) -> None:
+def admit_keyserver(ops: Operations) -> None:
+    config = configuration.get_config()
     for node in config.nodes:
         if node.kind != "supervisor":
             continue
@@ -122,7 +123,8 @@ def admit_keyserver(ops: Operations, config: configuration.Config) -> None:
         ops.ssh("confirm that @HOST was admitted", node, "test", "-e", KEYCLIENT_DIR + "/granting.pem")
 
 
-def setup_keygateway(ops: Operations, config: configuration.Config) -> None:
+def setup_keygateway(ops: Operations) -> None:
+    config = configuration.get_config()
     for node in config.nodes:
         if node.kind != "supervisor":
             continue
@@ -134,7 +136,8 @@ def setup_keygateway(ops: Operations, config: configuration.Config) -> None:
         ops.ssh("restart keygateway on @HOST", node, "systemctl", "restart", "keygateway")
 
 
-def setup_supervisor_ssh(ops: Operations, config: configuration.Config) -> None:
+def setup_supervisor_ssh(ops: Operations) -> None:
+    config = configuration.get_config()
     for node in config.nodes:
         if node.kind != "supervisor":
             continue
@@ -147,7 +150,8 @@ def setup_supervisor_ssh(ops: Operations, config: configuration.Config) -> None:
                 "/root/original_authorized_keys; fi")
 
 
-def setup_services(ops: Operations, config: configuration.Config) -> None:
+def setup_services(ops: Operations) -> None:
+    config = configuration.get_config()
     for node in config.nodes:
         if node.kind == "master":
             ops.ssh("start etcd on master @HOST", node, "/usr/lib/hyades/start-master-etcd.sh")
@@ -161,7 +165,8 @@ def setup_services(ops: Operations, config: configuration.Config) -> None:
             ops.ssh("start all on worker @HOST", node, "/usr/lib/hyades/start-worker.sh")
 
 
-def modify_dns_bootstrap(ops: Operations, config: configuration.Config, is_install: bool) -> None:
+def modify_dns_bootstrap(ops: Operations, is_install: bool) -> None:
+    config = configuration.get_config()
     for node in config.nodes:
         if node.kind == "supervisor":
             continue
@@ -174,18 +179,19 @@ def modify_dns_bootstrap(ops: Operations, config: configuration.Config, is_insta
                 ops.ssh_raw("bootstrap dns on @HOST: %s" % hostname, node, strip_cmd)
 
 
-def setup_dns_bootstrap(ops: Operations, config: configuration.Config) -> None:
-    modify_dns_bootstrap(ops, config, True)
+def setup_dns_bootstrap(ops: Operations) -> None:
+    modify_dns_bootstrap(ops, True)
 
 
-def teardown_dns_bootstrap(ops: Operations, config: configuration.Config) -> None:
-    modify_dns_bootstrap(ops, config, False)
+def teardown_dns_bootstrap(ops: Operations) -> None:
+    modify_dns_bootstrap(ops, False)
 
 
 REGISTRY_HOSTNAME = "homeworld.mit.edu"
 
 
-def setup_bootstrap_registry(ops: Operations, config: configuration.Config) -> None:
+def setup_bootstrap_registry(ops: Operations) -> None:
+    config = configuration.get_config()
     for node in config.nodes:
         if node.kind != "supervisor":
             continue
@@ -202,9 +208,8 @@ def setup_bootstrap_registry(ops: Operations, config: configuration.Config) -> N
 
 def wrapop(desc: str, f):
     def wrap_param_tx(params):
-        config = configuration.get_config()
-        ops = Operations(config)
-        return [ops, config] + params, ops.run_operations
+        ops = Operations()
+        return [ops] + params, ops.run_operations
     return command.wrap(desc, f, wrap_param_tx)
 
 

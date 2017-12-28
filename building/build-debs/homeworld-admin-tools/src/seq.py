@@ -8,28 +8,28 @@ import setup
 import verify
 
 
-def sequence_keysystem(ops: setup.Operations, config: configuration.Config) -> None:
+def sequence_keysystem(ops: setup.Operations) -> None:
     # ** Configure the supervisor keyserver **
 
     # spire setup keyserver
-    setup.setup_keyserver(ops, config)
+    setup.setup_keyserver(ops)
     # spire verify keystatics
     ops.add_operation("verify that keyserver static files can be fetched", verify.check_keystatics)
 
     # ** Admit the supervisor node to the cluster **
 
     # spire setup self-admit
-    setup.admit_keyserver(ops, config)
+    setup.admit_keyserver(ops)
 
     # ** Prepare kerberos gateway **
 
     # spire setup keygateway
-    setup.setup_keygateway(ops, config)
+    setup.setup_keygateway(ops)
     # spire verify keygateway
     ops.add_operation("verify that the keygateway is responsive", verify.check_keygateway)
 
 
-def sequence_ssh(ops: setup.Operations, config: configuration.Config) -> None:
+def sequence_ssh(ops: setup.Operations) -> None:
     # ** Request SSH cert **
 
     # spire access ssh
@@ -39,7 +39,7 @@ def sequence_ssh(ops: setup.Operations, config: configuration.Config) -> None:
     # ** Configure and test SSH **
 
     # spire setup supervisor-ssh
-    setup.setup_supervisor_ssh(ops, config)
+    setup.setup_supervisor_ssh(ops)
     # spire verify ssh-with-certs
     ops.add_operation("verify ssh access to supervisor", verify.check_ssh_with_certs)
 
@@ -61,14 +61,14 @@ def iterative_verifier(verifier, max_time, pause=2.0):
     return ver
 
 
-def sequence_core(ops: setup.Operations, config: configuration.Config) -> None:
+def sequence_core(ops: setup.Operations) -> None:
     # ** Install and upgrade packages on all systems **
     # spire infra install-packages
-    infra.infra_install_packages(ops, config)
+    infra.infra_install_packages(ops)
 
     # ** Launch services **
     # spire setup services
-    setup.setup_services(ops, config)
+    setup.setup_services(ops)
 
     # spire verify etcd
     ops.add_operation("verify that etcd has launched successfully",
@@ -78,19 +78,19 @@ def sequence_core(ops: setup.Operations, config: configuration.Config) -> None:
                       iterative_verifier(verify.check_kube_health, 10.0))
 
 
-def sequence_registry(ops: setup.Operations, config: configuration.Config) -> None:
-    setup.setup_dns_bootstrap(ops, config)
-    setup.setup_bootstrap_registry(ops, config)
+def sequence_registry(ops: setup.Operations) -> None:
+    setup.setup_dns_bootstrap(ops)
+    setup.setup_bootstrap_registry(ops)
     ops.add_operation("verify that acis can be pulled from the registry", verify.check_aci_pull)
 
 
-def sequence_flannel(ops: setup.Operations, config: configuration.Config) -> None:
+def sequence_flannel(ops: setup.Operations) -> None:
     ops.add_operation("deploy or update flannel", lambda: deploy.launch_spec("flannel.yaml"))
     ops.add_operation("verify that flannel is online", iterative_verifier(verify.check_flannel_kubeinfo, 60.0))
     ops.add_operation("verify that flannel is functioning", verify.check_flannel_function)
 
 
-def sequence_dns_addon(ops: setup.Operations, config: configuration.Config) -> None:
+def sequence_dns_addon(ops: setup.Operations) -> None:
     ops.add_operation("deploy or update dns-addon", lambda: deploy.launch_spec("dns-addon.yaml"))
     ops.add_operation("verify that dns-addon is online", iterative_verifier(verify.check_dns_kubeinfo, 60.0))
     ops.add_operation("verify that dns-addon is functioning", verify.check_dns_function)

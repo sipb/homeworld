@@ -24,7 +24,8 @@ def infra_admit_all() -> None:
     print("host".center(16, "="), "kind".center(8, "="), "ip".center(14, "="), "token".center(21, "="))
 
 
-def infra_install_packages(ops: setup.Operations, config: configuration.Config) -> None:
+def infra_install_packages(ops: setup.Operations) -> None:
+    config = configuration.get_config()
     for node in config.nodes:
         ops.ssh("update apt repositories on @HOST", node, "apt-get", "update")
         ops.ssh("upgrade packages on @HOST", node, "apt-get", "upgrade", "-y")
