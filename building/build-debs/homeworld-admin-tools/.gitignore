@@ -2,3 +2,5 @@
 /spire
 debian-*-amd64-mini.iso
 debian-*-cdpack.tgz
+resources/GIT_VERSION
+src/resources/
