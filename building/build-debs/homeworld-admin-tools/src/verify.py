@@ -94,8 +94,10 @@ def check_ssh_with_certs(hostname=None):
             command.fail("no keyserver found")
         hostname = config.keyserver.hostname
     env = dict(os.environ)
-    del env["SSH_AUTH_SOCK"]
-    del env["SSH_AGENT_PID"]
+    if "SSH_AUTH_SOCK" in env:
+        del env["SSH_AUTH_SOCK"]
+    if "SSH_AGENT_PID" in env:
+        del env["SSH_AGENT_PID"]
     keypath = access.renew_ssh_cert()
     try:
         result = subprocess.check_output(["ssh", "-o", "StrictHostKeyChecking=yes", "-i", keypath, "root@%s.%s" % (hostname, config.external_domain), "echo confirmed"], env=env)
