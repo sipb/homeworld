@@ -1,5 +1,4 @@
 import os
-import subprocess
 import tempfile
 import time
 
@@ -9,6 +8,7 @@ import configuration
 import resource
 import util
 import keycrypt
+import ssh
 
 
 def escape_shell(param: str) -> str:
@@ -35,14 +35,8 @@ class Operations:
             print()
         print("== all operations executed in %.2f seconds! ==" % (time.time() - startat))
 
-    def subprocess(self, name: str, *argv: str, node: configuration.Node=None) -> None:
-        self.add_operation(name, lambda: subprocess.check_call(argv), node=node)
-
     def pause(self, name: str, duration):
         self.add_operation(name, lambda: time.sleep(duration))
-
-    def _ssh_get_login(self, node: configuration.Node) -> str:  # returns root@<HOSTNAME>.<EXTERNAL_DOMAIN>
-        return "root@%s.%s" % (node.hostname, self._config.external_domain)
 
     def ssh_raw(self, name: str, node: configuration.Node, script: str, in_directory: str=None, redirect_to: str=None)\
             -> None:
@@ -50,7 +44,7 @@ class Operations:
             script = "(%s) >%s" % (script, escape_shell(redirect_to))
         if in_directory:
             script = "cd %s && %s" % (escape_shell(in_directory), script)
-        self.subprocess(name, "ssh", "-o", "StrictHostKeyChecking=yes", "-o", "ConnectTimeout=1", self._ssh_get_login(node), script, node=node)
+        self.add_operation(name, lambda: ssh.check_ssh(node, script), node=node)
 
     def ssh(self, name: str, node: configuration.Node, *argv: str, in_directory: str=None, redirect_to: str=None)\
             -> None:
@@ -62,17 +56,15 @@ class Operations:
         self.ssh(name, node, "mkdir", *(options + ["--"] + list(paths)))
 
     def ssh_upload_path(self, name: str, node: configuration.Node, source_path: str, dest_path: str) -> None:
-        self.subprocess(name, "scp", "-o", "StrictHostKeyChecking=yes", "-o", "ConnectTimeout=1", "--", source_path, self._ssh_get_login(node) + ":" + dest_path, node=node)
+        self.add_operation(name, lambda: ssh.check_scp_up(node, source_path, dest_path), node=node)
 
     def ssh_upload_bytes(self, name: str, node: configuration.Node, source_bytes: bytes, dest_path: str) -> None:
-        dest_rel = self._ssh_get_login(node) + ":" + dest_path
-
         def upload_bytes() -> None:
             # tempfile.TemporaryDirectory() creates the directory with 0o600, which protects the data if it's sensitive
             with tempfile.TemporaryDirectory() as scratchdir:
                 scratchpath = os.path.join(scratchdir, "scratch")
                 util.writefile(scratchpath, source_bytes)
-                subprocess.check_call(["scp", "-o", "StrictHostKeyChecking=yes", "-o", "ConnectTimeout=1", "--", scratchpath, dest_rel])
+                ssh.check_scp_up(node, scratchpath, dest_path)
                 os.remove(scratchpath)
 
         self.add_operation(name, upload_bytes, node=node)

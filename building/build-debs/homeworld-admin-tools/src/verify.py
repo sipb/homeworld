@@ -11,6 +11,7 @@ import access
 import parallel
 import random
 import json
+import ssh
 
 
 def compare_multiline(a, b):
@@ -44,16 +45,6 @@ def check_keystatics():
     print("pass: keyserver serving correct static files")
 
 
-def check_ssh(node, command):
-    config = configuration.get_config()
-    subprocess.check_call(["ssh", "-o", "StrictHostKeyChecking=yes", "root@%s.%s" % (node.hostname, config.external_domain), "--"] + command)
-
-
-def check_ssh_output(node, command):
-    config = configuration.get_config()
-    return subprocess.check_output(["ssh", "-o", "StrictHostKeyChecking=yes", "root@%s.%s" % (node.hostname, config.external_domain), "--"] + command)
-
-
 def check_online(server=None):
     config = configuration.get_config()
     if server is None:
@@ -68,7 +59,7 @@ def check_online(server=None):
     any_offline = False
     for node in found:
         try:
-            is_online = (check_ssh_output(node, ["echo", "round-trip"]) == b"round-trip\n")
+            is_online = (ssh.check_ssh_output(node, "echo", "round-trip") == b"round-trip\n")
         except subprocess.CalledProcessError:
             is_online = False
         if not is_online:
@@ -92,7 +83,9 @@ def check_ssh_with_certs(hostname=None):
     if hostname is None:
         if config.keyserver is None:
             command.fail("no keyserver found")
-        hostname = config.keyserver.hostname
+        node = config.keyserver
+    else:
+        node = config.get_node(hostname)
     env = dict(os.environ)
     if "SSH_AUTH_SOCK" in env:
         del env["SSH_AUTH_SOCK"]
@@ -100,7 +93,7 @@ def check_ssh_with_certs(hostname=None):
         del env["SSH_AGENT_PID"]
     keypath = access.renew_ssh_cert()
     try:
-        result = subprocess.check_output(["ssh", "-o", "StrictHostKeyChecking=yes", "-i", keypath, "root@%s.%s" % (hostname, config.external_domain), "echo confirmed"], env=env)
+        result = subprocess.check_output(ssh.SSH_BASE + ["-i", keypath, ssh.ssh_get_login(node), "echo", "confirmed"], env=env)
     except subprocess.CalledProcessError as e:
         command.fail("ssh check failed: %s" % e)
     if result != b"confirmed\n":
@@ -261,7 +254,7 @@ def check_aci_pull():
     container_command = "ping -c 1 8.8.8.8 && echo 'PING RESULT SUCCESS' || echo 'PING RESULT FAIL'"
     server_command = ["rkt", "run", "--pull-policy=update", "homeworld.mit.edu/debian", "--exec", "/bin/bash", "--", "-c",
                       setup.escape_shell(container_command)]
-    results = check_ssh_output(worker, server_command)
+    results = ssh.check_ssh_output(worker, *server_command)
     last_line = results.replace(b"\r\n",b"\n").replace(b"\0",b'').strip().split(b"\n")[-1]
     if b"PING RESULT FAIL" in last_line:
         if b"PING RESULT SUCCESS" in last_line:
@@ -338,7 +331,7 @@ def check_flannel_function():
     # this is here to make sure both servers have pulled the relevant containers
     server_command = ["rkt", "run", "--net=rkt.kubernetes.io", "homeworld.mit.edu/debian", "--", "-c", "/bin/true"]
     for worker in (worker_talker, worker_listener):
-        check_ssh(worker, server_command)
+        ssh.check_ssh(worker, *server_command)
 
     print("ready -- this may take a minute... please be patient")
 
@@ -349,7 +342,7 @@ def check_flannel_function():
         try:
             container_command = "ip -o addr show dev eth0 to 172.18/16 primary && sleep 15"
             server_command = ["rkt", "run", "--net=rkt.kubernetes.io", "homeworld.mit.edu/debian", "--", "-c", setup.escape_shell(container_command)]
-            cmd = ["ssh", "-o", "StrictHostKeyChecking=yes", "root@%s.%s" % (worker_listener.hostname, config.external_domain), "--"] + server_command
+            cmd = ssh.build_ssh(worker_listener, *server_command)
             with subprocess.Popen(cmd, stdout=subprocess.PIPE, bufsize=1, universal_newlines=True) as process:
                 stdout = process.stdout.readline()
                 if "scope" not in stdout:
@@ -380,7 +373,7 @@ def check_flannel_function():
             command.fail("no address was specified by listener")
         container_command = "ping -c 1 %s && echo 'PING RESULT SUCCESS' || echo 'PING RESULT FAIL'" % address
         server_command = ["rkt", "run", "--net=rkt.kubernetes.io", "homeworld.mit.edu/debian", "--exec", "/bin/bash", "--", "-c", setup.escape_shell(container_command)]
-        results = check_ssh_output(worker_talker, server_command)
+        results = ssh.check_ssh_output(worker_talker, *server_command)
         last_line = results.replace(b"\r\n",b"\n").replace(b"\0",b'').strip().split(b"\n")[-1]
         if b"PING RESULT FAIL" in last_line:
             command.fail("was not able to ping the target container; is flannel working?")
@@ -451,7 +444,7 @@ def check_dns_function():
 
     container_command = "nslookup kubernetes.default.svc.hyades.local 172.28.0.2"
     server_command = ["rkt", "run", "homeworld.mit.edu/debian", "--exec", "/bin/bash", "--", "-c", setup.escape_shell(container_command)]
-    results = check_ssh_output(worker, server_command)
+    results = ssh.check_ssh_output(worker, *server_command)
     last_line = results.replace(b"\r\n",b"\n").replace(b"\0",b'').strip().split(b"\n")[-1]
     if not last_line.endswith(b"Address: 172.28.0.1"):
         command.fail("unexpected last line: %s" % repr(last_line.decode()))

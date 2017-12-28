@@ -158,6 +158,12 @@ class Config:
     def has_node(self, node_name: str) -> bool:
         return any(node.hostname == node_name for node in self.nodes)
 
+    def get_node(self, node_name: str) -> Node:
+        for node in self.nodes:
+            if node.hostname == node_name:
+                return node
+        command.fail("no such node: %s" % node_name)
+
     @classmethod
     def load_from_string(cls, contents: bytes) -> "Config":
         return Config(yaml.safe_load(contents))
