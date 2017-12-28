@@ -74,9 +74,17 @@ def access_ssh(add_to_agent=False):
     print("===== ^ CERTIFICATE DETAILS ^ =====")
     if add_to_agent:
         # TODO: clear old identities
-        if subprocess.call(["ssh-add", "--", keypath]) != 0:
-            fail_hint = "ssh-add returned non-zero exit code. do you have a ssh-agent?\n" \
-                "or, perhaps your agent is broken; consider killing it and launching a new one."
+        try:
+            ssh_add_output = subprocess.check_output(["ssh-add", "--", keypath], stderr=subprocess.STDOUT)
+            # if the user is using gnome, gnome-keyring might
+            # masquerade as ssh-agent and provide a zero exit
+            # code despite failing to add the certificate
+            if b"add failed" in ssh_add_output:
+                fail_hint = "do you have an ssh-agent?\n" \
+                    "(gnome-keyring does not count)"
+                command.fail("*** ssh-add failed! ***", fail_hint)
+        except subprocess.CalledProcessError as e:
+            fail_hint = "ssh-add returned non-zero exit code. do you have an ssh-agent?"
             command.fail("*** ssh-add failed! ***", fail_hint)
 
 def access_ssh_with_add():
