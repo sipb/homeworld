@@ -10,7 +10,7 @@ import util
 
 
 def import_keytab(node, keytab_file):
-    if not configuration.Config.load_from_project().has_node(node):
+    if not configuration.get_config().has_node(node):
         command.fail("no such node: %s" % node)
     keytab_target = os.path.join(configuration.get_project(), "keytab.%s.crypt" % node)
     keycrypt.gpg_encrypt_file(keytab_file, keytab_target)
@@ -40,7 +40,7 @@ def import_https(name, keyfile, certfile):
 
 
 def keytab_op(node, op):
-    if not configuration.Config.load_from_project().has_node(node):
+    if not configuration.get_config().has_node(node):
         command.fail("no such node: %s" % node)
     keytab_source = os.path.join(configuration.get_project(), "keytab.%s.crypt" % node)
     keytab_target = os.path.join(configuration.get_project(), "keytab.%s.crypt.tmp" % node)

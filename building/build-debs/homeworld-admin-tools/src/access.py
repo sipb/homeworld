@@ -42,7 +42,7 @@ def create_or_rotate_custom_ssh_key(interval=DEFAULT_ROTATE_INTERVAL, bits=DEFAU
 
 
 def call_keyreq(command, *params, collect=False):
-    config = configuration.Config.load_from_project()
+    config = configuration.get_config()
     keyserver_domain = config.keyserver.hostname + "." + config.external_domain + ":20557"
 
     invoke_variant = subprocess.check_output if collect else subprocess.check_call

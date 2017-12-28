@@ -10,7 +10,7 @@ def infra_admit(server_principal: str) -> None:
 
 
 def infra_admit_all() -> None:
-    config = configuration.Config.load_from_project()
+    config = configuration.get_config()
     tokens = {}
     for node in config.nodes:
         if node.kind == "supervisor":

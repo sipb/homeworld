@@ -202,7 +202,7 @@ def setup_bootstrap_registry(ops: Operations, config: configuration.Config) -> N
 
 def wrapop(desc: str, f):
     def wrap_param_tx(params):
-        config = configuration.Config.load_from_project()
+        config = configuration.get_config()
         ops = Operations(config)
         return [ops, config] + params, ops.run_operations
     return command.wrap(desc, f, wrap_param_tx)

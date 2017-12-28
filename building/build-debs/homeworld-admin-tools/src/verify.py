@@ -45,17 +45,17 @@ def check_keystatics():
 
 
 def check_ssh(node, command):
-    config = configuration.Config.load_from_project()
+    config = configuration.get_config()
     subprocess.check_call(["ssh", "-o", "StrictHostKeyChecking=yes", "root@%s.%s" % (node.hostname, config.external_domain), "--"] + command)
 
 
 def check_ssh_output(node, command):
-    config = configuration.Config.load_from_project()
+    config = configuration.get_config()
     return subprocess.check_output(["ssh", "-o", "StrictHostKeyChecking=yes", "root@%s.%s" % (node.hostname, config.external_domain), "--"] + command)
 
 
 def check_online(server=None):
-    config = configuration.Config.load_from_project()
+    config = configuration.get_config()
     if server is None:
         found = config.nodes
         if not found:
@@ -88,7 +88,7 @@ def check_keygateway():
 
 
 def check_ssh_with_certs(hostname=None):
-    config = configuration.Config.load_from_project()
+    config = configuration.get_config()
     if hostname is None:
         if config.keyserver is None:
             command.fail("no keyserver found")
@@ -109,7 +109,7 @@ def check_ssh_with_certs(hostname=None):
 
 
 def check_etcd_health():
-    config = configuration.Config.load_from_project()
+    config = configuration.get_config()
     result = access.call_etcdctl(["cluster-health"], return_result=True)
     lines = result.strip().decode().split("\n")
     if lines.pop() != "cluster is healthy":
@@ -170,7 +170,7 @@ def get_kubectl_json(*params: str):
 
 def check_kube_health():
     expected_kubernetes_version = "v1.8.0"
-    config = configuration.Config.load_from_project()
+    config = configuration.get_config()
 
     # verify nodes
 
@@ -252,7 +252,7 @@ def check_kube_health():
 
 
 def check_aci_pull():
-    config = configuration.Config.load_from_project()
+    config = configuration.get_config()
     workers = [node for node in config.nodes if node.kind == "worker"]
     if not workers:
         command.fail("expected nonzero number of worker nodes")
@@ -273,7 +273,7 @@ def check_aci_pull():
 
 
 def check_flannel_kubeinfo():
-    config = configuration.Config.load_from_project()
+    config = configuration.get_config()
 
     # checking kubernetes info on flannel
 
@@ -322,7 +322,7 @@ def check_flannel_kubeinfo():
 
 def check_flannel_function():
     # checking flannel functionality
-    config = configuration.Config.load_from_project()
+    config = configuration.get_config()
 
     workers = [node for node in config.nodes if node.kind == "worker"]
     if len(workers) < 2:
@@ -395,7 +395,7 @@ def check_flannel_function():
 
 
 def check_dns_kubeinfo():
-    config = configuration.Config.load_from_project()
+    config = configuration.get_config()
 
     pods = get_kubectl_json("get", "pods", "--namespace=kube-system", "--selector=k8s-app=kube-dns")
     try:
@@ -440,7 +440,7 @@ def check_dns_kubeinfo():
 
 
 def check_dns_function():
-    config = configuration.Config.load_from_project()
+    config = configuration.get_config()
 
     workers = [node for node in config.nodes if node.kind == "worker"]
     if len(workers) < 1:

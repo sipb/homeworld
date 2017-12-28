@@ -159,16 +159,20 @@ class Config:
         return any(node.hostname == node_name for node in self.nodes)
 
     @classmethod
-    def load_from_string(cls, contents: bytes):
+    def load_from_string(cls, contents: bytes) -> "Config":
         return Config(yaml.safe_load(contents))
 
     @classmethod
-    def load_from_file(cls, filepath: str):
+    def load_from_file(cls, filepath: str) -> "Config":
         return Config.load_from_string(util.readfile(filepath))
 
     @classmethod
-    def load_from_project(cls):
+    def load_from_project(cls) -> "Config":
         return Config.load_from_file(os.path.join(get_project(), "setup.yaml"))
+
+
+def get_config() -> Config:
+    return Config.load_from_project()
 
 
 def get_keyserver_yaml() -> str:

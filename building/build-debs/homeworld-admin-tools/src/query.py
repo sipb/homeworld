@@ -16,7 +16,7 @@ def get_verified_keyserver_opener() -> urllib.request.OpenerDirector:
 
 
 def get_keyurl_data(path):
-    config = configuration.Config.load_from_project()
+    config = configuration.get_config()
     keyserver_hostname = config.keyserver.hostname
     url = "https://%s.%s:20557/%s" % (keyserver_hostname, config.external_domain, path.lstrip("/"))
     try:
