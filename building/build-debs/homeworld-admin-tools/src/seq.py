@@ -44,6 +44,13 @@ def sequence_ssh(ops: setup.Operations) -> None:
     ops.add_operation("verify ssh access to supervisor", verify.check_ssh_with_certs)
 
 
+def sequence_supervisor(ops: setup.Operations) -> None:
+    # spire seq keysystem
+    sequence_keysystem(ops)
+    # spire seq ssh
+    sequence_ssh(ops)
+
+
 def iterative_verifier(verifier, max_time, pause=2.0):
     def ver():
         end_time = time.time() + max_time
@@ -96,11 +103,22 @@ def sequence_dns_addon(ops: setup.Operations) -> None:
     ops.add_operation("verify that dns-addon is functioning", verify.check_dns_function)
 
 
+def sequence_addons(ops: setup.Operations) -> None:
+    ops.add_operation("deploy or update flannel", lambda: deploy.launch_spec("flannel.yaml"))
+    ops.add_operation("deploy or update dns-addon", lambda: deploy.launch_spec("dns-addon.yaml"))
+    ops.add_operation("verify that flannel is online", iterative_verifier(verify.check_flannel_kubeinfo, 60.0))
+    ops.add_operation("verify that dns-addon is online", iterative_verifier(verify.check_dns_kubeinfo, 10.0))
+    ops.add_operation("verify that flannel is functioning", verify.check_flannel_function)
+    ops.add_operation("verify that dns-addon is functioning", verify.check_dns_function)
+
+
 main_command = command.mux_map("commands about running large sequences of cluster bring-up automatically", {
     "keysystem": setup.wrapop("set up and verify functionality of the keyserver and keygateway", sequence_keysystem),
     "ssh": setup.wrapop("set up and verify ssh access to the supervisor node", sequence_ssh),
+    "supervisor": setup.wrapop("set up and verify functionality of entire supervisor node (keysystem + ssh)", sequence_supervisor),
     "core": setup.wrapop("set up and verify core infrastructure operation", sequence_core),
     "registry": setup.wrapop("set up and verify the bootstrap container registry", sequence_registry),
     "flannel": setup.wrapop("set up and verify the flannel core service", sequence_flannel),
     "dns-addon": setup.wrapop("set up and verify the dns-addon core service", sequence_dns_addon),
+    "addons": setup.wrapop("set up and verify the flannel and dns-addon core services", sequence_addons),
 })

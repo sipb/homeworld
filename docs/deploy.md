@@ -197,15 +197,9 @@ Note that this is a local change that does not persist on reboot.
 
 ## Setting up the supervisor node
 
-Set up the keysystem:
+Set up the keysystem and SSH:
 
-    $ spire seq keysystem
-
-Set up SSH:
-
-      # if this fails, you might need to make sure you don't have any stale kerberos tickets
-    $ spire seq ssh
-      # (this command includes the automatic execution of `spire access ssh`)
+    $ spire seq supervisor
 
 ## Set up each node's operating system
 
@@ -244,13 +238,9 @@ If and only if you're hosting the containers for core cluster services on the cl
 
     $ spire seq registry
 
-Deploy flannel into the cluster:
+Deploy flannel and dns-addon into the cluster:
 
-    $ spire seq flannel
-
-Deploy dns-addon into the clustesr:
-
-    $ spire seq dns-addon
+    $ spire seq addons
 
 # Finishing up
 
