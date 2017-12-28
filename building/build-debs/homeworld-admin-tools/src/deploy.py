@@ -13,7 +13,15 @@ def launch_spec(spec_name):
         access.call_kubectl(["apply", "-f", specfile], return_result=False)
 
 
+def launch_flannel():
+    launch_spec("flannel.yaml")
+
+
+def launch_dns_addon():
+    launch_spec("dns-addon.yaml")
+
+
 main_command = command.mux_map("commands to deploy systems onto the kubernetes cluster", {
-    "flannel": command.wrap("deploy the specifications to run flannel", lambda: launch_spec("flannel.yaml")),
-    "dns-addon": command.wrap("deploy the specifications to run the dns-addon", lambda: launch_spec("dns-addon.yaml")),
+    "flannel": command.wrap("deploy the specifications to run flannel", launch_flannel),
+    "dns-addon": command.wrap("deploy the specifications to run the dns-addon", launch_dns_addon),
 })

@@ -16,6 +16,20 @@ def fail(message: str, hint: str = None) -> None:
     raise CommandFailedException(message, hint)
 
 
+def provide_command_for_function(f, command):
+    if hasattr(f, "dispatch_set_name"):
+        f.dispatch_set_name(command)
+    f.dispatch_name = command
+
+
+def get_command_for_function(f, default):
+    if hasattr(f, "dispatch_get_name"):
+        return f.dispatch_get_name(default)
+    if hasattr(f, "dispatch_name"):
+        return f.dispatch_name
+    return default
+
+
 def mux_map(desc: str, mapping: dict):
     def usage() -> None:
         print("commands:")
@@ -36,6 +50,12 @@ def mux_map(desc: str, mapping: dict):
     if "usage" not in mapping:
         mapping = dict(mapping)
         mapping["usage"] = ("ask for this usage info", lambda _: usage())
+
+    def update_command_name(name):
+        for component, (desc, f) in mapping.items():
+            provide_command_for_function(f, "%s %s" % (name, component))
+
+    invoke.dispatch_set_name = update_command_name
 
     return desc, invoke
 
@@ -74,11 +94,15 @@ def wrap(desc: str, func, paramtx=None):
         if on_end:
             on_end()
 
+    invoke.dispatch_set_name = lambda name: provide_command_for_function(func, name)
+    invoke.dispatch_get_name = lambda default: get_command_for_function(func, default)
+
     return desc, invoke
 
 
 def main_invoke(command, params):
     desc, invoke = command
+    provide_command_for_function(invoke, "spire")
     try:
         invoke(params)
         return 0

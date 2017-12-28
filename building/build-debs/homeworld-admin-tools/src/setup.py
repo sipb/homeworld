@@ -19,11 +19,33 @@ def escape_shell(param: str) -> str:
 class Operations:
     def __init__(self):
         self._ops = []
+        self._annotations = []
+        self._ignore_annotations = 0
 
     def add_operation(self, name: str, callback, node: configuration.Node=None) -> None:
         if node:
             name = name.replace("@HOST", node.hostname)
+        self.annotate_from(callback)
         self._ops.append((name, callback))
+
+    def add_subcommand(self, func):
+        self.annotate_from(func)
+        self._ignore_annotations += 1
+        func(self)
+        self._ignore_annotations -= 1
+
+    def annotate_from(self, func):
+        self.annotate_subcommand(command.get_command_for_function(func, default="<unannotated subcommand: %s>" % func))
+
+    def annotate_subcommand(self, command):
+        if not self._ignore_annotations:
+            self._annotations.append("$ " + command)
+
+    def print_annotations(self, purpose):
+        if not self._ignore_annotations:
+            print("commands being executed to %s:" % purpose)
+            for annotation in self._annotations:
+                print("  %s" % annotation)
 
     def run_operations(self) -> None:
         print("== executing %d operations ==" % len(self._ops))
