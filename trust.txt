@@ -39,3 +39,8 @@ Signing key for Paolo Bonzini <bonzini@gnu.org> (qemu releases) (NOT THOROUGHLY 
 CoreOS Application Signing Key (NOT THOROUGHLY VERIFIED):
 
 18AD 5014 C99E F7E3 BA5F  6CE9 50BD D3E0 FC8A 365E
+
+
+Prometheus signing key (NOT THOROUGHLY VERIFIED):
+
+DEA7 8E64 C8A5 9767 D9B5  BC17 32C1 A2E1 8527 BC46
