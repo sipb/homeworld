@@ -1,0 +1,12 @@
+[Unit]
+Description=Prometheus Node Metrics Exporter
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+Slice=machine.slice
+ExecStart=/usr/bin/node_exporter --collector.systemd
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

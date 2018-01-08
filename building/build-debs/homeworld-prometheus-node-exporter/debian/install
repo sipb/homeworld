@@ -1,0 +1,2 @@
+bin/node_exporter usr/bin
+services/prometheus-node-exporter.service usr/lib/systemd/system
