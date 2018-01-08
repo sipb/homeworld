@@ -25,7 +25,7 @@ cp /homeworld-*.deb /target/
 in-target dpkg -i /homeworld-*.deb
 rm /target/homeworld-*.deb
 
-in-target systemctl enable keyclient.service update-keyclient-config.timer
+in-target systemctl enable keyclient.service update-keyclient-config.timer prometheus-node-exporter.service
 
 mkdir -p /target/etc/homeworld/keyclient/
 mkdir -p /target/etc/homeworld/config/

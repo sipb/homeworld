@@ -12,7 +12,7 @@ import packages
 import keycrypt
 from version import get_git_version
 
-PACKAGES = ("homeworld-apt-setup", "homeworld-knc", "homeworld-keysystem")
+PACKAGES = ("homeworld-apt-setup", "homeworld-knc", "homeworld-keysystem", "homeworld-prometheus-node-exporter")
 
 # TODO: refactor this file to be more maintainable
 
