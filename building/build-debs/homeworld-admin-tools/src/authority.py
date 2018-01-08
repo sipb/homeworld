@@ -52,7 +52,7 @@ def generate() -> None:
                 util.copy(os.path.join(certdir, filename), os.path.join(cryptdir, filename))
             else:
                 # private keys; encrypt when copying, and rename encrypted version for clarity.
-                keycrypt.gpg_encrypt_file(os.path.join(certdir, filename), os.path.join(cryptdir, encrypted_name(filename)))
+                keycrypt.gpg_encrypt_file(os.path.join(certdir, filename), os.path.join(cryptdir, name_for_encrypted_file(filename)))
         subprocess.check_call(["shred", "--"] + os.listdir(certdir), cwd=certdir)
         print("packing authorities...")
         subprocess.check_call(["tar", "-C", cryptdir, "-czf", authorities, "."])
