@@ -233,6 +233,16 @@ def setup_bootstrap_registry(ops: Operations) -> None:
         ops.ssh("restart nginx on @HOST", node, "systemctl", "restart", "nginx")
 
 
+def setup_prometheus(ops: Operations) -> None:
+    config = configuration.get_config()
+    for node in config.nodes:
+        if node.kind != "supervisor":
+            continue
+        ops.ssh_upload_bytes("upload prometheus config to @HOST", node, configuration.get_prometheus_yaml().encode(),
+                             "/etc/prometheus.yaml")
+        ops.ssh("restart prometheus on @HOST", node, "systemctl", "restart", "prometheus")
+
+
 def wrapop(desc: str, f):
     def wrap_param_tx(params):
         ops = Operations()
@@ -250,4 +260,5 @@ main_command = command.mux_map("commands about setting up a cluster", {
     "dns-bootstrap": wrapop("switch cluster nodes into 'bootstrapped DNS' mode", setup_dns_bootstrap),
     "stop-dns-bootstrap": wrapop("switch cluster nodes out of 'bootstrapped DNS' mode", teardown_dns_bootstrap),
     "bootstrap-registry": wrapop("bring up the bootstrap container registry on the supervisor nodes", setup_bootstrap_registry),
+    "prometheus": wrapop("bring up the supervisor node prometheus instance", setup_prometheus),
 })

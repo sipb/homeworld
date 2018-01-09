@@ -201,6 +201,10 @@ Set up the keysystem and SSH:
 
     $ spire seq supervisor
 
+Set up prometheus for monitoring:
+
+    $ spire setup prometheus
+
 ## Set up each node's operating system
 
 Request bootstrap tokens:

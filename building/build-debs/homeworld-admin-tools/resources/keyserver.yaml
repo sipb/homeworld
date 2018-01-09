@@ -178,7 +178,7 @@ grants:
   # CLIENT CERTIFICATES
 
   grant-kubernetes-worker:
-    group: kubernetes-nodes
+    group: nodes
     privilege: sign-tls
     authority: kubernetes
     lifespan: 720h  # thirty day lifespan

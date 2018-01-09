@@ -1,0 +1,86 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'node resources'
+
+    static_configs:
+      - targets: {{TARGETS}}
+
+  - job_name: 'kubernetes-apiservers'
+
+    scheme: https
+    tls_config:
+      ca_file: /etc/homeworld/authorities/kubernetes.pem
+      cert_file: /etc/homeworld/keys/kubernetes-worker.pem
+      key_file: /etc/homeworld/keys/kubernetes-worker.key
+
+    kubernetes_sd_configs:
+    - role: endpoints
+      api_server: {{APISERVER}}
+      tls_config:
+        ca_file: /etc/homeworld/authorities/kubernetes.pem
+        cert_file: /etc/homeworld/keys/kubernetes-worker.pem
+        key_file: /etc/homeworld/keys/kubernetes-worker.key
+
+    relabel_configs:
+    - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+      action: keep
+      regex: default;kubernetes;https
+
+  - job_name: 'kubernetes-nodes'
+
+    scheme: https
+    tls_config:
+      ca_file: /etc/homeworld/authorities/kubernetes.pem
+      cert_file: /etc/homeworld/keys/kubernetes-worker.pem
+      key_file: /etc/homeworld/keys/kubernetes-worker.key
+
+    kubernetes_sd_configs:
+    - role: node
+      api_server: {{APISERVER}}
+      tls_config:
+        ca_file: /etc/homeworld/authorities/kubernetes.pem
+        cert_file: /etc/homeworld/keys/kubernetes-worker.pem
+        key_file: /etc/homeworld/keys/kubernetes-worker.key
+
+    relabel_configs:
+    - action: labelmap
+      regex: __meta_kubernetes_node_label_(.+)
+    - target_label: __address__
+      replacement: {{APISERVER}}:443
+    - source_labels: [__meta_kubernetes_node_name]
+      regex: (.+)
+      target_label: __metrics_path__
+      replacement: /api/v1/nodes/${1}/proxy/metrics
+
+  - job_name: 'kubernetes-cadvisor'
+
+    scheme: https
+    tls_config:
+      ca_file: /etc/homeworld/authorities/kubernetes.pem
+      cert_file: /etc/homeworld/keys/kubernetes-worker.pem
+      key_file: /etc/homeworld/keys/kubernetes-worker.key
+
+    kubernetes_sd_configs:
+    - role: node
+      api_server: {{APISERVER}}
+      tls_config:
+        ca_file: /etc/homeworld/authorities/kubernetes.pem
+        cert_file: /etc/homeworld/keys/kubernetes-worker.pem
+        key_file: /etc/homeworld/keys/kubernetes-worker.key
+
+    relabel_configs:
+    - action: labelmap
+      regex: __meta_kubernetes_node_label_(.+)
+    - target_label: __address__
+      replacement: {{APISERVER}}:443
+    - source_labels: [__meta_kubernetes_node_name]
+      regex: (.+)
+      target_label: __metrics_path__
+      replacement: /api/v1/nodes/${1}/proxy/metrics/cadvisor

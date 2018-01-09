@@ -241,13 +241,17 @@ def get_etcd_endpoints() -> str:
     return ",".join("https://%s:2379" % n.ip for n in nodes if n.kind == "master")
 
 
-def get_apiserver_default() -> str:
+def get_apiserver_default_as_node() -> Node:
     # TODO: this should be eliminated, because nothing should be specific to this one apiserver
     config = Config.load_from_project()
     apiservers = [node for node in config.nodes if node.kind == "master"]
     if not apiservers:
         command.fail("no apiserver to select, because no master nodes were configured")
-    return "https://%s:443" % apiservers[0].ip
+    return apiservers[0]
+
+
+def get_apiserver_default() -> str:
+    return "https://%s:443" % get_apiserver_default_as_node().ip
 
 
 def get_cluster_conf() -> str:
@@ -286,6 +290,14 @@ def get_local_kubeconfig() -> str:
     return template.template("kubeconfig-local.yaml", kconf)
 
 
+def get_prometheus_yaml() -> str:
+    config = Config.load_from_project()
+    kcli = {"APISERVER": get_apiserver_default_as_node().ip,
+            "TARGETS": "[%s]" % ",".join("'%s.%s:9100'" % (node.hostname, config.external_domain)
+                                         for node in config.nodes)}
+    return template.template("prometheus.yaml", kcli)
+
+
 def populate() -> None:
     setup_yaml = os.path.join(get_project(create_dir_if_missing=True), "setup.yaml")
     if os.path.exists(setup_yaml):
@@ -321,6 +333,10 @@ def print_local_kubeconfig() -> None:
     print(get_local_kubeconfig())
 
 
+def print_prometheus_yaml() -> None:
+    print(get_prometheus_yaml())
+
+
 def get_kube_spec_vars() -> dict:
     config = Config.load_from_project()
 
@@ -354,5 +370,6 @@ main_command = command.mux_map("commands about cluster configuration", {
         "cluster.conf": command.wrap("display the generated cluster.conf", print_cluster_conf),
         "machine.list": command.wrap("display the generated machine.list", print_machine_list_file),
         "kubeconfig": command.wrap("display the generated local kubeconfig", print_local_kubeconfig),
+        "prometheus.yaml": command.wrap("display the generated prometheus.yaml", print_prometheus_yaml),
     }),
 })

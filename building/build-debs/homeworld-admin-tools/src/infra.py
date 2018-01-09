@@ -31,7 +31,7 @@ def infra_install_packages(ops: setup.Operations) -> None:
         ops.ssh("upgrade packages on @HOST", node, "apt-get", "upgrade", "-y")
         if node.kind == "supervisor":
             ops.ssh("install supervisor packages on @HOST", node, "apt-get", "install", "-y",
-                    "homeworld-bootstrap-registry")
+                    "homeworld-bootstrap-registry", "homeworld-prometheus")
         else:
             ops.ssh("install standard packages on @HOST", node, "apt-get", "install", "-y",
                     "homeworld-services")

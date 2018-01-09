@@ -74,13 +74,13 @@ keys:
     api: grant-ssh-host
     in-advance: 168h   # renew one week before expiration
 
-[WORKER]    # for both master nodes and worker nodes, but not supervisor nodes
-[WORKER]  - name: kube-worker
-[WORKER]    type: tls
-[WORKER]    key: /etc/homeworld/keys/kubernetes-worker.key
-[WORKER]    cert: /etc/homeworld/keys/kubernetes-worker.pem
-[WORKER]    api: grant-kubernetes-worker
-[WORKER]    in-advance: 168h   # renew one week before expiration
+    # for master nodes, worker nodes (both for kubelet), and supervisor nodes (for prometheus)
+  - name: kube-worker
+    type: tls
+    key: /etc/homeworld/keys/kubernetes-worker.key
+    cert: /etc/homeworld/keys/kubernetes-worker.pem
+    api: grant-kubernetes-worker
+    in-advance: 168h   # renew one week before expiration
 
 [MASTER]    # just for master nodes
 [MASTER]  - name: kube-master
