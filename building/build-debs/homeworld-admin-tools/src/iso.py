@@ -10,6 +10,7 @@ import subprocess
 import util
 import packages
 import keycrypt
+from version import get_git_version
 
 PACKAGES = ("homeworld-apt-setup", "homeworld-knc", "homeworld-keysystem")
 
@@ -69,9 +70,12 @@ def gen_iso(iso_image, authorized_key, cdpack=None):
         preseeded = resource.get_resource("preseed.cfg.in")
         generated_password = util.pwgen(20)
         creation_time = datetime.datetime.now().isoformat()
+        git_hash = get_git_version().encode()
         add_password_to_log(generated_password, creation_time)
         print("generated password added to log")
-        preseeded = preseeded.replace(b"{{HASH}}", util.mkpasswd(generated_password)).replace(b"{{BUILDDATE}}", creation_time.encode())
+        preseeded = preseeded.replace(b"{{HASH}}", util.mkpasswd(generated_password))
+        preseeded = preseeded.replace(b"{{BUILDDATE}}", creation_time.encode())
+        preseeded = preseeded.replace(b"{{GITHASH}}", git_hash);
         util.writefile(os.path.join(d, "preseed.cfg"), preseeded)
 
         inclusion += ["sshd_config.new", "preseed.cfg"]
