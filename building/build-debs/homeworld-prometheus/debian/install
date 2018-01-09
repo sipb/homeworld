@@ -1,2 +1,3 @@
 bin/prometheus usr/bin
 bin/promtool usr/bin
+services/prometheus.service usr/lib/systemd/system

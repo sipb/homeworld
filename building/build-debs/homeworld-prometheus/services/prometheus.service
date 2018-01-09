@@ -1,0 +1,12 @@
+[Unit]
+Description=Prometheus Monitoring Service
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+Slice=machine.slice
+ExecStart=/usr/bin/prometheus --config.file=/etc/prometheus.yaml --storage.tsdb.path=/var/lib/prometheus/data/
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
