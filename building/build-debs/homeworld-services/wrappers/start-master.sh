@@ -6,8 +6,6 @@ echo "starting master services..."
 systemctl daemon-reload
 
 # etcd should already be started by start-master-etcd.sh
-# systemctl start etcd
-# systemctl enable etcd
 systemctl start rkt-api
 systemctl enable rkt-api
 systemctl start kubelet

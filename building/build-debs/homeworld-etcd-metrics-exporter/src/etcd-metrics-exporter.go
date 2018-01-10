@@ -38,7 +38,7 @@ import (
 
 // Initialize the prometheus instrumentation and client related flags.
 var (
-	etcdScrapeBase = "https://localhost:2379"
+	etcdScrapeBase string
 
 	httpClient *http.Client
 )
@@ -164,13 +164,15 @@ func scrapeMetrics() (map[string]*dto.MetricFamily, error) {
 }
 
 func main() {
-	if len(os.Args) != 4 {
-		log.Fatal("expected three arguments: authority, keyfile, certfile")
+	if len(os.Args) != 5 {
+		log.Fatal("expected four arguments: baseurl, authority, keyfile, certfile")
 	}
+
+	etcdScrapeBase = os.Args[1]
 
 	certPool := x509.NewCertPool()
 
-	authorities, err := ioutil.ReadFile(os.Args[1])
+	authorities, err := ioutil.ReadFile(os.Args[2])
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -178,7 +180,7 @@ func main() {
 		log.Fatal("could not parse PEM cert for CA")
 	}
 
-	certCli, err := tls.LoadX509KeyPair(os.Args[3], os.Args[2])
+	certCli, err := tls.LoadX509KeyPair(os.Args[4], os.Args[3])
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -9,7 +9,7 @@ Vcs-Browser: https://github.com/sipb/homeworld/
 
 Package: homeworld-services
 Architecture: any
-Depends: ${misc:Depends}, homeworld-rkt, homeworld-etcd, homeworld-hyperkube (>= 1.8.0), openssl, curl, ca-certificates
+Depends: ${misc:Depends}, homeworld-rkt, homeworld-etcd, homeworld-hyperkube (>= 1.8.0), openssl, curl, ca-certificates, homeworld-etcd-metrics-exporter
 Conflicts: homeworld-flannel
 Description: Homeworld services package.
  This package is used for code deployment to Homeworld clusters.
