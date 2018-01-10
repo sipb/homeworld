@@ -12,10 +12,11 @@ import packages
 import keycrypt
 from version import get_git_version
 
-PACKAGES = ("homeworld-apt-setup", "homeworld-knc", "homeworld-keysystem", "homeworld-prometheus-node-exporter")
+PACKAGES = ("homeworld-apt-setup", "homeworld-knc", "homeworld-keysystem", "homeworld-prometheus-node-exporter", \
+            "homeworld-hyperkube", "homeworld-rkt", "homeworld-etcd", "homeworld-services", "homeworld-bootstrap-registry", \
+            "homeworld-prometheus", "homeworld-etcd-metrics-exporter")
 
 # TODO: refactor this file to be more maintainable
-
 
 # converts debian-9.2.0-amd64-mini.iso into a "cdpack", which can be more easily remastered
 def regen_cdpack(source_iso, dest_cdpack):

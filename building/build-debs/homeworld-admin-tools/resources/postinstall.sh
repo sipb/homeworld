@@ -20,10 +20,13 @@ then
     exit 1
 fi
 
+in-target systemctl mask nginx.service
+
 # install packages
 cp /homeworld-*.deb /target/
-in-target dpkg -i /homeworld-*.deb
+in-target dpkg --unpack /homeworld-*.deb
 rm /target/homeworld-*.deb
+in-target apt-get install --fix-broken --yes
 
 in-target systemctl enable keyclient.service update-keyclient-config.timer prometheus-node-exporter.service
 
