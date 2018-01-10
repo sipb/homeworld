@@ -1,3 +1,4 @@
+source ../../setup-apt-branch/setup-apt-branch.sh
 
 PKGBASE="$(basename "$(dirname "$(realpath "$0")")")"
 
@@ -9,7 +10,7 @@ fi
 
 DVERSION="$(head -n 1 debian/changelog | cut -d '(' -f 2 | cut -d ')' -f 1)"
 VERSION="$(echo "$DVERSION" | cut -d '-' -f 1)"
-BIN=../binaries
+BIN="../binaries/${HOMEWORLD_APT_BRANCH}"
 STAGE=..
 UPSTREAM=../../upstream
 HELPERS="../../build-helpers"
@@ -60,6 +61,7 @@ function build() {
 	mkdir -p "${BIN}"
 	sbuild -d "stretch"
 	mv "${STAGE}/${PKGNAME}" -T "${PKOUT}"
+	echo "package ${PKGNAME} built for ${HOMEWORLD_APT_BRANCH}"
 }
 
 unset GOROOT

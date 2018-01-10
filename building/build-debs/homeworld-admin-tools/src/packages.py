@@ -5,12 +5,13 @@ import subprocess
 import tempfile
 import urllib.parse
 import urllib.request
+import urllib.error
 
 import command
 import resource
 import util
 
-REPO_URL = "http://web.mit.edu/hyades/debian/"
+APT_REPO_BASE = "http://web.mit.edu/hyades/apt/"
 
 
 def verify_gpg_signature(data: bytes, signature: bytes, keyring: bytes) -> bool:
@@ -146,8 +147,14 @@ def download_package(package_name: str, verified_package_info: (str, dict)) -> (
 
 
 def verified_download_full(package_list: tuple) -> dict:
-    """Download all the packages from the specified list from the main repository, including verifying them.
+    """Download all the packages from the specified list from the apt branch, including verifying them.
 
     Returns a mapping of {package_name: (short_filename, package_bytes), ...}"""
-    verified_info = download_and_verify_package_list(REPO_URL)
-    return {package_name: download_package(package_name, verified_info) for package_name in package_list}
+    apt_branch = resource.get_resource("APT_BRANCH").decode().rstrip()
+    apt_url = APT_REPO_BASE + apt_branch
+    try:
+        verified_info = download_and_verify_package_list(apt_url)
+        return {package_name: download_package(package_name, verified_info) for package_name in package_list}
+    except urllib.error.HTTPError:
+        command.fail("unable to access apt branch",
+            "do you have an apt branch at %s?" % apt_url)

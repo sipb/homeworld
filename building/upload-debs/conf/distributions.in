@@ -6,4 +6,5 @@ Version: 9.0
 Architectures: amd64
 Components: main
 Description: Homeworld code-deployment repository
-SignWith: 0x8422464D9EE78588
+SignWith: ${APT_SIGNING_KEY}
+Update: homeworld

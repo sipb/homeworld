@@ -1,0 +1,4 @@
+Name: homeworld
+Components: main
+Method: http://web.mit.edu/hyades/apt/root/master/
+VerifyRelease: 8422464D9EE78588

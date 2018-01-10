@@ -1,5 +1,5 @@
 Types: deb
-URIs: http://web.mit.edu/~hyades/debian/
+URIs: http://web.mit.edu/~hyades/apt/${APT_BRANCH}/
 Suites: homeworld
 Architectures: amd64
 Components: main

@@ -2,5 +2,7 @@
 /spire
 debian-*-amd64-mini.iso
 debian-*-cdpack.tgz
-resources/GIT_VERSION
+/resources/GIT_VERSION
+/resources/APT_BRANCH
+/resources/homeworld-archive-keyring.gpg
 src/resources/
