@@ -325,7 +325,7 @@ d-i base-installer/kernel/image string linux-image-amd64
 tasksel tasksel/first multiselect ssh-server
 
 # Individual additional packages to install
-d-i pkgsel/include string openssl curl ca-certificates krb5-user
+d-i pkgsel/include string openssl curl ca-certificates krb5-user less
 # Whether to upgrade packages after debootstrap.
 # Allowed values: none, safe-upgrade, full-upgrade
 #d-i pkgsel/upgrade select none
