@@ -293,8 +293,10 @@ def get_local_kubeconfig() -> str:
 def get_prometheus_yaml() -> str:
     config = Config.load_from_project()
     kcli = {"APISERVER": get_apiserver_default_as_node().ip,
-            "TARGETS": "[%s]" % ",".join("'%s.%s:9100'" % (node.hostname, config.external_domain)
-                                         for node in config.nodes)}
+            "NODE-TARGETS": "[%s]" % ",".join("'%s.%s:9100'" % (node.hostname, config.external_domain)
+                                              for node in config.nodes),
+            "ETCD-TARGETS": "[%s]" % ",".join("'%s.%s:9101'" % (node.hostname, config.external_domain)
+                                              for node in config.nodes if node.kind == "master")}
     return template.template("prometheus.yaml", kcli)
 
 
