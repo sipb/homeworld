@@ -19,3 +19,4 @@ homeworld-keysystem_*.tar.gz
 homeworld-admin-tools_*.tar.gz
 homeworld-prometheus_*.tar.gz
 homeworld-prometheus-node-exporter_*.tar.gz
+homeworld-etcd-metrics-exporter_*.tar.gz

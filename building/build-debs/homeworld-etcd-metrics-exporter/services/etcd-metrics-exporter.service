@@ -1,0 +1,12 @@
+[Unit]
+Description=etcd metrics exporter
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+Slice=machine.slice
+ExecStart=/usr/bin/etcd-metrics-exporter /etc/homeworld/authorities/etcd-server.pem /etc/homeworld/keys/etcd-client.pem /etc/homeworld/keys/etcd-client.key
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

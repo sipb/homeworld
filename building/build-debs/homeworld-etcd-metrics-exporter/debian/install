@@ -1,0 +1,2 @@
+etcd-metrics-exporter usr/bin
+services/etcd-metrics-exporter.service usr/lib/systemd/system
