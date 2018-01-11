@@ -23,17 +23,17 @@ import (
 	"net/http"
 	"time"
 
+	"crypto/tls"
+	"crypto/x509"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	dto "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
+	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"strings"
-	"crypto/tls"
-	"crypto/x509"
-	"io/ioutil"
-	"io"
 )
 
 // Initialize the prometheus instrumentation and client related flags.
@@ -188,8 +188,8 @@ func main() {
 	httpClient = &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				RootCAs: certPool,
-				Certificates: []tls.Certificate { certCli },
+				RootCAs:      certPool,
+				Certificates: []tls.Certificate{certCli},
 			},
 		},
 	}
