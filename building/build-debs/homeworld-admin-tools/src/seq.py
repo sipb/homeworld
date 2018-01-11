@@ -28,6 +28,7 @@ def sequence_ssh(ops: setup.Operations) -> None:
 
 def sequence_supervisor(ops: setup.Operations) -> None:
     ops.add_subcommand(sequence_keysystem)
+    ops.add_subcommand(setup.setup_prometheus)
     ops.add_subcommand(sequence_ssh)
 
     ops.print_annotations("set up the keysystem")
