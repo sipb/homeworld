@@ -1,0 +1,11 @@
+homeworld-auth-monitor (0.1.1) stretch; urgency=medium
+
+  * Updated release
+
+ -- Cel Skeggs <cela@mit.edu>  Thu, 11 Jan 2018 16:26:35 -0500
+
+homeworld-auth-monitor (0.1.0) stretch; urgency=medium
+
+  * Initial release
+
+ -- Cel Skeggs <cela@mit.edu>  Wed, 10 Jan 2018 19:12:43 -0500

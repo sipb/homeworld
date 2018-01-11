@@ -1,0 +1,12 @@
+[Unit]
+Description=Homeworld Authentication Monitor
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/bin/auth-monitor /etc/homeworld/config/keyclient.yaml
+Restart=always
+RestartSec=10s
+
+[Install]
+WantedBy=multi-user.target

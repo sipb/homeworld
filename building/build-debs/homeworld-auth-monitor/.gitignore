@@ -1,0 +1,13 @@
+/go-bin-*
+/src/github.com
+/src/golang.org
+/src/gopkg.in
+/src/keycommon
+/src/util
+/prometheus-*.tar.xz
+/golang-x-crypto.tar.xz
+/gopkg.in-yaml.v2.tar.xz
+/prometheus-*
+/bin/
+/go/
+/auth-monitor

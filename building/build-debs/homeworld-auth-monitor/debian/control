@@ -1,0 +1,14 @@
+Source: homeworld-auth-monitor
+Section: misc
+Priority: extra
+Maintainer: Cel Skeggs <cela@mit.edu>
+Build-Depends: debhelper (>= 9)
+Standards-Version: 4.1.1
+Vcs-Git: https://github.com/sipb/homeworld.git
+Vcs-Browser: https://github.com/sipb/homeworld/
+
+Package: homeworld-auth-monitor
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}, homeworld-keysystem
+Description: Homeworld auth-monitor package.
+ This package is used for code deployment to Homeworld clusters.
