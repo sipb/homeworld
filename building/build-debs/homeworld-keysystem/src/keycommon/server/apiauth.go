@@ -25,13 +25,18 @@ func (k *Keyserver) AuthenticateWithCert(cert tls.Certificate) (reqtarget.Reques
 	return &authenticated{k.endpoint.WithCertificate(cert)}, nil
 }
 
+
 func (k *Keyserver) AuthenticateWithKerberosTickets() (reqtarget.RequestTarget, error) {
-	url, err := url.Parse(k.endpoint.BaseURL())
+	return k.AuthenticateWithKerberosTicketsInCache("")
+}
+
+func (k *Keyserver) AuthenticateWithKerberosTicketsInCache(ticketcache string) (reqtarget.RequestTarget, error) {
+	endpointURL, err := url.Parse(k.endpoint.BaseURL())
 	if err != nil {
 		return nil, err
 	}
 
-	return &knc.KncServer{url.Hostname()}, nil
+	return &knc.KncServer{Hostname: endpointURL.Hostname(), KerberosTicketCache: ticketcache}, nil
 }
 
 func (a *authenticated) SendRequests(reqs []reqtarget.Request) ([]string, error) {

@@ -6,14 +6,20 @@ import (
 	"fmt"
 	"keycommon/reqtarget"
 	"os/exec"
+	"util/osutil"
 )
 
 type KncServer struct {
 	Hostname string
+	KerberosTicketCache string
 }
 
 func (k KncServer) kncRequest(data []byte) ([]byte, error) {
 	cmd := exec.Command("/usr/bin/knc", fmt.Sprintf("host@%s", k.Hostname), "20575")
+
+	if k.KerberosTicketCache != "" {
+		cmd.Env = osutil.ModifiedEnviron("KRB5CCNAME", k.KerberosTicketCache)
+	}
 
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
