@@ -3,7 +3,6 @@ import time
 import access
 import command
 import deploy
-import infra
 import setup
 import verify
 
@@ -55,7 +54,6 @@ def iterative_verifier(verifier, max_time, pause=2.0):
 
 
 def sequence_core(ops: setup.Operations) -> None:
-    ops.add_subcommand(infra.infra_install_packages)
     ops.add_subcommand(setup.setup_services)
 
     ops.add_operation("verify that etcd has launched successfully",
