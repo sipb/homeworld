@@ -125,8 +125,8 @@ class Config:
         v_cluster, v_addresses, v_dns_bootstrap, v_root_admins, v_nodes = \
             keycheck(kv, "cluster", "addresses", "dns-bootstrap", "root-admins", "nodes")
 
-        self.external_domain, self.internal_domain, self.etcd_token = \
-            keycheck(v_cluster, "external-domain", "internal-domain", "etcd-token",
+        self.external_domain, self.internal_domain, self.etcd_token, self.realm = \
+            keycheck(v_cluster, "external-domain", "internal-domain", "etcd-token", "kerberos-realm",
                      validator=lambda _, x: type(x) == str)
 
         cidr_pods, cidr_services, service_api, service_dns = \
@@ -206,6 +206,7 @@ def get_keyserver_yaml() -> str:
         """.strip("\n"), nodes, load=False)
 
     admins = [{"PRINCIPAL": root_admin} for root_admin in config.root_admins]
+    admins += [{"PRINCIPAL": "metrics@NONEXISTENT.REALM.INVALID"}]  # used by homeworld-ssh-checker
 
     accounts += template.template_all(
         """
@@ -213,6 +214,20 @@ def get_keyserver_yaml() -> str:
     disable-direct-auth: true
     group: root-admins
         """.strip("\n"), admins, load=False)
+
+    ssh_metric_nodes = [
+        {
+            "HOSTNAME": node.hostname,
+            "DOMAIN": config.external_domain,
+            "REALM": config.realm,
+        } for node in config.nodes if node.kind == "supervisor"]
+
+    accounts += template.template_all(
+        """
+  - principal: host/{{HOSTNAME}}.{{DOMAIN}}@{{REALM}}
+    disable-direct-auth: true
+    group: kerberos-accounts
+        """.strip("\n"), ssh_metric_nodes, load=False)
 
     ksrv = {"SERVICEAPI": config.service_api,
             "ACCOUNTS": "".join(accounts),

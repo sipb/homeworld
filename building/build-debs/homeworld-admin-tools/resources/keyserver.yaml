@@ -51,7 +51,9 @@ authorities:
 accounts:
 {{ACCOUNTS}}
 groups:
+  kerberos-accounts:
   root-admins:
+    subgroupof: kerberos-accounts
   nodes:
   supervisor-nodes:
     subgroupof: nodes
@@ -115,7 +117,7 @@ grants:
   auth-to-kerberos:  # integration with kerberos gateway
     group: supervisor-nodes
     privilege: impersonate
-    scope: root-admins
+    scope: kerberos-accounts
 
   # CONFIGURATION ENDPOINT
 

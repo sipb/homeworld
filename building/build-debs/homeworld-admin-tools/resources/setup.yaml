@@ -2,6 +2,7 @@ cluster:
   external-domain: mit.edu
   internal-domain: hyades.local
   etcd-token: <unique-token>
+  kerberos-realm: ATHENA.MIT.EDU
 
 addresses:
   cidr-pods: 172.18.0.0/16
