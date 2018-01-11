@@ -14,7 +14,7 @@ from version import get_git_version
 
 PACKAGES = ("homeworld-apt-setup", "homeworld-knc", "homeworld-keysystem", "homeworld-prometheus-node-exporter", \
             "homeworld-hyperkube", "homeworld-rkt", "homeworld-etcd", "homeworld-services", "homeworld-bootstrap-registry", \
-            "homeworld-prometheus", "homeworld-etcd-metrics-exporter")
+            "homeworld-prometheus", "homeworld-etcd-metrics-exporter", "homeworld-auth-monitor")
 
 # TODO: refactor this file to be more maintainable
 

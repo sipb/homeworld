@@ -127,6 +127,7 @@ def admit_keyserver(ops: Operations) -> None:
         ops.pause("giving admission time to complete...", 4.0)  # 4 seconds
         # if it doesn't exist, this command will fail.
         ops.ssh("confirm that @HOST was admitted", node, "test", "-e", KEYCLIENT_DIR + "/granting.pem")
+        ops.ssh("start auth-monitor daemon on @HOST", node, "systemctl", "restart", "auth-monitor")
 
 
 def modify_keygateway(ops: Operations, overwrite_keytab: bool) -> None:
