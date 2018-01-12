@@ -23,7 +23,25 @@ def name_for_decrypted_file(name_of_encrypted_file):
     if name_of_encrypted_file.endswith(ENCRYPTED_EXTENSION):
         return name_of_encrypted_file[:-len(ENCRYPTED_EXTENSION)]
     raise ValueError("Filename " + name_of_encrypted_file + " does not have expected suffix '" + ENCRYPTED_EXTENSION + "'.")
-    
+   
+def validate_pem_file(full_file_name: str) -> bool:
+    with open(full_file_name) as pem_file:
+        has_certificate = False
+        for line in pem_file:
+            # PEM data that is a certificate should have the following header
+            if line.startswith("-----BEGIN CERTIFICATE-----"):
+                if has_certificate:
+                    command.fail("pem file \"" + file_name + "\" should only contain 1 certificate, but it contains additional certificates!")
+                has_certificate = True
+            # The file should not have other types of PEM data
+            elif line.startswith("-----BEGIN "):
+                command.fail("pem file \"" + file_name + "\" contains non-certificate PEM data!")
+        # The file should have had a certificate
+        if not has_certificate:
+            command.fail("pem file \"" + file_name + "\" does not contain any PEM certificates!")
+
+        return True
+
 def generate() -> None:
     authorities = get_targz_path(check_exists=False)
     if os.path.exists(authorities):
@@ -47,7 +65,7 @@ def generate() -> None:
         cryptdir = os.path.join(d, "cryptdir")
         os.mkdir(cryptdir)
         for filename in os.listdir(certdir):
-            if filename.endswith(".pub") or filename.endswith(".pem"):
+            if filename.endswith(".pub") or (filename.endswith(".pem") and validate_pem_file(os.path.join(certdir, filename))):
                 # public keys; copy over without encryption
                 util.copy(os.path.join(certdir, filename), os.path.join(cryptdir, filename))
             else:
