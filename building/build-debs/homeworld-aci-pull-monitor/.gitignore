@@ -1,0 +1,7 @@
+go-bin-*
+prometheus-*.tar.xz
+/prometheus-*
+/bin/
+/src/github.com
+/go/
+/aci-pull-monitor
