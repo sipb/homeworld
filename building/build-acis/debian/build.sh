@@ -5,7 +5,7 @@ source ../common/debian.sh
 
 RELEASE="stretch"
 EXTRA_PACKAGES="wget,curl,ca-certificates,git,realpath,file,less,gnupg,python,python3,iptables,iputils-ping,iputils-arping,iproute2,bzip2,gzip,net-tools,netcat-traditional,dnsutils"
-DEBVER=20171105T160402Z
+DEBVER=20180111T215606Z
 
 debian_bootstrap
 
