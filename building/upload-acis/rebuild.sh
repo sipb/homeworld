@@ -19,8 +19,11 @@ function find_latest() {
 	echo "Latest for $1: $LATEST"
 	ln -sf "$(basename "$LATEST")" "staging/${1}latest-linux-amd64.aci"
 	ln -sf "$(basename "$LATEST.asc")" "staging/${1}latest-linux-amd64.aci.asc"
-	ln -sf "$(basename "$LATEST")" "staging/${2}-linux-amd64.aci"
-	ln -sf "$(basename "$LATEST.asc")" "staging/${2}-linux-amd64.aci.asc"
+	if [ "${2:-}" != "" ]
+	then
+		ln -sf "$(basename "$LATEST")" "staging/${2}-linux-amd64.aci"
+		ln -sf "$(basename "$LATEST.asc")" "staging/${2}-linux-amd64.aci.asc"
+	fi
 }
 
 for x in debian-build debian debian-mini debian-micro
@@ -29,6 +32,7 @@ do
 done
 
 find_latest "flannel-0.9.0-" "flannel-latest"
+find_latest "pullcheck-"
 
 sleep 0.1
 
