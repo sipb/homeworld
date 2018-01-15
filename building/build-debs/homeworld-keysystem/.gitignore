@@ -6,3 +6,5 @@
 /pkg
 /golang-x-crypto.tar.xz
 /gopkg.in-yaml.v2.tar.xz
+/src/keycommon
+/src/util
