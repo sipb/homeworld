@@ -19,6 +19,23 @@ type ServerEndpoint struct {
 	extraHeaders map[string]string
 	certificates []tls.Certificate
 	timeout      time.Duration
+	client       *http.Client
+}
+
+func (s *ServerEndpoint) buildClient() {
+	s.client = &http.Client{
+		Transport: &http.Transport{
+			IdleConnTimeout: s.timeout,
+			TLSClientConfig: &tls.Config{
+				RootCAs:      s.rootCAs,
+				Certificates: s.certificates,
+				MinVersion:   tls.VersionTLS12,
+			},
+			TLSHandshakeTimeout: s.timeout,
+			DisableCompression: true,
+		},
+		Timeout: s.timeout,
+	}
 }
 
 func NewServerEndpoint(url string, authorities *x509.CertPool) (ServerEndpoint, error) {
@@ -28,7 +45,9 @@ func NewServerEndpoint(url string, authorities *x509.CertPool) (ServerEndpoint, 
 	if !strings.HasSuffix(url, "/") {
 		return ServerEndpoint{}, errors.New("base URL must end in a slash")
 	}
-	return ServerEndpoint{rootCAs: authorities, baseURL: url, timeout: time.Second * 30}, nil
+	ep := ServerEndpoint{rootCAs: authorities, baseURL: url, timeout: time.Second * 30}
+	ep.buildClient()
+	return ep, nil
 }
 
 func (s ServerEndpoint) BaseURL() string {
@@ -42,6 +61,7 @@ func (s ServerEndpoint) WithHeader(key string, value string) ServerEndpoint {
 		s.extraHeaders[k] = v
 	}
 	s.extraHeaders[key] = value
+	s.buildClient()
 	return s
 }
 
@@ -50,23 +70,13 @@ func (s ServerEndpoint) WithCertificate(cert tls.Certificate) ServerEndpoint {
 	s.certificates = make([]tls.Certificate, len(oldCerts))
 	copy(s.certificates, oldCerts)
 	s.certificates = append(s.certificates, cert)
+	s.buildClient()
 	return s
 }
 
 func (s ServerEndpoint) Request(path string, method string, reqbody []byte) ([]byte, error) {
 	if path[0] != '/' {
 		return nil, errors.New("while validating request: path must be absolute")
-	}
-	client := http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				RootCAs:      s.rootCAs,
-				Certificates: s.certificates,
-				MinVersion:   tls.VersionTLS12,
-			},
-			DisableCompression: true,
-		},
-		Timeout: s.timeout,
 	}
 	req, err := http.NewRequest(method, s.baseURL+path[1:], bytes.NewReader(reqbody))
 	if err != nil {
@@ -75,7 +85,7 @@ func (s ServerEndpoint) Request(path string, method string, reqbody []byte) ([]b
 	for k, v := range s.extraHeaders {
 		req.Header.Set(k, v)
 	}
-	response, err := client.Do(req)
+	response, err := s.client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("while processing request: %s", err.Error())
 	}
