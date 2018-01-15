@@ -7,6 +7,8 @@ systemctl daemon-reload
 
 systemctl start rkt-api
 systemctl enable rkt-api
+systemctl start aci-pull-monitor
+systemctl enable aci-pull-monitor
 systemctl start kubelet
 systemctl enable kubelet
 systemctl start kube-proxy

@@ -1,0 +1,12 @@
+[Unit]
+Description=aci pull monitor
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+Slice=machine.slice
+ExecStart=/usr/bin/aci-pull-monitor
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
