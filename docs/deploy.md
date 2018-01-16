@@ -197,13 +197,9 @@ Note that this is a local change that does not persist on reboot.
 
 ## Setting up the supervisor node
 
-Set up the keysystem and SSH:
+Set up the keysystem, SSH, and prometheus:
 
     $ spire seq supervisor
-
-Set up prometheus for monitoring:
-
-    $ spire setup prometheus
 
 ## Set up each node's operating system
 
