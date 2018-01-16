@@ -310,6 +310,8 @@ def get_prometheus_yaml() -> str:
     kcli = {"APISERVER": get_apiserver_default_as_node().ip,
             "NODE-TARGETS": "[%s]" % ",".join("'%s.%s:9100'" % (node.hostname, config.external_domain)
                                               for node in config.nodes),
+            "ACI-PULL-TARGETS": "[%s]" % ",".join("'%s.%s:9103'" % (node.hostname, config.external_domain)
+                                              for node in config.nodes if node.kind != "supervisor"),
             "ETCD-TARGETS": "[%s]" % ",".join("'%s.%s:9101'" % (node.hostname, config.external_domain)
                                               for node in config.nodes if node.kind == "master")}
     return template.template("prometheus.yaml", kcli)

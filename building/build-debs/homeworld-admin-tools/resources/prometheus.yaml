@@ -12,6 +12,11 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9102']
 
+  - job_name: 'aci-pull-monitor'
+
+    static_configs:
+      - targets: {{ACI-PULL-TARGETS}}
+
   - job_name: 'etcd-cluster'
 
     static_configs:
