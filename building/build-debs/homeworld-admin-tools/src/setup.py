@@ -109,6 +109,7 @@ def setup_keyserver(ops: Operations) -> None:
                              configuration.get_machine_list_file().encode(), STATICS_DIR + "/machine.list")
         ops.ssh_upload_bytes("upload keyserver config to @HOST", node,
                              configuration.get_keyserver_yaml().encode(), CONFIG_DIR + "/keyserver.yaml")
+        ops.ssh("enable keyserver on @HOST", node, "systemctl", "enable", "keyserver.service")
         ops.ssh("start keyserver on @HOST", node, "systemctl", "restart", "keyserver.service")
 
 
@@ -127,6 +128,7 @@ def admit_keyserver(ops: Operations) -> None:
         ops.pause("giving admission time to complete...", 4.0)  # 4 seconds
         # if it doesn't exist, this command will fail.
         ops.ssh("confirm that @HOST was admitted", node, "test", "-e", KEYCLIENT_DIR + "/granting.pem")
+        ops.ssh("enable auth-monitor daemon on @HOST", node, "systemctl", "enable", "auth-monitor")
         ops.ssh("start auth-monitor daemon on @HOST", node, "systemctl", "restart", "auth-monitor")
 
 
@@ -153,6 +155,7 @@ def modify_keygateway(ops: Operations, overwrite_keytab: bool) -> None:
                     return # existing keytab matches local keytab, no action required
             ssh.upload_bytes(node, decrypted, KEYTAB_PATH)
         ops.add_operation("upload keytab for @HOST", safe_upload_keytab, node)
+        ops.ssh("enable keygateway on @HOST", node, "systemctl", "enable", "keygateway")
         ops.ssh("restart keygateway on @HOST", node, "systemctl", "restart", "keygateway")
 
 
@@ -242,6 +245,7 @@ def setup_prometheus(ops: Operations) -> None:
             continue
         ops.ssh_upload_bytes("upload prometheus config to @HOST", node, configuration.get_prometheus_yaml().encode(),
                              "/etc/prometheus.yaml")
+        ops.ssh("enable prometheus on @HOST", node, "systemctl", "enable", "prometheus")
         ops.ssh("restart prometheus on @HOST", node, "systemctl", "restart", "prometheus")
 
 
