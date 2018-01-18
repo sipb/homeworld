@@ -5,7 +5,6 @@ source ../common/container-build-helpers.sh
 
 VERSION="0.1.0"
 
-DEBVER="stretch.20180111T215606Z"
 BUILDVER="stretch.20180111T215606Z"
 UPDATE_TIMESTAMP="2018-01-11T22:47:00-0500"
 
