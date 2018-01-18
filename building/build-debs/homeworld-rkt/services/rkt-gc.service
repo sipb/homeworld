@@ -1,0 +1,6 @@
+[Unit]
+Description=Garbage Collection for rkt
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/rkt gc --grace-period=15m

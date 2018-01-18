@@ -7,6 +7,8 @@ systemctl daemon-reload
 
 systemctl start rkt-api
 systemctl enable rkt-api
+systemctl start rkt-gc.timer
+systemctl enable rkt-gc.timer
 systemctl start aci-pull-monitor
 systemctl enable aci-pull-monitor
 systemctl start kubelet
