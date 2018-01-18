@@ -22,3 +22,4 @@ homeworld-prometheus-node-exporter_*.tar.gz
 homeworld-etcd-metrics-exporter_*.tar.gz
 homeworld-auth-monitor_*.tar.gz
 homeworld-aci-pull-monitor_*.tar.gz
+homeworld-knc_*.tar.gz

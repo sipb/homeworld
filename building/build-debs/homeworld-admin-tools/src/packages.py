@@ -10,6 +10,7 @@ import urllib.error
 import command
 import resource
 import util
+from version import get_apt_branch
 
 APT_REPO_BASE = "http://web.mit.edu/hyades/apt/"
 
@@ -150,7 +151,7 @@ def verified_download_full(package_list: tuple) -> dict:
     """Download all the packages from the specified list from the apt branch, including verifying them.
 
     Returns a mapping of {package_name: (short_filename, package_bytes), ...}"""
-    apt_branch = resource.get_resource("APT_BRANCH").decode().rstrip()
+    apt_branch = get_apt_branch()
     apt_url = APT_REPO_BASE + apt_branch
     try:
         verified_info = download_and_verify_package_list(apt_url)

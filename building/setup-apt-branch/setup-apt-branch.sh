@@ -33,5 +33,12 @@ function get_apt_signing_key()
         exit 1
     fi
 
+    gpg --list-keys "${HOMEWORLD_APT_SIGNING_KEY}" > /dev/null
+    if [ $? -ne 0 ]
+    then
+        echo 'error: apt signing key not in gpg keyring' >&2
+        exit 1
+    fi
+
     echo "${HOMEWORLD_APT_SIGNING_KEY}"
 }
