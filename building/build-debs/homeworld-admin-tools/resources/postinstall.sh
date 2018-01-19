@@ -45,6 +45,10 @@ Template: homeworld/asktoken
 Type: string
 Description: Enter the bootstrap token for this server.
 
+Template: homeworld/tokeninvalid
+Type: note
+Description: Invalid token! Please check the token for typos. Press Enter to try again.
+
 Template: homeworld/title
 Type: text
 Description: Configuring keysystem...
@@ -52,12 +56,31 @@ EOF
 
 debconf-loadtemplate homeworld /tmp/token.template
 
-db_settitle homeworld/title
+is_invalid_token () {
+    TOKEN="${1%??}"
+    TOKEN_PROVIDED_HASH=$(echo -n $1 | tail -c 2)
+    TOKEN_ACTUAL_HASH=$(echo -n "$TOKEN" | /target/usr/bin/openssl dgst -sha256 -binary | /target/usr/bin/base64 | cut -c -2)
 
+    if [ "$TOKEN_PROVIDED_HASH" != "$TOKEN_ACTUAL_HASH" ]; then
+        return 0
+    fi
+
+    return 1
+}   
+
+db_settitle homeworld/title
 db_input critical homeworld/asktoken
 db_go
 
 db_get homeworld/asktoken
+while [ "$RET" != "manual" ] && is_invalid_token $RET; do
+    db_input critical homeworld/tokeninvalid
+    db_go
+
+    db_input critical homeworld/asktoken
+    db_go
+    db_get homeworld/asktoken
+done
 
 if [ "$RET" != "" ]
 then

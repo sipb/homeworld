@@ -2,6 +2,7 @@ package scoped
 
 import (
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/base64"
 	"errors"
 	"sync"
@@ -37,7 +38,10 @@ func generateTokenID() string {
 	if err != nil {
 		panic(err)
 	}
-	return base64.RawStdEncoding.EncodeToString(out)
+
+	hash := base64.RawStdEncoding.EncodeToString(out)
+	hashSha256 := sha256.Sum256([]byte(hash))
+	return hash + base64.RawStdEncoding.EncodeToString(hashSha256[:])[0:2]
 }
 
 func GenerateToken(subject string, duration time.Duration) ScopedToken {

@@ -18,10 +18,10 @@ def infra_admit_all() -> None:
         principal = node.hostname + "." + config.external_domain
         token = access.call_keyreq("bootstrap-token", principal, collect=True).decode().strip()
         tokens[node.hostname] = (node.kind, node.ip, token)
-    print("host".center(16, "="), "kind".center(8, "="), "ip".center(14, "="), "token".center(21, "="))
+    print("host".center(16, "="), "kind".center(8, "="), "ip".center(14, "="), "token".center(23, "="))
     for key, (kind, ip, token) in sorted(tokens.items()):
-        print(key.rjust(16), kind.center(8), str(ip).center(14), token.ljust(21))
-    print("host".center(16, "="), "kind".center(8, "="), "ip".center(14, "="), "token".center(21, "="))
+        print(key.rjust(16), kind.center(8), str(ip).center(14), token.ljust(23))
+    print("host".center(16, "="), "kind".center(8, "="), "ip".center(14, "="), "token".center(23, "="))
 
 
 def infra_install_packages(ops: setup.Operations) -> None:

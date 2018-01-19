@@ -1,6 +1,8 @@
 package scoped
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
 	"math"
 	"math/rand"
 	"strings"
@@ -36,8 +38,21 @@ func TestTokensArePrintable(t *testing.T) {
 func TestTokensLength(t *testing.T) {
 	for i := 0; i < 1000; i++ {
 		token := generateTokenID()
-		if len(token) != 20 {
+		if len(token) != 22 {
 			t.Errorf("Incorrect token length %d (expected %d)", len(token), 22)
+		}
+	}
+}
+
+func TestTokensHaveValidFormat(t *testing.T) {
+	for i := 0; i < 1000; i++ {
+		rawToken := generateTokenID()
+		hashOnToken := rawToken[len(rawToken)-2 : len(rawToken)]
+		actualToken := rawToken[0 : len(rawToken)-2]
+		hashExpectedBytes := sha256.Sum256([]byte(actualToken))
+		hashExpected := base64.RawStdEncoding.EncodeToString(hashExpectedBytes[:])[0:2]
+		if hashOnToken != hashExpected {
+			t.Errorf("Incorrect token hash found \"%s\" (expecting \"%s\")\n%s\n%s", hashOnToken, hashExpected, rawToken, actualToken)
 		}
 	}
 }
@@ -146,7 +161,7 @@ func TestGenerateToken(t *testing.T) {
 	if token.Subject != "my-subject" {
 		t.Errorf("Inaccurately represented subject name")
 	}
-	if len(token.Token) != 20 {
+	if len(token.Token) != 22 {
 		t.Errorf("Used invalid token name in generated token")
 	}
 }
