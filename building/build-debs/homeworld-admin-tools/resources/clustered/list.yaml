@@ -1,3 +1,4 @@
 clustered:
  - dns-addon.yaml
  - flannel.yaml
+ - flannel-monitor.yaml
