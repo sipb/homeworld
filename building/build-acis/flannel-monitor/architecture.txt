@@ -1,0 +1,27 @@
+(Refer to flannel-monitor.yaml in homeworld-admin-tools for the Kubernetes side of this.)
+
+Architecture overview:
+
+- To monitor flannel, we need to confirm that each node is capable of
+  bidirectional communication with each other node.
+- We add a "reflector" pod to run on each node, which simply receives
+  a "ping" request over HTTP and provides a fixed response.
+- We add a "monitor" pod to run on each node, which continuously
+  accesses the "/ping" endpoint on each reflector pod on each node,
+  and collects the resulting connectivity information.
+- We add a "collector" pod that runs on a single node, which
+  continously replicates the metrics from all of the monitor pods and
+  makes them available as a single metrics endpoint.
+- We add a service that makes it easy to access the collector pod.
+- We add configuration to the prometheus instance to connect to the
+  service and fetch the most recent metrics, which is done through
+  the apiserver service proxy.
+
+
+The node-to-node communication quantity is O(n^2) with n being the number of
+nodes, but since connections aren't made in parallel, this is still just O(n)
+with respect to time. Each fundamental request shouldn't be more than a few KB
+in size, because it's just a simple HTTP request and response.
+
+Eventually, we might need to worry about the O(n^2) of metrics, which is
+against the prometheus recommendations, but it's not a problem yet.
