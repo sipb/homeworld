@@ -93,6 +93,7 @@ def sequence_dns_addon(ops: setup.Operations) -> None:
 def sequence_addons(ops: setup.Operations) -> None:
     ops.add_operation("deploy or update flannel", deploy.launch_flannel)
     ops.add_operation("deploy or update dns-addon", deploy.launch_dns_addon)
+    ops.add_operation("deploy or update flannel-monitor", deploy.launch_flannel_monitor)
 
     ops.add_operation("verify that flannel is online", iterative_verifier(verify.check_flannel_kubeinfo, 60.0))
     ops.add_operation("verify that dns-addon is online", iterative_verifier(verify.check_dns_kubeinfo, 60.0))

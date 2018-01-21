@@ -360,6 +360,7 @@ def get_kube_spec_vars() -> dict:
     config = Config.load_from_project()
 
     return {"NETWORK": config.cidr_pods,
+            "SERVIP_API": config.service_api,
             "SERVIP_DNS": config.service_dns,
             "INTERNAL_DOMAIN": config.internal_domain}
 
