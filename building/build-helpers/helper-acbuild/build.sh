@@ -10,7 +10,7 @@ then
 fi
 
 rm -rf go acbuild
-tar -xf go-bin-1.8.3.tgz go
+tar -xf go-bin-1.8.4.tgz go
 tar -xf acbuild-src-0.4.0.tgz acbuild
 
 VERSION=v0.4.0
