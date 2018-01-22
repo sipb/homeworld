@@ -22,18 +22,18 @@ var (
 		Help: "Check for whether in-cluster dns lookups work",
 	}, []string {"hostname"})
 
-	monRecency = prometheus.NewGauge(prometheus.GaugeOpts{
-		Namespace: "dns",
-		Name: "lookup_recency",
-		Help: "Timestamp for the oldest currently reported metric",
-	})
-
 	internalCheckTiming = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Namespace: "dns",
 		Name: "lookup_internal_timing",
 		Help: "Timing for flannel communication",
 		Buckets: []float64 {0.1, 0.2, 0.5, 1, 2, 5, 10},
 	}, []string {"hostname"})
+
+	monRecency = prometheus.NewGauge(prometheus.GaugeOpts{
+		Namespace: "dns",
+		Name: "lookup_recency",
+		Help: "Timestamp for the oldest currently reported metric",
+	})
 
 	// TODO: monitor external lookups as well
 
@@ -68,12 +68,12 @@ func cycle(expectations map[string]net.IP) {
 		if err != nil {
 			log.Printf("failed to check DNS result for %s", hostname)
 			ic.Set(0)
-		} else if expectIP.Equal(foundIP) {
-			ic.Set(1)
-			ict.Observe(duration.Seconds())
-		} else {
+		} else if !expectIP.Equal(foundIP) {
 			ic.Set(0)
 			log.Printf("DNS mismatch between result %v for %s and expectation %v", foundIP, hostname, expectIP)
+		} else {
+			ic.Set(1)
+			ict.Observe(duration.Seconds())
 		}
 	}
 

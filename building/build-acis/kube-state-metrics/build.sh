@@ -12,7 +12,7 @@ UPDATE_TIMESTAMP="2018-01-11T22:47:00-0500"
 
 common_setup
 
-# build flannel
+# build kube-state-metrics
 
 init_builder
 build_with_go

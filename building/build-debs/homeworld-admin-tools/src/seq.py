@@ -60,6 +60,8 @@ def sequence_core(ops: setup.Operations) -> None:
     ops.add_operation("verify that etcd has launched successfully",
                       iterative_verifier(verify.check_etcd_health, 20.0))
 
+    ops.add_operation("deploy or update kube-state-metrics", deploy.launch_kube_state_metrics)
+
     ops.add_operation("verify that kubernetes has launched successfully",
                       iterative_verifier(verify.check_kube_health, 10.0))
 
@@ -94,6 +96,7 @@ def sequence_addons(ops: setup.Operations) -> None:
     ops.add_operation("deploy or update flannel", deploy.launch_flannel)
     ops.add_operation("deploy or update dns-addon", deploy.launch_dns_addon)
     ops.add_operation("deploy or update flannel-monitor", deploy.launch_flannel_monitor)
+    ops.add_operation("deploy or update dns-monitor", deploy.launch_dns_monitor)
 
     ops.add_operation("verify that flannel is online", iterative_verifier(verify.check_flannel_kubeinfo, 60.0))
     ops.add_operation("verify that dns-addon is online", iterative_verifier(verify.check_dns_kubeinfo, 60.0))
