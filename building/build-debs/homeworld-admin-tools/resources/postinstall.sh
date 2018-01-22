@@ -24,9 +24,11 @@ in-target systemctl mask nginx.service
 
 # install packages
 cp /homeworld-*.deb /target/
-in-target dpkg --unpack /homeworld-*.deb
+in-target dpkg --install /homeworld-*.deb
 rm /target/homeworld-*.deb
-in-target apt-get install --fix-broken --yes
+in-target apt-get update
+in-target apt-get install --fix-broken --yes homeworld-keysystem homeworld-prometheus-node-exporter \
+    homeworld-services homeworld-bootstrap-registry homeworld-prometheus homeworld-auth-monitor
 
 in-target systemctl enable keyclient.service update-keyclient-config.timer prometheus-node-exporter.service
 

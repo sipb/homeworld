@@ -12,9 +12,7 @@ import packages
 import keycrypt
 from version import get_git_version
 
-PACKAGES = ("homeworld-apt-setup", "homeworld-knc", "homeworld-keysystem", "homeworld-prometheus-node-exporter", \
-            "homeworld-hyperkube", "homeworld-rkt", "homeworld-etcd", "homeworld-services", "homeworld-bootstrap-registry", \
-            "homeworld-prometheus", "homeworld-etcd-metrics-exporter", "homeworld-auth-monitor", "homeworld-aci-pull-monitor")
+PACKAGES = ("homeworld-apt-setup",)
 
 # TODO: refactor this file to be more maintainable
 
