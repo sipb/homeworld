@@ -111,10 +111,16 @@ def check_etcd_health():
     print("etcd seems to be healthy!")
 
 
+def check_kube_init():
+    if not int(pull_prometheus_query("verify_kube_apiservers_up")):
+        command.fail("prometheus signaled lack of kubernetes cluster")
+    print("kubernetes cluster passed first-stage inspection!")
+
+
 def check_kube_health():
     if not int(pull_prometheus_query("verify_kube_all")):
         command.fail("prometheus signaled incomplete kubernetes cluster")
-    print("kubernetes cluster passed cursory inspection!")
+    print("kubernetes cluster passed second-stage inspection!")
 
 
 def check_aci_pull():
@@ -141,6 +147,7 @@ main_command = command.mux_map("commands about verifying the state of a cluster"
     "online": command.wrap("check whether a server (or all servers) is/are accepting SSH connections", check_online),
     "ssh-with-certs": command.wrap("check if certificate-based SSH access works", check_ssh_with_certs),
     "etcd": command.wrap("verify that etcd is healthy and working", check_etcd_health),
+    "kubernetes-init": command.wrap("verify that kubernetes appears initialized", check_kube_init),
     "kubernetes": command.wrap("verify that kubernetes appears healthy", check_kube_health),
     "aci-pull": command.wrap("verify that aci pulling from the homeworld registry, and associated container execution, are functioning", check_aci_pull),
     "flannel": command.wrap("verify that the flannel addon is functioning", check_flannel),

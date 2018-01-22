@@ -226,21 +226,12 @@ Confirm that all of the servers came up properly (and requested their keys
 correctly):
 
     $ spire verify online
-      # if this fails, it's possible that your ssh-agent might be broken and you need to restart it.
 
 # Core cluster bringup
 
-Bring up the core cluster:
+Bring up the cluster:
 
-    $ spire seq core
-
-If and only if you're hosting the containers for core cluster services on the cluster itself:
-
-    $ spire seq registry
-
-Deploy flannel and dns-addon into the cluster:
-
-    $ spire seq addons
+    $ spire seq cluster
 
 # Finishing up
 

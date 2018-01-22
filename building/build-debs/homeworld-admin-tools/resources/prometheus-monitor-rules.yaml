@@ -28,6 +28,8 @@ groups:
   - record: verify_aci_all
     expr: verify_aci_pull and verify_aci_run
 
+  - record: verify_kube_apiservers_up
+    expr: sum(up{job="kubernetes-apiservers"}) == bool 3
   - record: verify_kube_nodes_registered
     expr: sum(kube_node_info) == bool count(up{job="node-resources"}) - 1
   - record: verify_kube_up_to_date
@@ -39,7 +41,7 @@ groups:
   - record: verify_kube_namespaces
     expr: sum(kube_namespace_status_phase{phase="Active",namespace=~"default|kube-public|kube-system"}) == bool 3
   - record: verify_kube_all
-    expr: verify_kube_nodes_registered and verify_kube_up_to_date and verify_kube_nodes_schedulable and verify_kube_nodes_ready and verify_kube_namespaces
+    expr: verify_kube_apiservers_up and verify_kube_nodes_registered and verify_kube_up_to_date and verify_kube_nodes_schedulable and verify_kube_nodes_ready and verify_kube_namespaces
 
   - record: verify_etcd_all_online
     expr: sum(etcd_server_has_leader) == bool 3
