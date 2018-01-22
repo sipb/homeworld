@@ -53,6 +53,19 @@ scrape_configs:
 
     metrics_path: '/api/v1/namespaces/kube-system/services/dns-monitor:metrics/proxy/metrics'
 
+  - job_name: 'kube-state-metrics'
+
+    scheme: https
+    tls_config:
+      ca_file: /etc/homeworld/authorities/kubernetes.pem
+      cert_file: /etc/homeworld/keys/kubernetes-worker.pem
+      key_file: /etc/homeworld/keys/kubernetes-worker.key
+
+    static_configs:
+      - targets: ['{{APISERVER}}:443']
+
+    metrics_path: '/api/v1/namespaces/kube-system/services/kube-state-metrics:metrics/proxy/metrics'
+
   - job_name: 'kubernetes-apiservers'
 
     scheme: https

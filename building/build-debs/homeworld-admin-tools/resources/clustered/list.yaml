@@ -3,3 +3,4 @@ clustered:
  - flannel.yaml
  - flannel-monitor.yaml
  - dns-monitor.yaml
+ - kube-state-metrics.yaml

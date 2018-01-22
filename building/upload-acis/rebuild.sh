@@ -32,6 +32,7 @@ do
 done
 
 find_latest "flannel-0.9.0-" "flannel-latest"
+find_latest "kube-state-metrics-1.2.0-" "kube-state-metrics-latest"
 find_latest "flannel-monitor-"
 find_latest "pullcheck-"
 find_latest "dns-monitor-"
