@@ -18,6 +18,14 @@ then
     echo >>src/resources/GIT_VERSION
 fi
 
+if [[ ! -e src/resources/APT_BRANCH ]]
+then
+    source ../../setup-apt-branch/setup-apt-branch.sh
+    echo "${HOMEWORLD_APT_BRANCH}" >src/resources/APT_BRANCH
+    HOMEWORLD_APT_SIGNING_KEY="$(get_apt_signing_key)"
+    gpg --export "${HOMEWORLD_APT_SIGNING_KEY}" >src/resources/homeworld-archive-keyring.gpg
+fi
+
 (cd src && zip -r ../spire.zip *)
 
 python3 spire.zip iso regen-cdpack debian-9.2.0-amd64-mini.iso src/resources/debian-9.2.0-cdpack.tgz

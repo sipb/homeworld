@@ -2,6 +2,7 @@ if [ -z "${HOMEWORLD_APT_BRANCH:-}" ]
 then
 	echo 'Error: Need to specify apt branch:' >&2
 	echo '$ export HOMEWORLD_APT_BRANCH=<username>/<branch>' >&2
+	echo 'Use root/master if you would like to base this off the main repository.' >&2
 	exit 1
 fi
 
