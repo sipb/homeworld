@@ -245,6 +245,8 @@ def setup_prometheus(ops: Operations) -> None:
             continue
         ops.ssh_upload_bytes("upload prometheus config to @HOST", node, configuration.get_prometheus_yaml().encode(),
                              "/etc/prometheus.yaml")
+        ops.ssh_upload_bytes("upload prometheus monitoring rules config to @HOST", node, configuration.get_prometheus_monitor_rules().encode(),
+                             "/etc/homeworld/config/prometheus-monitor-rules.yaml")
         ops.ssh("enable prometheus on @HOST", node, "systemctl", "enable", "prometheus")
         ops.ssh("restart prometheus on @HOST", node, "systemctl", "restart", "prometheus")
 
