@@ -6,6 +6,7 @@ After=network-online.target
 [Service]
 ExecStart=/usr/lib/hyades/launch-apiserver.sh
 Restart=always
+RestartSec=5s
 
 [Install]
 WantedBy=multi-user.target

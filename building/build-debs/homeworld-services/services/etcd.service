@@ -8,6 +8,7 @@ Slice=machine.slice
 ExecStart=/usr/lib/hyades/launch-etcd.sh
 KillMode=mixed
 Restart=always
+RestartSec=5s
 
 [Install]
 WantedBy=multi-user.target

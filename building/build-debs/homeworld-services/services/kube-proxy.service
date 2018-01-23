@@ -6,6 +6,7 @@ After=network-online.target kubelet.service
 [Service]
 ExecStart=/usr/lib/hyades/launch-proxy.sh
 Restart=always
+RestartSec=5s
 
 [Install]
 WantedBy=multi-user.target

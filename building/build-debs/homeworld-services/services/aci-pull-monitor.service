@@ -7,6 +7,7 @@ After=network-online.target
 Slice=machine.slice
 ExecStart=/usr/bin/aci-pull-monitor
 Restart=always
+RestartSec=5s
 
 [Install]
 WantedBy=multi-user.target
