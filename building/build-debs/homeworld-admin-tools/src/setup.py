@@ -185,10 +185,6 @@ def setup_services(ops: Operations) -> None:
     config = configuration.get_config()
     for node in config.nodes:
         if node.kind == "master":
-            ops.ssh("start etcd on master @HOST", node, "/usr/lib/hyades/start-master-etcd.sh")
-    ops.pause("pause for etcd startup", 2)
-    for node in config.nodes:
-        if node.kind == "master":
             ops.ssh("start all on master @HOST", node, "/usr/lib/hyades/start-master.sh")
     ops.pause("pause for kubernetes startup", 2)
     for node in config.nodes:
