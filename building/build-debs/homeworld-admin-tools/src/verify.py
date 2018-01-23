@@ -97,47 +97,102 @@ def check_ssh_with_certs(hostname=None):
     print("ssh access confirmed!")
 
 
+def expect_prometheus_query_exact(query, expected, description):  # description -> 'X are Y'
+    count = int(pull_prometheus_query(query))
+    if count > expected:
+        command.fail("too many %s" % description)
+    if count < expected:
+        command.fail("only %d/%d %s" % (count, expected, description))
+
+
+def expect_prometheus_query_bool(query, message):
+    if not int(pull_prometheus_query(query)):
+        command.fail(message)
+
+
 def check_online():
-    if not int(pull_prometheus_query("verify_infra_nodes_online")):
-        command.fail("prometheus signaled that not all nodes are online")
-    if not int(pull_prometheus_query("verify_infra_nodes_accessible")):
-        command.fail("prometheus signaled that not all nodes are configured and accessible with SSH")
-    print("basic infrastructure seems to be healthy!")
+    config = configuration.get_config()
+    nodes_expected = len(config.nodes)
+    expect_prometheus_query_exact('sum(up{job="node-resources"})', nodes_expected, "nodes are online")
+    expect_prometheus_query_exact('sum(keysystem_ssh_access_check)', nodes_expected, "nodes are accessible")
+    print("all", nodes_expected, "nodes are online and accessible")
 
 
 def check_etcd_health():
-    if not int(pull_prometheus_query("verify_etcd_all")):
-        command.fail("prometheus signaled unhealthy etcd cluster")
-    print("etcd seems to be healthy!")
+    config = configuration.get_config()
+    master_node_count = len([node for node in config.nodes if node.kind == "master"])
+    expect_prometheus_query_exact('sum(etcd_server_has_leader)', master_node_count, "etcd servers are online")
+    if float(pull_prometheus_query('sum(rate(etcd_server_proposals_committed_total[1m]))')) < 1:
+        command.fail("etcd is not committing any proposals; is likely not healthy")
+    print("all", master_node_count, "etcd servers seems to be healthy!")
 
 
 def check_kube_init():
-    if not int(pull_prometheus_query("verify_kube_apiservers_up")):
-        command.fail("prometheus signaled lack of kubernetes cluster")
-    print("kubernetes cluster passed first-stage inspection!")
+    config = configuration.get_config()
+    master_node_count = len([node for node in config.nodes if node.kind == "master"])
+    expect_prometheus_query_exact('sum(up{job="kubernetes-apiservers"})', master_node_count, "kubernetes apiservers are online")
+    print("all", master_node_count, "kubernetes apiservers seem to be online!")
 
 
 def check_kube_health():
-    if not int(pull_prometheus_query("verify_kube_all")):
-        command.fail("prometheus signaled incomplete kubernetes cluster")
-    print("kubernetes cluster passed second-stage inspection!")
+    check_kube_init()
+    config = configuration.get_config()
+    kube_node_count = len([node for node in config.nodes if node.kind != "supervisor"])
+    master_node_count = len([node for node in config.nodes if node.kind == "master"])
+    expect_prometheus_query_exact('sum(kube_node_info)', kube_node_count, "kubernetes nodes are online")
+
+    hostnames = [node.hostname for node in config.nodes if node.kind == "master"]
+    regex_for_master_nodes = "|".join(hostnames)
+    for hostname in hostnames:
+        if not hostname.replace("-", "").isalnum():
+            command.fail("invalid hostname for inclusion in prometheus monitoring rules: %s" % hostname)
+    expect_prometheus_query_exact('sum(kube_node_spec_unschedulable{node=~"%s"})' % regex_for_master_nodes,
+                                  master_node_count, "master nodes are unschedulable")
+    expect_prometheus_query_exact('sum(kube_node_spec_unschedulable)',
+                                  master_node_count, "kubernetes nodes are unschedulable")
+    expect_prometheus_query_exact('sum(kube_node_status_condition{condition="Ready",status="true"})',
+                                  kube_node_count, "kubernetes nodes are ready")
+    NAMESPACES = ["default", "kube-public", "kube-system"]
+    expect_prometheus_query_exact('sum(kube_namespace_status_phase{phase="Active",namespace=~"%s"})' % "|".join(NAMESPACES),
+                                  len(NAMESPACES), "namespaces are set up")
+    print("kubernetes cluster passed cursory inspection!")
 
 
 def check_aci_pull():
-    if not int(pull_prometheus_query("verify_aci_all")):
-        command.fail("prometheus signaled failure of aci pulling")
+    config = configuration.get_config()
+    node_count = len([node for node in config.nodes if node.kind != "supervisor"])
+    expect_prometheus_query_exact("sum(aci_pull_check)", node_count, "nodes are pulling acis properly")
+    expect_prometheus_query_exact("sum(aci_rkt_check)", node_count, "nodes are launching acis properly")
     print("aci pulling seems to work!")
 
 
 def check_flannel():
-    if not int(pull_prometheus_query("verify_flannel_all")):
-        command.fail("prometheus signaled failure of flannel")
+    config = configuration.get_config()
+    node_count = len([node for node in config.nodes if node.kind != "supervisor"])
+    expect_prometheus_query_exact('sum(kube_daemonset_status_number_ready{daemonset="kube-flannel-ds"})', node_count, "flannel pods are ready")
+    expect_prometheus_query_bool("sum(flannel_collect_enum_check)", "flannel metrics collector is failing enumeration")
+    expect_prometheus_query_bool("sum(flannel_collect_enum_dup_check)", "flannel metrics collector is encountering duplication")
+    expect_prometheus_query_exact('sum(flannel_collect_check)', node_count, "flannel metrics monitors are collecting")
+    expect_prometheus_query_exact('sum(flannel_duplicate_check)', node_count, "flannel metrics monitors are avoiding duplication")
+    expect_prometheus_query_exact('sum(flannel_monitor_check)', node_count, "flannel metrics monitors are monitoring successfully")
+    worst_recency = float(pull_prometheus_query('time() - min(flannel_monitor_recency)'))
+    if worst_recency > 60:
+        command.fail("flannel metrics monitors have not updated recently enough")
+    expect_prometheus_query_exact('sum(flannel_talk_check)', node_count * node_count, "flannel pings are successful")
     print("flannel seems to work!")
 
 
 def check_dns():
-    if not int(pull_prometheus_query("verify_dns_all")):
-        command.fail("prometheus signaled failure of dns")
+    ready_replicas = int(pull_prometheus_query('sum(kube_replicationcontroller_status_ready_replicas{replicationcontroller="kube-dns-v20"})'))
+    spec_replicas = int(pull_prometheus_query('sum(kube_replicationcontroller_spec_replicas{replicationcontroller="kube-dns-v20"})'))
+    if spec_replicas < 2:
+        command.fail("not enough replicas requested by spec")
+    if ready_replicas < spec_replicas - 1:  # TODO: require precise results; not currently possible due to issues with DNS containers
+        command.fail("not enough DNS replicas are ready")
+    if float(pull_prometheus_query('avg(dns_lookup_internal_check)')) < 1:
+        command.fail("dns lookup check failed")
+    if float(pull_prometheus_query('time() - min(dns_lookup_recency)')) > 30:
+        command.fail("dns lookup check is not recent enough")
     print("dns-addon seems to work!")
 
 

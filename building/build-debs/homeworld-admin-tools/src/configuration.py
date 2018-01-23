@@ -320,17 +320,6 @@ def get_prometheus_yaml() -> str:
 EXPECTED_KUBERNETES_VER = "1.8.0"
 
 
-def get_prometheus_monitor_rules() -> str:
-    config = Config.load_from_project()
-    hostnames = [node.hostname for node in config.nodes if node.kind == "master"]
-    for hostname in hostnames:
-        if not hostname.replace("-", "").isalnum():
-            command.fail("invalid hostname for inclusion in prometheus monitoring rules: %s" % hostname)
-    kcli = {"REGEXVER": EXPECTED_KUBERNETES_VER.replace(".", "[.]"),
-            "REGEXNODES": "|".join(hostnames)}
-    return template.template("prometheus-monitor-rules.yaml", kcli)
-
-
 def populate() -> None:
     setup_yaml = os.path.join(get_project(create_dir_if_missing=True), "setup.yaml")
     if os.path.exists(setup_yaml):
