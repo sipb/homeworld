@@ -4,7 +4,7 @@ cd "$(dirname "$0")"
 source ../common/container-build-helpers.sh
 
 KSM_VER="1.2.0"
-REVISION="1"
+REVISION="2"
 VERSION="${KSM_VER}-${REVISION}"
 
 BUILDVER="stretch.20180111T215606Z"
@@ -29,4 +29,6 @@ run_builder "cd src/k8s.io/kube-state-metrics && make build"
 start_acbuild
 $ACBUILD copy "${GODIR}/src/k8s.io/kube-state-metrics/kube-state-metrics" /usr/bin/kube-state-metrics
 $ACBUILD set-exec -- /usr/bin/kube-state-metrics
+$ACBUILD port add metrics tcp 80
+$ACBUILD port add metametrics tcp 81
 finish_acbuild

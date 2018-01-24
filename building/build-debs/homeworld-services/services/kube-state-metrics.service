@@ -1,0 +1,14 @@
+[Unit]
+Description=Hyades etcd server
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+Slice=machine.slice
+ExecStart=/usr/lib/hyades/launch-kube-state-metrics.sh
+KillMode=mixed
+Restart=always
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

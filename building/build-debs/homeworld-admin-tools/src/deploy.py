@@ -29,14 +29,9 @@ def launch_dns_monitor():
     launch_spec("dns-monitor.yaml")
 
 
-def launch_kube_state_metrics():
-    launch_spec("kube-state-metrics.yaml")
-
-
 main_command = command.mux_map("commands to deploy systems onto the kubernetes cluster", {
     "flannel": command.wrap("deploy the specifications to run flannel", launch_flannel),
     "flannel-monitor": command.wrap("deploy the specifications to run the flannel monitor", launch_flannel_monitor),
     "dns-addon": command.wrap("deploy the specifications to run the dns-addon", launch_dns_addon),
     "dns-monitor": command.wrap("deploy the specifications to run the dns monitor", launch_dns_monitor),
-    "kube-state-metrics": command.wrap("deploy the specifications to run the kube-state-metrics service", launch_kube_state_metrics),
 })

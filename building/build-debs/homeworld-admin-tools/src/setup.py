@@ -195,8 +195,6 @@ def setup_services(ops: Operations) -> None:
 def modify_dns_bootstrap(ops: Operations, is_install: bool) -> None:
     config = configuration.get_config()
     for node in config.nodes:
-        if node.kind == "supervisor":
-            continue
         strip_cmd = "grep -vF AUTO-HOMEWORLD-BOOTSTRAP /etc/hosts >/etc/hosts.new && mv /etc/hosts.new /etc/hosts"
         ops.ssh_raw("strip bootstrapped dns on @HOST", node, strip_cmd)
         if is_install:
