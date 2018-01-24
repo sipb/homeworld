@@ -231,6 +231,7 @@ def setup_bootstrap_registry(ops: Operations) -> None:
         ops.ssh_upload_bytes("upload %s key to @HOST" % REGISTRY_HOSTNAME, node, keydata, "/etc/homeworld/ssl/%s.key" % REGISTRY_HOSTNAME)
         ops.ssh_upload_path("upload %s cert to @HOST" % REGISTRY_HOSTNAME, node, certpath, "/etc/homeworld/ssl/%s.pem" % REGISTRY_HOSTNAME)
         ops.ssh("unmask nginx on @HOST", node, "systemctl", "unmask", "nginx")
+        ops.ssh("enable nginx on @HOST", node, "systemctl", "enable", "nginx")
         ops.ssh("restart nginx on @HOST", node, "systemctl", "restart", "nginx")
 
 
