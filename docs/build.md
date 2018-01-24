@@ -8,8 +8,14 @@ Install packages:
  * sbuild
  * sudo
  * systemd-container
+ * ubuntu-dev-tools
 
-You will need to set up a sbuild chroot. (See https://github.com/sipb/homeworld/issues/80)
+You will need to set up a sbuild chroot:
+
+    $ sudo addgroup $USER sbuild   # (then log out and back in)
+    $ mk-sbuild stretch
+
+(See https://github.com/sipb/homeworld/issues/80 for more details.)
 
 That will let you build everything as described here.  If you also want to be able to build spire outside of the sbuild chroot (not described here), install these packages too:
 
