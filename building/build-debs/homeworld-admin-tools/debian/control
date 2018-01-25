@@ -2,13 +2,13 @@ Source: homeworld-admin-tools
 Section: misc
 Priority: extra
 Maintainer: Cel Skeggs <cela@mit.edu>
-Build-Depends: debhelper (>= 9), libarchive-tools | bsdtar, zip, python3, python3-yaml
+Build-Depends: debhelper (>= 9), libarchive-tools | bsdtar, zip, python3, python3-yaml, python3-requests
 Standards-Version: 4.1.1
 Vcs-Git: https://github.com/sipb/homeworld.git
 Vcs-Browser: https://github.com/sipb/homeworld/
 
 Package: homeworld-admin-tools
 Architecture: amd64
-Depends: ${misc:Depends}, homeworld-keysystem, homeworld-hyperkube, homeworld-etcd, libarchive-tools | bsdtar, python3, python3-yaml, pwgen, genisoimage, whois, cpio
+Depends: ${misc:Depends}, homeworld-keysystem, homeworld-hyperkube, homeworld-etcd, libarchive-tools | bsdtar, python3, python3-yaml, pwgen, genisoimage, whois, cpio, python3-requests
 Description: Homeworld admin-tools package.
  This package is used for code deployment to Homeworld clusters.
