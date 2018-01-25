@@ -97,6 +97,14 @@ def check_ssh_with_certs(hostname=None):
     print("ssh access confirmed!")
 
 
+def check_certs_on_supervisor():
+    config = configuration.get_config()
+    for node in config.nodes:
+        if node.kind == "supervisor":
+            ssh.check_ssh(node, "test", "-e", "/etc/homeworld/authorities/kubernetes.pem")
+            ssh.check_ssh(node, "test", "-e", "/etc/homeworld/keys/kubernetes-worker.pem")
+
+
 def expect_prometheus_query_exact(query, expected, description):  # description -> 'X are Y'
     count = int(pull_prometheus_query(query))
     if count > expected:
