@@ -30,7 +30,7 @@ in-target apt-get update
 in-target apt-get install --fix-broken --yes homeworld-keysystem homeworld-prometheus-node-exporter \
     homeworld-services homeworld-bootstrap-registry homeworld-prometheus homeworld-auth-monitor
 
-in-target systemctl enable keyclient.service update-keyclient-config.timer prometheus-node-exporter.service
+in-target systemctl enable keyclient.service prometheus-node-exporter.service update-keyclient-config.service
 
 mkdir -p /target/etc/homeworld/keyclient/
 mkdir -p /target/etc/homeworld/config/

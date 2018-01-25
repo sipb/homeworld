@@ -1,6 +1,12 @@
 [Unit]
 Description=homeworld keyclient configuration update
+Requisite=keyclient.service
+After=keyclient.service
 
 [Service]
+Type=oneshot
 ExecStart=/usr/lib/homeworld/update-keyclient-config.sh
-Restart=never
+Restart=no
+
+[Install]
+WantedBy=multi-user.target
