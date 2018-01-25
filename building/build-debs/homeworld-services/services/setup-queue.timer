@@ -1,0 +1,9 @@
+[Unit]
+Description=homeworld autodeploy queue
+
+[Timer]
+OnBootSec=15sec
+OnUnitActiveSec=15sec
+
+[Install]
+WantedBy=timers.target

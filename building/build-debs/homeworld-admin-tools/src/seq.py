@@ -32,7 +32,12 @@ def sequence_supervisor(ops: setup.Operations) -> None:
     ops.add_subcommand(sequence_ssh)
     ops.add_subcommand(setup.setup_bootstrap_registry)
 
-    ops.print_annotations("set up the keysystem")
+    ops.add_operation("pre-deploy flannel", deploy.launch_flannel)
+    ops.add_operation("pre-deploy dns-addon", deploy.launch_dns_addon)
+    ops.add_operation("pre-deploy flannel-monitor", deploy.launch_flannel_monitor)
+    ops.add_operation("pre-deploy dns-monitor", deploy.launch_dns_monitor)
+
+    ops.print_annotations("set up the supervisor")
 
 
 def iterative_verifier(verifier, max_time, pause=2.0):
@@ -67,13 +72,8 @@ def sequence_cluster(ops: setup.Operations) -> None:
     ops.add_operation("verify that kubernetes has launched successfully",
                       iterative_verifier(verify.check_kube_health, 120.0))
 
-    ops.add_operation("deploy or update flannel", deploy.launch_flannel)
-    ops.add_operation("deploy or update dns-addon", deploy.launch_dns_addon)
-    ops.add_operation("deploy or update flannel-monitor", deploy.launch_flannel_monitor)
-    ops.add_operation("deploy or update dns-monitor", deploy.launch_dns_monitor)
-
-    ops.add_operation("verify that acis can be pulled from the registry", verify.check_aci_pull)
-    ops.add_operation("verify that flannel is online", iterative_verifier(verify.check_flannel, 120.0))
+    ops.add_operation("verify that acis can be pulled from the registry", iterative_verifier(verify.check_aci_pull, 60.0))
+    ops.add_operation("verify that flannel is online", iterative_verifier(verify.check_flannel, 180.0))
     ops.add_operation("verify that dns-addon is online", iterative_verifier(verify.check_dns, 120.0))
 
     ops.print_annotations("set up the kubernetes cluster")

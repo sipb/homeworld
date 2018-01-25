@@ -1,0 +1,8 @@
+[Unit]
+Description=homeworld autodeploy queue
+After=keyclient.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/hyades/launch-setup-queue.sh
+Restart=no
