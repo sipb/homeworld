@@ -1,0 +1,13 @@
+[Unit]
+Description=homeworld autostart script
+Requisite=keyclient.service
+After=keyclient.service update-keyclient-config.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/hyades/homeworld-autostart.sh
+Restart=no
+
+[Install]
+WantedBy=multi-user.target
+

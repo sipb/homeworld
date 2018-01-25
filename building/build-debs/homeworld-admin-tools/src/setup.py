@@ -180,17 +180,6 @@ def setup_supervisor_ssh(ops: Operations) -> None:
                 "/root/original_authorized_keys; fi")
 
 
-def setup_services(ops: Operations) -> None:
-    config = configuration.get_config()
-    for node in config.nodes:
-        if node.kind == "master":
-            ops.ssh("start all on master @HOST", node, "/usr/lib/hyades/start-master.sh")
-    ops.pause("pause for kubernetes startup", 2)
-    for node in config.nodes:
-        if node.kind == "worker":
-            ops.ssh("start all on worker @HOST", node, "/usr/lib/hyades/start-worker.sh")
-
-
 def modify_dns_bootstrap(ops: Operations, is_install: bool) -> None:
     config = configuration.get_config()
     for node in config.nodes:
@@ -256,7 +245,6 @@ main_command = command.mux_map("commands about setting up a cluster", {
     "keygateway": wrapop("deploy keytab and start keygateway", setup_keygateway),
     "update-keygateway": wrapop("update keytab and restart keygateway", update_keygateway),
     "supervisor-ssh": wrapop("configure supervisor SSH access", setup_supervisor_ssh),
-    "services": wrapop("bring up all cluster services in sequence", setup_services),
     "dns-bootstrap": wrapop("switch cluster nodes into 'bootstrapped DNS' mode", setup_dns_bootstrap),
     "stop-dns-bootstrap": wrapop("switch cluster nodes out of 'bootstrapped DNS' mode", teardown_dns_bootstrap),
     "bootstrap-registry": wrapop("bring up the bootstrap container registry on the supervisor nodes", setup_bootstrap_registry),

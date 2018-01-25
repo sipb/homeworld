@@ -65,7 +65,6 @@ def sequence_cluster(ops: setup.Operations) -> None:
                       iterative_verifier(verify.check_online, 120.0))
 
     ops.add_subcommand(setup.setup_dns_bootstrap)
-    ops.add_subcommand(setup.setup_services)
 
     ops.add_operation("verify that etcd has launched successfully",
                       iterative_verifier(verify.check_etcd_health, 120.0))
