@@ -4,7 +4,9 @@ Requires=network-online.target
 After=network-online.target
 
 [Service]
+Type=notify
 ExecStart=/usr/bin/keyclient /etc/homeworld/config/keyclient.yaml
+TimeoutStartSec=1h
 Restart=always
 RestartSec=10s
 

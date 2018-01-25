@@ -24,7 +24,7 @@ func NewActLoop(actions []Action, logger *log.Logger) ActLoop {
 	return ActLoop{actions: actions, logger: logger}
 }
 
-func (m *ActLoop) Step() (stabilized bool) {
+func (m *ActLoop) Step() (stabilized bool, blocked bool) {
 	blocked_by := []error{}
 	for _, action := range m.actions {
 		pending, err := action.Pending()
@@ -44,18 +44,18 @@ func (m *ActLoop) Step() (stabilized bool) {
 			m.logger.Printf("actloop step error: %s (in %s)\n", err.Error(), action.Info())
 		} else {
 			m.logger.Printf("action performed: %s\n", action.Info())
-			return false
+			return false, false
 		}
 	}
 	if len(blocked_by) == 0 {
-		return true
+		return true, false
 	} else {
 		m.logger.Printf("ACTLOOP BLOCKED (%d)\n", len(blocked_by))
 		for _, blockerr := range blocked_by {
 			m.logger.Printf("actloop blocked by: %s\n", blockerr.Error())
 		}
 		// we're calling this 'stable' because the problems won't resolve themselves; if no actions were executed, we're stuck.
-		return true
+		return true, true
 	}
 }
 
@@ -71,14 +71,21 @@ func (m *ActLoop) IsCancelled() bool {
 	return m.should_stop
 }
 
-func (m *ActLoop) Run(cycletime time.Duration, pausetime time.Duration) {
+func (m *ActLoop) Run(cycletime time.Duration, pausetime time.Duration, onReady func(*log.Logger)) {
 	was_stabilized := false
 	for !m.IsCancelled() {
 		// TODO: report current status somewhere -- health checker endpoint?
-		stabilized := m.Step()
+		stabilized, blocked := m.Step()
 		if stabilized {
 			if !was_stabilized {
-				m.logger.Printf("ACTLOOP STABILIZED\n")
+				if blocked {
+					m.logger.Printf("ACTLOOP BLOCKED BUT STABLE\n")
+				} else {
+					m.logger.Printf("ACTLOOP STABLE\n")
+					if onReady != nil {
+						onReady(m.logger)
+					}
+				}
 			}
 			time.Sleep(pausetime) // usually five minutes
 		} else {

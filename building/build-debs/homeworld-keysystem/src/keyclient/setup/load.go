@@ -14,6 +14,7 @@ import (
 	"keycommon/server"
 	"log"
 	"time"
+	"os/exec"
 )
 
 // TODO: private key rotation, not just getting new certs
@@ -81,10 +82,18 @@ func Load(configpath string, logger *log.Logger) ([]actloop.Action, error) {
 	return actions, nil
 }
 
+func notifyReady(logger *log.Logger) {
+	// tells systemd that we're done setting up
+	err := exec.Command("systemd-notify", "--ready").Run()
+	if err != nil {
+		logger.Printf("failed to notify systemd of readiness: %v\n", err)
+	}
+}
+
 // TODO: unit-test this launch better (i.e. the ten second part, etc)
 func Launch(actions []actloop.Action, logger *log.Logger) (stop func()) {
 	loop := actloop.NewActLoop(actions, logger)
-	go loop.Run(time.Second*2, time.Minute*5)
+	go loop.Run(time.Second*2, time.Minute*5, notifyReady)
 	return loop.Cancel
 }
 

@@ -125,7 +125,6 @@ def admit_keyserver(ops: Operations) -> None:
         # TODO: do we need to poke the keyclient to make sure it tries again?
         # TODO: don't wait four seconds if it isn't necessary
         ops.ssh("kick keyclient daemon on @HOST", node, "systemctl", "restart", "keyclient")
-        ops.pause("giving admission time to complete...", 4.0)  # 4 seconds
         # if it doesn't exist, this command will fail.
         ops.ssh("confirm that @HOST was admitted", node, "test", "-e", KEYCLIENT_DIR + "/granting.pem")
         ops.ssh("enable auth-monitor daemon on @HOST", node, "systemctl", "enable", "auth-monitor")
