@@ -46,8 +46,10 @@ def pull_prometheus_query(query):
     if data.get("resultType") != "vector":
         command.fail("prometheus query did not produce a vector")
     result_vec = data["result"]
-    if type(result_vec) != list or len(result_vec) != 1:
+    if type(result_vec) != list or len(result_vec) > 1:
         command.fail("prometheus query returned %d results instead of 1" % len(result_vec))
+    if not result_vec:
+        command.fail("no results from prometheus query '%s'" % query)
     if type(result_vec[0]) != dict or "value" not in result_vec[0] or len(result_vec[0]["value"]) != 2:
         command.fail("unexpected format of result")
     return result_vec[0]["value"][1]
