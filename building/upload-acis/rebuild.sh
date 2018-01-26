@@ -36,6 +36,10 @@ find_latest "kube-state-metrics-1.2.0-" "kube-state-metrics-latest"
 find_latest "flannel-monitor-"
 find_latest "pullcheck-"
 find_latest "dns-monitor-"
+find_latest "kube-dns-1.14.8-" "kube-dns-latest"
+find_latest "kube-dns-sidecar-1.14.8-" "kube-dns-sidecar-latest"
+find_latest "dnsmasq-2.78-" "dnsmasq-latest"
+find_latest "dnsmasq-nanny-1.14.8-" "dnsmasq-nanny-latest"
 
 sleep 0.1
 

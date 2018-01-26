@@ -1,0 +1,14 @@
+- output: dnsmasq-2.78.tar.xz
+  last: 2018-01-25
+
+  source: http://www.thekelleys.org.uk/dnsmasq/dnsmasq-2.78.tar.xz
+  signature: http://www.thekelleys.org.uk/dnsmasq/dnsmasq-2.78.tar.xz.asc
+
+  signing-key: D6EACBD6EE46B834248D111215CDDA6AE19135A2
+
+- output: kubernetes-dns-1.14.8.tar.xz
+  last: 2018-01-25
+
+  git: https://github.com/kubernetes/dns
+  tag: 1.14.8
+  compress: xz

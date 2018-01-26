@@ -18,9 +18,7 @@ spec:
   - name: dns-tcp
     port: 53
     protocol: TCP
-
 ---
-
 apiVersion: v1
 kind: ReplicationController
 metadata:
@@ -46,7 +44,7 @@ spec:
     spec:
       containers:
       - name: kubedns
-        image: gcr.io/google_containers/k8s-dns-kube-dns-amd64:1.14.5
+        image: homeworld.mit.edu/kube-dns:1.14.8-1
         resources:
           limits:
             memory: 170Mi
@@ -87,7 +85,7 @@ spec:
           name: metrics
           protocol: TCP
       - name: dnsmasq
-        image: gcr.io/google_containers/k8s-dns-dnsmasq-nanny-amd64:1.14.5
+        image: homeworld.mit.edu/dnsmasq-nanny:1.14.8-1
         livenessProbe:
           httpGet:
             path: /healthcheck/dnsmasq
@@ -105,6 +103,7 @@ spec:
         - --
         - -k
         - --cache-size=1000
+        - --no-negcache
         - --log-facility=-
         - --server=/{{INTERNAL_DOMAIN}}/127.0.0.1#10053
         - --server=/in-addr.arpa/127.0.0.1#10053
@@ -121,7 +120,7 @@ spec:
             cpu: 150m
             memory: 20Mi
       - name: sidecar
-        image: gcr.io/google_containers/k8s-dns-sidecar-amd64:1.14.5
+        image: homeworld.mit.edu/kube-dns-sidecar:1.14.8-1
         livenessProbe:
           httpGet:
             path: /metrics
