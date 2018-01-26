@@ -13,7 +13,7 @@ UPDATE_TIMESTAMP="2018-01-11T22:47:00-0500"
 
 common_setup
 
-# build kube-dns
+# build kube-dns-main
 # based on https://github.com/kubernetes/dns builds
 
 init_builder

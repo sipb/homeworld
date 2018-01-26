@@ -41,10 +41,11 @@ spec:
       annotations:
         scheduler.alpha.kubernetes.io/critical-pod: ''
         scheduler.alpha.kubernetes.io/tolerations: '[{"key":"CriticalAddonsOnly", "operator":"Exists"}]'
+        homeworld.mit.edu/unsupported-fetch-info: aci
     spec:
       containers:
       - name: kubedns
-        image: homeworld.mit.edu/kube-dns:1.14.8-1
+        image: homeworld.mit.edu/kube-dns-main:1.14.8-1
         resources:
           limits:
             memory: 170Mi
@@ -68,6 +69,7 @@ spec:
           initialDelaySeconds: 3
           timeoutSeconds: 5
         args:
+        - /usr/bin/kube-dns
         - --domain={{INTERNAL_DOMAIN}}.
         - --dns-port=10053
         - -v=2
@@ -96,6 +98,7 @@ spec:
           successThreshold: 1
           failureThreshold: 5
         args:
+        - /usr/bin/dnsmasq-nanny
         - -v=2
         - -logtostderr
         - -configDir=/etc/k8s/dns/dnsmasq-nanny
@@ -135,6 +138,7 @@ spec:
             memory: 20Mi
             cpu: 10m
         args:
+        - /usr/bin/sidecar
         - --v=2
         - --logtostderr
         - --probe=kubedns,127.0.0.1:10053,kubernetes.default.svc.{{INTERNAL_DOMAIN}},5,A
