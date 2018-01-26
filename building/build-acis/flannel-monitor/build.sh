@@ -3,7 +3,7 @@ set -e -u
 cd "$(dirname "$0")"
 source ../common/container-build-helpers.sh
 
-VERSION="0.1.6"
+VERSION="0.1.7"
 
 BUILDVER="stretch.20180111T215606Z"
 UPDATE_TIMESTAMP="2018-01-17T17:12:00-0500"
@@ -17,7 +17,7 @@ GODIR="${BUILDDIR}/godir"
 mkdir "${GODIR}"
 cp -R "src" -t "${GODIR}"
 
-tar -C "${BUILDDIR}" -xf "${UPSTREAM}/kubernetes-src-v1.8.0.tar.xz" ./staging/src/k8s.io/ ./vendor/github.com/ ./vendor/golang.org/ ./vendor/gopkg.in/ ./vendor/k8s.io/kube-openapi/pkg/common
+tar -C "${BUILDDIR}" -xf "${UPSTREAM}/kubernetes-src-v1.8.0.tar.xz" staging/src/k8s.io/ vendor/github.com/ vendor/golang.org/ vendor/gopkg.in/ vendor/k8s.io/kube-openapi/pkg/common
 mv "${BUILDDIR}/staging/src/k8s.io" -t "${GODIR}/src/"
 mv "${BUILDDIR}/vendor/k8s.io/kube-openapi" -t "${GODIR}/src/k8s.io/"
 mv "${BUILDDIR}/vendor/github.com" -t "${GODIR}/src/"

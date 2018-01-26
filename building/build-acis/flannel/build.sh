@@ -4,7 +4,7 @@ cd "$(dirname "$0")"
 source ../common/container-build-helpers.sh
 
 FLANNEL_VER="0.9.0"
-REVISION="3"
+REVISION="4"
 VERSION="${FLANNEL_VER}-${REVISION}"
 
 DEBVER="stretch.20180111T215606Z"

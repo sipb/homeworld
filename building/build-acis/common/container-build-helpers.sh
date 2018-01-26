@@ -8,7 +8,7 @@ ACBUILD_TGZ="${HELPERS}/acbuild-bin-${ACBUILD_VER}.tgz"
 ACBUILD=acbuild
 ACBUILDDIR="${ROOT}/acbuild-tmp"
 
-GO_VER=1.8.3
+GO_VER=1.8.6
 GO_TGZ="${HELPERS}/go-bin-${GO_VER}.tgz"
 
 ACI_BRIEF="$(basename "${ROOT}")"

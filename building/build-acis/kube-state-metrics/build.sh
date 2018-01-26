@@ -4,7 +4,7 @@ cd "$(dirname "$0")"
 source ../common/container-build-helpers.sh
 
 KSM_VER="1.2.0"
-REVISION="2"
+REVISION="3"
 VERSION="${KSM_VER}-${REVISION}"
 
 BUILDVER="stretch.20180111T215606Z"

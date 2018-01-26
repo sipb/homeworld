@@ -29,7 +29,7 @@ spec:
       serviceAccountName: flannel-monitor
       containers:
       - name: kube-flannel-monitor
-        image: homeworld.mit.edu/flannel-monitor:0.1.6
+        image: homeworld.mit.edu/flannel-monitor:0.1.7
         env:
         - name: POD_NAME
           valueFrom:
@@ -73,7 +73,7 @@ spec:
       serviceAccountName: flannel-monitor
       containers:
       - name: kube-flannel-monitor
-        image: homeworld.mit.edu/flannel-monitor:0.1.6
+        image: homeworld.mit.edu/flannel-monitor:0.1.7
         env:
         - name: POD_NAME
           valueFrom:
@@ -113,24 +113,24 @@ metadata:
   namespace: kube-system
   labels:
     app: flannel-monitor-collector
-    version: v0.1.6
+    version: v0.1.7
 spec:
   replicas: 1
   selector:
     app: flannel-monitor-collector
-    version: v0.1.6
+    version: v0.1.7
   template:
     metadata:
       labels:
         app: flannel-monitor-collector
-        version: v0.1.6
+        version: v0.1.7
       annotations:
         homeworld.mit.edu/unsupported-fetch-info: aci
     spec:
       serviceAccountName: flannel-monitor
       containers:
       - name: kube-flannel-monitor
-        image: homeworld.mit.edu/flannel-monitor:0.1.6
+        image: homeworld.mit.edu/flannel-monitor:0.1.7
         env:
         - name: POD_NAMESPACE
           valueFrom:
