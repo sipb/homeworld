@@ -1,3 +1,9 @@
+homeworld-aci-pull-monitor (0.1.2) stretch; urgency=medium
+
+  * Updated release
+
+ -- Cel Skeggs <cela@mit.edu>  Fri, 26 Jan 2018 17:15:00 -0500
+
 homeworld-aci-pull-monitor (0.1.1) stretch; urgency=medium
 
   * Updated release
