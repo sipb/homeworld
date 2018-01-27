@@ -1,3 +1,9 @@
+homeworld-admin-tools (0.1.41) stretch; urgency=medium
+
+  * Updated debian release
+
+ -- Mark Theng <mtheng@mit.edu>  Mon, 29 Jan 2018 15:52:39 -0500
+
 homeworld-admin-tools (0.1.40) stretch; urgency=medium
 
   * Updated debian release

@@ -34,4 +34,4 @@ main_command = command.mux_map("invoke a top-level command", {
 
 
 if __name__ == "__main__":
-    sys.exit(command.main_invoke(main_command, sys.argv[1:]))
+    sys.exit(command.main_invoke(main_command))

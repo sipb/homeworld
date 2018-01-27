@@ -211,6 +211,7 @@ main_command = command.mux_map("commands about verifying the state of a cluster"
     "keygateway": command.wrap("verify that the keygateway has been properly started", check_keygateway),
     "online": command.wrap("check whether a server (or all servers) is/are accepting SSH connections", check_online),
     "ssh-with-certs": command.wrap("check if certificate-based SSH access works", check_ssh_with_certs),
+    "supervisor-certs": command.wrap("verify that certificates have been uploaded to the supervisor", check_certs_on_supervisor),
     "etcd": command.wrap("verify that etcd is healthy and working", check_etcd_health),
     "kubernetes-init": command.wrap("verify that kubernetes appears initialized", check_kube_init),
     "kubernetes": command.wrap("verify that kubernetes appears healthy", check_kube_health),

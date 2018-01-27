@@ -35,15 +35,14 @@ class Operations:
         self._ignore_annotations -= 1
 
     def annotate_from(self, func):
-        self.annotate_subcommand(command.get_command_for_function(func, default="<unannotated subcommand: %s>" % func))
+        self.annotate_subcommand(command.get_command_for_function(func))
 
     def annotate_subcommand(self, command):
         if not self._ignore_annotations:
-            self._annotations.append("$ " + command)
+            self._annotations.append("$ " + " ".join(command))
 
-    def print_annotations(self, purpose):
+    def print_annotations(self):
         if not self._ignore_annotations:
-            print("commands being executed to %s:" % purpose)
             for annotation in self._annotations:
                 print("  %s" % annotation)
 
@@ -233,9 +232,9 @@ def setup_prometheus(ops: Operations) -> None:
 
 
 def wrapop(desc: str, f):
-    def wrap_param_tx(params):
+    def wrap_param_tx(args):
         ops = Operations()
-        return [ops] + params, ops.run_operations
+        return [ops] + args.params, ops.run_operations
     return command.wrap(desc, f, wrap_param_tx)
 
 

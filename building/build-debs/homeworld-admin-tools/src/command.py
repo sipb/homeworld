@@ -1,4 +1,5 @@
 import inspect
+import argparse
 
 
 ANSI_ESCAPE_CODE_RED = "\x1b[1;31m"
@@ -22,7 +23,8 @@ def provide_command_for_function(f, command):
     f.dispatch_name = command
 
 
-def get_command_for_function(f, default):
+def get_command_for_function(f):
+    default = ["<unannotated subcommand: %s>" % f]
     if hasattr(f, "dispatch_get_name"):
         return f.dispatch_get_name(default)
     if hasattr(f, "dispatch_name"):
@@ -31,33 +33,15 @@ def get_command_for_function(f, default):
 
 
 def mux_map(desc: str, mapping: dict):
-    def usage() -> None:
-        print("commands:")
-        for name, (desc, subinvoke) in sorted(mapping.items()):
-            print("  %s: %s" % (name, desc))
+    def configure(command: list, parser: argparse.ArgumentParser):
+        parser.set_defaults(parser=parser)
+        subparsers = parser.add_subparsers()
 
-    def invoke(params):
-        if not params:
-            usage()
-            print("no command")
-        elif params[0] not in mapping:
-            usage()
-            fail("unknown command: %s" % params[0])
-        else:
-            desc, subinvoke = mapping[params[0]]
-            subinvoke(params[1:])
+        for component, (inner_desc, inner_configure) in mapping.items():
+            inner_parser = subparsers.add_parser(component, description=inner_desc, help=inner_desc)
+            inner_configure(command + [component], inner_parser)
 
-    if "usage" not in mapping:
-        mapping = dict(mapping)
-        mapping["usage"] = ("ask for this usage info", lambda _: usage())
-
-    def update_command_name(name):
-        for component, (desc, f) in mapping.items():
-            provide_command_for_function(f, "%s %s" % (name, component))
-
-    invoke.dispatch_set_name = update_command_name
-
-    return desc, invoke
+    return desc, configure
 
 
 def get_argcount(func) -> (int, int):
@@ -72,10 +56,11 @@ def get_argcount(func) -> (int, int):
 def wrap(desc: str, func, paramtx=None):
     minarg, maxarg = get_argcount(func)
 
-    def invoke(params):
+    def invoke(args):
+        params = args.params
         if paramtx:
             prev = len(params)
-            params, on_end = paramtx(params)
+            params, on_end = paramtx(args)
             rel = len(params) - prev
         else:
             on_end = None
@@ -94,17 +79,24 @@ def wrap(desc: str, func, paramtx=None):
         if on_end:
             on_end()
 
-    invoke.dispatch_set_name = lambda name: provide_command_for_function(func, name)
-    invoke.dispatch_get_name = lambda default: get_command_for_function(func, default)
+    def configure(command: list, parser: argparse.ArgumentParser):
+        parser.set_defaults(invoke=invoke, parser=parser)
+        parser.add_argument('params', nargs=argparse.REMAINDER, help=argparse.SUPPRESS)
+        provide_command_for_function(func, command)
 
-    return desc, invoke
+    return desc, configure
 
 
-def main_invoke(command, params):
-    desc, invoke = command
-    provide_command_for_function(invoke, "spire")
+def main_invoke(command):
+    desc, configure_parser = command
+    parser = argparse.ArgumentParser(description="Administrative toolkit for deploying and maintaining Hyades clusters")
+    configure_parser(["spire"], parser)
     try:
-        invoke(params)
+        args = parser.parse_args()
+        if "invoke" in args:
+            args.invoke(args)
+        else:
+            args.parser.print_help()
         return 0
     except CommandFailedException as e:
         print(ANSI_ESCAPE_CODE_RED + 'command failed: ' + str(e) + ANSI_ESCAPE_CODE_RESET)
