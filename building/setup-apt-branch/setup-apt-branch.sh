@@ -6,7 +6,7 @@ then
 	exit 1
 fi
 
-if ! [[ "${HOMEWORLD_APT_BRANCH}" =~ ^[0-9a-zA-Z_-]+\/[0-9a-zA-Z_-]+$ ]]
+if ! [[ "${HOMEWORLD_APT_BRANCH}" =~ ^[0-9a-zA-Z_-.]+\/[0-9a-zA-Z_-.]+$ ]]
 then
 	echo 'Error: Apt branch invalid. Should be of the form <username>/<branch>.' >&2
 	echo 'Allowed characters: [0-9a-zA-Z_-]' >&2
