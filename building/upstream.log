@@ -22,3 +22,13 @@
   hash-retrieved-from: https://golang.org/dl/
 
   compress: gunzip, xz
+
+- output: go1.9.3.src.tar.xz
+  last: 2018-01-29
+
+  source: https://dl.google.com/go/go1.9.3.src.tar.gz
+
+  hash: 4e3d0ad6e91e02efa77d54e86c8b9e34fbe1cbc2935b6d38784dca93331c47ae
+  hash-retrieved-from: https://golang.org/dl/
+
+  compress: gunzip, xz
