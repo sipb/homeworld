@@ -1,3 +1,9 @@
+homeworld-etcd-metrics-exporter (0.1.3) stretch; urgency=medium
+
+  * Updated release
+
+ -- Cel Skeggs <cela@mit.edu>  Mon, 29 Jan 2018 17:17:46 -0500
+
 homeworld-etcd-metrics-exporter (0.1.2) stretch; urgency=medium
 
   * Updated release

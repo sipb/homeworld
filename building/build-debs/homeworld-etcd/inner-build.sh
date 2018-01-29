@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e -u
 
-GO_VER=1.8.6
+GO_VER=1.9.3
 
 rm -rf go acbuild
 tar -xf "go-bin-${GO_VER}.tgz" go/

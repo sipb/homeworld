@@ -18,7 +18,7 @@ PKGNAME="${PKGBASE}_${DVERSION}_amd64.deb"
 PKOUT="${BIN}/${PKGNAME}"
 ORIGNAME="${PKGBASE}_${VERSION}.orig.tar.xz"
 
-GOVER=1.8.6
+GOVER="${GOVER:-1.9.3}"
 ACVER=0.4.0
 
 GONAME="go-bin-${GOVER}.tgz"
