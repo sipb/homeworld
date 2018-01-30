@@ -32,3 +32,15 @@
   hash-retrieved-from: https://golang.org/dl/
 
   compress: gunzip, xz
+
+- output: kubernetes-src
+  last: 2018-01-29
+
+  source: https://dl.k8s.io/v1.9.2/kubernetes-src.tar.gz
+
+  hash: 9f128809cdd442d71a13f7c61c7a0e03e832cf0c068a86184c1bcc9acdb78872
+  hash-retrieved-from: https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG-1.9.md#v192
+
+  comment: mostly matches manual git-archive export, except for a couple of minor versioning differences, as expected
+
+  compress: gunzip, xz
