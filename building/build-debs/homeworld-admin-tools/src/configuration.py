@@ -317,9 +317,6 @@ def get_prometheus_yaml() -> str:
     return template.template("prometheus.yaml", kcli)
 
 
-EXPECTED_KUBERNETES_VER = "1.8.0"
-
-
 def populate() -> None:
     setup_yaml = os.path.join(get_project(create_dir_if_missing=True), "setup.yaml")
     if os.path.exists(setup_yaml):
