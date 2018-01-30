@@ -30,7 +30,7 @@ EOCONFIG
 # TODO: only mount the required keys, not everything
 TLS_MOUNTPOINT=/etc/homeworld/
 TLS_STORAGE=/etc/homeworld/
-KSM_IMAGE=homeworld.mit.edu/kube-state-metrics:1.2.0-2
+KSM_IMAGE=homeworld.mit.edu/kube-state-metrics:1.2.0-4
 
 # provide directory for kubernetes TLS certificates
 HOSTOPT=(--volume "kube-certs,kind=host,readOnly=true,source=${TLS_STORAGE}" --mount "volume=kube-certs,target=${TLS_MOUNTPOINT}")

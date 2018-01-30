@@ -4,7 +4,7 @@ cd "$(dirname "$0")"
 source ../common/container-build-helpers.sh
 
 DNS_VER="1.14.8"
-REVISION="2"
+REVISION="3"
 VERSION="${DNS_VER}-${REVISION}"
 
 DEBVER="stretch.20180111T215606Z"

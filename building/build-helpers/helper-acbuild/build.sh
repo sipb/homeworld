@@ -3,7 +3,7 @@ set -e
 
 cd "$(dirname "$0")"
 
-GO_VER=1.8.6
+GO_VER=1.9.3
 ACBUILD_VER=0.4.0
 UPSTREAM="../../upstream"
 
