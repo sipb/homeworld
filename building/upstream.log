@@ -13,16 +13,6 @@
   tag: 1.14.8
   compress: xz
 
-- output: go1.8.6.src.tar.xz
-  last: 2018-01-26
-
-  source: https://dl.google.com/go/go1.8.6.src.tar.gz
-
-  hash: efc1221d3ae033c69e149801eff1d9872e214832a89f089fc5beb7a9fd98d9fb
-  hash-retrieved-from: https://golang.org/dl/
-
-  compress: gunzip, xz
-
 - output: go1.9.3.src.tar.xz
   last: 2018-01-29
 
