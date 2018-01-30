@@ -44,3 +44,14 @@
 
   signing-key: 18AD5014C99EF7E3BA5F6CE950BDD3E0FC8A365E
   signing-key-retrieved-from: https://coreos.com/security/app-signing-key/
+
+- output: coreos_restructured-1478.0.0.cpio.gz
+  last: 2018-01-30
+
+  source: https://alpha.release.core-os.net/amd64-usr/1478.0.0/coreos_production_pxe_image.cpio.gz
+  signature: https://alpha.release.core-os.net/amd64-usr/1478.0.0/coreos_production_pxe_image.cpio.gz.sig
+
+  signing-key: 04127D0BFABEC8871FFB2CCE50E0885593D2DCB4
+  signing-key-retrieved-from: https://coreos.com/security/image-signing-key/
+
+  process: restrip-coreos.sh
