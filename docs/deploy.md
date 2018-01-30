@@ -157,7 +157,7 @@ For development on the official homeworld servers (the LocalForward lines set up
 
         # Note that you will need Kerberos tickets.
         # Generate them for your Kerberos identity from the root-admins section of setup.yaml, via
-        # kinit <Kerberos identity>
+        # kinit <kerberos principal>
         # to access the development server.
     $ scp preseeded.iso toast:/srv/preseeded.iso
 
