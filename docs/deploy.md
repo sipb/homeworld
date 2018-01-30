@@ -5,7 +5,7 @@ If you're re-deploying the cluster for development, you will need:
 * A Debian Stretch installation (or VM) -- note that we do not support any other environments.
 * The disaster recovery key.
 * Access to [hyades-cluster](https://github.mit.edu/sipb/hyades-cluster), where we store the current cluster configuration. You will need to have set up SSH keys with github.mit.edu.
-* Your Kerberos identity in the root-admins secion of ``setup.yaml``. If it isn't there, you can just add it in yourself.
+* Your Kerberos identity (preferably a [root instance](https://sipb.mit.edu/doc/root-instance/)) in the root-admins secion of ``setup.yaml``. If it isn't there, you can just add it in yourself.
 * Access to toastfs-dev (the machine which hosts the development cluster). You will need a Kerberos root instance as a prerequisite to this.
 * Any VNC viewer. These instructions are based on [TigerVNC](https://github.com/TigerVNC/tigervnc/releases) (``sudo apt-get install tigervnc``).
 
@@ -155,8 +155,9 @@ For development on the official homeworld servers (the LocalForward lines set up
                 LocalForward 5906 localhost:5906
                 LocalForward 5910 localhost:5910
 
-        # Note that you will need Kerberos tickets
-        # (generate them with kinit)
+        # Note that you will need Kerberos tickets.
+        # Generate them for your Kerberos identity from the root-admins section of setup.yaml, via
+        # kinit <Kerberos identity>
         # to access the development server.
     $ scp preseeded.iso toast:/srv/preseeded.iso
 
