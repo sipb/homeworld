@@ -29,15 +29,19 @@ Set the apt branch environment variable (you will have to do this every session)
 
     $ export HOMEWORLD_APT_BRANCH=<username>/<branch>
 
-Generate a new key to sign the repository with. Using a regular long-lived key here is discouraged. You will need to use gpg2, since reprepro uses gpgme.
+Generate a new key to sign the repository with. Using a regular long-lived key here is discouraged.
 
-    $ gpg2 --full-gen-key
+    $ gpg --full-gen-key
 
-Do `gpg2 --list-keys --keyid-format long` to find the ID of the key you have just generated. Add an entry to `signing-keys`:
+Do `gpg --list-keys --keyid-format long` to find the ID of the key you have just generated. Add an entry to `signing-keys`:
 
     $ echo "${HOMEWORLD_APT_BRANCH} <key-id>" >> building/setup-apt-branch/signing-keys
 
-Import the default apt repository signing key:
+If you would like to upload your binaries to your personal apt repository, you will need to copy your key into gpg2, since reprepro uses gpgme:
+
+    $ gpg --export <key-id> | gpg2 --import
+
+To base your build on the official Homeworld branch, import its signing key:
 
     $ gpg2 --import building/upload-debs/default-repo-signing-key.gpg
 
