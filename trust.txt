@@ -1,3 +1,6 @@
+NOTE: THIS FILE IS OLD AND BUSTED AND SLOWLY GETTING MIGRATED INTO building/upstream.log
+(This file does a bad job of explaining whose keys were useful for verifying exactly what.)
+
 Debian CD signing key (stretch):
 
 DF9B 9C49 EAA9 2984 3258  9D76 DA87 E80D 6294 BE9B
@@ -14,14 +17,6 @@ Derek Gonyeo's signing key (NOT THOROUGHLY VERIFIED):
 Tom Denham's signing key (NOT THOROUGHLY VERIFIED):
 
 9C2F E1E5 0321 E0EE 408E  4FF6 0C8C BCA0 3F1A BFB4
-
-
-Not thoroughly checked, but probably right:
-
-a7dcf954604b2274dbe9757547ad7fa4f3b12df125c1586bccdf545b88d4b93546502b062ffe4856335216229ad867fe4031ccf020e37c6f3fb08649cb0013e4  qemu-2.8.0.tar.xz
-
-Signing key for Paolo Bonzini <bonzini@gnu.org> (qemu releases) (NOT THOROUGHLY VERIFIED):
-46F5 9FBD 57D6 12E7 BFD4  E2F7 7E15 100C CD36 69B1
 
 
 Prometheus signing key (NOT THOROUGHLY VERIFIED):

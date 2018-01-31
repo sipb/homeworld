@@ -81,3 +81,12 @@
 
   signing-key: 647F28654894E3BD457199BE38DBBDC86092693E
   signing-key-source: web of trust for Greg Kroah-Hartman <greg@kroah.com>
+
+- output: qemu-2.11.0.tar.xz
+  last: 2018-01-31
+
+  source: https://download.qemu.org/qemu-2.11.0.tar.xz
+  signature: https://download.qemu.org/qemu-2.11.0.tar.xz.sig
+
+  signing-key: CEACC9E15534EBABB82D3FA03353C9CEF108B584
+  signing-key-source: untrusted, but nearby in web of trust

@@ -1,16 +1,22 @@
 --- rkt-1.29.0/stage1/usr_from_kvm/qemu.mk	2017-05-15 04:19:46.000000000 -0400
-+++ rkt-1.29.0/stage1/usr_from_kvm/qemu.mk	2017-06-28 00:16:03.104844850 -0400
++++ rkt-1.29.0/stage1/usr_from_kvm/qemu.mk	2018-01-31 17:55:38.265008146 -0500
 @@ -1,6 +1,8 @@
  $(call setup-stamp-file,QEMU_STAMP)
  QEMU_TMPDIR := $(UFK_TMPDIR)/qemu
 -QEMU_SRCDIR := $(QEMU_TMPDIR)/src
-+QEMU_TARBALL := qemu-2.8.0.tar.xz
++QEMU_TARBALL := qemu-2.11.0.tar.xz
 +QEMU_TARGET_FILE := $(QEMU_TMPDIR)/$(QEMU_TARBALL)
-+QEMU_SRCDIR := $(QEMU_TMPDIR)/qemu-2.8.0
++QEMU_SRCDIR := $(QEMU_TMPDIR)/qemu-2.11.0
  QEMU_BINARY := $(QEMU_SRCDIR)/x86_64-softmmu/qemu-system-x86_64
  QEMU_BIOS_BINARIES := bios-256k.bin \
      kvmvapic.bin \
-@@ -17,10 +19,6 @@
+@@ -12,15 +14,11 @@
+ QEMU_CONFIGURATION_OPTS := --disable-bsd-user --disable-docs --disable-guest-agent --disable-guest-agent-msi \
+     --disable-sdl --disable-gtk --disable-vte --disable-curses --disable-cocoa --disable-brlapi --disable-vnc \
+     --disable-seccomp --disable-curl --disable-bluez --disable-cap-ng --disable-rbd --disable-libiscsi \
+-    --disable-libnfs --disable-smartcard --disable-libusb --disable-glusterfs --disable-archipelago \
++    --disable-libnfs --disable-smartcard --disable-libusb --disable-glusterfs \
+     --disable-tcmalloc --disable-jemalloc --disable-debug-info --static --enable-virtfs --target-list=x86_64-softmmu \
      --python=/usr/bin/python2 --disable-werror
  QEMU_ACI_BINARY := $(HV_ACIROOTFSDIR)/qemu
 

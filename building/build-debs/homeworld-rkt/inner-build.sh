@@ -33,7 +33,7 @@ tar -xf coreos_binaries-1478.0.0.tar.xz "coreos_minimal_dir/"
 mkdir -p "rkt-${VERSION}/build-rkt-${VERSION}/tmp/usr_from_kvm/kernel/"
 cp linux-4.14.16.tar.xz -t "rkt-${VERSION}/build-rkt-${VERSION}/tmp/usr_from_kvm/kernel/"
 mkdir -p "rkt-${VERSION}/build-rkt-${VERSION}/tmp/usr_from_kvm/qemu/"
-cp qemu-2.8.0.tar.xz -t "rkt-${VERSION}/build-rkt-${VERSION}/tmp/usr_from_kvm/qemu/"
+cp qemu-2.11.0.tar.xz -t "rkt-${VERSION}/build-rkt-${VERSION}/tmp/usr_from_kvm/qemu/"
 
 cd "rkt-${VERSION}/"
 
