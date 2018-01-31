@@ -31,7 +31,7 @@ tar -xf coreos_binaries-1478.0.0.tar.xz "coreos_minimal_dir/"
 (cd coreos_ncpio && (echo usr.squashfs | cpio -o)) | gzip -c >"rkt-${VERSION}/coreos_production_pxe_image.cpio.gz"
 
 mkdir -p "rkt-${VERSION}/build-rkt-${VERSION}/tmp/usr_from_kvm/kernel/"
-cp linux-4.9.2.tar.xz -t "rkt-${VERSION}/build-rkt-${VERSION}/tmp/usr_from_kvm/kernel/"
+cp linux-4.14.16.tar.xz -t "rkt-${VERSION}/build-rkt-${VERSION}/tmp/usr_from_kvm/kernel/"
 mkdir -p "rkt-${VERSION}/build-rkt-${VERSION}/tmp/usr_from_kvm/qemu/"
 cp qemu-2.8.0.tar.xz -t "rkt-${VERSION}/build-rkt-${VERSION}/tmp/usr_from_kvm/qemu/"
 

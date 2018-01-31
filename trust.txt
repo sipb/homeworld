@@ -6,12 +6,6 @@ Debian Archive Automatic Signing Key (9/stretch):
 
 E1CF 20DD FFE4 B89E 8026  58F1 E0B1 1894 F66A EC98
 
-85adf3715cba4a457efea8359ebed34413ac63ee58fe920c5713501dec1e727e167416e9d67a9e2d9430aa9f3a53ad0ac26a4f749984bc5a3f3c37ac504f75de  linux-4.9.2.tar.xz
-
-
-Key fingerprint = 647F 2865 4894 E3BD 4571  99BE 38DB BDC8 6092 693E
-Greg Kroah-Hartman (Linux kernel stable release signing key) <greg@kroah.com>
-
 
 Derek Gonyeo's signing key (NOT THOROUGHLY VERIFIED):
 
@@ -28,11 +22,6 @@ a7dcf954604b2274dbe9757547ad7fa4f3b12df125c1586bccdf545b88d4b93546502b062ffe4856
 
 Signing key for Paolo Bonzini <bonzini@gnu.org> (qemu releases) (NOT THOROUGHLY VERIFIED):
 46F5 9FBD 57D6 12E7 BFD4  E2F7 7E15 100C CD36 69B1
-
-
-CoreOS Application Signing Key (NOT THOROUGHLY VERIFIED):
-
-18AD 5014 C99E F7E3 BA5F  6CE9 50BD D3E0 FC8A 365E
 
 
 Prometheus signing key (NOT THOROUGHLY VERIFIED):

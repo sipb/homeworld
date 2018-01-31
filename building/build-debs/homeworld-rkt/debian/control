@@ -2,7 +2,7 @@ Source: homeworld-rkt
 Section: misc
 Priority: extra
 Maintainer: Cel Skeggs <cela@mit.edu>
-Build-Depends: debhelper (>= 9), git, cpio, squashfs-tools, libsystemd-dev, wget, libssl-dev, automake, libacl1-dev, libcap-dev, libglib2.0-dev, patch, bc, binutils, openssl, libxml2, libxml2-dev, zlib1g-dev, zlibc, libpcre3-dev, libpixman-1-dev, pkg-config, realpath, flex, bison, libreadline-dev, autoconf, file, xz-utils, locales, gnupg, python, python3
+Build-Depends: debhelper (>= 9), git, cpio, squashfs-tools, libsystemd-dev, wget, libssl-dev, automake, libacl1-dev, libcap-dev, libglib2.0-dev, patch, bc, binutils, openssl, libxml2, libxml2-dev, zlib1g-dev, zlibc, libpcre3-dev, libpixman-1-dev, pkg-config, realpath, flex, bison, libreadline-dev, autoconf, file, xz-utils, locales, gnupg, python, python3, libelf-dev
 Standards-Version: 4.1.1
 Vcs-Git: https://github.com/sipb/homeworld.git
 Vcs-Browser: https://github.com/sipb/homeworld/
