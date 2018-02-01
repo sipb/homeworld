@@ -4,7 +4,7 @@ cd "$(dirname "$0")"
 source ../common/container-build-helpers.sh
 
 FLANNEL_VER="0.10.0"
-REVISION="1"
+REVISION="3"
 VERSION="${FLANNEL_VER}-${REVISION}"
 
 DEBVER="stretch.20180111T215606Z"
@@ -25,6 +25,7 @@ mkdir -p "${COREOS}"
 
 tar -C "${COREOS}" -xf "${UPSTREAM}/flannel-${FLANNEL_VER}.tar.xz" "flannel-${FLANNEL_VER}/"
 mv "${COREOS}/flannel-${FLANNEL_VER}" -T "${COREOS}/flannel"
+patch -d "${COREOS}/flannel" -p1 <flannel.patch
 
 build_at_path "${COREOS}/flannel"
 
