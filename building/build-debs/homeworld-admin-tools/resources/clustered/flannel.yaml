@@ -45,7 +45,7 @@ spec:
       serviceAccountName: flannel
       containers:
       - name: kube-flannel
-        image: homeworld.mit.edu/flannel:0.9.0-5
+        image: homeworld.mit.edu/flannel:0.10.0-1
         command: [ "/usr/bin/flanneld", "--ip-masq", "--kube-subnet-mgr" ]
         securityContext:
           privileged: true

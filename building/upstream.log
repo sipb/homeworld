@@ -90,3 +90,15 @@
 
   signing-key: CEACC9E15534EBABB82D3FA03353C9CEF108B584
   signing-key-source: untrusted, but nearby in web of trust
+
+- output: flannel-0.10.0.tar.xz
+  last: 2018-02-01
+
+  git: https://github.com/coreos/flannel
+  prefix: flannel-0.10.0/
+  tag: v0.10.0
+  compress: xz
+
+  signing-key: 9C2FE1E50321E0EE408E4FF60C8CBCA03F1ABFB4
+  signing-target: commit
+  signing-key-source: unverified key for Tom Denham (same as original flannel download)
