@@ -104,7 +104,10 @@ func cycle() {
 		return
 	}
 	lines := strings.Split(strings.Trim(string(output), "\000\r\n"), "\n")
-	parts := strings.SplitN(lines[len(lines) - 1], ": ", 2)
+	if strings.Contains(lines[len(lines) - 1], "rkt: obligatory restart") && len(lines) > 1 {
+		lines = lines[:len(lines) - 1]
+	}
+	parts := strings.SplitN(strings.Trim(lines[len(lines) - 1], "\000\r\n"), ": ", 2)
 	if !strings.Contains(parts[0], "] pullcheck[") || len(parts) != 2 {
 		log.Printf("output from rkt did not match expected format: '%s'", string(output))
 		rktGauge.Set(0)
