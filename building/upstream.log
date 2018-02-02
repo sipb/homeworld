@@ -1,3 +1,20 @@
+# Helpful hints:
+# When URLs for source and signature are provided, it means to download those
+# paths, and verify them with gpg --verify.
+#
+# When a signing key doesn't specify where it can be retrieved from, you should
+# try searching around to confirm that the fingerprint is correct. If you still
+# need to find a copy of the actual key, search a keyserver like pgp.mit.edu.
+#
+# When a git repository is specified, you should clone that repository, verify
+# the tag with `git tag -v <tagname>`, and export the archive with:
+# $ git archive --format=tar --output <file>.tar --prefix=<repository-name>-<tag>/ <tag>
+# for example:
+# $ git archive --format=tar --output dns.tar --prefix=dns-1.14.8/ 1.14.8
+#
+# The 'compress' field is a sequence of operations to run on the tarball. If it
+# says `gunzip, xz`, then you should gunzip and then xz the tarball.
+
 - output: dnsmasq-2.78.tar.xz
   last: 2018-01-25
 

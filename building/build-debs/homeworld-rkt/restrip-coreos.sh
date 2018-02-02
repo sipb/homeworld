@@ -23,13 +23,10 @@ fi
 find rkt-1.29.0/ -name '*.manifest' -print0 | grep -z amd64 | xargs -0 cat -- | sort -u >coreos-manifest.txt
 zcat coreos_production_pxe_image.cpio.gz | cpio -i --to-stdout usr.squashfs >coreos_squashfs
 rm -rf coreos_minimal_dir
-unsquashfs -d coreos_minimal_dir -e coreos-manifest.txt coreos_squashfs
+unsquashfs -no-xattrs -d coreos_minimal_dir -e coreos-manifest.txt coreos_squashfs
 rm coreos-manifest.txt coreos_squashfs
-(cd coreos_minimal_dir && mksquashfs ./ ../coreos_resquash -root-owned -noappend)
-rm -rf coreos_minimal_dir
-mkdir -p coreos_ncpio/etc
-mv coreos_resquash coreos_ncpio/usr.squashfs
-(cd coreos_ncpio && ((echo .; echo etc; echo usr.squashfs) | cpio -o)) | gzip -c >coreos_restructured.cpio.gz
-rm -rf coreos_ncpio
 
-echo "output in coreos_restructured.cpio.gz"
+tar --mtime="2018-01-01 12:00:00 AM" -cJf "coreos_binaries-1478.0.0.tar.xz" "coreos_minimal_dir/"
+rm -rf coreos_minimal_dir
+
+echo "output in coreos_binaries-1478.0.0.tar.xz"

@@ -24,7 +24,12 @@ then
 	rm "rkt-${VERSION}/stage1/usr_from_kvm/kernel/patches/0002-for-debian-gcc.patch"
 fi
 
-cp coreos_restructured-1478.0.0.cpio.gz "rkt-${VERSION}/coreos_production_pxe_image.cpio.gz"
+mkdir coreos_ncpio
+rm -rf coreos_minimal_dir
+tar -xf coreos_binaries-1478.0.0.tar.xz "coreos_minimal_dir/"
+(cd coreos_minimal_dir && mksquashfs . ../coreos_ncpio/usr.squashfs -root-owned -noappend)
+(cd coreos_ncpio && (echo usr.squashfs | cpio -o)) | gzip -c >"rkt-${VERSION}/coreos_production_pxe_image.cpio.gz"
+
 mkdir -p "rkt-${VERSION}/build-rkt-${VERSION}/tmp/usr_from_kvm/kernel/"
 cp linux-4.9.2.tar.xz -t "rkt-${VERSION}/build-rkt-${VERSION}/tmp/usr_from_kvm/kernel/"
 mkdir -p "rkt-${VERSION}/build-rkt-${VERSION}/tmp/usr_from_kvm/qemu/"
