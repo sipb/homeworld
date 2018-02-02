@@ -33,6 +33,9 @@ func (k KncServer) kncRequest(data []byte) ([]byte, error) {
 
 	response, err := cmd.Output()
 	if err != nil {
+		if ee, ok := err.(*exec.ExitError); ok && len(ee.Stderr) > 0 {
+			err = fmt.Errorf("%s\n--- knc stderr start ---\n%s\n--- knc stderr end ---\n", ee.Error(), string(ee.Stderr))
+		}
 		return nil, err
 	}
 
@@ -48,6 +51,10 @@ func (k KncServer) SendRequests(reqs []reqtarget.Request) ([]string, error) {
 	raw_resps, err := k.kncRequest(raw_reqs)
 	if err != nil {
 		return nil, fmt.Errorf("while performing request: %s", err)
+	}
+
+	if len(raw_resps) == 0 {
+		return nil, fmt.Errorf("empty response, likely because the server does not recognize your Kerberos identity")
 	}
 
 	resps := []string{}
