@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"net"
 	"keycommon/reqtarget"
 	"io/ioutil"
 	"keycommon/server"
@@ -37,6 +38,14 @@ func auth_kerberos(logger *log.Logger, authority_path string, keyserver_domain s
 		logger.Fatal("failed to check connection: ", err)
 	}
 	return ks, rt
+}
+
+func is_domain(host string) (bool) {
+        names, err := net.LookupHost(host)
+        if err != nil || len(names) == 0 {
+                return false;
+        }
+        return true;
 }
 
 func main() {
@@ -153,6 +162,12 @@ func main() {
 		if len(os.Args) < 5 {
 			logger.Fatal("not enough parameters to keyreq bootstrap-token <authority-path> <keyserver-domain> <principal>")
 			return
+		}
+		if !is_domain(os.Args[3]) {
+			logger.Fatal("not a valid domain name", os.Args[3])
+		}
+		if !is_domain(os.Args[4]) {
+			logger.Fatal("not a valid domain name", os.Args[4])
 		}
 		_, rt := auth_kerberos(logger, os.Args[2], os.Args[3])
 		token, err := reqtarget.SendRequest(rt, "bootstrap", os.Args[4])
