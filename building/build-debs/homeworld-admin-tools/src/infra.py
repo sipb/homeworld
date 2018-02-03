@@ -5,7 +5,9 @@ import setup
 
 
 def infra_admit(server_principal: str) -> None:
-    token = access.call_keyreq("bootstrap-token", server_principal, collect=True)
+    config = configuration.get_config()
+    principal_hostname = config.get_fqdn(server_principal)
+    token = access.call_keyreq("bootstrap-token", principal_hostname, collect=True)
     print("Token granted for %s: '%s'" % (server_principal, token.decode().strip()))
 
 

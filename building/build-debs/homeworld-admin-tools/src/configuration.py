@@ -164,6 +164,18 @@ class Config:
                 return node
         command.fail("no such node: %s" % node_name)
 
+    def get_fqdn(self, name: str) -> str:
+        hostname = name
+        if name.endswith("." + self.external_domain):
+            # strip external domain
+            hostname = name[:-(len(self.external_domain) + 1)]
+        elif name.endswith("." + self.internal_domain):
+            # strip internal domain
+            hostname = name[:-(len(self.internal_domain) + 1)]
+        if not self.has_node(hostname):
+            command.fail("no such node: %s" % name)
+        return hostname + "." + self.external_domain
+
     @classmethod
     def load_from_string(cls, contents: bytes) -> "Config":
         return Config(yaml.safe_load(contents))
