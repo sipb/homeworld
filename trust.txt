@@ -1,19 +1,6 @@
 NOTE: THIS FILE IS OLD AND BUSTED AND SLOWLY GETTING MIGRATED INTO building/upstream.log
 (This file does a bad job of explaining whose keys were useful for verifying exactly what.)
 
-Debian CD signing key (stretch):
-
-DF9B 9C49 EAA9 2984 3258  9D76 DA87 E80D 6294 BE9B
-
-Debian Archive Automatic Signing Key (9/stretch):
-
-E1CF 20DD FFE4 B89E 8026  58F1 E0B1 1894 F66A EC98
-
-
-Derek Gonyeo's signing key (NOT THOROUGHLY VERIFIED):
-
-4AAD A27B 5780 CDA6 6664  CC42 4AF8 D948 8458 0913
-
 
 Prometheus signing key (NOT THOROUGHLY VERIFIED):
 
