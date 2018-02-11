@@ -10,7 +10,7 @@ for x in staging/*.aci
 do
 	if [ ! -e "$x.asc" ] && [ -f "$x" ]
 	then
-		gpg --armor --detach-sign --local-user 0x8422464D9EE78588 "$x"
+		gpg --armor --detach-sign --local-user 0xd167aca2e5fcf374 "$x"
 	fi
 done
 

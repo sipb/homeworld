@@ -2,4 +2,4 @@ services/*.service usr/lib/systemd/system
 services/*.timer usr/lib/systemd/system
 wrappers/*.sh usr/lib/hyades
 10-containernet.conf etc/rkt/net.d
-67e653d14052a324a3a6feb58422464d9ee78588 etc/rkt/trustedkeys/prefix.d/homeworld.mit.edu
+a1ebb6ea29a86c445a187cb9d167aca2e5fcf374 etc/rkt/trustedkeys/prefix.d/homeworld.mit.edu
