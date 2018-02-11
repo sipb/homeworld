@@ -24,6 +24,13 @@ all: qemu-2.11.0.tar.xz
 RKT_VER=1.29.0
 all: rkt-${RKT_VER}.tar.xz
 
+.PHONY: verify just-verify
+just-verify:
+	sha512sum --check ../SHA512SUM.UPSTREAM
+
+verify: all
+	sha512sum --check ../SHA512SUM.UPSTREAM
+
 .PHONY: clean
 clean:
 	rm -rf *.tar.xz *.tar.gz *.tgz
@@ -98,16 +105,19 @@ gpg-verify = @echo "[gpg] verifying $1 with key $3" && (GNUPGHOME="${TOP}/keys/$
 sha256-verify = @echo "[sha256] checking $1 against $2" && (echo "$$(cat ${TOP}/known/$2.sha256)  $1" | sha256sum --check --strict --quiet)
 
 %.xz: %
+	@rm -f $@
 	@echo "[xz] compressing $@"
 	@xz -k "$^"
 
 %.tar: %.tar.gz
+	@rm -f $@
 	@echo "[gzip] decompressing $@"
 	@gunzip "$^" --to-stdout >"$@"
 
 %.tgz: %.tar
+	@rm -f $@
 	@echo "[gzip] compressing $@"
-	@gzip "$^" --to-stdout >"$@"
+	@gzip -n "$^" --to-stdout >"$@"
 
 # **** ACBUILD ****
 
