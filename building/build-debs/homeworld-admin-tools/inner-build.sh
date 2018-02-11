@@ -28,7 +28,7 @@ fi
 
 (cd src && zip -r ../spire.zip *)
 
-python3 spire.zip iso regen-cdpack debian-9.2.0-amd64-mini.iso src/resources/debian-9.2.0-cdpack.tgz
+python3 spire.zip iso regen-cdpack debian-9.3.0-amd64-mini.iso src/resources/debian-9.3.0-cdpack.tgz
 
 rm spire.zip
 (cd src && zip -r ../spire.zip *)
