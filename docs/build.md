@@ -14,6 +14,7 @@ You will need to set up a sbuild chroot:
 
     $ sudo addgroup $USER sbuild   # (then log out and back in)
     $ mk-sbuild stretch
+    $ sudo sed 's/union-type=aufs/union-type=overlay/' -i /etc/schroot/chroot.d/sbuild-stretch-amd64
 
 (See https://github.com/sipb/homeworld/issues/80 for more details.)
 
