@@ -1,0 +1,13 @@
+sudo: required
+language: c
+addons:
+  apt:
+    packages:
+    - squashfs-tools
+install:
+- wget http://http.us.debian.org/debian/pool/main/t/tar/tar_1.29b-1.1_amd64.deb
+- echo "602bd670db5c05c1aa87ec8d3092635b4b45e3b7d377a1f1a0e17253eb123504  tar_1.29b-1.1_amd64.deb" | sha256sum --check --strict
+- sudo dpkg --unpack tar_1.29b-1.1_amd64.deb
+- sudo apt-get install -f
+script:
+- cd building/upstream-check && make -j2 verify

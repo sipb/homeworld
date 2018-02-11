@@ -11,3 +11,7 @@
 /debian-stretch-release
 /*.sign
 /*.asc
+/*.cpio
+/*.cpio.gz
+/coreos-binary-manifest-*.txt
+/coreos-squashfs-*

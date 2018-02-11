@@ -34,7 +34,7 @@ verify: all
 .PHONY: clean
 clean:
 	rm -rf *.tar.xz *.tar.gz *.tgz
-	rm -rf *.cpio.gz *.tar *.iso
+	rm -rf *.cpio.gz *.cpio *.tar *.iso
 	rm -rf *.asc *.sign *.sig
 
 clean: clean-keys
@@ -136,7 +136,7 @@ rkt-%.tar: git/rkt/rkt keys/coreos-app.ring
 COREOS_BASE := alpha.release.core-os.net/amd64-usr/%/coreos_production_pxe_image.cpio.gz
 coreos_production_pxe_image-%.cpio.gz: https/${COREOS_BASE} https/${COREOS_BASE}.sig keys/coreos-image.ring
 	$(call gpg-verify,$<,.sig,coreos-image)
-	@mv $< $@
+	@cp $< $@
 
 coreos_production_pxe_image-%.cpio: coreos_production_pxe_image-%.cpio.gz
 	@echo "[gzip] decompressing $<"
@@ -176,7 +176,7 @@ coreos_binaries-%.tar: coreos-unsquash-dir-%
 	@rm -rf workdir-$@ $@ $@.tmp
 	@mkdir workdir-$@
 	@mv $^ "workdir-$@/coreos_minimal_dir/"
-	@tar -C workdir-$@ --mtime="2018-01-01 12:00:00 AM" -cf $@.tmp "coreos_minimal_dir/"
+	@tar --sort=name --owner=user:1000 --group=user:1000 -C workdir-$@ --mtime="Mon, 1 Jan 2018 00:00:00 -0500" -cf $@.tmp "coreos_minimal_dir/"
 	@mv $@.tmp $@
 
 # **** DEBIAN ****
