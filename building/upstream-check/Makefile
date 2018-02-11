@@ -2,7 +2,8 @@ all: acbuild-src-0.4.0.tgz
 all: coreos_binaries-1478.0.0.tar.xz
 all: debian-9.2.0-amd64-mini.iso
 all: dnsmasq-2.78.tar.xz
-all: etcd-3.2.9.tar.xz
+ETCD_VER=3.2.9
+all: etcd-${ETCD_VER}.tar.xz
 all: flannel-0.10.0.tar.xz
 all: go1.4-bootstrap-20170531.tar.xz
 all: go1.9.3.src.tar.xz
@@ -29,6 +30,7 @@ clean:
 	rm -rf *.tgz
 	rm -rf *.tar
 	rm -rf *.iso
+	rm -rf *.asc
 
 clean: clean-keys
 .PHONY: clean-keys
@@ -62,6 +64,12 @@ TOP := $(shell pwd)
 
 # use as $(call git-verify,<tag>,<repo>,<keyring>)
 git-verify = @echo "[git] verifying tag $1 on $2 with key $3" && cd "git/$2" && (GNUPGHOME="${TOP}/keys/$3.ring" git tag -v $1 2>/dev/null >/dev/null || (echo '******* failed to verify' && false))
+
+# we have git-verify-commit for cases where the tagged commit is signed, but not the commit itself
+# WARNING: THIS IS MUCH WEAKER, AS SOMEONE COULD SUBSTITUTE A DIFFERENT RELEASE!
+# use as $(call git-verify-commit,<tag>,<repo>,<keyring>)
+git-verify-commit = @echo "[git] verifying commit for tag $1 on $2 with key $3" && cd "git/$2" && (GNUPGHOME="${TOP}/keys/$3.ring" git verify-commit $1 2>/dev/null >/dev/null || (echo '******* failed to verify' && false))
+
 # use as $(call git-archive,<tag>,<repo>,<prefix>,<output>)
 git-archive = @echo "[git] archiving tag $1 on $2" && cd "git/$2" && git archive --format=tar --prefix=$3 --output "${TOP}/$4" $1
 
@@ -88,6 +96,9 @@ https/%: https
 # use as $(call gpg-verify,<file>,<signature-suffix>,<keyring>)
 gpg-verify = @echo "[gpg] verifying $1 with key $3" && (GNUPGHOME="${TOP}/keys/$3.ring" gpg --quiet --verify $1$2 $1 2>/dev/null >/dev/null || (echo '******* failed to verify' && false))
 
+# use as $(call sha256-verify,<file>,<hash-name>)
+sha256-verify = @echo "[sha256] checking $1 against $2" && (echo "$$(cat ${TOP}/known/$2.sha256)  $1" | sha256sum --check --strict --quiet)
+
 %.xz: %
 	@echo "[xz] compressing $@"
 	@xz "$^"
@@ -99,7 +110,6 @@ gpg-verify = @echo "[gpg] verifying $1 with key $3" && (GNUPGHOME="${TOP}/keys/$
 # **** ACBUILD ****
 
 acbuild-src-%.tar: git/containers/build keys/acbuild.ring
-	# TODO: ensure that the correct signature is checked properly
 	$(call git-verify,$(@:acbuild-src-%.tar=v%),containers/build,acbuild)
 	$(call git-archive,$(@:acbuild-src-%.tar=v%),containers/build,acbuild/,$@)
 
@@ -117,7 +127,7 @@ coreos_production_pxe_image-%.cpio.gz: https/${COREOS_BASE} https/${COREOS_BASE}
 	@mv $< $@
 
 coreos_production_pxe_image-%.cpio: coreos_production_pxe_image-%.cpio.gz
-	@echo "[gzip] uncompressing $<"
+	@echo "[gzip] decompressing $<"
 	@gunzip "$<" --to-stdout >"$@"
 
 .PHONY: clean-coreos
@@ -183,3 +193,46 @@ debian-%-amd64-mini.iso: http/debian.csail.mit.edu/debian/dists/stretch/main/ins
 	@echo "[gpg] verifying hash for iso against installer SHA256SUMS"
 	@cd workdir-$@ && grep ./netboot/mini.iso SHA256SUMS | sha256sum --check --strict --quiet
 	@cp workdir-$@/netboot/mini.iso $@
+
+# **** DNSMASQ ****
+
+dnsmasq-%.tar.xz: http/www.thekelleys.org.uk/dnsmasq/dnsmasq-2.78.tar.xz http/www.thekelleys.org.uk/dnsmasq/dnsmasq-2.78.tar.xz.asc keys/dnsmasq.ring
+	$(call gpg-verify,$<,.asc,dnsmasq)
+	@cp http/www.thekelleys.org.uk/dnsmasq/dnsmasq-2.78.tar.xz $@
+
+# **** ETCD ****
+
+etcd-${ETCD_VER}.tar.gz: https/github.com/coreos/etcd/archive/v3.2.9.tar.gz https/github.com/coreos/etcd/releases/download/v${ETCD_VER}/v${ETCD_VER}.tar.gz.asc keys/coreos-app.ring
+	@rm -f $@ $@.tmp $@.tmp.asc
+	@cp $< $@.tmp
+	@cp $(word 2,$^) $@.tmp.asc
+	$(call gpg-verify,$@.tmp,.asc,coreos-app)
+	@mv $@.tmp $@
+
+etcd-%.tar: etcd-%.tar.gz
+	@echo "[gzip] decompressing $<"
+	@gunzip --to-stdout $< >$@
+
+# **** FLANNEL ****
+
+flannel-%.tar: git/coreos/flannel keys/flannel.ring
+	$(call git-verify-commit,$(@:flannel-%.tar=v%),coreos/flannel,flannel)
+	$(call git-archive,$(@:flannel-%.tar=v%),coreos/flannel,$(@:flannel-%.tar=flannel-%/),$@)
+
+# **** GOLANG ****
+
+go1.4-bootstrap-%.tar.gz: https/storage.googleapis.com/golang/go1.4-bootstrap-%.tar.gz
+	@rm -f $@ $@.tmp
+	@cp $< $@.tmp
+	$(call sha256-verify,$@.tmp,go-bootstrap)
+	@mv $@.tmp $@
+
+go%.tar: go%.tar.gz
+	@echo "[gzip] decompressing $<"
+	@gunzip --to-stdout $< >$@
+
+go%.src.tar.gz: https/dl.google.com/go/go%.src.tar.gz
+	@rm -f $@ $@.tmp
+	@cp $< $@.tmp
+	$(call sha256-verify,$@.tmp,go-1.9.3)
+	@mv $@.tmp $@
