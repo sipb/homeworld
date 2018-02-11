@@ -101,7 +101,7 @@ sha256-verify = @echo "[sha256] checking $1 against $2" && (echo "$$(cat ${TOP}/
 
 %.xz: %
 	@echo "[xz] compressing $@"
-	@xz "$^"
+	@xz -k "$^"
 
 %.tgz: %.tar
 	@echo "[gzip] compressing $@"
@@ -235,4 +235,36 @@ go%.src.tar.gz: https/dl.google.com/go/go%.src.tar.gz
 	@rm -f $@ $@.tmp
 	@cp $< $@.tmp
 	$(call sha256-verify,$@.tmp,go-1.9.3)
+	@mv $@.tmp $@
+
+# **** golang/x/crypto ****
+
+golang-x-crypto-%.tar: git/golang/crypto
+	# no verification required, because this is essentially pinning to a specific hash
+	$(call git-archive,$(@:golang-x-crypto-%.tar=%),golang/crypto,src/golang.org/x/crypto/,$@)
+
+# **** gopkg.in-yaml.v2 ****
+
+gopkg.in-yaml.v2-%.tar: git/go-yaml/yaml
+	# no verification required, because this is essentially pinning to a specific hash
+	$(call git-archive,$(@:gopkg.in-yaml.v2-%.tar=%),go-yaml/yaml,src/gopkg.in/yaml.v2/,$@)
+
+# **** KNC ****
+
+knc-%.tar.gz: http/oskt.secure-endpoints.com/downloads/knc-%.tar.gz
+	@rm -f $@ $@.tmp
+	@cp $< $@.tmp
+	$(call sha256-verify,$@.tmp,$(@:%.tar.gz=%))
+	@mv $@.tmp $@
+
+knc-%.tar: knc-%.tar.gz
+	@echo "[gzip] decompressing $<"
+	@gunzip --to-stdout $< >$@
+
+# **** KUBERNETES-DNS ****
+
+kubernetes-dns-%.tar: git/kubernetes/dns
+	@rm -f $@ $@.tmp
+	$(call git-archive,$(@:kubernetes-dns-%.tar=%),kubernetes/dns,$(@:kubernetes-dns-%.tar=dns-%/),$@.tmp)
+	$(call sha256-verify,$@.tmp,$(@:%.tar=%))
 	@mv $@.tmp $@
