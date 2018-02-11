@@ -25,12 +25,9 @@ all: rkt-${RKT_VER}.tar.xz
 
 .PHONY: clean
 clean:
-	rm -rf *.tar.xz
-	rm -rf *.tar.gz
-	rm -rf *.tgz
-	rm -rf *.tar
-	rm -rf *.iso
-	rm -rf *.asc
+	rm -rf *.tar.xz *.tar.gz *.tgz
+	rm -rf *.cpio.gz *.tar *.iso
+	rm -rf *.asc *.sign *.sig
 
 clean: clean-keys
 .PHONY: clean-keys
@@ -102,6 +99,10 @@ sha256-verify = @echo "[sha256] checking $1 against $2" && (echo "$$(cat ${TOP}/
 %.xz: %
 	@echo "[xz] compressing $@"
 	@xz -k "$^"
+
+%.tar: %.tar.gz
+	@echo "[gzip] decompressing $@"
+	@gunzip "$^" --to-stdout >"$@"
 
 %.tgz: %.tar
 	@echo "[gzip] compressing $@"
@@ -209,10 +210,6 @@ etcd-${ETCD_VER}.tar.gz: https/github.com/coreos/etcd/archive/v3.2.9.tar.gz http
 	$(call gpg-verify,$@.tmp,.asc,coreos-app)
 	@mv $@.tmp $@
 
-etcd-%.tar: etcd-%.tar.gz
-	@echo "[gzip] decompressing $<"
-	@gunzip --to-stdout $< >$@
-
 # **** FLANNEL ****
 
 flannel-%.tar: git/coreos/flannel keys/flannel.ring
@@ -226,10 +223,6 @@ go1.4-bootstrap-%.tar.gz: https/storage.googleapis.com/golang/go1.4-bootstrap-%.
 	@cp $< $@.tmp
 	$(call sha256-verify,$@.tmp,go-bootstrap)
 	@mv $@.tmp $@
-
-go%.tar: go%.tar.gz
-	@echo "[gzip] decompressing $<"
-	@gunzip --to-stdout $< >$@
 
 go%.src.tar.gz: https/dl.google.com/go/go%.src.tar.gz
 	@rm -f $@ $@.tmp
@@ -257,10 +250,6 @@ knc-%.tar.gz: http/oskt.secure-endpoints.com/downloads/knc-%.tar.gz
 	$(call sha256-verify,$@.tmp,$(@:%.tar.gz=%))
 	@mv $@.tmp $@
 
-knc-%.tar: knc-%.tar.gz
-	@echo "[gzip] decompressing $<"
-	@gunzip --to-stdout $< >$@
-
 # **** KUBERNETES-DNS ****
 
 kubernetes-dns-%.tar: git/kubernetes/dns
@@ -268,3 +257,33 @@ kubernetes-dns-%.tar: git/kubernetes/dns
 	$(call git-archive,$(@:kubernetes-dns-%.tar=%),kubernetes/dns,$(@:kubernetes-dns-%.tar=dns-%/),$@.tmp)
 	$(call sha256-verify,$@.tmp,$(@:%.tar=%))
 	@mv $@.tmp $@
+
+# **** KUBERNETES ****
+
+kubernetes-src-v%.tar.gz: https/dl.k8s.io/v%/kubernetes-src.tar.gz
+	@rm -f $@ $@.tmp
+	@cp $< $@.tmp
+	$(call sha256-verify,$@.tmp,$(@:kubernetes-src-v%.tar.gz=kubernetes-%))
+	@mv $@.tmp $@
+
+# **** KUBE-STATE-METRICS ****
+
+kube-state-metrics-%.tar: git/kubernetes/kube-state-metrics keys/kube-state-metrics.ring
+	$(call git-verify,$(@:kube-state-metrics-%.tar=v%),kubernetes/kube-state-metrics,kube-state-metrics)
+	$(call git-archive,$(@:kube-state-metrics-%.tar=v%),kubernetes/kube-state-metrics,$(@:%.tar=%/),$@)
+
+# **** LINUX ****
+
+linux-4.%.tar.xz: https/www.kernel.org/pub/linux/kernel/v4.x/linux-4.%.tar.xz https/www.kernel.org/pub/linux/kernel/v4.x/linux-4.%.tar.sign keys/linux.ring
+	@cp $< $(@:.tar.xz=.tmp.tar.xz)
+	@echo "[xz] extracting $@"
+	@unxz $(@:.tar.xz=.tmp.tar.xz)
+	@cp $(word 2,$^) $(@:.tar.xz=.tmp.tar.sign)
+	$(call gpg-verify,$(@:.tar.xz=.tmp.tar),.sign,linux)
+	@cp $< $@
+
+# **** PROMETHEUS ****
+
+prometheus-%.tar: git/prometheus/prometheus keys/prometheus.ring
+	$(call git-verify,$(@:prometheus-%.tar=v%),prometheus/prometheus,prometheus)
+	$(call git-archive,$(@:prometheus-%.tar=v%),prometheus/prometheus,$(@:%.tar=%/),$@)

@@ -9,3 +9,5 @@
 /rkt-unpacked-*
 /*.iso
 /debian-stretch-release
+/*.sign
+/*.asc
