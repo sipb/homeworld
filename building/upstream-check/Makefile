@@ -18,7 +18,8 @@ all: prometheus-2.0.0.tar.xz
 all: prometheus-client_golang-0.9.0-pre1.tar.xz
 all: prometheus-node-exporter-0.15.2.tar.xz
 all: promu-sipb-0.1.1.tar.xz
-all: PyYAML-3.12.tar.gz
+PYYAML_VER=3.12
+all: PyYAML-${PYYAML_VER}.tar.gz
 all: qemu-2.11.0.tar.xz
 RKT_VER=1.29.0
 all: rkt-${RKT_VER}.tar.xz
@@ -284,6 +285,39 @@ linux-4.%.tar.xz: https/www.kernel.org/pub/linux/kernel/v4.x/linux-4.%.tar.xz ht
 
 # **** PROMETHEUS ****
 
-prometheus-%.tar: git/prometheus/prometheus keys/prometheus.ring
+prometheus-2.%.tar: git/prometheus/prometheus keys/prometheus.ring
 	$(call git-verify,$(@:prometheus-%.tar=v%),prometheus/prometheus,prometheus)
 	$(call git-archive,$(@:prometheus-%.tar=v%),prometheus/prometheus,$(@:%.tar=%/),$@)
+
+# **** PROMETHEUS-CLIENT_GOLANG ****
+
+prometheus-client_golang-%.tar: git/prometheus/client_golang
+	@rm -f $@ $@.tmp
+	$(call git-archive,$(@:prometheus-client_golang-%.tar=v%),prometheus/client_golang,$(@:prometheus-%.tar=%/),$@.tmp)
+	$(call sha256-verify,$@.tmp,$(@:%.tar=%))
+	@mv $@.tmp $@
+
+# **** PROMETHEUS-NODE_EXPORTER ****
+
+prometheus-node-exporter-%.tar: git/prometheus/node_exporter keys/prometheus-node_exporter.ring
+	$(call git-verify,$(@:prometheus-node-exporter-%.tar=v%),prometheus/node_exporter,prometheus-node_exporter)
+	$(call git-archive,$(@:prometheus-node-exporter-%.tar=v%),prometheus/node_exporter,$(@:prometheus-node-exporter-%.tar=node_exporter-%/),$@)
+
+# **** PROMU-SIPB ****
+
+promu-sipb-%.tar: git/sipb/promu keys/promu.ring
+	$(call git-verify-commit,$(@:promu-%.tar=%),sipb/promu,promu)
+	$(call git-archive,$(@:promu-%.tar=%),sipb/promu,$(@:%.tar=%/),$@)
+
+# **** PYYAML ****
+
+# I don't believe that this will handle incrementing versions correctly. When that happens, though, we should switch to grabbing these from the git repo.
+PyYAML-${PYYAML_VER}.tar.gz: https/pypi.python.org/packages/4a/85/db5a2df477072b2902b0eb892feb37d88ac635d36245a72a6a69b23b383a/PyYAML-${PYYAML_VER}.tar.gz
+	$(call sha256-verify,$<,$(@:%.tar.gz=%))
+	@cp $< $@
+
+# **** QEMU ****
+
+qemu-%.tar.xz: https/download.qemu.org/qemu-2.11.0.tar.xz https/download.qemu.org/qemu-2.11.0.tar.xz.sig keys/qemu.ring
+	$(call gpg-verify,$<,.sig,qemu)
+	@cp $< $@
