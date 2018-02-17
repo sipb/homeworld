@@ -8,6 +8,8 @@ import authority
 import util
 import base64
 import binascii
+import ssh
+import setup
 
 DEFAULT_ROTATE_INTERVAL = 60 * 60 * 2  # rotate local key every two hours (if we happen to renew)
 DEFAULT_SHORTLIVED_RSA_BITS = 2048
@@ -138,13 +140,6 @@ def update_known_hosts():
     print("~/.ssh/known_hosts updated")
 
 
-def get_kube_cert_paths() -> (str, str, str):
-    project_dir = configuration.get_project()
-    return os.path.join(project_dir, "kube-access.key"),\
-           os.path.join(project_dir, "kube-access.pem"),\
-           os.path.join(project_dir, "kube-ca.pem")
-
-
 def call_etcdctl(params: list, return_result: bool):
     project_dir = configuration.get_project()
     endpoints = configuration.get_etcd_endpoints()
@@ -171,7 +166,7 @@ def dispatch_etcdctl(*params: str):
 
 def call_kubectl(params, return_result: bool):
     kubeconfig_data = configuration.get_local_kubeconfig()
-    key_path, cert_path, ca_path = get_kube_cert_paths()
+    key_path, cert_path, ca_path = configuration.get_kube_cert_paths()
 
     if needs_rotate(cert_path):
         print("rotating kubernetes certs...")
@@ -191,8 +186,19 @@ def dispatch_kubectl(*params: str):
     call_kubectl(params, False)
 
 
+def ssh_foreach(ops: setup.Operations, node_kind: str, *params: str):
+    config = configuration.get_config()
+    valid_node_kinds = configuration.Node.VALID_NODE_KINDS
+    if not (node_kind == "node" or node_kind in valid_node_kinds):
+        command.fail("usage: spire foreach {node," + ",".join(valid_node_kinds) + "} command")
+    for node in config.nodes:
+        if node_kind == "node" or node.kind == node_kind:
+            ops.ssh("run command on @HOST", node, *params)
+
+
 etcdctl_command = command.wrap("invoke commands through the etcdctl wrapper", dispatch_etcdctl)
 kubectl_command = command.wrap("invoke commands through the kubectl wrapper", dispatch_kubectl)
+foreach_command = setup.wrapop("invoke commands on every node (or every node of a given kind) in the cluster", ssh_foreach)
 main_command = command.mux_map("commands about establishing access to a cluster", {
     "ssh": command.wrap("request SSH access to the cluster and add it to the SSH agent", access_ssh_with_add),
     "ssh-fetch": command.wrap("request SSH access to the cluster but do not register it with the agent", access_ssh),

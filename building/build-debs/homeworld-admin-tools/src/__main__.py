@@ -26,6 +26,7 @@ main_command = command.mux_map("invoke a top-level command", {
     "access": access.main_command,
     "etcdctl": access.etcdctl_command,
     "kubectl": access.kubectl_command,
+    "foreach": access.foreach_command,
     "infra": infra.main_command,
     "seq": seq.main_command,
     "deploy": deploy.main_command,

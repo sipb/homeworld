@@ -6,7 +6,6 @@ import resource
 import subprocess
 import template
 import yaml
-import access
 
 
 def get_project(create_dir_if_missing=False) -> str:
@@ -96,11 +95,14 @@ class IP:
 
 
 class Node:
+
+    VALID_NODE_KINDS = {"master", "worker", "supervisor"}
+
     def __init__(self, config: dict):
         self.hostname, ip, self.kind = keycheck(config, "hostname", "ip", "kind")
         self.ip = IP(ip)
 
-        if self.kind not in {"master", "worker", "supervisor"}:
+        if self.kind not in Node.VALID_NODE_KINDS:
             raise Exception("invalid node kind: %s" % self.kind)
 
     def __repr__(self):
@@ -308,8 +310,15 @@ def get_machine_list_file() -> str:
     return ",".join("%s.%s" % (node.hostname, config.external_domain) for node in config.nodes) + "\n"
 
 
+def get_kube_cert_paths() -> (str, str, str):
+    project_dir = get_project()
+    return os.path.join(project_dir, "kube-access.key"),\
+           os.path.join(project_dir, "kube-access.pem"),\
+           os.path.join(project_dir, "kube-ca.pem")
+
+
 def get_local_kubeconfig() -> str:
-    key_path, cert_path, ca_path = access.get_kube_cert_paths()
+    key_path, cert_path, ca_path = get_kube_cert_paths()
     kconf = {"APISERVER": get_apiserver_default(),
              "AUTHORITY-PATH": ca_path,
              "CERT-PATH": cert_path,
