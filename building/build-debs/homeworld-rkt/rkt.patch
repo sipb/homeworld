@@ -1256,3 +1256,14 @@
 --- 
 -2.13.5
 -
+--- rkt-1.29.0/networking/kvm.go
++++ rkt-1.29.0/networking/kvm.go
+@@ -43,7 +43,7 @@ import (
+ )
+
+ const (
+-	defaultBrName     = "kvm-cni0"
++	defaultBrName     = "cni0"
+ 	defaultSubnetFile = "/run/flannel/subnet.env"
+ 	defaultMTU        = 1500
+ )
