@@ -77,7 +77,7 @@ def diagnose_keyreq_error(errcode: int, err: str) -> Tuple[str, str]:
     return error_code_meaning, None
 
 
-def call_keyreq(keyreq_command, *params, collect=False):
+def call_keyreq(keyreq_command, *params):
     config = configuration.get_config()
     keyserver_domain = config.keyserver.hostname + "." + config.external_domain + ":20557"
 
