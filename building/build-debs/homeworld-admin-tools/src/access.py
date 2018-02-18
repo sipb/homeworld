@@ -10,6 +10,7 @@ import base64
 import binascii
 import ssh
 import setup
+from typing import Tuple
 
 DEFAULT_ROTATE_INTERVAL = 60 * 60 * 2  # rotate local key every two hours (if we happen to renew)
 DEFAULT_SHORTLIVED_RSA_BITS = 2048
@@ -43,24 +44,54 @@ def create_or_rotate_custom_ssh_key(interval=DEFAULT_ROTATE_INTERVAL, bits=DEFAU
     return keypath
 
 
+KEYREQ_ERROR_CODES = {
+    1: "ERR_UNKNOWN_FAILURE",
+    2: "ERR_CANNOT_ESTABLISH_CONNECTION",
+    3: "ERR_NO_ACCESS",
+    254: "ERR_INVALID_CONFIG",
+    255: "ERR_INVALID_INVOCATION",
+}
+
+KNC_STDERR_START_TAG = "--- knc stderr start ---"
+KNC_STDERR_END_TAG = "--- knc stderr end ---"
+
+
+def diagnose_keyreq_error(errcode: int, err: str) -> Tuple[str, str]:
+    if errcode not in KEYREQ_ERROR_CODES:
+        return "unknown error code", None
+
+    error_code_meaning = KEYREQ_ERROR_CODES[errcode]
+
+    if errcode == 2:
+        knc_stderr_start = err.find(KNC_STDERR_START_TAG)
+        knc_stderr_end = err.find(KNC_STDERR_END_TAG)
+        if knc_stderr_start != -1 and knc_stderr_end != -1:
+            knc_stderr = err[knc_stderr_start + len(KNC_STDERR_START_TAG):knc_stderr_end]
+            if "gstd_initiate: continuation failed" in knc_stderr:
+                return error_code_meaning, "the server's keygateway might be broken."
+            elif "gss_init_sec_context: No Kerberos credentials available" in knc_stderr or "gstd_error: gss_init_sec_context: Ticket expired" in knc_stderr:
+                return error_code_meaning, "do you have valid kerberos tickets?"
+        if "empty response, likely because the server does not recognize your Kerberos identity" in err:
+            return error_code_meaning, "your kerberos tickets might be for the wrong instance."
+
+    return error_code_meaning, None
+
+
 def call_keyreq(keyreq_command, *params, collect=False):
     config = configuration.get_config()
     keyserver_domain = config.keyserver.hostname + "." + config.external_domain + ":20557"
 
-    invoke_variant = subprocess.check_output if collect else subprocess.check_call
-
     with tempfile.TemporaryDirectory() as tdir:
         https_cert_path = os.path.join(tdir, "server.pem")
         util.writefile(https_cert_path, authority.get_pubkey_by_filename("./server.pem"))
-        try:
-            return invoke_variant(["keyreq", keyreq_command, https_cert_path, keyserver_domain] + list(params))
-        except subprocess.CalledProcessError as e:
-            if e.returncode == 1:
-                fail_hint = "do you have valid kerberos tickets?\n" \
-                    "or, your connection to the server might be faulty.\n" \
-                    "or, the server's keygateway might be broken."
-                command.fail("keyreq failed: %s" % e, fail_hint)
-            raise e
+        keyreq_sp = subprocess.Popen(["keyreq", keyreq_command, https_cert_path, keyserver_domain] + list(params), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        output, err_bytes = keyreq_sp.communicate()
+        if keyreq_sp.returncode != 0:
+            err = err_bytes.decode()
+            print(err)
+            error_code_meaning, fail_hint = diagnose_keyreq_error(keyreq_sp.returncode, err)
+            command.fail("keyreq failed with error code %d: %s" % (keyreq_sp.returncode, error_code_meaning), fail_hint)
+        return output
 
 
 def renew_ssh_cert() -> str:

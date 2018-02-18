@@ -1,32 +1,8 @@
-homeworld-keysystem (0.1.21) stretch; urgency=medium
-
-  * Update debian version
-
- -- Mark Theng <mtheng@mit.edu>  Sat, 17 Feb 2018 20:14:58 -0500
-
-homeworld-keysystem (0.1.20) stretch; urgency=medium
-
-  * Update debian version
-
- -- Cel Skeggs <cela@mit.edu>  Fri, 02 Feb 2018 16:39:05 -0500
-
-homeworld-keysystem (0.1.19) stretch; urgency=medium
-
-  * Update debian version
-
- -- Cel Skeggs <cela@mit.edu>  Fri, 02 Feb 2018 16:27:32 -0500
-
-homeworld-keysystem (0.1.18) stretch; urgency=medium
-
-  * Update debian version
-
- -- Cel Skeggs <cela@mit.edu>  Fri, 02 Feb 2018 15:38:58 -0500
-
 homeworld-keysystem (0.1.17) stretch; urgency=medium
 
   * Update debian version
 
- -- Cel Skeggs <cela@mit.edu>  Fri, 02 Feb 2018 15:15:39 -0500
+ -- Mark Theng <mtheng@mit.edu>  Sat, 17 Feb 2018 20:14:58 -0500
 
 homeworld-keysystem (0.1.16) stretch; urgency=medium
 
