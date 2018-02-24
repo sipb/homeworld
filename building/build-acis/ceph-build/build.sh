@@ -3,7 +3,7 @@ set -e -u
 cd "$(dirname "$0")"
 source ../common/container-build-helpers.sh
 
-VERSION="stretch.20171105T160402Z"
+VERSION="stretch.20180111T215606Z"
 
 DEBVER="${VERSION}"
 UPDATE_TIMESTAMP="2017-11-05T19:27:00-0500"
