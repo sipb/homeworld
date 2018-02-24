@@ -3,8 +3,8 @@ set -e -u
 cd "$(dirname "$0")"
 source ../common/container-build-helpers.sh
 
-CEPH_VER="12.2.1"
-REVISION="3"
+CEPH_VER="12.2.3"
+REVISION="1"
 VERSION="${CEPH_VER}-${REVISION}"
 
 BUILDACI="ceph-build"
@@ -33,6 +33,10 @@ mkdir -p "${SRCDIR}" "${DESTDIR}"
 
 tar -C "${BUILDDIR}" -xf "${UPSTREAM}/ceph-${CEPH_VER}.tar.xz" "ceph-${CEPH_VER}/"
 mv "${BUILDDIR}/ceph-${CEPH_VER}" -T "${SRCDIR}"
+for patch in ceph-fix-boost-detection.patch ceph-never-download-boost.patch
+do
+	patch -d "${SRCDIR}" -p1 -i "$(realpath "$patch")"
+done
 
 build_at_path "${SRCDIR}"
 
