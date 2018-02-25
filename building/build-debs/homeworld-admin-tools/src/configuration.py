@@ -5,6 +5,7 @@ import command
 import resource
 import subprocess
 import template
+import uuid
 import yaml
 
 
@@ -342,8 +343,19 @@ def populate() -> None:
     setup_yaml = os.path.join(get_project(create_dir_if_missing=True), "setup.yaml")
     if os.path.exists(setup_yaml):
         command.fail("setup.yaml already exists")
-    resource.copy_to("setup.yaml", setup_yaml)
+    util.writefile(setup_yaml, template.template("setup.yaml", {"UUID": str(uuid.uuid4())}).encode())
     print("filled out setup.yaml")
+
+
+def ceph_regen_uuid() -> None:
+    # TODO: ensure that this doesn't wreck the invoker's setup.yaml too much
+    setup_yaml = os.path.join(get_project(), "setup.yaml")
+    yaml_data = yaml.safe_load(util.readfile(setup_yaml))
+    if "cluster" not in yaml_data:
+        command.fail("no 'cluster' section found in setup.yaml")
+    yaml_data["cluster"]["ceph-uuid"] = str(uuid.uuid4())
+    util.writefile(setup_yaml, yaml.safe_dump(yaml_data))
+    print("regenerated UUID in setup.yaml")
 
 
 def edit() -> None:
@@ -403,6 +415,7 @@ def get_single_kube_spec(name: str) -> str:
 
 main_command = command.mux_map("commands about cluster configuration", {
     "populate": command.wrap("initialize the cluster's setup.yaml with the template", populate),
+    "gen-uuid": command.wrap("generate a new UUID for the ceph storage system", ceph_regen_uuid),
     "edit": command.wrap("open $EDITOR (defaults to nano) to edit the project's setup.yaml", edit),
     "gen-kube": command.wrap("generate kubernetes specs for the base cluster", gen_kube_specs),
     "show": command.mux_map("commands about showing different aspects of the configuration", {

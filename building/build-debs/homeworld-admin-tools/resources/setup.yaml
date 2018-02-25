@@ -2,9 +2,11 @@ cluster:
   external-domain: mit.edu
   internal-domain: hyades.local
   etcd-token: <unique-token>
+  ceph-uuid: {{UUID}}
   kerberos-realm: ATHENA.MIT.EDU
 
 addresses:
+  node-subnet: <node subnet>
   cidr-pods: 172.18.0.0/16
   cidr-services: 172.28.0.0/16
   service-api: 172.28.0.1
