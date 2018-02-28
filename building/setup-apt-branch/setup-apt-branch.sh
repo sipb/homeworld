@@ -17,15 +17,17 @@ function get_apt_signing_key()
 {
     APT_SETUP_DIR="$(dirname "${BASH_SOURCE}")"
     if ! [ -e "${APT_SETUP_DIR}/signing-keys" ]; then
-        cp "${APT_SETUP_DIR}/signing-keys.default" "${APT_SETUP_DIR}/signing-keys"
+        touch "${APT_SETUP_DIR}/signing-keys"
     fi
 
-    while read branch key; do
-        if [ "${branch}" == "${HOMEWORLD_APT_BRANCH}" ] || [ "${branch}" == "$(echo ${HOMEWORLD_APT_BRANCH} | cut -d '/' -f 1)" ]; then
-            HOMEWORLD_APT_SIGNING_KEY="${key}"
-            break
-        fi
-    done < "${APT_SETUP_DIR}/signing-keys"
+    for f in "${APT_SETUP_DIR}/global-signing-keys" "${APT_SETUP_DIR}/signing-keys"; do
+        while read branch key; do
+            if [ "${branch}" == "${HOMEWORLD_APT_BRANCH}" ] || [ "${branch}" == "$(echo ${HOMEWORLD_APT_BRANCH} | cut -d '/' -f 1)" ]; then
+                HOMEWORLD_APT_SIGNING_KEY="${key}"
+                break 2
+            fi
+        done < "${f}"
+    done
 
     if [ -z "${HOMEWORLD_APT_SIGNING_KEY:-}" ]
     then
