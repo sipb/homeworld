@@ -9,6 +9,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: ceph-keyrings
+  namespace: kube-system
 type: Opaque
 data: {}  # not yet initialized
 ---
@@ -18,13 +19,17 @@ metadata:
   name: ceph-config
   namespace: kube-system
 data:
+  fs.uuid: |
+    {{CEPH_UUID}}
+  master.list: |
+    {{MASTER_LIST}}
   ceph.conf: |
     [global]
-    fsid = {{CEPH-UUID}}
-    mon initial members = {{MASTER-HOSTNAMES}} # eggs-benedict.mit.edu, huevos-rancheros.mit.edu, ole-miss.mit.edu
-    mon host = {{MASTER-IPS}} # 18.181.0.97, 18.181.0.104, 18.181.0.106
+    fsid = {{CEPH_UUID}}
+    mon initial members = {{MASTER_HOSTNAMES}}
+    mon host = {{MASTER_IPS}}
 
-    public network = {{NODE-SUBNET}} # 18.181.0.0/16
+    public network = {{NODE_SUBNET}}
 
     auth cluster required = cephx
     auth service required = cephx
@@ -147,6 +152,9 @@ spec:
       - name: keyring
         secret:
           secretName: ceph-keyrings
+          items:
+          - key: client.bootstrap-osd.keyring
+            path: client.bootstrap-osd.keyring
       - name: osd-device
         hostPath:
           type: BlockDevice
