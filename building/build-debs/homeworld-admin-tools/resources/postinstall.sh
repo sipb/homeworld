@@ -39,6 +39,7 @@ cp /keyservertls.pem /target/etc/homeworld/keyclient/keyservertls.pem
 cp /keyclient-*.yaml /target/etc/homeworld/config/
 cp /keyclient-base.yaml /target/etc/homeworld/config/keyclient.yaml
 cp /sshd_config.new /target/etc/ssh/sshd_config
+cat /dns_bootstrap_lines >> /target/etc/hosts
 
 cat >/tmp/token.template <<EOF
 Template: homeworld/asktoken

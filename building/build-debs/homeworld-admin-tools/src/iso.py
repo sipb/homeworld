@@ -10,6 +10,7 @@ import subprocess
 import util
 import packages
 import keycrypt
+import setup
 from version import get_git_version
 
 PACKAGES = ("homeworld-apt-setup",)
@@ -54,6 +55,10 @@ def gen_iso(iso_image, authorized_key, cdpack=None):
     with tempfile.TemporaryDirectory() as d:
         inclusion = []
 
+        with open(os.path.join(d, "dns_bootstrap_lines"), "w") as outfile:
+            outfile.writelines(setup.dns_bootstrap_lines());
+
+        inclusion += ["dns_bootstrap_lines"]
         util.copy(authorized_key, os.path.join(d, "authorized.pub"))
         util.writefile(os.path.join(d, "keyservertls.pem"), authority.get_pubkey_by_filename("./server.pem"))
         resource.copy_to("postinstall.sh", os.path.join(d, "postinstall.sh"))

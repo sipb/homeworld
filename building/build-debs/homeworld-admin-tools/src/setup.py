@@ -191,6 +191,11 @@ def modify_dns_bootstrap(ops: Operations, is_install: bool) -> None:
                 ops.ssh_raw("bootstrap dns on @HOST: %s" % hostname, node, strip_cmd)
 
 
+def dns_bootstrap_lines() -> list:
+    config = configuration.get_config()
+    return ["%s\t%s # AUTO-HOMEWORLD-BOOTSTRAP" % (ip, hostname) for hostname, ip in config.dns_bootstrap.items()]
+
+
 def setup_dns_bootstrap(ops: Operations) -> None:
     modify_dns_bootstrap(ops, True)
 
