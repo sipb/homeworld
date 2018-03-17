@@ -163,7 +163,7 @@ spec:
       - name: osd-device
         hostPath:
           type: BlockDevice
-          path: /dev/disk/by-partlabel/ceph-osd
+          path: /dev/vda2
       - name: osd-status
         hostPath:
           type: DirectoryOrCreate
