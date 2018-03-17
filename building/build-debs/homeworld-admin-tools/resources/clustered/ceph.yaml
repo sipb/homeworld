@@ -103,6 +103,11 @@ spec:
         - name: ceph-config
           mountPath: /etc/ceph/
           readOnly: true
+        env:
+        - name: NODE_HOSTNAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
         ports:
         - name: monitor
           containerPort: 6789
