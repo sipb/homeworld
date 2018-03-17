@@ -188,9 +188,13 @@ d-i partman-auto/expert_recipe string				\
 			method{ format } format{ }		\
 			use_filesystem{ } filesystem{ ext4 }	\
 			mountpoint{ / }				\
+		.						\
 		10000 15000 1000000000 ext4			\
 			method{ keep }				\
 		.
+
+d-i partman-basicmethods/method_only boolean false
+
 #d-i partman-auto/expert_recipe string                         \
 #      boot-root ::                                            \
 #              40 50 100 ext3                                  \
