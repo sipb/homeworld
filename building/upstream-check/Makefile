@@ -1,6 +1,6 @@
 all: acbuild-src-0.4.0.tgz
 all: coreos_binaries-1478.0.0.tar.xz
-all: debian-9.3.0-amd64-mini.iso
+all: debian-9.4.0-amd64-mini.iso
 all: dnsmasq-2.78.tar.xz
 ETCD_VER=3.2.9
 all: etcd-${ETCD_VER}.tar.xz
@@ -190,7 +190,7 @@ debian-stretch-release: http/debian.csail.mit.edu/debian/dists/stretch/Release h
 	$(call gpg-verify,$<,.gpg,debian)
 	@cp http/debian.csail.mit.edu/debian/dists/stretch/Release $@
 
-debian-9.3.0-amd64-mini.iso: debian-20170615+deb9u2+b1-amd64-mini.iso
+debian-9.4.0-amd64-mini.iso: debian-20170615+deb9u3-amd64-mini.iso
 	@cp $< $@
 
 debian-%-amd64-mini.iso: http/debian.csail.mit.edu/debian/dists/stretch/main/installer-amd64/%/images/netboot/mini.iso \

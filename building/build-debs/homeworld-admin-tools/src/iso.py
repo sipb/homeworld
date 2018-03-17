@@ -17,7 +17,7 @@ PACKAGES = ("homeworld-apt-setup",)
 
 # TODO: refactor this file to be more maintainable
 
-# converts debian-9.3.0-amd64-mini.iso into a "cdpack", which can be more easily remastered
+# converts debian-9.X.Y-amd64-mini.iso into a "cdpack", which can be more easily remastered
 def regen_cdpack(source_iso, dest_cdpack):
     with tempfile.TemporaryDirectory() as d:
         loopdir = os.path.join(d, "loopdir")
@@ -94,7 +94,7 @@ def gen_iso(iso_image, authorized_key, cdpack=None):
         if cdpack is not None:
             subprocess.check_call(["tar", "-C", d, "-xzf", cdpack, "cd"])
         else:
-            subprocess.check_output(["tar", "-C", d, "-xz", "cd"], input=resource.get_resource("debian-9.3.0-cdpack.tgz"))
+            subprocess.check_output(["tar", "-C", d, "-xz", "cd"], input=resource.get_resource("debian-9.4.0-cdpack.tgz"))
 
         subprocess.check_output(["cpio", "--create", "--append", "--format=newc", "--file=cd/initrd"],
                                 input="".join("%s\n" % filename for filename in inclusion).encode(), cwd=d)

@@ -17,5 +17,5 @@ echo "${HOMEWORLD_APT_BRANCH}" >resources/APT_BRANCH
 HOMEWORLD_APT_SIGNING_KEY="$(get_apt_signing_key)"
 gpg --export "${HOMEWORLD_APT_SIGNING_KEY}" >resources/homeworld-archive-keyring.gpg
 
-upstream "debian-9.3.0-amd64-mini.iso"
+upstream "debian-9.4.0-amd64-mini.iso"
 build
