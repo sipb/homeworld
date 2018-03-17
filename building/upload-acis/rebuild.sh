@@ -40,6 +40,8 @@ find_latest "kube-dns-main-1.14.8-" "kube-dns-main-latest"
 find_latest "kube-dns-sidecar-1.14.8-" "kube-dns-sidecar-latest"
 find_latest "dnsmasq-2.78-" "dnsmasq-latest"
 find_latest "dnsmasq-nanny-1.14.8-" "dnsmasq-nanny-latest"
+find_latest "ceph-12.2.3-" "ceph-latest"
+find_latest "ceph-run-12.2.3-" "ceph-run-latest"
 
 sleep 0.1
 
