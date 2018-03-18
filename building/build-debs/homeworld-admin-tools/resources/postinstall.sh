@@ -20,9 +20,27 @@ then
     exit 1
 fi
 
-in-target systemctl mask nginx.service
+# check that the correct disks and partitions exist
+
+# -e 11 means exclude any devices with major number 11, which means exclude CDROMs
+if [ "$(lsblk --output NAME -d --noheadings -e 11)" != "vda" ]
+then
+    echo "invalid set of disks: $(lsblk --output NAME -d --noheadings -e 11)" 1>&2
+    exit 1
+fi
+
+if [ "$(lsblk --output NAME -l --noheadings -e 11 | tr '\n' ' ')" != "vda vda1 vda2 vda5 " ]
+then
+    echo "invalid set of partitions: $(lsblk --output NAME -l --noheadings -e 11 | tr '\n' ' ')" 1>&2
+    exit 1
+fi
+
+# NOTE: THE ABOVE IS REQUIRED, BECAUSE THE CEPH SPEC HARDCODES DEVICE /dev/vda5 AS THE MAIN DEVICE
+# TODO: make this less brittle
 
 # install packages
+in-target systemctl mask nginx.service
+
 cp /homeworld-*.deb /target/
 in-target dpkg --install /homeworld-*.deb
 rm /target/homeworld-*.deb

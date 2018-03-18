@@ -163,7 +163,7 @@ spec:
       - name: osd-device
         hostPath:
           type: BlockDevice
-          path: /dev/vda2
+          path: /dev/vda5
       - name: osd-status
         hostPath:
           type: DirectoryOrCreate
