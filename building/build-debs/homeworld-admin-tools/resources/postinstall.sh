@@ -23,15 +23,9 @@ fi
 # check that the correct disks and partitions exist
 
 # -e 11 means exclude any devices with major number 11, which means exclude CDROMs
-if [ "$(lsblk --output NAME -d --noheadings -e 11)" != "vda" ]
+if [ "$(echo /dev/vd*)" != "/dev/vda /dev/vda1 /dev/vda2 /dev/vda5" ]
 then
-    echo "invalid set of disks: $(lsblk --output NAME -d --noheadings -e 11)" 1>&2
-    exit 1
-fi
-
-if [ "$(lsblk --output NAME -l --noheadings -e 11 | tr '\n' ' ')" != "vda vda1 vda2 vda5 " ]
-then
-    echo "invalid set of partitions: $(lsblk --output NAME -l --noheadings -e 11 | tr '\n' ' ')" 1>&2
+    echo "invalid set of disks/partitions: $(echo /dev/vd*)" 1>&2
     exit 1
 fi
 

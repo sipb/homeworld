@@ -42,9 +42,14 @@ def launch_dns_monitor():
     launch_spec("dns-monitor.yaml")
 
 
+def launch_ceph():
+    launch_spec("ceph.yaml")
+
+
 main_command = command.mux_map("commands to deploy systems onto the kubernetes cluster", {
     "flannel": command.wrap("deploy the specifications to run flannel", launch_flannel),
     "flannel-monitor": command.wrap("deploy the specifications to run the flannel monitor", launch_flannel_monitor),
     "dns-addon": command.wrap("deploy the specifications to run the dns-addon", launch_dns_addon),
     "dns-monitor": command.wrap("deploy the specifications to run the dns monitor", launch_dns_monitor),
+    "ceph": command.wrap("deploy the specifications to run the ceph cluster", launch_ceph),
 })

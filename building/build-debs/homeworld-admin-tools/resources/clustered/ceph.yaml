@@ -22,7 +22,7 @@ data:
   fs.uuid: |
     {{CEPH_UUID}}
   master.list: |
-    {{MASTER_LIST}}
+{{MASTER_LIST}}
   ceph.conf: |
     [global]
     fsid = {{CEPH_UUID}}
@@ -48,7 +48,7 @@ data:
 
     osd crush chooseleaf type = 1
 ---
-apiVersion: v1
+apiVersion: batch/v1
 kind: Job
 metadata:
   name: ceph-gen-keyrings
@@ -62,7 +62,7 @@ spec:
       serviceAccountName: ceph-keygen
       containers:
       - name: generator
-        image: homeworld.mit.edu/ceph-run:12.2.3-1
+        image: homeworld.mit.edu/ceph-run:12.2.3-1-3
         command: [ "/usr/bin/homeworld-ceph-keygen.sh" ]
         env:
         - name: POD_NAME
@@ -75,16 +75,22 @@ spec:
               fieldPath: metadata.namespace
         - name: SECRET_NAME
           value: ceph-keyrings
-        restartPolicy: Never
+      restartPolicy: Never
 ---
 apiVersion: extensions/v1beta1
 kind: DaemonSet
 metadata:
   name: ceph-mon
   namespace: kube-system
+  labels:
+    tier: node
+    app: ceph
 spec:
   template:
     metadata:
+      labels:
+        tier: node
+        app: ceph
       annotations:
         homeworld.mit.edu/unsupported-fetch-info: aci
     spec:
@@ -92,7 +98,7 @@ spec:
         ceph-monitor: enable
       containers:
       - name: ceph-monitor
-        image: homeworld.mit.edu/ceph-run:12.2.3-1
+        image: homeworld.mit.edu/ceph-run:12.2.3-1-3
         command: [ "/usr/bin/homeworld-ceph-monitor.sh" ]
         volumeMounts:
         - name: keyring
@@ -130,9 +136,15 @@ kind: DaemonSet
 metadata:
   name: ceph-osd
   namespace: kube-system
+  labels:
+    tier: node
+    app: ceph
 spec:
   template:
     metadata:
+      labels:
+        tier: node
+        app: ceph
       annotations:
         homeworld.mit.edu/unsupported-fetch-info: aci
     spec:
@@ -140,7 +152,7 @@ spec:
         ceph-osd: enable
       containers:
       - name: ceph-osd
-        image: homeworld.mit.edu/ceph-run:12.2.3-1
+        image: homeworld.mit.edu/ceph-run:12.2.3-1-3
         command: [ "/usr/bin/homeworld-ceph-osd.sh" ]
         volumeMounts:
         - name: keyring
