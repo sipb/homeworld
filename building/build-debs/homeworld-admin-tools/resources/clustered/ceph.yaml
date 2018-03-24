@@ -94,6 +94,7 @@ spec:
       annotations:
         homeworld.mit.edu/unsupported-fetch-info: aci
     spec:
+      hostNetwork: true
       nodeSelector:
         ceph-monitor: enable
       containers:
@@ -148,6 +149,7 @@ spec:
       annotations:
         homeworld.mit.edu/unsupported-fetch-info: aci
     spec:
+      hostNetwork: true
       nodeSelector:
         ceph-osd: enable
       containers:
