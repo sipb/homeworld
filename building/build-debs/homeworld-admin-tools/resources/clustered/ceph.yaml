@@ -62,7 +62,7 @@ spec:
       serviceAccountName: ceph-keygen
       containers:
       - name: generator
-        image: homeworld.mit.edu/ceph-run:12.2.3-1-4
+        image: homeworld.mit.edu/ceph-run:12.2.3-1-5
         command: [ "/usr/bin/homeworld-ceph-keygen.sh" ]
         env:
         - name: POD_NAME
@@ -92,6 +92,7 @@ spec:
         tier: node
         app: ceph
       annotations:
+        rkt.alpha.kubernetes.io/stage1-name-override: /usr/lib/rkt/stage1-images/stage1-coreos.aci
         homeworld.mit.edu/unsupported-fetch-info: aci
     spec:
       hostNetwork: true
@@ -99,8 +100,10 @@ spec:
         ceph-monitor: enable
       containers:
       - name: ceph-monitor
-        image: homeworld.mit.edu/ceph-run:12.2.3-1-4
+        image: homeworld.mit.edu/ceph-run:12.2.3-1-5
         command: [ "/usr/bin/homeworld-ceph-monitor.sh" ]
+        securityContext:
+          privileged: true
         volumeMounts:
         - name: keyring
           mountPath: /etc/ceph-keyrings/
@@ -147,6 +150,7 @@ spec:
         tier: node
         app: ceph
       annotations:
+        rkt.alpha.kubernetes.io/stage1-name-override: /usr/lib/rkt/stage1-images/stage1-coreos.aci
         homeworld.mit.edu/unsupported-fetch-info: aci
     spec:
       hostNetwork: true
@@ -154,8 +158,10 @@ spec:
         ceph-osd: enable
       containers:
       - name: ceph-osd
-        image: homeworld.mit.edu/ceph-run:12.2.3-1-4
+        image: homeworld.mit.edu/ceph-run:12.2.3-1-5
         command: [ "/usr/bin/homeworld-ceph-osd.sh" ]
+        securityContext:
+          privileged: true
         volumeMounts:
         - name: keyring
           mountPath: /etc/ceph-keyrings/

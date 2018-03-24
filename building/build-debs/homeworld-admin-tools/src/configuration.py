@@ -392,7 +392,7 @@ def get_kube_spec_vars() -> dict:
             "SERVIP_DNS": config.service_dns,
             "INTERNAL_DOMAIN": config.internal_domain,
             "CEPH_UUID": config.ceph_uuid,
-            "MASTER_HOSTNAMES": ", ".join(node.hostname + "." + config.external_domain for node in config.nodes if node.kind == "master"),
+            "MASTER_HOSTNAMES": ", ".join(node.hostname for node in config.nodes if node.kind == "master"),
             "MASTER_IPS": ", ".join(str(node.ip) for node in config.nodes if node.kind == "master"),
             "MASTER_LIST": "\n".join("    %s %s" % (node.hostname, str(node.ip)) for node in config.nodes if node.kind == "master"),
             "NODE_SUBNET": config.node_subnet}

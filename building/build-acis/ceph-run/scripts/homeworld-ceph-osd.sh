@@ -21,7 +21,7 @@ ceph-osd --version  # to help with debugging
 
 if [ ! -e "${META_MOUNT}/inited" ]
 then
-        if [ ! -e /etc/ceph-keyrings/bootstrap-osd.keyring ]
+        if [ ! -e /etc/ceph-keyrings/client.bootstrap-osd.keyring ]
         then
                 echo "NO BOOTSTRAP KEYRING" 1>&2
                 exit 1
@@ -38,11 +38,11 @@ then
 	# TODO: set up lockbox
 
 	# TODO: don't do this on the worker node
-	OSD_ID="$(echo '{"cephx_secret": "'"$OSD_SECRET"'"}' | ceph osd new "$UUID" -i - -n client.bootstrap-osd -k /var/lib/ceph/bootstrap-osd/ceph.keyring)"
+	OSD_ID="$(echo '{"cephx_secret": "'"$OSD_SECRET"'"}' | ceph osd new "$UUID" -i - -n client.bootstrap-osd -k /etc/ceph-keyrings/client.bootstrap-osd.keyring)"
 
 	mkdir "${OSDDIR}/ceph-${OSD_ID}"
 
-	ceph mon getmap -n client.bootstrap-osd -k /var/lib/ceph/bootstrap-osd/ceph.keyring -o "${OSDDIR}/ceph-${OSD_ID}/activate.monmap"
+	ceph mon getmap -n client.bootstrap-osd -k /etc/ceph-keyrings/client.bootstrap-osd.keyring -o "${OSDDIR}/ceph-${OSD_ID}/activate.monmap"
 	ceph-authtool "${OSDDIR}/ceph-${OSD_ID}/keyring" --create-keyring --name "osd.${OSD_ID}" --add-key "${OSD_SECRET}"
 
 	ceph-osd --osd-objectstore bluestore --mkfs -i "${OSD_ID}" --monmap "${OSDDIR}/ceph-${OSD_ID}/activate.monmap" --keyfile "${OSDDIR}/ceph-${OSD_ID}/keyring" --osd-data "${OSDDIR}/ceph-${OSD_ID}" --osd-uuid "${UUID}"
