@@ -23,16 +23,10 @@ ceph-authtool "./mon.keyring" --import-keyring "./client.bootstrap-osd.keyring"
 
 echo "uploading ceph keys"
 
-CURL_OPTS="-v --cacert /var/run/secrets/kubernetes.io/serviceaccount/ca.crt -H 'Authorization: Bearer $(cat /var/run/secrets/kubernetes.io/serviceaccount/token)'"
+echo "{\"data\": {\"mon.keyring\": \"$(base64 -w 0 <mon.keyring)\", \"client.admin.keyring\": \"$(base64 -w 0 <client.admin.keyring)\", \"client.bootstrap-osd.keyring\": \"$(base64 -w 0 <client.bootstrap-osd.keyring)\"}}" >secret.patch
 
-echo "data:" >secret.patch
-
-for filename in mon.keyring client.admin.keyring client.bootstrap-osd.keyring
-do
-    echo "${filename}: $(base64 -w 0 <"${filename}")" >>secret.patch
-done
-
-curl ${CURL_OPTS} -X PATCH -H "Content-Type: application/yaml" "https://kubernetes.default.svc.hyades.local/api/v1/namespaces/${POD_NAMESPACE}/secrets/${SECRET_NAME}" \
-  -d "$(cat secret.patch)"
+curl -v --cacert /var/run/secrets/kubernetes.io/serviceaccount/ca.crt -H "Authorization: Bearer $(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" -X PATCH \
+     -H "Content-Type: application/strategic-merge-patch+json" "https://kubernetes.default.svc.hyades.local/api/v1/namespaces/${POD_NAMESPACE}/secrets/${SECRET_NAME}" \
+     -d "$(cat secret.patch)"
 
 echo "keys uploaded!"
