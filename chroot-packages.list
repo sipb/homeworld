@@ -9,7 +9,8 @@ ca-certificates
 cpio
 curl
 debhelper
-debuild
+devscripts
+fakeroot
 file
 flex
 g++

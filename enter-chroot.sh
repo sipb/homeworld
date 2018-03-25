@@ -20,14 +20,14 @@ sudo umount "${HOMEWORLD_CHROOT}/proc" || true
 mkdir "${MOUNTDIR}"
 sudo mount --bind "$(dirname "$0")" "${MOUNTDIR}"
 sudo mount -t proc proc "${HOMEWORLD_CHROOT}/proc"
+sudo cp -T /etc/hosts "${HOMEWORLD_CHROOT}/etc/hosts"
 
 cat >"${HOMEWORLD_CHROOT}/_enter.sh" <<EOF
 #!/bin/bash
 cd /h/
-export PS1="\[\033[01;31m\][homeworld] \[\033[01;32m\]\u\[\033[00m\] \[\033[01;34m\]\w\[\033[00m\]\$ "
-history -c
 export HOME="/home/$USER"
 export HISTFILE="$HOME/.bash_history"
+export LANG=C
 history -r
 alias ls='ls --color=auto'
 rm /_enter.sh
