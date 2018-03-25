@@ -21,7 +21,6 @@ ACI_BRIEF="$(basename "${ROOT}")"
 ACI_NAME="homeworld.mit.edu/${ACI_BRIEF}"
 
 function common_setup() {
-	ensure_sudo
 	ensure_amd64
 	add_exit_condition
 	allocate_tempdir
@@ -58,15 +57,6 @@ function allocate_tempdir() {
 		exit 1
 	fi
 	B="${TMPBUILDDIR}"
-}
-
-function ensure_sudo() {
-	if [[ "$EUID" != "0" ]]
-	then
-		echo "Sudoing..."
-		exec sudo TMPDIR="${TMPDIR:-}" "$0" "$@"
-		exit 1
-	fi
 }
 
 function ensure_amd64() {
@@ -178,9 +168,9 @@ function build_with_go() {
 	tar -C "${B}" -xf "${GO_TGZ}" go/
 	export PATH="$PATH:$GOROOT/bin"
 
-	if [ "$(go version 2>/dev/null)" != "go version go'"${GO_VER}"' linux/amd64" ]
+	if [ "$(go version 2>/dev/null)" != "go version go${GO_VER} linux/amd64" ]
 	then
-		echo 'go version mismatch! expected ${GO_VER}' 1>&2
+		echo "go version mismatch! expected ${GO_VER}" 1>&2
 		go version 1>&2
 		exit 1
 	fi

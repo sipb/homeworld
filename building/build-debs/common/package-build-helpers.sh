@@ -1,3 +1,9 @@
+if [ ! -e /h/ ]
+then
+        echo "expected to run within homeworld build chroot" 1>&2
+        exit 1
+fi
+
 source ../../setup-apt-branch/setup-apt-branch.sh
 
 PKGBASE="$(basename "$(dirname "$(realpath "$0")")")"
@@ -59,8 +65,9 @@ function upstream() {
 
 function build() {
 	mkdir -p "${BIN}"
-	sbuild -d "stretch"
+	debuild -us -uc -b
 	mv "${STAGE}/${PKGNAME}" -T "${PKOUT}"
+	debuild -- clean
 	echo "package ${PKGNAME} built for ${HOMEWORLD_APT_BRANCH}"
 }
 

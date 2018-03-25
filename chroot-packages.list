@@ -9,6 +9,7 @@ ca-certificates
 cpio
 curl
 debhelper
+debuild
 file
 flex
 g++
@@ -43,6 +44,7 @@ python3-yaml
 realpath
 rsync
 squashfs-tools
+sudo
 wget
 xz-utils
 zip
