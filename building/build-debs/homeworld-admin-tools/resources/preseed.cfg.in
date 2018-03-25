@@ -183,13 +183,13 @@ d-i partman-lvm/confirm_nooverwrite boolean true
 # swap, and uses the rest of the space for the root partition:
 d-i partman-auto/expert_recipe string				\
 	justroot ::						\
-		4000 6000 8000 ext4				\
+		10000 12000 20000 ext4				\
 			$primary{ } $bootable{ }		\
 			method{ format } format{ }		\
 			use_filesystem{ } filesystem{ ext4 }	\
 			mountpoint{ / }				\
 		.						\
-		10000 15000 1000000000 ext4			\
+		10000 14000 1000000000 ext4			\
 			method{ keep }				\
 		.
 

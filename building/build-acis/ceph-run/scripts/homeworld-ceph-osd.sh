@@ -19,6 +19,8 @@ OSDDIR="/var/lib/ceph-homeworld/osd/"
 
 ceph-osd --version  # to help with debugging
 
+mkdir -p "${OSDDIR}"
+
 if [ ! -e "${META_MOUNT}/inited" ]
 then
         if [ ! -e /etc/ceph-keyrings/client.bootstrap-osd.keyring ]

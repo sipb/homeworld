@@ -4,7 +4,7 @@ cd "$(dirname "$0")"
 source ../common/container-build-helpers.sh
 
 CEPH_VER="12.2.3-1"
-REVISION="5"
+REVISION="7"
 VERSION="${CEPH_VER}-${REVISION}"
 
 BUILDVER="stretch.20180111T215606Z"
@@ -16,5 +16,5 @@ common_setup
 
 start_acbuild_from "ceph" "${CEPH_VER}"
 $ACBUILD copy-to-dir scripts/* /usr/bin/
-add_packages_to_acbuild curl
+add_packages_to_acbuild curl uuid-runtime
 finish_acbuild

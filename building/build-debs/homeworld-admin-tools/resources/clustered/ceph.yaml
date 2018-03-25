@@ -62,7 +62,7 @@ spec:
       serviceAccountName: ceph-keygen
       containers:
       - name: generator
-        image: homeworld.mit.edu/ceph-run:12.2.3-1-5
+        image: homeworld.mit.edu/ceph-run:12.2.3-1-7
         command: [ "/usr/bin/homeworld-ceph-keygen.sh" ]
         env:
         - name: POD_NAME
@@ -100,7 +100,7 @@ spec:
         ceph-monitor: enable
       containers:
       - name: ceph-monitor
-        image: homeworld.mit.edu/ceph-run:12.2.3-1-5
+        image: homeworld.mit.edu/ceph-run:12.2.3-1-7
         command: [ "/usr/bin/homeworld-ceph-monitor.sh" ]
         securityContext:
           privileged: true
@@ -158,7 +158,7 @@ spec:
         ceph-osd: enable
       containers:
       - name: ceph-osd
-        image: homeworld.mit.edu/ceph-run:12.2.3-1-5
+        image: homeworld.mit.edu/ceph-run:12.2.3-1-7
         command: [ "/usr/bin/homeworld-ceph-osd.sh" ]
         securityContext:
           privileged: true

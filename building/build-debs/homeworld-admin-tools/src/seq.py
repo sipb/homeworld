@@ -34,6 +34,7 @@ def sequence_supervisor(ops: setup.Operations) -> None:
     ops.add_operation("pre-deploy dns-addon", deploy.launch_dns_addon)
     ops.add_operation("pre-deploy flannel-monitor", deploy.launch_flannel_monitor)
     ops.add_operation("pre-deploy dns-monitor", deploy.launch_dns_monitor)
+    ops.add_operation("pre-deploy ceph", deploy.launch_ceph)
 
 
 def iterative_verifier(verifier, max_time, pause=2.0):
