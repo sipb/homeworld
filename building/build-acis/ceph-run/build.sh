@@ -4,7 +4,7 @@ cd "$(dirname "$0")"
 source ../common/container-build-helpers.sh
 
 CEPH_VER="12.2.3-1"
-REVISION="7"
+REVISION="9"
 VERSION="${CEPH_VER}-${REVISION}"
 
 BUILDVER="stretch.20180111T215606Z"

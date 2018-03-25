@@ -13,9 +13,9 @@ set -e -u
 #     mount device
 #     launch ceph OSD
 
-META_MOUNT="/etc/ceph-osd-meta/"
+META_MOUNT="/etc/ceph-osd-meta/"  # preserved across container restarts
 DEVICE="/dev/osd-disk"
-OSDDIR="/var/lib/ceph-homeworld/osd/"
+OSDDIR="/var/lib/ceph-homeworld/osd/"  # **NOT** preserved across container restarts
 
 ceph-osd --version  # to help with debugging
 
@@ -47,9 +47,11 @@ then
 	ceph mon getmap -n client.bootstrap-osd -k /etc/ceph-keyrings/client.bootstrap-osd.keyring -o "${OSDDIR}/ceph-${OSD_ID}/activate.monmap"
 	ceph-authtool "${OSDDIR}/ceph-${OSD_ID}/keyring" --create-keyring --name "osd.${OSD_ID}" --add-key "${OSD_SECRET}"
 
+	ln -snf "${DEVICE}" "${OSDDIR}/ceph-${OSD_ID}/block"
 	ceph-osd --osd-objectstore bluestore --mkfs -i "${OSD_ID}" --monmap "${OSDDIR}/ceph-${OSD_ID}/activate.monmap" --keyfile "${OSDDIR}/ceph-${OSD_ID}/keyring" --osd-data "${OSDDIR}/ceph-${OSD_ID}" --osd-uuid "${UUID}"
 
 	echo "${OSD_ID}" >"${META_MOUNT}/inited"
+	rm -rf "${OSDDIR}/ceph-${OSD_ID}"
 else
 	OSD_ID="$(cat "${META_MOUNT}/inited")"
 	if [ "${OSD_ID}" = "" ]
@@ -59,7 +61,7 @@ else
 	fi
 fi
 
+mkdir "${OSDDIR}/ceph-${OSD_ID}"
 ceph-bluestore-tool prime-osd-dir --dev "${DEVICE}" --path "${OSDDIR}/ceph-${OSD_ID}"
-# ln -snf "${DEVICE}" "${OSDDIR}/ceph-${OSD_ID}/block"
 
 ceph-osd -d -i "${OSD_ID}" --osd-data "${OSDDIR}/ceph-${OSD_ID}"
