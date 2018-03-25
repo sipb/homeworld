@@ -20,9 +20,21 @@ then
     exit 1
 fi
 
-in-target systemctl mask nginx.service
+# check that the correct disks and partitions exist
+
+# -e 11 means exclude any devices with major number 11, which means exclude CDROMs
+if [ "$(echo /dev/vd*)" != "/dev/vda /dev/vda1 /dev/vda2 /dev/vda5" ]
+then
+    echo "invalid set of disks/partitions: $(echo /dev/vd*)" 1>&2
+    exit 1
+fi
+
+# NOTE: THE ABOVE IS REQUIRED, BECAUSE THE CEPH SPEC HARDCODES DEVICE /dev/vda5 AS THE MAIN DEVICE
+# TODO: make this less brittle
 
 # install packages
+in-target systemctl mask nginx.service
+
 cp /homeworld-*.deb /target/
 in-target dpkg --install /homeworld-*.deb
 rm /target/homeworld-*.deb

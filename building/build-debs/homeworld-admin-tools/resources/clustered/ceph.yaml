@@ -1,0 +1,245 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ceph-keygen
+  namespace: kube-system
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ceph-keyrings
+  namespace: kube-system
+type: Opaque
+data: {}  # not yet initialized
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: ceph-config
+  namespace: kube-system
+data:
+  fs.uuid: |
+    {{CEPH_UUID}}
+  master.list: |
+{{MASTER_LIST}}
+  ceph.conf: |
+    [global]
+    fsid = {{CEPH_UUID}}
+    mon initial members = {{MASTER_HOSTNAMES}}
+    mon host = {{MASTER_IPS}}
+
+    public network = {{NODE_SUBNET}}
+
+    auth cluster required = cephx
+    auth service required = cephx
+    auth client required = cephx
+    cephx require signatures = true
+    cephx cluster require signatures = true
+    cephx service require signatures = true
+
+    osd journal size = 1024
+    osd pool default size = 3        # Write an object n times.
+    osd pool default min size = 2    # Allow writing n copy in a degraded state.
+
+    # TODO: figure out what these should really be
+    osd pool default pg num = 333
+    osd pool default pgp num = 333
+
+    osd crush chooseleaf type = 1
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ceph-gen-keyrings
+  namespace: kube-system
+spec:
+  template:
+    metadata:
+      annotations:
+        homeworld.mit.edu/unsupported-fetch-info: aci
+    spec:
+      serviceAccountName: ceph-keygen
+      containers:
+      - name: generator
+        image: homeworld.mit.edu/ceph-run:12.2.3-1-11
+        command: [ "/usr/bin/homeworld-ceph-keygen.sh" ]
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: SECRET_NAME
+          value: ceph-keyrings
+      restartPolicy: Never
+---
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: ceph-mon
+  namespace: kube-system
+  labels:
+    tier: node
+    app: ceph
+spec:
+  template:
+    metadata:
+      labels:
+        tier: node
+        app: ceph
+      annotations:
+        rkt.alpha.kubernetes.io/stage1-name-override: /usr/lib/rkt/stage1-images/stage1-coreos.aci
+        homeworld.mit.edu/unsupported-fetch-info: aci
+    spec:
+      hostNetwork: true
+      nodeSelector:
+        ceph-monitor: enable
+      containers:
+      - name: ceph-monitor
+        image: homeworld.mit.edu/ceph-run:12.2.3-1-11
+        command: [ "/usr/bin/homeworld-ceph-monitor.sh" ]
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: keyring
+          mountPath: /etc/ceph-keyrings/
+          readOnly: true
+        - name: monitor-storage
+          mountPath: /var/lib/ceph/mon/
+        - name: ceph-config
+          mountPath: /etc/ceph/
+          readOnly: true
+        env:
+        - name: NODE_HOSTNAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        ports:
+        - name: monitor
+          containerPort: 6789
+          hostPort: 6789
+          protocol: TCP
+      volumes:
+      - name: keyring
+        secret:
+          secretName: ceph-keyrings
+      - name: monitor-storage
+        hostPath:
+          type: DirectoryOrCreate
+          path: /var/lib/ceph-kube/mon/
+      - name: ceph-config
+        configMap:
+          name: ceph-config
+---
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: ceph-mgr
+  namespace: kube-system
+  labels:
+    tier: node
+    app: ceph
+spec:
+  template:
+    metadata:
+      labels:
+        tier: node
+        app: ceph
+      annotations:
+        rkt.alpha.kubernetes.io/stage1-name-override: /usr/lib/rkt/stage1-images/stage1-coreos.aci
+        homeworld.mit.edu/unsupported-fetch-info: aci
+    spec:
+      hostNetwork: true
+      nodeSelector:
+        ceph-monitor: enable
+      containers:
+      - name: ceph-mgr
+        image: homeworld.mit.edu/ceph-run:12.2.3-1-11
+        command: [ "/usr/bin/homeworld-ceph-mgr.sh" ]
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: keyring
+          mountPath: /etc/ceph-keyrings/
+          readOnly: true
+        - name: ceph-config
+          mountPath: /etc/ceph/
+          readOnly: true
+        env:
+        - name: NODE_HOSTNAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        ports:
+        - name: manager
+          containerPort: 7789
+          hostPort: 7789
+          protocol: TCP
+      volumes:
+      - name: keyring
+        secret:
+          secretName: ceph-keyrings
+      - name: ceph-config
+        configMap:
+          name: ceph-config
+---
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: ceph-osd
+  namespace: kube-system
+  labels:
+    tier: node
+    app: ceph
+spec:
+  template:
+    metadata:
+      labels:
+        tier: node
+        app: ceph
+      annotations:
+        rkt.alpha.kubernetes.io/stage1-name-override: /usr/lib/rkt/stage1-images/stage1-coreos.aci
+        homeworld.mit.edu/unsupported-fetch-info: aci
+    spec:
+      hostNetwork: true
+      nodeSelector:
+        ceph-osd: enable
+      containers:
+      - name: ceph-osd
+        image: homeworld.mit.edu/ceph-run:12.2.3-1-11
+        command: [ "/usr/bin/homeworld-ceph-osd.sh" ]
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: keyring
+          mountPath: /etc/ceph-keyrings/
+          readOnly: true
+        - name: osd-device
+          mountPath: /dev/osd-disk
+        - name: osd-status
+          mountPath: /etc/ceph-osd-meta/
+        - name: ceph-config
+          mountPath: /etc/ceph/
+          readOnly: true
+      volumes:
+      - name: keyring
+        secret:
+          secretName: ceph-keyrings
+          items:
+          - key: client.bootstrap-osd.keyring
+            path: client.bootstrap-osd.keyring
+      - name: osd-device
+        hostPath:
+          type: BlockDevice
+          path: /dev/vda5
+      - name: osd-status
+        hostPath:
+          type: DirectoryOrCreate
+          path: /etc/ceph-osd-meta/
+      - name: ceph-config
+        configMap:
+          name: ceph-config

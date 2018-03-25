@@ -1,0 +1,26 @@
+commit e3b703eb12303fa365c7d9c1b11ba117cb3f7590
+Author: Kefu Chai <kchai@redhat.com>
+Date:   Fri Nov 24 10:35:00 2017 +0800
+
+    cmake: check bootstrap.sh instead before downloading boost
+    
+    config.hpp does not exist if boost is not configured. so a boost source
+    directory unpacked from dist tarball does not have this file. the
+    bootstrap.sh instead, it is used to create the necessary config files
+    for jam.
+    
+    Signed-off-by: Kefu Chai <kchai@redhat.com>
+
+diff --git a/cmake/modules/BuildBoost.cmake b/cmake/modules/BuildBoost.cmake
+index 1e5bcd5f86..d70828398e 100644
+--- a/cmake/modules/BuildBoost.cmake
++++ b/cmake/modules/BuildBoost.cmake
+@@ -75,7 +75,7 @@ function(do_build_boost version)
+   set(install_command
+     ${b2} install)
+   set(boost_root_dir "${CMAKE_BINARY_DIR}/boost")
+-  if(EXISTS "${PROJECT_SOURCE_DIR}/src/boost/libs/config/include/boost/config.hpp")
++  if(EXISTS "${PROJECT_SOURCE_DIR}/src/boost/bootstrap.sh")
+     message(STATUS "boost already in src")
+     set(source_dir
+       SOURCE_DIR "${PROJECT_SOURCE_DIR}/src/boost")

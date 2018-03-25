@@ -5,6 +5,7 @@ import command
 import resource
 import subprocess
 import template
+import uuid
 import yaml
 
 
@@ -127,17 +128,18 @@ class Config:
         v_cluster, v_addresses, v_dns_bootstrap, v_root_admins, v_nodes = \
             keycheck(kv, "cluster", "addresses", "dns-bootstrap", "root-admins", "nodes")
 
-        self.external_domain, self.internal_domain, self.etcd_token, self.realm = \
-            keycheck(v_cluster, "external-domain", "internal-domain", "etcd-token", "kerberos-realm",
+        self.external_domain, self.internal_domain, self.etcd_token, self.realm, self.ceph_uuid = \
+            keycheck(v_cluster, "external-domain", "internal-domain", "etcd-token", "kerberos-realm", "ceph-uuid",
                      validator=lambda _, x: type(x) == str)
 
-        cidr_pods, cidr_services, service_api, service_dns = \
-            keycheck(v_addresses, "cidr-pods", "cidr-services", "service-api", "service-dns",
+        cidr_pods, cidr_services, service_api, service_dns, node_subnet = \
+            keycheck(v_addresses, "cidr-pods", "cidr-services", "service-api", "service-dns", "node-subnet",
                      validator=lambda _, x: type(x) == str)
         self.cidr_pods = CIDR(cidr_pods)
         self.cidr_services = CIDR(cidr_services)
         self.service_api = IP(service_api)
         self.service_dns = IP(service_dns)
+        self.node_subnet = CIDR(node_subnet)
 
         if self.service_api not in self.cidr_services or self.service_dns not in self.cidr_services:
             command.fail("in config: expected service IPs to be in the correct CIDR")
@@ -342,8 +344,13 @@ def populate() -> None:
     setup_yaml = os.path.join(get_project(create_dir_if_missing=True), "setup.yaml")
     if os.path.exists(setup_yaml):
         command.fail("setup.yaml already exists")
-    resource.copy_to("setup.yaml", setup_yaml)
+    util.writefile(setup_yaml, template.template("setup.yaml", {"UUID": str(uuid.uuid4())}).encode())
     print("filled out setup.yaml")
+
+
+def ceph_regen_uuid() -> None:
+    print("add the following to the 'cluster:' section in setup.yaml:")
+    print("  ceph-uuid:", str(uuid.uuid4()))
 
 
 def edit() -> None:
@@ -383,7 +390,12 @@ def get_kube_spec_vars() -> dict:
     return {"NETWORK": config.cidr_pods,
             "SERVIP_API": config.service_api,
             "SERVIP_DNS": config.service_dns,
-            "INTERNAL_DOMAIN": config.internal_domain}
+            "INTERNAL_DOMAIN": config.internal_domain,
+            "CEPH_UUID": config.ceph_uuid,
+            "MASTER_HOSTNAMES": ", ".join(node.hostname for node in config.nodes if node.kind == "master"),
+            "MASTER_IPS": ", ".join(str(node.ip) for node in config.nodes if node.kind == "master"),
+            "MASTER_LIST": "\n".join("    %s %s" % (node.hostname, str(node.ip)) for node in config.nodes if node.kind == "master"),
+            "NODE_SUBNET": config.node_subnet}
 
 
 def gen_kube_specs(output_dir: str) -> None:
@@ -403,6 +415,7 @@ def get_single_kube_spec(name: str) -> str:
 
 main_command = command.mux_map("commands about cluster configuration", {
     "populate": command.wrap("initialize the cluster's setup.yaml with the template", populate),
+    "gen-uuid": command.wrap("generate a new UUID for the ceph storage system", ceph_regen_uuid),
     "edit": command.wrap("open $EDITOR (defaults to nano) to edit the project's setup.yaml", edit),
     "gen-kube": command.wrap("generate kubernetes specs for the base cluster", gen_kube_specs),
     "show": command.mux_map("commands about showing different aspects of the configuration", {

@@ -34,6 +34,7 @@ def sequence_supervisor(ops: setup.Operations) -> None:
     ops.add_operation("pre-deploy dns-addon", deploy.launch_dns_addon)
     ops.add_operation("pre-deploy flannel-monitor", deploy.launch_flannel_monitor)
     ops.add_operation("pre-deploy dns-monitor", deploy.launch_dns_monitor)
+    ops.add_operation("pre-deploy ceph", deploy.launch_ceph)
 
 
 def iterative_verifier(verifier, max_time, pause=2.0):
@@ -66,7 +67,7 @@ def sequence_cluster(ops: setup.Operations) -> None:
                       iterative_verifier(verify.check_kube_health, 120.0))
 
     ops.add_operation("verify that acis can be pulled from the registry", iterative_verifier(verify.check_aci_pull, 60.0))
-    ops.add_operation("verify that flannel is online", iterative_verifier(verify.check_flannel, 180.0))
+    ops.add_operation("verify that flannel is online", iterative_verifier(verify.check_flannel, 210.0))
     ops.add_operation("verify that dns-addon is online", iterative_verifier(verify.check_dns, 120.0))
 
 

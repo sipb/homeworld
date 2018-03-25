@@ -1,4 +1,5 @@
 all: acbuild-src-0.4.0.tgz
+all: ceph-12.2.3.tar.xz
 all: coreos_binaries-1478.0.0.tar.xz
 all: debian-9.4.0-amd64-mini.iso
 all: dnsmasq-2.78.tar.xz
@@ -178,6 +179,13 @@ coreos_binaries-%.tar: coreos-unsquash-dir-%
 	@mv $^ "workdir-$@/coreos_minimal_dir/"
 	@tar --sort=name --owner=user:1000 --group=user:1000 -C workdir-$@ --mtime="Mon, 1 Jan 2018 00:00:00 -0500" -cf $@.tmp "coreos_minimal_dir/"
 	@mv $@.tmp $@
+
+# **** CEPH ****
+
+ceph-%.tar: https/download.ceph.com/tarballs/ceph-%.tar.gz
+	$(call sha256-verify,$<,$(@:%.tar=%))
+	@echo "[gzip] decompressing $@"
+	@zcat $< >$@
 
 # **** DEBIAN ****
 
