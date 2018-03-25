@@ -62,7 +62,7 @@ spec:
       serviceAccountName: ceph-keygen
       containers:
       - name: generator
-        image: homeworld.mit.edu/ceph-run:12.2.3-1-9
+        image: homeworld.mit.edu/ceph-run:12.2.3-1-11
         command: [ "/usr/bin/homeworld-ceph-keygen.sh" ]
         env:
         - name: POD_NAME
@@ -100,7 +100,7 @@ spec:
         ceph-monitor: enable
       containers:
       - name: ceph-monitor
-        image: homeworld.mit.edu/ceph-run:12.2.3-1-9
+        image: homeworld.mit.edu/ceph-run:12.2.3-1-11
         command: [ "/usr/bin/homeworld-ceph-monitor.sh" ]
         securityContext:
           privileged: true
@@ -138,6 +138,58 @@ spec:
 apiVersion: extensions/v1beta1
 kind: DaemonSet
 metadata:
+  name: ceph-mgr
+  namespace: kube-system
+  labels:
+    tier: node
+    app: ceph
+spec:
+  template:
+    metadata:
+      labels:
+        tier: node
+        app: ceph
+      annotations:
+        rkt.alpha.kubernetes.io/stage1-name-override: /usr/lib/rkt/stage1-images/stage1-coreos.aci
+        homeworld.mit.edu/unsupported-fetch-info: aci
+    spec:
+      hostNetwork: true
+      nodeSelector:
+        ceph-monitor: enable
+      containers:
+      - name: ceph-mgr
+        image: homeworld.mit.edu/ceph-run:12.2.3-1-11
+        command: [ "/usr/bin/homeworld-ceph-mgr.sh" ]
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: keyring
+          mountPath: /etc/ceph-keyrings/
+          readOnly: true
+        - name: ceph-config
+          mountPath: /etc/ceph/
+          readOnly: true
+        env:
+        - name: NODE_HOSTNAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        ports:
+        - name: manager
+          containerPort: 7789
+          hostPort: 7789
+          protocol: TCP
+      volumes:
+      - name: keyring
+        secret:
+          secretName: ceph-keyrings
+      - name: ceph-config
+        configMap:
+          name: ceph-config
+---
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
   name: ceph-osd
   namespace: kube-system
   labels:
@@ -158,7 +210,7 @@ spec:
         ceph-osd: enable
       containers:
       - name: ceph-osd
-        image: homeworld.mit.edu/ceph-run:12.2.3-1-9
+        image: homeworld.mit.edu/ceph-run:12.2.3-1-11
         command: [ "/usr/bin/homeworld-ceph-osd.sh" ]
         securityContext:
           privileged: true
