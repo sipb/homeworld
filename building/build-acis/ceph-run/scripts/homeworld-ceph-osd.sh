@@ -39,6 +39,8 @@ then
 
 	# TODO: set up lockbox
 
+	touch "${META_MOUNT}/inited"   # this makes sure that we don't just keep creating more OSDs over time if creation fails
+
 	# TODO: don't do this on the worker node
 	OSD_ID="$(echo '{"cephx_secret": "'"$OSD_SECRET"'"}' | ceph osd new "$UUID" -i - -n client.bootstrap-osd -k /etc/ceph-keyrings/client.bootstrap-osd.keyring)"
 
@@ -48,6 +50,11 @@ then
 	ceph-authtool "${OSDDIR}/ceph-${OSD_ID}/keyring" --create-keyring --name "osd.${OSD_ID}" --add-key "${OSD_SECRET}"
 
 	ln -snf "${DEVICE}" "${OSDDIR}/ceph-${OSD_ID}/block"
+	if [ ! -e "${OSDDIR}/ceph-${OSD_ID}/keyring" ]
+	then
+		echo "failed to init keyring properly" 1>&2
+		exit 1
+	fi
 	ceph-osd --osd-objectstore bluestore --mkfs -i "${OSD_ID}" --monmap "${OSDDIR}/ceph-${OSD_ID}/activate.monmap" --keyfile "${OSDDIR}/ceph-${OSD_ID}/keyring" --osd-data "${OSDDIR}/ceph-${OSD_ID}" --osd-uuid "${UUID}"
 
 	echo "${OSD_ID}" >"${META_MOUNT}/inited"
