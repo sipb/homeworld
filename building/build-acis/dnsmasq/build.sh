@@ -8,7 +8,6 @@ REVISION="1"
 VERSION="${DNSMASQ_VER}-${REVISION}"
 
 DEBVER="stretch.20180111T215606Z"
-BUILDVER="stretch.20180111T215606Z"
 UPDATE_TIMESTAMP="2018-01-11T22:47:00-0500"
 
 common_setup
@@ -16,21 +15,17 @@ common_setup
 # build dnsmasq
 # based on https://github.com/kubernetes/dns builds
 
-init_builder
+extract_upstream_as "dnsmasq-${DNSMASQ_VER}.tar.xz" "dnsmasq-${DNSMASQ_VER}/" "${B}/dnsmasq"
 
-tar -C "${BUILDDIR}" -xf "${UPSTREAM}/dnsmasq-${DNSMASQ_VER}.tar.xz" "dnsmasq-${DNSMASQ_VER}"
-mv "${BUILDDIR}/dnsmasq-${DNSMASQ_VER}" "${BUILDDIR}/dnsmasq"
+mkdir -p "${B}/run"
 
-mkdir -p "${BUILDDIR}/run"
-
-build_at_path "${BUILDDIR}/dnsmasq"
-run_builder 'make'
+(cd "${B}/dnsmasq" && make)
 
 # build container
 
 start_acbuild_from "debian-micro" "${DEBVER}"
 $ACBUILD copy dnsmasq.conf /etc/dnsmasq.conf
-$ACBUILD copy "${BUILDDIR}/dnsmasq/src/dnsmasq" /usr/sbin/dnsmasq
-$ACBUILD copy "${BUILDDIR}/run" /var/run
+$ACBUILD copy "${B}/dnsmasq/src/dnsmasq" /usr/sbin/dnsmasq
+$ACBUILD copy "${B}/run" /var/run
 $ACBUILD set-exec -- /usr/sbin/dnsmasq --keep-in-foreground
 finish_acbuild

@@ -8,28 +8,22 @@ REVISION="3"
 VERSION="${FLANNEL_VER}-${REVISION}"
 
 DEBVER="stretch.20180111T215606Z"
-BUILDVER="stretch.20180111T215606Z"
 UPDATE_TIMESTAMP="2018-01-11T22:47:00-0500"
 
 common_setup
+build_with_go
 
 # build flannel
 
-init_builder
-build_with_go
-
-GODIR="${BUILDDIR}/gosrc"
-rm -rf "${GODIR}"
-COREOS="${GODIR}/src/github.com/coreos"
+export GOPATH="${B}/gosrc"
+rm -rf "${GOPATH}"
+COREOS="${GOPATH}/src/github.com/coreos"
 mkdir -p "${COREOS}"
 
-tar -C "${COREOS}" -xf "${UPSTREAM}/flannel-${FLANNEL_VER}.tar.xz" "flannel-${FLANNEL_VER}/"
-mv "${COREOS}/flannel-${FLANNEL_VER}" -T "${COREOS}/flannel"
+extract_upstream_as "flannel-${FLANNEL_VER}.tar.xz" "flannel-${FLANNEL_VER}/" "${COREOS}/flannel"
 patch -d "${COREOS}/flannel" -p1 <flannel.patch
 
-build_at_path "${COREOS}/flannel"
-
-run_builder "go build -o dist/flanneld -ldflags '-X github.com/coreos/flannel/version.Version=${FLANNEL_VER}'"
+(cd "${COREOS}/flannel" && go build -o dist/flanneld -ldflags '-X github.com/coreos/flannel/version.Version=${FLANNEL_VER}')
 
 # build container
 

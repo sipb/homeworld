@@ -1,3 +1,9 @@
+if [ ! -e /h/ ]
+then
+	echo "expected to run within homeworld build chroot" 1>&2
+	exit 1
+fi
+
 ROOT="$(pwd)"
 UPSTREAM="${ROOT}/../../upstream"
 HELPERS="${ROOT}/../../build-helpers"
@@ -13,8 +19,6 @@ GO_TGZ="${HELPERS}/go-bin-${GO_VER}.tgz"
 
 ACI_BRIEF="$(basename "${ROOT}")"
 ACI_NAME="homeworld.mit.edu/${ACI_BRIEF}"
-
-BUILDACI="debian-build"
 
 function common_setup() {
 	ensure_sudo
@@ -53,6 +57,7 @@ function allocate_tempdir() {
 		echo "Could not create temporary directory." 1>&2
 		exit 1
 	fi
+	B="${TMPBUILDDIR}"
 }
 
 function ensure_sudo() {
@@ -87,6 +92,13 @@ function importacbuild() {
 		echo "Failed to extract a working acbuild executable." 1>&2
 		exit 1
 	fi
+}
+
+function extract_upstream_as() {
+	mkdir -p "${B}/extract"
+	tar -C "${B}/extract" -xf "${UPSTREAM}/$1" "$2"
+	mkdir -p "$(dirname "$3")"
+	mv "${B}/extract/$2" -T "$3"
 }
 
 function start_acbuild() {
@@ -125,12 +137,12 @@ function add_packages_to_acbuild() {
 
 function finish_acbuild() {
 	ACI_OUTPUT="${OUTPUT_DIR}/${ACI_BRIEF}-${VERSION}-linux-amd64.aci"
-	ACI_IMMD="${TMPBUILDDIR}/homeworld-intermediate.aci"
+	ACI_IMMD="${B}/homeworld-intermediate.aci"
 	rm -f "${ACI_IMMD}"
 	$ACBUILD write --overwrite "${ACI_IMMD}"
 	ISACBUILDING=""
 	$ACBUILD end
-	ACI_REBUILD_TMP="${TMPBUILDDIR}/acrebuild-tmp"
+	ACI_REBUILD_TMP="${B}/acrebuild-tmp"
 	rm -rf "${ACI_REBUILD_TMP}"
 	mkdir "${ACI_REBUILD_TMP}"
 	tar -C "${ACI_REBUILD_TMP}" -xf "${ACI_IMMD}"
@@ -149,88 +161,27 @@ function finish_acbuild() {
 
 # rkt builder
 
-function init_builder() {
-	BUILDENV="${OUTPUT_DIR}/${BUILDACI}-${BUILDVER}-linux-amd64.aci"
-	BUILDDIR="${TMPBUILDDIR}/build"
-	rm -rf "${BUILDDIR}"
-	mkdir "${BUILDDIR}"
-	BUILDSCRIPT_GEN=(gen_base)
-	BUILDPATH="/build"
-}
-
-function path_to_buildpath() {
-	echo "/build/$(realpath "$1" "--relative-to=${BUILDDIR}")"
-}
-
-function gen_base() {
-	echo "#!/bin/bash"
-	echo "set -e -u"
-	echo "cd '${BUILDPATH}'"
-	echo "echo Beginning build within build container..."
-}
-
 function build_with_go() {
-	if [ "${BUILDDIR}" = "" ] || [ ! -e "${BUILDDIR}" ]
-	then
-		echo "Invalid builddir setup." 1>&2
-		exit 1
-	fi
 	if [ ! -e "${GO_TGZ}" ]
 	then
-		echo "Cannot find go binaries." 1>&2
+		echo "cannot find go binaries" 1>&2
 		exit 1
 	fi
 
-	tar -C "${BUILDDIR}" -xf "${GO_TGZ}" go/
+	if which go
+	then
+		echo 'should not be any available go executables' 1>&2
+		exit 1
+	fi
 
-	BUILDSCRIPT_GEN+=(gen_go_setup)
-}
+	export GOROOT="${B}/go/"
+	tar -C "${B}" -xf "${GO_TGZ}" go/
+	export PATH="$PATH:$GOROOT/bin"
 
-function gen_go_setup() {
-	echo 'export GOROOT="/build/go"'
-	echo 'export PATH="$PATH:$GOROOT/bin"'
-	echo "export GOPATH='$(path_to_buildpath "${GODIR}")'"
-	echo 'if [ "$(go version 2>/dev/null)" != "go version go'"${GO_VER}"' linux/amd64" ]'
-	echo 'then'
-	echo "    echo 'go version mismatch! expected ${GO_VER}' 1>&2"
-	echo "    go version 1>&2"
-	echo "    exit 1"
-	echo "fi"
-}
-
-function build_at_path() {
-	BUILDPATH="$(path_to_buildpath "${1}")"
-}
-
-function run_builder() {
-	(for generator in "${BUILDSCRIPT_GEN[@]}"
-	do
-		$generator
-	done
-	for line in "$@"
-	do
-		echo "$line"
-	done) > "${BUILDDIR}/inner-build.sh"
-
-	chmod +x "${BUILDDIR}/inner-build.sh"
-
-	# stage1 should not be kvm
-	RKT_OPTS=(--stage1-path=/usr/lib/rkt/stage1-images/stage1-coreos.aci)
-
-	# use the build environment container
-	RKT_OPTS+=(--insecure-options=image "${BUILDENV}")
-
-	# bind the build directory
-	RKT_OPTS+=(--volume "build,kind=host,source=${BUILDDIR},readOnly=false")
-	RKT_OPTS+=(--mount volume=build,target=/build)
-
-	DNS_ADDR="$(awk '$1=="nameserver" {print $2; exit}' /etc/resolv.conf)"
-	RKT_OPTS+=(--dns="${DNS_ADDR}")
-
-	# run the script
-	RKT_OPTS+=(--exec=/build/inner-build.sh)
-
-	echo "Launching builder..."
-	rkt run "${RKT_OPTS[@]}"
-	echo "Build complete!"
+	if [ "$(go version 2>/dev/null)" != "go version go'"${GO_VER}"' linux/amd64" ]
+	then
+		echo 'go version mismatch! expected ${GO_VER}' 1>&2
+		go version 1>&2
+		exit 1
+	fi
 }
