@@ -21,6 +21,7 @@ ACI_BRIEF="$(basename "${ROOT}")"
 ACI_NAME="homeworld.mit.edu/${ACI_BRIEF}"
 
 function common_setup() {
+	ensure_sudo
 	ensure_amd64
 	add_exit_condition
 	allocate_tempdir

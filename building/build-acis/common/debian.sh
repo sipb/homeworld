@@ -1,7 +1,6 @@
 source ../common/container-build-helpers.sh
 
 common_setup
-ensure_sudo
 
 ROOTFS="${TMPBUILDDIR}/rootfs"
 VARIANT="minbase"
