@@ -19,6 +19,9 @@ autoconf, automake, bc, binutils, bison, cpio, file, flex, git, gnupg, libacl1-d
 # debian ACIs
 debootstrap, devscripts, fakeroot
 
+# dnsmasq-nanny ACI build, other ACI builds
+systemd-container
+
 # generic
 build-essential
 

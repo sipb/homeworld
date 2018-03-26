@@ -14,11 +14,11 @@ export GOPATH="${B}/godir"
 mkdir "${GOPATH}"
 cp -R "src" -t "${GOPATH}"
 
-extract_upstream-as kubernetes-src-v1.9.2.tar.xz staging/src/k8s.io/ "${GOPATH}/src/k8s.io"
-extract_upstream-as kubernetes-src-v1.9.2.tar.xz vendor/k8s.io/kube-openapi/pkg/common "${GOPATH}/src/k8s.io/kube-openapi/pkg/common"
-extract_upstream-as kubernetes-src-v1.9.2.tar.xz vendor/github.com/ "${GOPATH}/src/github.com"
-extract_upstream-as kubernetes-src-v1.9.2.tar.xz vendor/golang.org/ "${GOPATH}/src/golang.org"
-extract_upstream-as kubernetes-src-v1.9.2.tar.xz vendor/gopkg.in/ "${GOPATH}/src/gopkg.in"
+extract_upstream_as kubernetes-src-v1.9.2.tar.xz staging/src/k8s.io/ "${GOPATH}/src/k8s.io"
+extract_upstream_as kubernetes-src-v1.9.2.tar.xz vendor/k8s.io/kube-openapi/pkg/common "${GOPATH}/src/k8s.io/kube-openapi/pkg/common"
+extract_upstream_as kubernetes-src-v1.9.2.tar.xz vendor/github.com/ "${GOPATH}/src/github.com"
+extract_upstream_as kubernetes-src-v1.9.2.tar.xz vendor/golang.org/ "${GOPATH}/src/golang.org"
+extract_upstream_as kubernetes-src-v1.9.2.tar.xz vendor/gopkg.in/ "${GOPATH}/src/gopkg.in"
 
 (cd "${B}" &&
   CGO_ENABLED=0 go build -o flannel-monitor godir/src/flannel-monitor/main/flannel-monitor.go &&
