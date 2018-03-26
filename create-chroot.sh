@@ -5,16 +5,16 @@ cd "$(dirname "$0")"
 
 if [ "${HOMEWORLD_CHROOT:-}" = "" -o ! -e "$(dirname HOMEWORLD_CHROOT)" ]
 then
-	echo "invalid path to chroot: ${HOMEWORLD_CHROOT:-}" 1>&2
-	echo '(have you populated $HOMEWORLD_CHROOT?)'
-	echo '(try export HOMEWORLD_CHROOT=$HOME/chroot)'
-	exit 1
+    echo "invalid path to chroot: ${HOMEWORLD_CHROOT:-}" 1>&2
+    echo '(have you populated $HOMEWORLD_CHROOT?)'
+    echo '(try export HOMEWORLD_CHROOT=$HOME/chroot)'
+    exit 1
 fi
 
 if [ -e "${HOMEWORLD_CHROOT}" ]
 then
-	echo "chroot already exists" 1>&2
-	exit 1
+    echo "chroot already exists" 1>&2
+    exit 1
 fi
 
 mkdir "${HOMEWORLD_CHROOT}"
