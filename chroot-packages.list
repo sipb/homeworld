@@ -9,6 +9,7 @@ ca-certificates
 cpio
 curl
 debhelper
+debootstrap
 devscripts
 fakeroot
 file

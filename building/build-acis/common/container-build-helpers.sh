@@ -59,6 +59,15 @@ function allocate_tempdir() {
 	B="${TMPBUILDDIR}"
 }
 
+function ensure_sudo() {
+	if [[ "$EUID" != "0" ]]
+	then
+		echo "Sudoing..."
+		exec sudo TMPDIR="${TMPDIR:-}" "$0" "$@"
+		exit 1
+	fi
+}
+
 function ensure_amd64() {
 	if [ "$(uname -m)" != "x86_64" ]
 	then
