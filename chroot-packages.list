@@ -1,54 +1,26 @@
-autoconf
-automake
-bc
-binutils
-bison
-build-essential
-bzip2
-ca-certificates
-cpio
-curl
+# general dependencies
 debhelper
-debootstrap
-devscripts
-fakeroot
-file
-flex
-g++
-gcc
+
+# homeworld-etcd
 git
-gnupg
-gzip
-less
-libacl1-dev
-libarchive-tools
-libc6-dev
-libcap-dev
-libelf-dev
-libglib2.0-dev
+
+# homeworld-knc
 libkrb5-dev
-libpcre3-dev
-libpixman-1-dev
-libreadline-dev
-libssl-dev
-libsystemd-dev
-libxml2
-libxml2-dev
-locales
-make
-openssl
-patch
-pkg-config
-python
-python3
-python3-requests
-python3-yaml
-realpath
+
+# homeworld-admin-tools
+libarchive-tools, zip, python3, python3-yaml, python3-requests
+
+# homeworld-hyperkube
 rsync
-squashfs-tools
-sudo
-wget
-xz-utils
-zip
-zlib1g-dev
-zlibc
+
+# homeworld-rkt
+autoconf, automake, bc, binutils, bison, cpio, file, flex, git, gnupg, libacl1-dev, libcap-dev, libelf-dev, libglib2.0-dev, libpcre3-dev, libpixman-1-dev, libreadline-dev, libssl-dev, libsystemd-dev, libxml2, libxml2-dev, locales, openssl, patch, pkg-config, python, python3, realpath, squashfs-tools, wget, xz-utils, zlib1g-dev, zlibc
+
+# debian ACIs
+debootstrap, devscripts, fakeroot
+
+# generic
+build-essential
+
+# miscellaneous
+bzip2, ca-certificates, curl, gzip, less, sudo
