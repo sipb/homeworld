@@ -1,3 +1,15 @@
+homeworld-admin-tools (0.1.52) stretch; urgency=medium
+
+  * Updated debian release
+
+ -- Cel Skeggs <cela@mit.edu>  Mon, 09 Apr 2018 18:44:25 -0400
+
+homeworld-admin-tools (0.1.51) stretch; urgency=medium
+
+  * Updated debian release
+
+ -- Cel Skeggs <cela@mit.edu>  Mon, 09 Apr 2018 18:30:40 -0400
+
 homeworld-admin-tools (0.1.50) stretch; urgency=medium
 
   * Updated debian release
