@@ -138,7 +138,7 @@ def modify_keygateway(ops: Operations, overwrite_keytab: bool) -> None:
         # keytab is stored encrypted in the configuration folder
         keytab = os.path.join(configuration.get_project(), "keytab.%s.crypt" % node.hostname)
         decrypted = keycrypt.gpg_decrypt_to_memory(keytab)
-        def safe_upload_keytab():
+        def safe_upload_keytab(node=node):
             if not overwrite_keytab:
                 try:
                     existing_keytab = ssh.check_ssh_output(node, "cat", KEYTAB_PATH)
