@@ -1,0 +1,62 @@
+control:
+  name: flannel-monitor
+  version: 0.1.9
+  date: 2018-01-17T17:12:00-0500
+  type: aci
+
+  set-exec: /usr/bin/dns-monitor
+
+build:
+  - type: copy
+    input: src
+    stage: go/src
+    recursive: true
+
+  # TODO: more efficient way to do this source code extraction
+  - type: upstream-extract
+    upstream: kubernetes-src-v%.tar.xz
+    version: 1.9.2
+    focus: vendor
+    stage: go/src
+
+  - type: remove
+    stage: go/src/k8s.io
+    recursive: true
+
+  - type: upstream-extract
+    upstream: kubernetes-src-v%.tar.xz
+    version: 1.9.2
+    focus: staging/src/k8s.io
+    stage: go/src/k8s.io
+
+  - type: upstream-extract
+    upstream: kubernetes-src-v%.tar.xz
+    version: 1.9.2
+    focus: vendor/k8s.io/kube-openapi/pkg/common
+    stage: go/src/k8s.io/kube-openapi/pkg/common
+
+  - type: go-build
+    version: 1.9.3
+    packages:
+      - flannel-monitor/main
+    stage: bin/flannel-monitor
+    no-cgo: true
+
+  - type: go-build
+    version: 1.9.3
+    packages:
+      - flannel-monitor-reflector/main
+    stage: bin/flannel-monitor-reflector
+    no-cgo: true
+
+  - type: go-build
+    version: 1.9.3
+    packages:
+      - flannel-monitor-collector/main
+    stage: bin/flannel-monitor-collector
+    no-cgo: true
+
+  - type: copy
+    stage: bin
+    output: /usr/bin/
+    recursive: true
