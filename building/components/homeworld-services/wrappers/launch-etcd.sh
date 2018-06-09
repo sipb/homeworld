@@ -8,7 +8,7 @@ source /etc/homeworld/config/local.conf
 TLS_MOUNTPOINT=/etc/homeworld/
 TLS_STORAGE=/etc/homeworld/
 PERSISTENT_DATA=/var/lib/etcd
-ETCD_IMAGE=/usr/lib/hyades/images/etcd-current-linux-amd64.aci
+ETCD_IMAGE=/usr/lib/homeworld/images/etcd-linux-amd64.aci
 
 mkdir -p ${PERSISTENT_DATA}
 

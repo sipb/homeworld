@@ -1,6 +1,6 @@
 control:
   name: homeworld-etcd
-  version: 3.2.9-3
+  version: 3.2.9-4
   date: 2018-01-29T17:20:49-0500
   type: deb
 
@@ -53,4 +53,4 @@ build:
 
   - type: copy
     stage: etcd-linux-amd64.aci
-    output: /usr/lib/hyades/images/etcd-linux-amd64.aci
+    output: /usr/lib/homeworld/images/etcd-linux-amd64.aci
