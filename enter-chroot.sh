@@ -16,4 +16,10 @@ if [[ "${ORIG_REL}" =~ \.\. ]]
 then
 	ORIG_REL=""
 fi
-sudo systemd-nspawn -M homeworld --bind $(pwd):/homeworld:norbind -u "$USER" -a -D "$HOMEWORLD_CHROOT" bash -c "cd /h/${ORIG_REL} && exec bash"
+if [ -e "$HOME/.gnupg/pubring.kbx" ]
+then
+	cp "$HOME/.gnupg/pubring.kbx" "$HOMEWORLD_CHROOT/home/$USER/.gnupg/pubring.kbx"
+	cp "$HOME/.gnupg/trustdb.gpg" "$HOMEWORLD_CHROOT/home/$USER/.gnupg/trustdb.gpg"
+	cp -R "$HOME/.gnupg/private-keys-v1.d/"* "$HOMEWORLD_CHROOT/home/$USER/.gnupg/private-keys-v1.d"
+fi
+sudo systemd-nspawn -M homeworld --bind $(pwd):/homeworld:norbind -u "$USER" -a -D "$HOMEWORLD_CHROOT" bash -c "cd /h/${ORIG_REL} && gpg-agent --daemon --keep-tty && exec bash"
