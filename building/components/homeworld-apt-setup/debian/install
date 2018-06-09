@@ -1,3 +1,0 @@
-homeworld-archive-keyring.gpg usr/share/keyrings
-homeworld.sources etc/apt/sources.list.d
-homeworld.pref etc/apt/preferences.d

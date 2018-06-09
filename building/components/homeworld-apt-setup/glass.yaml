@@ -1,0 +1,21 @@
+control:
+  name: homeworld-apt-setup
+  version: 0.1.5
+  date: 2018-06-01T18:13:47-0700
+  type: deb
+
+build:
+  - type: python
+    output: /usr/share/keyrings/homeworld-archive-keyring.gpg
+    code: return aptbranch.export_key(aptbranch.get_signing_key(context.branch))
+
+  - type: python
+    input: homeworld.sources.in
+    output: /etc/apt/sources.list.d/homeworld.sources
+    code: return input.format(APT_BRANCH=context.branch)
+
+  - type: python
+    input: homeworld.pref.in
+    output: /etc/apt/preferences.d/homeworld.pref
+    # this extracts just the hostname component
+    code: return input.format(HOST_BRANCH=context.branch.split("/")[0])
