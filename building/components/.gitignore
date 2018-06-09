@@ -1,3 +1,9 @@
+containers
+acbuild-tmp
+rootfs
+acrebuild-tmp
+acbuild-bin-*.tgz
+go-bin-*.tgz
 binaries/
 *.deb
 *.build
