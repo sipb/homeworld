@@ -63,7 +63,7 @@ git/%: git
 	@echo "[git] cloning $(@:git/%=%)"
 	@rm -rf "$@"
 	@mkdir -p "$(dir $@)"
-	@git clone --quiet "https://github.com/$(patsubst git/%,%,$@)/" "$@"
+	@git clone --quiet "https://github.com/$(patsubst git/%,%,$@)" "$@"
 
 TOP := $(shell pwd)
 
