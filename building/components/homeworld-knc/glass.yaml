@@ -1,0 +1,23 @@
+control:
+  name: homeworld-knc
+  version: 1.7.1-1
+  date: 2017-07-26T22:02:00-0400
+  type: deb
+  # TODO: maybe this should depend on krb5-user?
+
+build:
+  - type: upstream-extract
+    upstream: knc-%.tar.xz
+    version: 1.7.1
+    focus: knc-%
+    stage: knc-src
+
+  - type: bash
+    code: |
+      cd knc-src
+      ./configure
+      make
+
+  - type: copy
+    stage: knc-src/bin/knc
+    output: /usr/bin/knc
