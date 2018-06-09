@@ -24,7 +24,7 @@ then
 fi
 
 mkdir "${HOMEWORLD_CHROOT}"
-sudo debootstrap --include="$(cat chroot-packages.list | grep -vE '^#' | tr '\n ' ',,' | sed 's/,$//')" stretch "${HOMEWORLD_CHROOT}" http://debian.csail.mit.edu/debian/
+sudo debootstrap --include="$(cat chroot-packages.list | grep -vE '^#' | tr '\n ' ',,' | sed 's/,$//' | sed 's/,,/,/g')" stretch "${HOMEWORLD_CHROOT}" http://debian.csail.mit.edu/debian/
 sudo ln -sT "homeworld/building" "${HOMEWORLD_CHROOT}/h"
 sudo chroot "${HOMEWORLD_CHROOT}" useradd -m -u "$UID" "$USER" -s "/bin/bash"
 sudo bash -c "echo '$USER ALL=(ALL) NOPASSWD:ALL' >>'${HOMEWORLD_CHROOT}/etc/sudoers'"
