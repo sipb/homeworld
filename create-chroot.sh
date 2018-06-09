@@ -17,6 +17,12 @@ then
     exit 1
 fi
 
+if [ "$USER" = "root" ]
+then
+    echo "this script should be run as a user with sudo capabilities" 1>&2
+    exit 1
+fi
+
 mkdir "${HOMEWORLD_CHROOT}"
 sudo debootstrap --include="$(cat chroot-packages.list | grep -vE '^#' | tr '\n ' ',,' | sed 's/,$//')" stretch "${HOMEWORLD_CHROOT}" http://debian.csail.mit.edu/debian/
 sudo ln -sT "homeworld/building" "${HOMEWORLD_CHROOT}/h"
