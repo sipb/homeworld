@@ -1,5 +1,7 @@
 # Prerequisites
 
+	TODO: THESE INSTRUCTIONS ARE OUTDATED
+
 Install packages:
 
  * build-essential

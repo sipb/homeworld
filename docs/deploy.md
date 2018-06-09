@@ -13,6 +13,8 @@ If you're re-deploying the cluster for development, you will need:
 
 To set up the apt repository:
 
+	TODO: THESE INSTRUCTIONS ARE OUTDATED
+
     $ wget http://web.mit.edu/hyades/homeworld-apt-setup.deb
     $ wget http://web.mit.edu/hyades/homeworld-apt-setup.deb.asc
     $ gpg --verify homeworld-apt-setup.deb.asc
