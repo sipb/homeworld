@@ -1,6 +1,0 @@
-go-bin-*
-prometheus-*.tar.xz
-/prometheus-*
-/bin/
-/src/github.com
-/go/
