@@ -1,0 +1,24 @@
+control:
+  name: homeworld-bootstrap-registry
+  version: 0.1.6
+  date: 2018-06-01T18:23:38-0700
+  type: deb
+  depends:
+    - nginx
+  install-scripts:
+    prerm: prerm.sh
+    postinst: postinst.sh
+
+build:
+  - type: copy
+    input: homeworld
+    output: /etc/nginx/sites-available/homeworld
+
+  - type: python
+    input: index.html.in
+    output: /usr/lib/hyades/registry/index.html
+    code: return input.format(APT_BRANCH=context.branch)
+
+  - type: python
+    output: /usr/lib/hyades/registry/pubkey.asc
+    code: return aptbranch.export_key(aptbranch.get_signing_key(context.branch), armor=True)
