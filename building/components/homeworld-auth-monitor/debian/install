@@ -1,2 +1,0 @@
-auth-monitor usr/bin
-services/auth-monitor.service usr/lib/systemd/system
