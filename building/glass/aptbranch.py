@@ -62,7 +62,7 @@ def get_signing_key(branch):
     if subprocess.call(["gpg", "--list-keys", key_id], stdout=subprocess.DEVNULL) != 0:
         if branch == "root/master":
             print("If you're basing this build off the master branch, import its signing key with")
-            print('gpg --import "$(readlink -f "${APT_SETUP_DIR}/../upload-debs/default-repo-signing-key.gpg")"')
+            print('gpg --import building/setup-apt-branch/default-key.asc')
         raise Exception("apt signing key not in gpg keyring: %s" % branch)
     return key_id
 
