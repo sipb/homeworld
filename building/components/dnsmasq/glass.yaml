@@ -1,0 +1,35 @@
+control:
+  name: dnsmasq
+  version: 2.78-1
+  date: 2018-01-11T22:47:00-0500
+  type: aci
+
+  set-exec: /usr/sbin/dnsmasq --keep-in-foreground
+
+build:
+  # originally based on https://github.com/kubernetes/dns builds
+  - type: aci-unpack
+    name: debian-micro
+    version: stretch.20180529T215324Z
+    output: /
+
+  - type: upstream-extract
+    upstream: dnsmasq-%.tar.xz
+    version: "2.78"
+    focus: dnsmasq-%
+    stage: dnsmasq
+
+  - type: bash
+    code: cd dnsmasq && make
+
+  - type: copy
+    stage: dnsmasq/src/dnsmasq
+    output: /usr/sbin/dnsmasq
+
+  - type: mkdir
+    output: /var/run
+    recursive: true
+
+  - type: copy
+    input: dnsmasq.conf
+    output: /etc/dnsmasq.conf
