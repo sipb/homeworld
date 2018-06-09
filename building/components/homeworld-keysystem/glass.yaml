@@ -1,0 +1,87 @@
+control:
+  name: homeworld-keysystem
+  version: 0.1.17
+  date: 2018-02-17T20:14:58-0500
+  type: deb
+  depends:
+  - homeworld-knc
+
+build:
+  - type: copy
+    input: src
+    stage: go/src
+    recursive: true
+
+  - type: upstream-extract
+    upstream: golang-x-crypto-%.tar.xz
+    version: 5ef0053f77724838734b6945dd364d3847e5de1d
+    focus: src/golang.org
+    stage: go/src/golang.org
+
+  - type: upstream-extract
+    upstream: gopkg.in-yaml.v2-%.tar.xz
+    version: eb3733d160e74a9c7e442f435eb3bea458e1d19f
+    focus: src/gopkg.in
+    stage: go/src/gopkg.in
+
+  # TODO: find a better way to share this code
+  - type: copy
+    input: ../sources-shared/src/keycommon
+    stage: go/src/keycommon
+    recursive: true
+
+  - type: copy
+    input: ../sources-shared/src/util
+    stage: go/src/util
+    recursive: true
+
+  - type: go-build
+    version: 1.9.3
+    sources-input:
+      - src/keyserver/main/keyserver.go
+    stage: bin/keyserver
+
+  - type: go-build
+    version: 1.9.3
+    sources-input:
+      - src/keygateway/main/keygateway.go
+    stage: bin/keygateway
+
+  - type: go-build
+    version: 1.9.3
+    sources-input:
+      - src/keyclient/main/keyclient.go
+    stage: bin/keyclient
+
+  - type: go-build
+    version: 1.9.3
+    sources-input:
+      - src/keygen/main/keygen.go
+    stage: bin/keygen
+
+  - type: go-build
+    version: 1.9.3
+    sources-input:
+      - src/keyinitadmit/main/keyinitadmit.go
+    stage: bin/keyinitadmit
+
+  - type: go-build
+    version: 1.9.3
+    sources-input:
+      - src/keyreq/main/keyreq.go
+    stage: bin/keyreq
+
+  - type: copy
+    stage: bin
+    output: /usr/bin
+    recursive: true
+
+  - type: copy
+    input: services
+    output: /usr/lib/systemd/system/
+    recursive: true
+
+  - type: copy
+    input: wrappers
+    output: /usr/lib/homeworld/
+    recursive: true
