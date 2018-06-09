@@ -1,0 +1,14 @@
+control:
+  name: components
+  type: folder
+
+stages:
+  - pattern: helper-go
+
+  - pattern: helper-acbuild
+
+  - pattern: sources-shared
+    build: false
+
+  # excludes folders like .idea
+  - pattern: "[^.].*"
