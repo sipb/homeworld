@@ -17,7 +17,7 @@ rsync
 autoconf, automake, bc, binutils, bison, cpio, file, flex, git, gnupg, libacl1-dev, libcap-dev, libelf-dev, libglib2.0-dev, libpcre3-dev, libpixman-1-dev, libreadline-dev, libssl-dev, libsystemd-dev, libxml2, libxml2-dev, locales, openssl, patch, pkg-config, python, python3, realpath, squashfs-tools, wget, xz-utils, zlib1g-dev, zlibc
 
 # debian ACIs
-debootstrap, devscripts, fakeroot
+debootstrap, devscripts, fakeroot, fakechroot
 
 # dnsmasq-nanny ACI build, other ACI builds
 systemd-container
@@ -27,3 +27,9 @@ build-essential
 
 # miscellaneous
 bzip2, ca-certificates, curl, gzip, less, sudo
+
+# glass
+python3-jsonschema, reprepro
+
+# uploading
+python-pip, python-setuptools

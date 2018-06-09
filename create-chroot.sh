@@ -27,6 +27,7 @@ mkdir "${HOMEWORLD_CHROOT}"
 sudo debootstrap --include="$(cat chroot-packages.list | grep -vE '^#' | tr '\n ' ',,' | sed 's/,$//' | sed 's/,,/,/g')" stretch "${HOMEWORLD_CHROOT}" http://debian.csail.mit.edu/debian/
 sudo ln -sT "homeworld/building" "${HOMEWORLD_CHROOT}/h"
 sudo chroot "${HOMEWORLD_CHROOT}" useradd -m -u "$UID" "$USER" -s "/bin/bash"
+sudo chroot "${HOMEWORLD_CHROOT}" pip install -U gsutil pyasn1
 sudo bash -c "echo '$USER ALL=(ALL) NOPASSWD:ALL' >>'${HOMEWORLD_CHROOT}/etc/sudoers'"
 sudo bash -c "cat >>${HOMEWORLD_CHROOT}/etc/bash.bashrc" <<EOF
 export PS1="\[\033[01;31m\][homeworld] \[\033[01;32m\]\u\[\033[00m\] \[\033[01;34m\]\w\[\033[00m\]\$ "
