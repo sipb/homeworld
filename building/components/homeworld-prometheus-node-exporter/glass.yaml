@@ -1,0 +1,42 @@
+control:
+  name: homeworld-prometheus-node-exporter
+  version: 0.15.2-4
+  date: 2018-01-29T17:32:04-0500
+  type: deb
+
+build:
+  - type: upstream-extract
+    upstream: promu-%.tar.xz
+    version: sipb-0.1.1
+    focus: promu-%
+    stage: go/src/github.com/prometheus/promu
+
+  - type: upstream-extract
+    upstream: prometheus-node-exporter-%.tar.xz
+    version: 0.15.2
+    focus: node_exporter-%
+    stage: go/src/github.com/prometheus/node_exporter
+
+  - type: go-prepare
+    version: 1.9.3
+    stage: goroot
+
+  - type: bash
+    code: |
+      export GOROOT="${STAGE}/goroot"
+      export GOPATH="${STAGE}/go"
+      export PATH="${GOROOT}/bin:${GOPATH}/bin:${PATH}"
+
+      go install github.com/prometheus/promu
+
+      mkdir bin
+      cd go/src/github.com/prometheus/node_exporter && promu build --prefix="${STAGE}/bin"
+
+  - type: copy
+    stage: bin
+    output: /usr/bin/
+    recursive: true
+
+  - type: copy
+    input: prometheus-node-exporter.service
+    output: /usr/lib/systemd/system/prometheus-node-exporter.service
