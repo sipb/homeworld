@@ -1,0 +1,37 @@
+control:
+  name: debian-mini
+  version: stretch.20180529T215324Z
+  date: 2018-05-29T21:53:24+0000
+  type: aci
+
+  set-exec: /bin/bash
+  set-working-dir: /
+
+build:
+  - type: debootstrap
+    release: stretch
+    version: 20180529T215324Z
+    stage: rootfs
+
+  - type: debremove
+    stage: rootfs
+    force-remove-essential: true
+    no-triggers: true
+    packages:
+    - e2fslibs
+    - e2fsprogs
+    - login
+
+  - type: debclean
+    stage: rootfs
+    options:
+    - apt_files
+    - ld_aux
+    - doc_files
+    - locales
+    - resolv_conf
+
+  - type: copy
+    stage: rootfs
+    output: /
+    recursive: true
