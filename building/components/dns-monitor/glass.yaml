@@ -1,0 +1,35 @@
+control:
+  name: dns-monitor
+  version: 0.1.5
+  date: 2018-01-17T17:12:00-0500
+  type: aci
+
+  set-exec: /usr/bin/dns-monitor
+
+build:
+  - type: upstream-extract
+    upstream: prometheus-%.tar.xz
+    version: 2.0.0
+    focus: prometheus-%/vendor
+    stage: go/src
+
+  - type: remove
+    stage: go/src/github.com/prometheus/client_golang
+    recursive: true
+
+  - type: upstream-extract
+    upstream: prometheus-client_golang-%.tar.xz
+    version: 0.9.0-pre1
+    focus: client_golang-%
+    stage: go/src/github.com/prometheus/client_golang
+
+  - type: go-build
+    version: 1.9.3
+    sources-input:
+      - dns-monitor.go
+    stage: dns-monitor
+    no-cgo: true
+
+  - type: copy
+    stage: dns-monitor
+    output: /usr/bin/dns-monitor
