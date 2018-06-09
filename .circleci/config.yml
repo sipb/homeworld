@@ -1,0 +1,28 @@
+version: 2
+jobs:
+  build:
+    machine:
+      image: circleci/classic:latest
+    steps:
+      - checkout
+      - run:
+          name: Install build tools
+          command: sudo apt-get update && sudo apt-get install build-essential cpio squashfs-tools debootstrap realpath
+      - run:
+          name: Import gpg key
+          command: gpg --import building/setup-apt-branch/default-key.asc
+      - run:
+          name: Pull down upstream dependencies
+          command: (cd building && ./pull-upstream.sh)
+      - run:
+          name: Verify upstream dependencies
+          command: (cd building/upstream-check && make -j2 verify)
+      - run:
+          name: Construct build chroot
+          command: HOMEWORLD_CHROOT="$HOME/autobuild-chroot" USER="circleci" ./create-chroot.sh
+      - run:
+          name: Launch build with glass
+          command: echo "glass components -b root/master" | HOMEWORLD_CHROOT="$HOME/autobuild-chroot" USER="circleci" ./enter-chroot-ci.sh
+      - run:
+          name: Display resulting binaries
+          command: find building/binaries
