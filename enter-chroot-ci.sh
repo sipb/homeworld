@@ -1,0 +1,28 @@
+#!/bin/bash
+# this script is designed for ubuntu 14.04 and other systems that don't use
+# systemd or don't have systemd-nspawn.
+
+# this script is not capable of properly tearing down the chroots that it
+# creates, and is only appropriate for use in CI environments.
+set -e -u
+
+if [ "${HOMEWORLD_CHROOT:-}" = "" -o ! -e "${HOMEWORLD_CHROOT}" ]
+then
+    echo "invalid path to chroot: ${HOMEWORLD_CHROOT:-}" 1>&2
+    echo '(have you populated $HOMEWORLD_CHROOT?)'
+    echo '(have you created a chroot?)'
+    exit 1
+fi
+
+cd "$(dirname "$0")"
+if [ -e "$HOME/.gnupg/pubring.kbx" ]
+then
+	cp "$HOME/.gnupg/pubring.kbx" "$HOMEWORLD_CHROOT/home/$USER/.gnupg/pubring.kbx"
+fi
+sudo mkdir -p "$HOMEWORLD_CHROOT/homeworld"
+sudo mount --bind "$(pwd)" "$HOMEWORLD_CHROOT/homeworld"
+sudo mount -t proc procfs "$HOMEWORLD_CHROOT/proc"
+NEWPATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+sudo chroot "$HOMEWORLD_CHROOT" su "$USER" -c "cd /h/ && PATH=$NEWPATH exec bash"
+sudo umount "$HOMEWORLD_CHROOT/proc"
+sudo umount "$HOMEWORLD_CHROOT/homeworld"
