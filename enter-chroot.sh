@@ -9,4 +9,11 @@ then
     exit 1
 fi
 
-sudo systemd-nspawn -M homeworld --bind $(pwd):/homeworld:norbind -u "$USER" -a -D "$HOMEWORLD_CHROOT" bash -c "cd /h/ && exec bash"
+ORIG_PWD="$(pwd)"
+cd "$(dirname "$0")"
+ORIG_REL="$(realpath --relative-to "$(pwd)/building" "${ORIG_PWD}")"
+if [[ "${ORIG_REL}" =~ \.\. ]]
+then
+	ORIG_REL=""
+fi
+sudo systemd-nspawn -M homeworld --bind $(pwd):/homeworld:norbind -u "$USER" -a -D "$HOMEWORLD_CHROOT" bash -c "cd /h/${ORIG_REL} && exec bash"
