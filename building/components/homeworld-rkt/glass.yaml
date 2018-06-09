@@ -1,0 +1,117 @@
+control:
+  name: homeworld-rkt
+  version: 1.29.0-3
+  date: 2018-02-17T14:46:37-0500
+  type: deb
+  depends:
+  - dbus
+  - systemd
+  - iptables
+  use-tmpfs: false
+
+  install-scripts:
+    prerm: scripts/prerm
+    postrm: scripts/postrm
+    preinst: scripts/preinst
+    postinst: scripts/postinst
+
+build:
+  - type: upstream-extract
+    upstream: rkt-%.tar.xz
+    version: 1.29.0
+    focus: rkt-%
+    stage: rkt-src
+
+  - type: bash
+    code: patch -d rkt-src -p1 <"${INPUT}/rkt.patch"
+
+  - type: bash
+    # TODO: remember why this was necessary and document it
+    code: |
+      if gcc --version | grep -q 'Debian 4.9'
+      then
+          rm rkt-src/stage1/usr_from_kvm/kernel/patches/0002-for-debian-gcc.patch
+      fi
+
+  - type: upstream-extract
+    upstream: coreos_binaries-%.tar.xz
+    version: 1478.0.0
+    focus: coreos_minimal_dir
+    stage: coreos_minimal_dir
+
+  - type: bash
+    code: |
+      mkdir coreos_ncpio
+      (cd coreos_minimal_dir && mksquashfs . ../coreos_ncpio/usr.squashfs -root-owned -noappend)
+      (cd coreos_ncpio && (echo usr.squashfs | cpio -o)) | gzip -c >rkt-src/coreos_production_pxe_image.cpio.gz
+
+  - type: upstream
+    upstream: linux-%.tar.xz
+    version: 4.14.16
+    stage: rkt-src/build-rkt-1.29.0/tmp/usr_from_kvm/kernel/linux-%.tar.xz
+
+  - type: upstream
+    upstream: qemu-%.tar.xz
+    version: 2.11.0
+    stage: rkt-src/build-rkt-1.29.0/tmp/usr_from_kvm/qemu/qemu-%.tar.xz
+
+  - type: go-prepare
+    version: 1.9.3
+    stage: goroot
+
+  - type: bash
+    code: |
+      unset GOPATH
+      export GOROOT="${STAGE}/goroot"
+      export PATH="${GOROOT}/bin:${PATH}"
+      cd rkt-src
+
+      ./autogen.sh
+
+      ./configure \
+          --disable-tpm --prefix=/usr \
+          --with-stage1-flavors=coreos,kvm \
+          --with-stage1-default-flavor=kvm \
+          --with-coreos-local-pxe-image-path=coreos_production_pxe_image.cpio.gz \
+          --with-coreos-local-pxe-image-systemd-version=v233 \
+          --with-stage1-default-images-directory=/usr/lib/rkt/stage1-images \
+          --with-stage1-default-location=/usr/lib/rkt/stage1-images/stage1-kvm.aci
+
+      make -j4
+
+  - type: copy
+    stage: rkt-src/build-rkt-1.29.0/target/bin/rkt
+    output: /usr/bin/rkt
+
+  - type: copy
+    stage: rkt-src/build-rkt-1.29.0/target/bin/stage1-coreos.aci
+    output: /usr/lib/rkt/stage1-images/stage1-coreos.aci
+
+  - type: copy
+    stage: rkt-src/build-rkt-1.29.0/target/bin/stage1-kvm.aci
+    output: /usr/lib/rkt/stage1-images/stage1-kvm.aci
+
+  - type: copy
+    stage: rkt-src/dist/init/systemd/tmpfiles.d/rkt.conf
+    output: /usr/lib/tmpfiles.d/rkt.conf
+
+  - type: copy
+    input: services
+    output: /usr/lib/systemd/
+    recursive: true
+
+  - type: copy
+    stage: rkt-src/dist/init/systemd/rkt-metadata.socket
+    output: /usr/lib/systemd/system/rkt-metadata.socket
+
+  - type: copy
+    stage: rkt-src/dist/init/systemd/rkt-metadata.service
+    output: /usr/lib/systemd/system/rkt-metadata.service
+
+  - type: copy
+    stage: rkt-src/dist/init/systemd/rkt-api.service
+    output: /usr/lib/systemd/system/rkt-api.service
+
+  - type: copy
+    stage: rkt-src/dist/init/systemd/rkt-api-tcp.socket
+    output: /usr/lib/systemd/system/rkt-api-tcp.socket
