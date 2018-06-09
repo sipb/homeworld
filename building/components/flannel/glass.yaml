@@ -1,0 +1,45 @@
+control:
+  name: flannel
+  version: 0.10.0-3
+  date: 2018-01-11T22:47:00-0500
+  type: aci
+
+  set-exec: /usr/bin/flanneld
+
+build:
+  - type: aci-unpack
+    name: debian-mini
+    version: stretch.20180529T215324Z
+    stage: rootfs
+
+  - type: debinstall
+    stage: rootfs
+    packages:
+     - iptables
+
+  - type: copy
+    stage: rootfs
+    output: /
+    recursive: true
+
+  - type: upstream-extract
+    upstream: flannel-%.tar.xz
+    version: 0.10.0
+    focus: flannel-%
+    stage: go/src/github.com/coreos/flannel
+
+  # TODO: add patch step support to glass?
+  - type: bash
+    code:
+      patch -d go/src/github.com/coreos/flannel -p1 <"${INPUT}/flannel.patch"
+
+  - type: go-build
+    version: 1.9.3
+    packages:
+     - github.com/coreos/flannel
+    ldflags: "-X github.com/coreos/flannel/version.Version=${FLANNEL_VER}"
+    stage: flanneld
+
+  - type: copy
+    stage: flanneld
+    output: /usr/bin/flanneld
