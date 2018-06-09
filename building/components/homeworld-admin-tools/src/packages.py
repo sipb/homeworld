@@ -12,7 +12,7 @@ import resource
 import util
 from version import get_apt_branch
 
-APT_REPO_BASE = "http://web.mit.edu/hyades/apt/"
+APT_REPO_BASE = "http://"
 
 
 def verify_gpg_signature(data: bytes, signature: bytes, keyring: bytes) -> bool:
