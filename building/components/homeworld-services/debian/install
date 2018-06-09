@@ -1,5 +1,0 @@
-services/*.service usr/lib/systemd/system
-services/*.timer usr/lib/systemd/system
-wrappers/*.sh usr/lib/hyades
-10-containernet.conf etc/rkt/net.d
-a1ebb6ea29a86c445a187cb9d167aca2e5fcf374 etc/rkt/trustedkeys/prefix.d/homeworld.mit.edu
