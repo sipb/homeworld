@@ -1,0 +1,56 @@
+control:
+  name: homeworld-etcd
+  version: 3.2.9-3
+  date: 2018-01-29T17:20:49-0500
+  type: deb
+
+build:
+  - type: upstream-extract
+    upstream: etcd-%.tar.xz
+    version: 3.2.9
+    focus: etcd-%
+    stage: etcd-source
+
+  - type: go-prepare
+    version: 1.9.3
+    stage: goroot
+
+  - type: bash
+    code: |
+      unset GOPATH
+      export GOROOT="${STAGE}/goroot"
+      export PATH="${GOROOT}/bin:${PATH}"
+      cd etcd-source
+      echo "launching etcd build. this may take a while..."
+      ./build
+
+  - type: acbuild
+    name: homeworld.mit.edu/etcd
+    exec: /usr/local/bin/etcd
+    copy:
+      - stage: etcd-source/bin/etcd
+        output: /usr/local/bin/etcd
+      - input: local-hosts
+        output: /etc/hosts
+    env:
+      ETCD_DATA_DIR: /var/lib/etcd
+    mounts:
+      data-dir: /var/lib/etcd
+    labels:
+      version: 3.2.9
+    ports:
+      - name: client
+        protocol: tcp
+        port: 2379
+      - name: peer
+        protocol: tcp
+        port: 2380
+    stage: etcd-linux-amd64.aci
+
+  - type: copy
+    stage: etcd-source/bin/etcdctl
+    output: /usr/bin/etcdctl
+
+  - type: copy
+    stage: etcd-linux-amd64.aci
+    output: /usr/lib/hyades/images/etcd-linux-amd64.aci
