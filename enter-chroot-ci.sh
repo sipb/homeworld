@@ -15,9 +15,10 @@ then
 fi
 
 cd "$(dirname "$0")"
-if [ -e "$HOME/.gnupg/pubring.kbx" ]
+if [ -e "$HOME/.gnupg/pubring.gpg" ]
 then
-	cp "$HOME/.gnupg/pubring.kbx" "$HOMEWORLD_CHROOT/home/$USER/.gnupg/pubring.kbx"
+	mkdir -p "$HOMEWORLD_CHROOT/home/$USER/.gnupg"
+	cp "$HOME/.gnupg/pubring.gpg" "$HOMEWORLD_CHROOT/home/$USER/.gnupg/pubring.gpg"
 fi
 sudo mkdir -p "$HOMEWORLD_CHROOT/homeworld"
 sudo mount --bind "$(pwd)" "$HOMEWORLD_CHROOT/homeworld"
