@@ -23,6 +23,7 @@ jobs:
       - run:
           name: Launch build with glass
           command: echo "glass components -b root/master" | HOMEWORLD_CHROOT="$HOME/autobuild-chroot" USER="circleci" ./enter-chroot-ci.sh
+          no_output_timeout: 3600
       - run:
           name: Display resulting binaries
           command: find building/binaries
