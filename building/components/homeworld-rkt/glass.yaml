@@ -1,6 +1,6 @@
 control:
   name: homeworld-rkt
-  version: 1.29.0-3
+  version: 1.29.0-4
   date: 2018-02-17T14:46:37-0500
   type: deb
   depends:
@@ -97,7 +97,7 @@ build:
 
   - type: copy
     input: services
-    output: /usr/lib/systemd/
+    output: /usr/lib/systemd/system/
     recursive: true
 
   - type: copy
