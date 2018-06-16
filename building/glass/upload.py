@@ -104,7 +104,7 @@ def gs_rsync(local_path: str, remote_path: str, boto_path: str):
     # TODO: do this directly rather than by shelling out
     env = dict(os.environ)
     env["BOTO_PATH"] = boto_path
-    subprocess.check_call(["gsutil", "-m", "rsync", "-d", "-r", "-c", local_path, "gs://" + remote_path], env=env)
+    subprocess.check_call(["gsutil", "-h", "Cache-Control:private, max-age=0, no-transform", "-m", "rsync", "-d", "-r", "-c", local_path, "gs://" + remote_path], env=env)
 
 
 BOTO_PATH = "/homeworld/boto-key"
