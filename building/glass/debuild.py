@@ -75,6 +75,10 @@ override_dh_auto_install:
 
         # note: this should probably use the expanded --unsigned-source, --unsigned-changes, --build=binary options,
         # but using those seems to cause the command to fail inexplicably, so they aren't being used right now.
-        subprocess.check_call(["debuild", "-us", "-uc", "-b"], cwd=builddir, stdout=subprocess.DEVNULL)
+        subp = subprocess.run(["debuild", "-us", "-uc", "-b"], cwd=builddir, stdout=subprocess.PIPE)
+        if subp.returncode:
+            print("debuild output:")
+            print("  " + subp.stdout.decode().replace("\n", "\n  "))
+            raise Exception("debuild failed with code: %d" % subp.returncode)
 
         shutil.copyfile(os.path.join(wrapdir, "%s_%s_amd64.deb" % (name, version)), output)
