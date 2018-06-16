@@ -1,6 +1,6 @@
 control:
   name: homeworld-aci-pull-monitor
-  version: 0.1.5
+  version: 0.1.6
   date: 2018-01-31T20:28:59-0500
   type: deb
   depends:
