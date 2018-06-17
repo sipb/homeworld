@@ -197,6 +197,14 @@ definitions:
             type: string
       required: ["type", "release", "version", "stage"]
       additionalProperties: false
+    # fakechroot-clean block
+    - properties:
+        type:
+          enum: ["fakechroot-clean"]
+        stage:
+          type: string
+      require: ["type", "stage"]
+      additionalProperties: false
     # debremove block
     - properties:
         type:

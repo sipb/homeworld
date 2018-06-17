@@ -230,6 +230,26 @@ def perform_debclean(context: Context, stage: str, options: list) -> None:
         debclean.DEBCLEAN_OPTIONS[opt](rootfs)
 
 
+def perform_fakechroot_clean(context: Context, stage: str) -> None:
+    """cleans up any symbolic links pointing with absolute paths to the build directory itself"""
+    project.log("fakechroot-clean", "cleaning up directory:", stage)
+    rootfs = context.stage(stage, require_existence=True)
+    for root, dirs, files in os.walk(rootfs):
+        for f in files:
+            path = os.path.join(root, f)
+            if not os.path.islink(path):
+                continue
+            full_link = os.readlink(path)
+            if not os.path.isabs(full_link):
+                continue
+            rootrel = os.path.relpath(full_link, rootfs)
+            if rootrel.split("/")[0] == "..":
+                # doesn't point within the rootfs; nothing to do
+                continue
+            os.remove(path)
+            os.symlink(os.path.join("/", rootrel), path)
+
+
 def perform_mkdir(context: Context, stage: str = None, output: str = None, recursive: bool = False) -> None:
     if stage is not None:
         assert output is None

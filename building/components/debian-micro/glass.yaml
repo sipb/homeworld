@@ -60,6 +60,9 @@ build:
     - locales
     - resolv_conf
 
+  - type: fakechroot-clean
+    stage: rootfs
+
   - type: copy
     stage: rootfs
     output: /
