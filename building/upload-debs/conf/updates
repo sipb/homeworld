@@ -1,5 +1,0 @@
-Name: homeworld
-Components: main
-Method: http://web.mit.edu/hyades/apt/root/master/
-FilterFormula: package (!= homeworld-apt-setup), package (!= homeworld-admin-tools)
-VerifyRelease: d167aca2e5fcf374
