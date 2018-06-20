@@ -1,104 +1,86 @@
 # Prerequisites
 
-	TODO: THESE INSTRUCTIONS ARE OUTDATED
+We only officially support builds on a Debian 9 (Stretch) host system.
+You can try something else, but if it breaks, you get to keep all the pieces.
 
-Install packages:
+Install the following on your host system:
 
  * build-essential
- * debhelper
+ * cpio
+ * squashfs-tools
  * debootstrap
- * sbuild
+ * realpath
  * sudo
  * systemd-container
- * ubuntu-dev-tools
+ * gpg
 
-You will need to set up a sbuild chroot:
+# Setting up
 
-    $ sudo addgroup $USER sbuild   # (then log out and back in)
-    $ mk-sbuild stretch
-    $ sudo sed 's/union-type=aufs/union-type=overlay/' -i /etc/schroot/chroot.d/sbuild-stretch-amd64
+Set up your build chroot:
 
-(See https://github.com/sipb/homeworld/issues/80 for more details.)
+    $ export HOMEWORLD_CHROOT="$HOME/homeworld-chroot"     # this can be any directory you choose
+    $ ./create-chroot.sh
 
-That will let you build everything as described here.  If you also want to be able to build spire outside of the sbuild chroot (not described here), install these packages too:
+You might consider adding the variable declaration to your ~/.bashrc.
 
- * libarchive-tools
- * python3-yaml
- * zip
+Import the default branch signing key:
 
-# Create a personal apt repository
+    $ gpg --import building/setup-apt-branch/default-key.asc
 
-Set the apt branch environment variable (you will have to do this every session):
+Pull down the upstream dependencies for Homeworld:
 
-    $ export HOMEWORLD_APT_BRANCH=<username>/<branch>
+    $ building/pull-upstream.sh
 
-Generate a new key to sign the repository with. Using a regular long-lived key here is discouraged.
+# Setting up a build branch
+
+A build branch will, first and foremost, require a Google Cloud Storage bucket to upload into.
+(Other providers are also planned for support.)
+
+You should set up your bucket to serve files with a public default ACL. TODO: explain.
+
+Put the service account's private key JSON file into the homeworld/boto-key directory.
+(That is, put the file in the root directory of the repository.)
+
+You can then use the bucket's public domain name to construct a build branch:
+
+    branch format: <domain>/<subbranch>
+    example: hyades-deploy.celskeggs.com/test3
+
+You should also generate a PGP key for your branch:
 
     $ gpg --full-gen-key
 
-Do `gpg --list-keys --keyid-format long` to find the ID of the key you have just generated. Add an entry to `signing-keys`:
+Run `gpg --list-keys --keyid-format long` to find the ID of the key you have just generated, and add an entry to `signing-keys`:
 
-    $ echo "${HOMEWORLD_APT_BRANCH} <key-id>" >> building/setup-apt-branch/signing-keys
+    $ echo "<domain>/<subbranch> <key-id>" >> building/setup-apt-branch/signing-keys
 
-If you would like to upload your binaries to your personal apt repository, you will need to copy your key into gpg2, since reprepro uses gpgme:
+# Launching a build
 
-    $ gpg --export <key-id> | gpg2 --import
+To enter the build chroot, run:
 
-To base your build on the official Homeworld branch, import its signing key:
+    $ ./enter-chroot.sh
 
-    $ gpg2 --import building/upload-debs/default-repo-signing-key.gpg
+(Do not use enter-chroot-ci.sh; it is unstable and only for use in continuous integration environments.)
 
-If you would like to base your build on a different upstream branch, update `building/upload-debs/conf/updates` with the details of that upstream branch.
+Inside the chroot, set your build branch:
 
-# Pull required libraries and images from upstream
+    # export HOMEWORLD_APT_BRANCH=<domain>/<subbranch>
 
-    $ cd building
-    $ ./pull-upstream.sh
-    $ cd ..
+For example:
 
-# Build helpers
+    # export HOMEWORLD_APT_BRANCH=hyades-deploy.celskeggs.com/test3
 
-    $ cd building/build-helpers/helper-go
-    $ ./build.sh
-    $ cd ../../..
+Note that you will need upload access to the relevant Google Cloud Storage bucket to actually upload to this URL.
 
-    $ cd building/build-helpers/helper-acbuild
-    $ ./build.sh
-    $ cd ../../..
+Then, launch the build:
 
-# Build and upload packages
+    # cd components
+    # glass
 
-    $ cd building/build-debs
-    $ ./build-all.sh
-    $ cd ../..
+This will automatically run all of the required build steps.
 
-To upload packages, ONLY IF YOU ARE SUPPOSED TO RELEASE YOUR CHANGES:
+If you want to upload after the build completes, use the `--upload` option:
 
-    $ cd building/upload-debs
-        # Note that you will need Kerberos tickets
-        # (generate them with kinit) to access AFS.
-    $ aklog sipb    # authenticate to the SIPB AFS cell, if necessary
-    $ ./rebuild.sh
-    $ cd ../..
+    # glass --upload
 
-# Build containers
-
-Install rkt from package (used in development environment for running builder containers):
-
-    $ dpkg -i building/build-debs/binaries/homeworld-rkt_<newest>.deb
-    $ apt install -f    # if needed to resolve dependencies
-
-To build containers:
-
-    $ cd building/build-acis
-    $ ./build-all.sh
-    $ cd ../..
-
-To upload containers, ONLY IF YOU ARE SUPPOSED TO RELEASE YOUR CHANGES:
-
-    $ cd building/upload-acis
-        # Note that you will need Kerberos tickets
-        # (generate them with kinit) to access AFS.
-    $ aklog sipb    # authenticate to the SIPB AFS cell, if necessary
-    $ ./rebuild.sh
-    $ cd ../..
+Congratulations! You are ready to deploy your very own Homeworld cluster.
