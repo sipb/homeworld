@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e -u
-# git clone git@github.com:sipb/homeworld-upstream.git
+cd "$(dirname "$0")"
+
 if [ -e "upstream" ]
 then
 	(cd upstream && git pull)

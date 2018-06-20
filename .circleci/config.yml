@@ -13,7 +13,7 @@ jobs:
           command: gpg --import building/setup-apt-branch/default-key.asc
       - run:
           name: Pull down upstream dependencies
-          command: (cd building && ./pull-upstream.sh)
+          command: building/pull-upstream.sh
       - run:
           name: Construct build chroot
           command: HOMEWORLD_CHROOT="$HOME/autobuild-chroot" USER="circleci" ./create-chroot.sh
