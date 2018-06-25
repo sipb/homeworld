@@ -1,0 +1,84 @@
+control:
+  name: installer
+  version: 0.1.0
+  date: 2018-06-21T19:08:00-0700
+  type: iso
+  use-tmpfs: false
+
+  boot-bin: boot/isolinux.bin
+  boot-cat: boot/boot.cat
+
+build:
+# ** prepare rootfs for installation **
+
+  - type: aci-unpack
+    name: debian
+    version: stretch.20180529T215324Z
+    stage: rootfs
+
+  - type: copy
+    input: install/adjtime
+    stage: rootfs/etc/adjtime
+
+  - type: copy
+    input: install/fstab
+    stage: rootfs/etc/fstab
+
+  - type: copy
+    input: install/interfaces
+    stage: rootfs/etc/network/interfaces
+
+  - type: copy
+    input: install/timezone
+    stage: rootfs/etc/timezone
+
+  - type: bash
+    code: fakeroot fakechroot chroot rootfs /bin/bash -c "echo 'grub-pc grub-pc/install_devices_empty select true' | debconf-set-selections"
+
+  - type: debinstall
+    stage: rootfs
+    packages:
+     - initramfs-tools
+     - fakeroot
+     - fakechroot
+     - linux-image-amd64
+     - grub-pc
+
+  - type: bash
+    code: |
+      # todo: makedev
+      rm rootfs/etc/localtime
+      ln -s /usr/share/zoneinfo/America/New_York rootfs/etc/localtime
+
+  - type: bash
+    code: |
+      cd rootfs
+      tar -czf "${OUTPUT}/disk.tgz" *
+
+# ** prepare ISO rootfs **
+
+  - type: bash
+    code: |
+      ${INPUT}/iso/build.sh isoroot rootfs
+
+  - type: bash
+    code: |
+      mkdir ${OUTPUT}/boot
+      mv isoroot/vmlinuz ${OUTPUT}/boot/vmlinuz
+
+  - type: bash
+    code: |
+      (cd isoroot && find . | cpio -R root:root -H newc -o) | gzip >${OUTPUT}/boot/rootfs.gz
+
+  - type: copy
+    input: iso/isolinux.cfg
+    output: isolinux.cfg
+
+  - type: bash
+    code: |
+      cp /usr/lib/ISOLINUX/isolinux.bin ${OUTPUT}/boot/isolinux.bin
+      cp /usr/lib/syslinux/modules/bios/ldlinux.c32 ${OUTPUT}/ldlinux.c32
+
+  - type: copy
+    input: sysconf.sh
+    output: sysconf.sh

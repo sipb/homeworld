@@ -342,3 +342,16 @@ def final_aci(context: Context, control: dict) -> None:
 def final_tgz(context: Context, control: dict):
     project.log("tar", "creating", context.project.pkgbase, "version", context.project.full_version)
     subprocess.check_call(["tar", "-C", context.outputdir, "-czf", context.project.get_output_path(context.branch), "--"] + os.listdir(context.outputdir))
+
+
+def final_iso(context: Context, control: dict):
+    project.log("iso", "creating", context.project.pkgbase, "version", context.project.full_version)
+
+    params = ["xorriso", "-as", "mkisofs"]
+    params += ["-o", context.project.get_output_path(context.branch)]
+    if "boot-bin" in control:
+        params += ["-b", control["boot-bin"]]
+    if "boot-cat" in control:
+        params += ["-c", control["boot-cat"]]
+    params += ["-no-emul-boot", "-boot-load-size", "4", "-boot-info-table", "."]
+    subprocess.check_call(params, cwd=context.outputdir)

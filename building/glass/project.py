@@ -63,6 +63,8 @@ class Project:
             return aci_name(self.pkgbase, self.full_version)
         elif self.build_type == "tgz":
             return "%s-%s.tgz" % (self.pkgbase, self.full_version)
+        elif self.build_type == "iso":
+            return "%s-%s.iso" % (self.pkgbase, self.full_version)
         else:
             raise Exception("cannot get package name for unknown build type: %s" % self.build_type)
 
