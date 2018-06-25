@@ -2,13 +2,20 @@
 set -e -u
 KERNEL=4.9.0-6-amd64
 
-MODULES=(scsi_mod libata ata_piix cdrom sr_mod isofs)
+# cdrom drivers
+MODULES=(scsi_mod libata ata_piix cdrom sr_mod)
+# iso9660 driver
+MODULES+=(isofs)
+# disk drivers
+MODULES+=(virtio virtio_ring virtio_pci virtio_blk)
+# ext4 drivers
+MODULES+=(mbcache fscrypto jbd2 crc16 crc32c-intel ext4)
 
 SRC="$(dirname "$0")"
 OUT="$1"
 ROOTIN="$2"
 mkdir "${OUT}"
-(cd "${OUT}" && mkdir proc dev etc sys bin mod mnt cdrom)
+(cd "${OUT}" && mkdir proc dev etc sys bin mod mnt cdrom lib)
 
 # TODO: busybox needs to be checked to be statically linked
 cp /bin/busybox "${OUT}/bin/busybox"
@@ -29,5 +36,7 @@ do
 	cp "$FOUND" "${OUT}/mod"
 	echo "insmod /mod/${module}.ko" >>"${OUT}/etc/module-load"
 done
-# cp -R "/lib/modules/${KERNEL}" "${OUT}/lib/modules/"
-cp "${ROOTIN}/boot/vmlinuz-${KERNEL}" "${OUT}/vmlinuz"  # will be deleted later, before packing
+
+# these will be deleted later, before packing
+cp -R "${ROOTIN}/lib/modules/${KERNEL}" "${OUT}/lib/modules/"
+cp "${ROOTIN}/boot/vmlinuz-${KERNEL}" "${OUT}/vmlinuz"

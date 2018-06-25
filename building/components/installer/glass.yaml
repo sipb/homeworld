@@ -8,6 +8,12 @@ control:
   boot-bin: boot/isolinux.bin
   boot-cat: boot/boot.cat
 
+# TODO:
+#   configurable password
+#   tasksel: ssh-server
+#   more packages: string openssl curl ca-certificates krb5-user less
+#   run: /postinstall.sh {{BUILDDATE}} {{GITHASH}}
+
 build:
 # ** prepare rootfs for installation **
 
@@ -43,6 +49,16 @@ build:
      - fakechroot
      - linux-image-amd64
      - grub-pc
+     - systemd
+     - systemd-sysv
+     - dbus
+     - libpam-systemd
+     - systemd-container
+     - policykit-1
+     - ifupdown
+
+  - type: fakechroot-clean
+    stage: rootfs
 
   - type: bash
     code: |
@@ -52,8 +68,10 @@ build:
 
   - type: bash
     code: |
-      cd rootfs
-      tar -czf "${OUTPUT}/disk.tgz" *
+      dd if=/dev/zero of=disk.img bs=1024 count=1M
+      mkfs.ext4 disk.img -d rootfs
+      gzip disk.img
+      mv disk.img.gz ${OUTPUT}/disk.img.gz
 
 # ** prepare ISO rootfs **
 
@@ -63,8 +81,11 @@ build:
 
   - type: bash
     code: |
-      mkdir ${OUTPUT}/boot
+      mkdir ${OUTPUT}/boot ${OUTPUT}/lib
       mv isoroot/vmlinuz ${OUTPUT}/boot/vmlinuz
+      mv isoroot/lib/modules ${OUTPUT}/lib/modules
+      rmdir isoroot/lib
+      ln -s /cdrom/lib isoroot/lib
 
   - type: bash
     code: |

@@ -1,5 +1,5 @@
 ::sysinit:/etc/rc
-::askfirst:/bin/sh
+::askfirst:/bin/sh -c 'cd /cdrom && ./sysconf.sh; /bin/sh'
 ::ctrlaltdel:/sbin/reboot
 ::shutdown:/bin/umount -a -r
 ::restart:/bin/init
