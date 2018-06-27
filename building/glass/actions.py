@@ -6,6 +6,7 @@ import acbuild
 import actions  # yes, importing itself!
 import aptbranch
 import debclean
+import deblocal
 import debuild
 import gobuild
 import project
@@ -204,18 +205,32 @@ def perform_debremove(context: Context, packages: list, stage: str, force_remove
     subprocess.check_call(args)
 
 
-def perform_debinstall(context: Context, packages: list, stage: str):
+def perform_debinstall(context: Context, stage: str, packages: list = [], local_packages: list = []):
     # TODO: move as many checks as possible into schema validation
-    if not packages:
+    if not packages and not local_packages:
         raise Exception("expected at least one package to be specified for debinstall")
-    project.log("debinstall", "installing", len(packages), "debian packages")
+    project.log("debinstall", "installing", len(packages) + len(local_packages), "debian packages")
 
     rootfs = context.stage(stage, require_existence=True)
+
     chroot_base = ["fakeroot", "fakechroot", "chroot", rootfs]
+    if local_packages:
+        tdir = os.path.join(rootfs, "temp-install-dir")
+        if not os.path.isdir(tdir):
+            os.mkdir(tdir)
+        # TODO: allow automatic resolution of dependencies inside local binaries directory
+        for package in local_packages:
+            resolved = deblocal.resolve_package(package, context.branch)
+            new_path = os.path.join(tdir, os.path.basename(resolved))
+            shutil.copy(resolved, new_path)
+            packages.append(os.path.join("/", os.path.relpath(new_path, rootfs)))
 
     subprocess.check_call(chroot_base + ["apt-get", "update"])
     subprocess.check_call(chroot_base + ["apt-get", "install", "-y", "--"] + packages)
     debclean.clean_apt_files(rootfs)
+
+    if local_packages:
+        shutil.rmtree(tdir)
 
 
 def perform_debclean(context: Context, stage: str, options: list) -> None:

@@ -11,4 +11,7 @@ stages:
     build: false
 
   # excludes folders like .idea
-  - pattern: "[^.].*"
+  # TODO: have a cleaner way to defer installer
+  - pattern: "(?!installer)[^.].*"
+
+  - pattern: installer

@@ -235,9 +235,13 @@ definitions:
           type: array
           items:
             type: string
+        local-packages:
+          type: array
+          items:
+            type: string
         stage:
           type: string
-      required: ["type", "packages", "stage"]
+      required: ["type", "stage"]
       additionalProperties: false
     # debclean
     - properties:

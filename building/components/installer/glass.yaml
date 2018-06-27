@@ -2,17 +2,8 @@ control:
   name: installer
   version: 0.1.0
   date: 2018-06-21T19:08:00-0700
-  type: iso
+  type: tgz
   use-tmpfs: false
-
-  boot-bin: boot/isolinux.bin
-  boot-cat: boot/boot.cat
-
-# TODO:
-#   configurable password
-#   tasksel: ssh-server
-#   more packages: string openssl curl ca-certificates krb5-user less
-#   run: /postinstall.sh {{BUILDDATE}} {{GITHASH}}
 
 build:
 # ** prepare rootfs for installation **
@@ -39,7 +30,11 @@ build:
     stage: rootfs/etc/timezone
 
   - type: bash
-    code: fakeroot fakechroot chroot rootfs /bin/bash -c "echo 'grub-pc grub-pc/install_devices_empty select true' | debconf-set-selections"
+    code: |
+      (
+        echo 'grub-pc grub-pc/install_devices_empty select true'
+        echo 'krb5-config krb5-config/default_realm string ATHENA.MIT.EDU'
+      ) | fakeroot fakechroot chroot rootfs /bin/bash -c debconf-set-selections
 
   - type: debinstall
     stage: rootfs
@@ -56,20 +51,50 @@ build:
      - systemd-container
      - policykit-1
      - ifupdown
+     - openssh-server
+     - openssl
+     - curl
+     - ca-certificates
+     - krb5-user
+     - less
+     - nano
+     - htop
+    local-packages:
+     - homeworld-apt-setup
+     - homeworld-knc
+     - homeworld-rkt
+     - homeworld-etcd
+     - homeworld-hyperkube
+     - homeworld-etcd-metrics-exporter
+     - homeworld-aci-pull-monitor
+     - homeworld-keysystem
+     - homeworld-prometheus-node-exporter
+     - homeworld-services
+     - homeworld-bootstrap-registry
+     - homeworld-prometheus
+     - homeworld-auth-monitor
+
+  # TODO: make sure that openssh keys aren't generated globally
+
+  - type: bash
+    code: fakeroot fakechroot chroot rootfs /bin/bash -c "systemctl mask nginx.service && systemctl enable keyclient.service prometheus-node-exporter.service rkt-gc.timer homeworld-autostart.service update-keyclient-config.service"
 
   - type: fakechroot-clean
     stage: rootfs
 
+  - type: copy
+    input: install/sshd_config
+    stage: rootfs/etc/ssh/sshd_config
+
   - type: bash
     code: |
-      # todo: makedev
       rm rootfs/etc/localtime
       ln -s /usr/share/zoneinfo/America/New_York rootfs/etc/localtime
 
   - type: bash
     code: |
-      dd if=/dev/zero of=disk.img bs=1024 count=1M
-      mkfs.ext4 disk.img -d rootfs
+      dd if=/dev/zero of=disk.img bs=1024 count=2M
+      fakeroot mkfs.ext4 disk.img -d rootfs
       gzip disk.img
       mv disk.img.gz ${OUTPUT}/disk.img.gz
 
@@ -103,3 +128,7 @@ build:
   - type: copy
     input: sysconf.sh
     output: sysconf.sh
+
+  - type: copy
+    input: finalize.sh
+    output: finalize.sh

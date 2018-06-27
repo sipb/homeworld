@@ -165,15 +165,12 @@ def update_keygateway(ops: Operations) -> None:
     modify_keygateway(ops, True)
 
 
-def setup_supervisor_ssh(ops: Operations) -> None:
+def revoke_direct_ssh(ops: Operations) -> None:
     config = configuration.get_config()
     for node in config.nodes:
         if node.kind != "supervisor":
             continue
-        ssh_config = resource.get_resource("sshd_config")
-        ops.ssh_upload_bytes("upload new ssh configuration to @HOST", node, ssh_config, "/etc/ssh/sshd_config")
-        ops.ssh("reload ssh configuration on @HOST", node, "systemctl", "restart", "ssh")
-        ops.ssh_raw("shift aside old authorized_keys on @HOST", node,
+        ops.ssh_raw("revoke old authorized_keys on @HOST", node,
                 "if [ -f /root/.ssh/authorized_keys ]; then " +
                 "mv /root/.ssh/authorized_keys " +
                 "/root/original_authorized_keys; fi")
@@ -248,7 +245,7 @@ main_command = command.mux_map("commands about setting up a cluster", {
     "self-admit": wrapop("admit the keyserver into the cluster during bootstrapping", admit_keyserver),
     "keygateway": wrapop("deploy keytab and start keygateway", setup_keygateway),
     "update-keygateway": wrapop("update keytab and restart keygateway", update_keygateway),
-    "supervisor-ssh": wrapop("configure supervisor SSH access", setup_supervisor_ssh),
+    "revoke-bootstrap-ssh": wrapop("revoke direct/bootstrap supervisor SSH access", revoke_direct_ssh),
     "dns-bootstrap": wrapop("switch cluster nodes into 'bootstrapped DNS' mode", setup_dns_bootstrap),
     "stop-dns-bootstrap": wrapop("switch cluster nodes out of 'bootstrapped DNS' mode", teardown_dns_bootstrap),
     "bootstrap-registry": wrapop("bring up the bootstrap container registry on the supervisor nodes", setup_bootstrap_registry),

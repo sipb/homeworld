@@ -1,17 +1,25 @@
 #!/bin/sh
 set -e -u
 
-# TODO: autodetect??
+# TODO: autodetect some settings??
 DEST_DEVICE=/dev/vda
-HOSTNAME=egg-sandwich
-DNS_SERVERS="18.70.0.160 18.71.0.151 18.72.0.3"
 INTERFACE=ens3
-ADDRESS=18.4.60.150/23
-GATEWAY=18.4.60.1
-ROOT=password
+source /cdrom/settings
 
 PART=1
 DEST_PART="${DEST_DEVICE}${PART}"
+
+is_invalid_token () {
+    TOKEN="${1%??}"
+    TOKEN_PROVIDED_HASH=$(echo -n $1 | tail -c 2)
+    TOKEN_ACTUAL_HASH=$(echo -n "$TOKEN" | /mnt/usr/bin/openssl dgst -sha256 -binary | /mnt/usr/bin/base64 | cut -c -2)
+
+    if [ "$TOKEN_PROVIDED_HASH" != "$TOKEN_ACTUAL_HASH" ]; then
+        return 0
+    fi
+
+    return 1
+}
 
 dd if=/dev/zero of="$DEST_DEVICE" count=1024
 echo "n p 1   w" | tr " " "\n" | fdisk "$DEST_DEVICE"
@@ -22,25 +30,54 @@ mkdir -p /mnt
 mount -t ext4 "$DEST_PART" /mnt
 
 echo "${DEST_PART} / ext4 errors=remount-ro 0 1" >>/mnt/etc/fstab
-echo "$HOSTNAME" >/mnt/etc/hostname
 
 for server in ${DNS_SERVERS}
 do
-	echo "nameserver $server"
+    echo "nameserver $server"
 done >/mnt/etc/resolv.conf
 
-cat >>/mnt/etc/network/interfaces <<EOF
-auto ${INTERFACE}
-iface ${INTERFACE} inet static
-	address ${ADDRESS}
-	gateway ${GATEWAY}
-EOF
-
+mkdir -p /mnt/etc/homeworld/keyclient /mnt/etc/homeworld/config
+cp /cdrom/keyservertls.pem /mnt/etc/homeworld/keyclient/keyservertls.pem
+cp /cdrom/keyclient-*.yaml /mnt/etc/homeworld/config/
+cp /cdrom/keyclient-base.yaml /mnt/etc/homeworld/config/keyclient.yaml
+cat /cdrom/dns_bootstrap_lines >>/mnt/etc/hosts
 
 mount --bind /dev /mnt/dev
 mount -t proc proc /mnt/proc
 mount -t sysfs none /mnt/sys
-chroot /mnt /bin/bash -c "echo 'root:${ROOT}' | chpasswd && resize2fs '$DEST_PART' && grub-install '$DEST_DEVICE' && update-grub"
+echo "ISO used to install this node generated at: ${BUILDDATE}" >>/mnt/etc/issue
+echo "Git commit used to build the version: ${GIT_HASH}" >>/mnt/etc/issue
+echo "SSH host key fingerprints: (as of install)" >>/mnt/etc/issue
+chroot /mnt /bin/bash -c "(echo 'root:${PASSWORD}' | chpasswd) && resize2fs '$DEST_PART' && (for x in /etc/ssh/ssh_host_*.pub; do ssh-keygen -l -f \$x; ssh-keygen -l -E md5 -f \$x; done) >>/etc/issue"
+echo >>/mnt/etc/issue
+
+read -p 'hostname> ' HOSTNAME
+echo "address format: ${ADDRESS_PREFIX}<address infix>${ADDRESS_SUFFIX}"
+read -p 'address infix> ' ADDRESS
+read -p 'bootstrap-token> ' BTOKEN
+while [ "$BTOKEN" != "manual" ] && is_invalid_token "$BTOKEN"; do
+    echo "token did not pass checksum test"
+    read -p 'bootstrap-token> ' BTOKEN
+done
+
+echo "$HOSTNAME" >/mnt/etc/hostname
+
+cat >>/mnt/etc/network/interfaces <<EOF
+auto ${INTERFACE}
+iface ${INTERFACE} inet static
+	address ${ADDRESS_PREFIX}${ADDRESS}${ADDRESS_SUFFIX}
+	gateway ${GATEWAY}
+EOF
+
+if [ "$BTOKEN" = "manual" ]
+then
+    mkdir -p /mnt/root/.ssh/
+    cp /authorized.pub /mnt/root/.ssh/authorized_keys
+else
+    echo "$RET" > /mnt/etc/homeworld/keyclient/bootstrap.token
+fi
+
+chroot /mnt /bin/bash -c "grub-install '$DEST_DEVICE' && update-grub"
 umount /mnt/sys
 umount /mnt/proc
 umount /mnt/dev
