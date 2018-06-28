@@ -66,6 +66,7 @@ def gen_iso(iso_image, authorized_key, image_input):
             "GATEWAY": "18.4.60.1",
             "PASSWORD": generated_password.decode(),  # TODO: use util.mkpasswd(generated_password) instead
             "BUILDDATE": creation_time,
+            "DOMAIN": "mit.edu",
             "GIT_HASH": git_hash.decode(),
         }
         settings_text = "".join('%s="%s"\n' % (k, v.replace('"', '"\'"\'"')) for k, v in settings.items())

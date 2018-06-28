@@ -9,18 +9,6 @@ source /cdrom/settings
 PART=1
 DEST_PART="${DEST_DEVICE}${PART}"
 
-is_invalid_token () {
-    TOKEN="${1%??}"
-    TOKEN_PROVIDED_HASH=$(echo -n $1 | tail -c 2)
-    TOKEN_ACTUAL_HASH=$(echo -n "$TOKEN" | /mnt/usr/bin/openssl dgst -sha256 -binary | /mnt/usr/bin/base64 | cut -c -2)
-
-    if [ "$TOKEN_PROVIDED_HASH" != "$TOKEN_ACTUAL_HASH" ]; then
-        return 0
-    fi
-
-    return 1
-}
-
 dd if=/dev/zero of="$DEST_DEVICE" count=1024
 echo "n p 1   w" | tr " " "\n" | fdisk "$DEST_DEVICE"
 echo "writing image..."
@@ -55,12 +43,13 @@ read -p 'hostname> ' HOSTNAME
 echo "address format: ${ADDRESS_PREFIX}<address infix>${ADDRESS_SUFFIX}"
 read -p 'address infix> ' ADDRESS
 read -p 'bootstrap-token> ' BTOKEN
-while [ "$BTOKEN" != "manual" ] && is_invalid_token "$BTOKEN"; do
+while [ "$BTOKEN" != "manual" ] && ! chroot /mnt /usr/local/bin/check-token.sh "$BTOKEN"; do
     echo "token did not pass checksum test"
     read -p 'bootstrap-token> ' BTOKEN
 done
 
 echo "$HOSTNAME" >/mnt/etc/hostname
+echo "${ADDRESS_PREFIX}${ADDRESS}${ADDRESS_SUFFIX} ${HOSTNAME}.${DOMAIN}" >>/mnt/etc/hosts
 
 cat >>/mnt/etc/network/interfaces <<EOF
 auto ${INTERFACE}
@@ -72,9 +61,9 @@ EOF
 if [ "$BTOKEN" = "manual" ]
 then
     mkdir -p /mnt/root/.ssh/
-    cp /authorized.pub /mnt/root/.ssh/authorized_keys
+    cp /cdrom/authorized.pub /mnt/root/.ssh/authorized_keys
 else
-    echo "$RET" > /mnt/etc/homeworld/keyclient/bootstrap.token
+    echo "$BTOKEN" > /mnt/etc/homeworld/keyclient/bootstrap.token
 fi
 
 chroot /mnt /bin/bash -c "grub-install '$DEST_DEVICE' && update-grub"

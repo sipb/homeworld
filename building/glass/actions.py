@@ -250,7 +250,7 @@ def perform_fakechroot_clean(context: Context, stage: str) -> None:
     project.log("fakechroot-clean", "cleaning up directory:", stage)
     rootfs = context.stage(stage, require_existence=True)
     for root, dirs, files in os.walk(rootfs):
-        for f in files:
+        for f in files + dirs:
             path = os.path.join(root, f)
             if not os.path.islink(path):
                 continue

@@ -29,6 +29,14 @@ build:
     input: install/timezone
     stage: rootfs/etc/timezone
 
+  - type: copy
+    input: install/hosts
+    stage: rootfs/etc/hosts
+
+  - type: copy
+    input: install/check-token.sh
+    stage: rootfs/usr/local/bin/check-token.sh
+
   - type: bash
     code: |
       (
@@ -79,9 +87,6 @@ build:
   - type: bash
     code: fakeroot fakechroot chroot rootfs /bin/bash -c "systemctl mask nginx.service && systemctl enable keyclient.service prometheus-node-exporter.service rkt-gc.timer homeworld-autostart.service update-keyclient-config.service"
 
-  - type: fakechroot-clean
-    stage: rootfs
-
   - type: copy
     input: install/sshd_config
     stage: rootfs/etc/ssh/sshd_config
@@ -90,6 +95,9 @@ build:
     code: |
       rm rootfs/etc/localtime
       ln -s /usr/share/zoneinfo/America/New_York rootfs/etc/localtime
+
+  - type: fakechroot-clean
+    stage: rootfs
 
   - type: bash
     code: |

@@ -29,7 +29,7 @@ build-essential
 bzip2, ca-certificates, curl, gzip, less, sudo
 
 # glass
-python3-jsonschema, reprepro, python3-apt
+python3-jsonschema, reprepro, python3-apt, python-wheel
 
 # uploading
 python-pip, python-setuptools
