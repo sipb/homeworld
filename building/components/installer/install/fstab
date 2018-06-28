@@ -1,0 +1,2 @@
+# <file system> <mount point>   <type>  <options>         <dump>  <pass>
+# (populated by sysconf.sh)

@@ -6,6 +6,7 @@ import acbuild
 import actions  # yes, importing itself!
 import aptbranch
 import debclean
+import deblocal
 import debuild
 import gobuild
 import project
@@ -204,18 +205,32 @@ def perform_debremove(context: Context, packages: list, stage: str, force_remove
     subprocess.check_call(args)
 
 
-def perform_debinstall(context: Context, packages: list, stage: str):
+def perform_debinstall(context: Context, stage: str, packages: list = [], local_packages: list = []):
     # TODO: move as many checks as possible into schema validation
-    if not packages:
+    if not packages and not local_packages:
         raise Exception("expected at least one package to be specified for debinstall")
-    project.log("debinstall", "installing", len(packages), "debian packages")
+    project.log("debinstall", "installing", len(packages) + len(local_packages), "debian packages")
 
     rootfs = context.stage(stage, require_existence=True)
+
     chroot_base = ["fakeroot", "fakechroot", "chroot", rootfs]
+    if local_packages:
+        tdir = os.path.join(rootfs, "temp-install-dir")
+        if not os.path.isdir(tdir):
+            os.mkdir(tdir)
+        # TODO: allow automatic resolution of dependencies inside local binaries directory
+        for package in local_packages:
+            resolved = deblocal.resolve_package(package, context.branch)
+            new_path = os.path.join(tdir, os.path.basename(resolved))
+            shutil.copy(resolved, new_path)
+            packages.append(os.path.join("/", os.path.relpath(new_path, rootfs)))
 
     subprocess.check_call(chroot_base + ["apt-get", "update"])
     subprocess.check_call(chroot_base + ["apt-get", "install", "-y", "--"] + packages)
     debclean.clean_apt_files(rootfs)
+
+    if local_packages:
+        shutil.rmtree(tdir)
 
 
 def perform_debclean(context: Context, stage: str, options: list) -> None:
@@ -235,7 +250,7 @@ def perform_fakechroot_clean(context: Context, stage: str) -> None:
     project.log("fakechroot-clean", "cleaning up directory:", stage)
     rootfs = context.stage(stage, require_existence=True)
     for root, dirs, files in os.walk(rootfs):
-        for f in files:
+        for f in files + dirs:
             path = os.path.join(root, f)
             if not os.path.islink(path):
                 continue
@@ -342,3 +357,16 @@ def final_aci(context: Context, control: dict) -> None:
 def final_tgz(context: Context, control: dict):
     project.log("tar", "creating", context.project.pkgbase, "version", context.project.full_version)
     subprocess.check_call(["tar", "-C", context.outputdir, "-czf", context.project.get_output_path(context.branch), "--"] + os.listdir(context.outputdir))
+
+
+def final_iso(context: Context, control: dict):
+    project.log("iso", "creating", context.project.pkgbase, "version", context.project.full_version)
+
+    params = ["xorriso", "-as", "mkisofs"]
+    params += ["-o", context.project.get_output_path(context.branch)]
+    if "boot-bin" in control:
+        params += ["-b", control["boot-bin"]]
+    if "boot-cat" in control:
+        params += ["-c", control["boot-cat"]]
+    params += ["-no-emul-boot", "-boot-load-size", "4", "-boot-info-table", "."]
+    subprocess.check_call(params, cwd=context.outputdir)

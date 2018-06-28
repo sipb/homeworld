@@ -1,0 +1,8 @@
+::sysinit:/etc/rc
+::askfirst:/bin/sh -c 'cd /cdrom && ./sysconf.sh; /bin/sh'
+::ctrlaltdel:/sbin/reboot
+::shutdown:/bin/umount -a -r
+::restart:/bin/init
+tty2::askfirst:/bin/sh
+tty3::askfirst:/bin/sh
+tty4::askfirst:/bin/sh

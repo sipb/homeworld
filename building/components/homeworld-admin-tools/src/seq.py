@@ -19,7 +19,7 @@ def sequence_keysystem(ops: setup.Operations) -> None:
 
 def sequence_ssh(ops: setup.Operations) -> None:
     ops.add_operation("request SSH access to cluster", access.access_ssh_with_add)
-    ops.add_subcommand(setup.setup_supervisor_ssh)
+    ops.add_subcommand(setup.revoke_direct_ssh)
     ops.add_operation("verify ssh access to supervisor", iterative_verifier(verify.check_ssh_with_certs, 20.0))
 
 
