@@ -39,3 +39,6 @@ psmisc
 
 # images
 isolinux, syslinux, xorriso, busybox-static
+
+# screen
+screen, ncurses-term
