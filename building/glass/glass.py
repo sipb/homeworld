@@ -30,6 +30,8 @@ if args.branch is None:
     print("There is no current default upload location available.")
     raise Exception("no apt branch specified")
 
+branch_config = aptbranch.Config(args.branch)
+
 if not args.upload_only:
     projects = [os.path.abspath(project) for project in args.projects or ["."]]
 
@@ -43,16 +45,16 @@ if not args.upload_only:
     if args.clean or args.rebuild:
         any = False
         for p in projects:
-            any |= p.clean(args.branch)
+            any |= p.clean(branch_config)
         if args.clean and not any:
             print(" ** nothing to clean")
 
     if not args.clean:
         for p in projects:
-            p.run(args.branch, debug=args.debug)
+            p.run(branch_config, debug=args.debug)
 else:
     print(" ** skipping any building")
     os.chdir("/")
 
 if args.upload or args.upload_only:
-    upload.upload(project.get_bindir(args.branch), args.branch)
+    upload.upload(project.get_bindir(branch_config.name), branch_config)

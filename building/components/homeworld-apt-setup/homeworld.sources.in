@@ -1,5 +1,5 @@
 Types: deb
-URIs: http://{APT_BRANCH}/
+URIs: http://{APT_URL}/
 Suites: homeworld
 Architectures: amd64
 Components: main

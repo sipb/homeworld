@@ -41,7 +41,7 @@ build:
 
   - type: python
     stage: src/resources/homeworld-archive-keyring.gpg
-    code: return aptbranch.export_key(aptbranch.get_signing_key(context.branch))
+    code: return aptbranch.export_key(context.branch_config.signing_key)
 
   - type: python
     stage: src/resources/DEB_VERSION

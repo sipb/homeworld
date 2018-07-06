@@ -29,10 +29,11 @@ import project
 branch_regex = re.compile("[a-z0-9-]+[.][a-z0-9.-]+/[a-z0-9-]+")
 
 
-def upload(bindir: str, branch: str) -> None:
+def upload(bindir: str, branch_config: aptbranch.Config) -> None:
+    branch = branch_config.name
     if not branch_regex.match(branch):
         raise Exception("not an uploadable branch: %s" % branch)
-    keyid = aptbranch.get_signing_key(branch)
+    keyid = branch_config.signing_key
 
     files = os.listdir(bindir)
 

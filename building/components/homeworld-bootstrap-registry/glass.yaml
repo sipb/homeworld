@@ -17,8 +17,8 @@ build:
   - type: python
     input: index.html.in
     output: /usr/lib/hyades/registry/index.html
-    code: return input.format(APT_BRANCH=context.branch)
+    code: return input.format(APT_URL=context.branch_config.apt_url)
 
   - type: python
     output: /usr/lib/hyades/registry/pubkey.asc
-    code: return aptbranch.export_key(aptbranch.get_signing_key(context.branch), armor=True)
+    code: return aptbranch.export_key(context.branch_config.signing_key, armor=True)

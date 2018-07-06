@@ -25,7 +25,7 @@ You might consider adding the variable declaration to your ~/.bashrc.
 
 Import the default branch signing key:
 
-    $ gpg --import building/setup-apt-branch/default-key.asc
+    $ gpg --import building/apt-branch-config/default-key.asc
 
 Pull down the upstream dependencies for Homeworld:
 
@@ -50,9 +50,11 @@ You should also generate a PGP key for your branch:
 
     $ gpg --full-gen-key
 
-Run `gpg --list-keys --keyid-format long` to find the ID of the key you have just generated, and add an entry to `signing-keys`:
+Create the branches config:
 
-    $ echo "<domain>/<subbranch> <key-id>" >> building/setup-apt-branch/signing-keys
+    $ (cd building/apt-branch-config && cp branches.yaml.example branches.yaml)
+
+Run `gpg --list-keys --keyid-format long` to find the ID of the key you have just generated, and add it to `branches.yaml`.
 
 # Launching a build
 

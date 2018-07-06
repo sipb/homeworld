@@ -2,7 +2,7 @@
 <html>
 <head>
 <title>Homeworld Container Registry</title>
-<meta name="ac-discovery" content="homeworld.mit.edu http://{APT_BRANCH}/aci/{{name}}-{{version}}-{{os}}-{{arch}}.{{ext}}">
+<meta name="ac-discovery" content="homeworld.mit.edu http://{APT_URL}/aci/{{name}}-{{version}}-{{os}}-{{arch}}.{{ext}}">
 <meta name="ac-discovery-pubkeys" content="homeworld.mit.edu https://homeworld.mit.edu/pubkey.asc">
 </head>
 <body>

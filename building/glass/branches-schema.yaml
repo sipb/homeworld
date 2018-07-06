@@ -1,0 +1,21 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+title: BranchesConfig
+type: object
+properties:
+  branches:
+    type: array
+    items:
+      type: object
+      properties:
+        name:
+          type: string
+          pattern: "^[0-9a-zA-Z_.-]+/[0-9a-zA-Z_.-]+$"
+        signing-key:
+          type: string
+          pattern: "^[a-fA-F0-9]+$"
+        apt-url-prefix:
+          type: string
+      required: ["name", "signing-key"]
+      additionalProperties: false
+required: ["branches"]
+additionalProperties: false

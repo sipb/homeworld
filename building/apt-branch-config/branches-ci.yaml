@@ -1,0 +1,3 @@
+branches:
+  - name: root/master
+    signing-key: d167aca2e5fcf374

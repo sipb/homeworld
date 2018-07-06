@@ -4,7 +4,10 @@ import os
 import re
 import subprocess
 
-SETUP_DIR = "/h/setup-apt-branch/"
+import validate
+
+CONFIG_PATH = "/h/apt-branch-config/branches.yaml"
+CONFIG_SCHEMA_NAME = "branches-schema.yaml"
 
 
 def get_env_branch():
@@ -23,48 +26,14 @@ def get_env_branch():
     return branch
 
 
-def load_key_value_pairs(filename):
-    "Load a mapping of key/value pairs (with key and value separated by whitespace) from a file."
+def check_signing_key(key_id):
+    "Throw an exception if the specified key key doesn't exist in the gpg keyring."
 
-    with open(filename, "r") as f:
-        kvs = {}
-        for line in f:
-            if not line.strip():
-                continue
-            parts = line.strip().split()
-            if len(parts) != 2:
-                raise Exception("invalid line in file %s: '%s'" % (filename, line))
-            key, value = parts
-            kvs[key] = value
-        return kvs
-
-
-def get_signing_key_unchecked(branch):
-    "Get the signing key ID for a specific apt branch, or throw an exception if not found. Does not verify that the key actually exists in the gpg keyring."
-
-    for filename in ["signing-keys", "global-signing-keys"]:
-        path = os.path.join(SETUP_DIR, filename)
-        if filename == "signing-keys" and not os.path.exists(path):
-            continue
-        kvs = load_key_value_pairs(path)
-        if branch in kvs:
-            signing_key = kvs[branch]
-            if not re.match("^[0-9a-zA-Z]+$", signing_key):
-                raise Exception("apt signing key invalid: %s" % signing_key)
-            return signing_key
-    raise Exception("apt branch %s not found in signing keys" % branch)
-
-
-def get_signing_key(branch):
-    "Get the signing key ID for a specific apt branch. Throw an exception if not found, or if the key doesn't exist in the gpg keyring."
-
-    key_id = get_signing_key_unchecked(branch)
     if subprocess.call(["gpg", "--list-keys", key_id], stdout=subprocess.DEVNULL) != 0:
         if branch == "root/master":
             print("If you're basing this build off the master branch, import its signing key with")
-            print('gpg --import building/setup-apt-branch/default-key.asc')
+            print('gpg --import building/apt-branch-config/default-key.asc')
         raise Exception("apt signing key not in gpg keyring: %s" % branch)
-    return key_id
 
 
 def export_key(keyid, armor=False):
@@ -73,3 +42,35 @@ def export_key(keyid, armor=False):
     if not result.strip():
         raise Exception("empty result from gpg for keyid: '%s'" % keyid)
     return result
+
+
+def select_branch_config(branches_config: list, branch: str):
+    for config in branches_config:
+        if config["name"] == branch:
+            return config
+    raise Exception("no config found for %s in %s" % (branch, CONFIG_PATH))
+
+
+class Config:
+    def __init__(self, branch: str):
+        if not os.path.exists(CONFIG_PATH):
+            raise Exception("cannot find branches config at %s, use %s.example to create one" % (CONFIG_PATH, CONFIG_PATH))
+        branches_config = validate.load_validated(CONFIG_PATH, CONFIG_SCHEMA_NAME)["branches"]
+        self.config = select_branch_config(branches_config, branch)
+
+        check_signing_key(self.signing_key)
+
+    @property
+    def name(self) -> str:
+        return self.config["name"]
+
+    @property
+    def signing_key(self) -> str:
+        return self.config["signing-key"]
+
+    @property
+    def apt_url(self):
+        url_prefix = self.config.get("apt-url-prefix", "")
+        if url_prefix and not url_prefix.endswith("/"):
+            url_prefix += "/"
+        return url_prefix + self.name

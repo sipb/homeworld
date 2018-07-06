@@ -12,13 +12,14 @@ def is_subdir(subdir, superdir):
 
 
 class Context:
-    def __init__(self, project, stagedir, outputdir, tempdir, branch):
+    def __init__(self, project, stagedir, outputdir, tempdir, branch_config):
         self.project = project
         self.inputdir = project.path
         self.stagedir = stagedir
         self.outputdir = outputdir
         self.tempdir = tempdir  # place in which to create new temporary directories, if necessary
-        self.branch = branch
+        self.branch_config = branch_config
+        self.branch = branch_config.name
 
     def input(self, inputpath, allow_none=False):
         if inputpath is None and allow_none:

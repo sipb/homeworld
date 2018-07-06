@@ -6,6 +6,7 @@ import tempfile
 import actions
 import context
 import validate
+import aptbranch
 
 # NOTE: /h/ is the chroot link to the homeworld/building/ directory of the git repo.
 
@@ -15,6 +16,8 @@ BIN_DIR_BASE = "/h/binaries/"
 GLASSFILE = "glass.yaml"
 # Path used for filesystem-based tempdirs, when /tmp isn't large enough.
 ALTERNATE_TEMPDIR_LOCATION = "/fstemp/"
+# Location of glassfile schema.
+GLASS_SCHEMA_NAME = "project-schema.yaml"
 
 
 def get_bindir(apt_branch):
@@ -40,7 +43,7 @@ class Project:
         glasspath = os.path.join(self.path, GLASSFILE)
         if not os.path.exists(glasspath):
             raise Exception("cannot find glassfile under project: %s" % path)
-        self.glassfile = validate.load_validated(glasspath)
+        self.glassfile = validate.load_validated(glasspath, GLASS_SCHEMA_NAME)
         self.pkgbase = os.path.basename(self.path)
 
     @property
@@ -89,12 +92,13 @@ class Project:
     def build_type(self) -> str:
         return self.glassfile["control"]["type"]
 
-    def clean(self, branch) -> bool:
+    def clean(self, branch_config: aptbranch.Config) -> bool:
+        branch = branch_config.name
         if self.build_type == "folder":
             projects = self.scan_subprojects()
             any = False
             for project in projects:
-                any |= project.clean(branch)
+                any |= project.clean(branch_config)
             return any
         elif self.is_built(branch):
             log("glass", "cleaning", self.package_name, "on", branch)
@@ -118,13 +122,14 @@ class Project:
                 packages.remove(package)
         return [Project(os.path.join(self.path, package)) for package in ordering]
 
-    def run(self, branch, debug=False) -> None:
+    def run(self, branch_config: aptbranch.Config, debug=False) -> None:
+        branch = branch_config.name
         if self.build_type == "folder":
             # not a direct build; rather a directory thereof
             projects = self.scan_subprojects()
             log("glass", "found", len(projects), "packages")
             for project in projects:
-                project.run(branch)
+                project.run(branch_config)
             log("glass", "finished building", len(projects), "packages")
             return
 
@@ -155,7 +160,7 @@ class Project:
         assert debug in (True, False, None), "invalid selection for debug parameter"
 
         with tempfile.TemporaryDirectory(prefix="glass-", dir=tempdir) as d:
-            ctx = context.Context(self, os.path.join(d, "stage"), os.path.join(d, "tree"), tempdir, branch)
+            ctx = context.Context(self, os.path.join(d, "stage"), os.path.join(d, "tree"), tempdir, branch_config)
             try:
                 if not os.path.isdir(ctx.stagedir):
                     os.makedirs(ctx.stagedir)
