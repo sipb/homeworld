@@ -6,6 +6,9 @@ import subprocess
 
 import validate
 
+
+APT_BRANCH_REGEX = "^[0-9a-zA-Z_.-][0-9a-zA-Z_./-]+[0-9a-zA-Z_.-]$"
+
 CONFIG_PATH = "/h/apt-branch-config/branches.yaml"
 CONFIG_SCHEMA_NAME = "branches-schema.yaml"
 
@@ -18,9 +21,10 @@ def get_env_branch():
     if not branch:
         return None
 
-    if not re.match("^[0-9a-zA-Z_.-]+/[0-9a-zA-Z_.-]+$", branch):
-        print("apt branch should be of the form <username>/<branch>")
-        print("allowed characters: [0-9a-zA-Z_.-]")
+    if not re.match(APT_BRANCH_REGEX, branch):
+        print("apt branch should be a url path")
+        print("e.g. homeworld.apt/branch/subbranch")
+        print("allowed characters: [0-9a-zA-Z_./-]")
         raise Exception("invalid apt branch: %s" % branch)
 
     return branch
@@ -67,10 +71,9 @@ class Config:
     @property
     def signing_key(self) -> str:
         return self.config["signing-key"]
-
+    
     @property
-    def apt_url(self):
-        url_prefix = self.config.get("apt-url-prefix", "")
-        if url_prefix and not url_prefix.endswith("/"):
-            url_prefix += "/"
-        return url_prefix + self.name
+    def upload_config(self):
+        if "upload" not in self.config:
+            raise Exception("no upload config found in branch %s" % self.name)
+        return self.config["upload"]

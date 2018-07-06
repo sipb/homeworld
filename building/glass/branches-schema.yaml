@@ -9,12 +9,27 @@ properties:
       properties:
         name:
           type: string
-          pattern: "^[0-9a-zA-Z_.-]+/[0-9a-zA-Z_.-]+$"
+          pattern: "^[0-9a-zA-Z_.-][0-9a-zA-Z_./-]+[0-9a-zA-Z_.-]$"
         signing-key:
           type: string
           pattern: "^[a-fA-F0-9]+$"
-        apt-url-prefix:
-          type: string
+        upload:
+          type: object
+          oneOf:
+          - properties:
+              method:
+                enum: ["google-cloud-storage"]
+            required: ["method"]
+            additionalProperties: false
+          - properties:
+              method:
+                enum: ["rsync"]
+              user:
+                type: string
+              dir:
+                type: string
+            required: ["method", "user", "dir"]
+            additionalProperties: false
       required: ["name", "signing-key"]
       additionalProperties: false
 required: ["branches"]

@@ -1,6 +1,11 @@
 branches:
   - name: root/master
     signing-key: d167aca2e5fcf374
-  - name: <name>/<subbranch>
+  - name: <host>/<location>/<of>/<repository>
     signing-key: <signing key>
-    apt-url-prefix: homeworld.deploy
+    upload:
+      method: rsync
+	  # these will be passed to rsync as
+	  # <username>@<host>:<dir>/<location>/<of>/<repository>
+	  user: <username>
+      dir: /var/www/html
