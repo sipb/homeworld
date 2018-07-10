@@ -1,6 +1,6 @@
 control:
   name: debian-mini
-  version: stretch.20180529T215324Z
+  version: stretch.20180710T043017Z
   date: 2018-05-29T21:53:24+0000
   type: aci
 
@@ -10,7 +10,7 @@ control:
 build:
   - type: debootstrap
     release: stretch
-    version: 20180529T215324Z
+    version: 20180710T043017Z
     stage: rootfs
 
   - type: debremove

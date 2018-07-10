@@ -1,6 +1,6 @@
 control:
   name: dnsmasq-nanny
-  version: 1.14.8-3
+  version: 1.14.8-4
   date: 2018-01-11T22:47:00-0500
   type: aci
 
@@ -10,7 +10,7 @@ build:
   # originally based on https://github.com/kubernetes/dns builds
   - type: aci-unpack
     name: dnsmasq
-    version: 2.78-1
+    version: 2.78-2
     output: /
 
   - type: upstream-extract

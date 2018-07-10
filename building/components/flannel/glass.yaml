@@ -1,6 +1,6 @@
 control:
   name: flannel
-  version: 0.10.0-3
+  version: 0.10.0-4
   date: 2018-01-11T22:47:00-0500
   type: aci
 
@@ -9,7 +9,7 @@ control:
 build:
   - type: aci-unpack
     name: debian-mini
-    version: stretch.20180529T215324Z
+    version: stretch.20180710T043017Z
     stage: rootfs
 
   - type: debinstall
