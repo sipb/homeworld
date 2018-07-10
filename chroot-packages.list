@@ -36,3 +36,6 @@ python-pip, python-setuptools
 
 # killall
 psmisc
+
+# local debian repository cache
+nginx-light
