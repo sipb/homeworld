@@ -55,11 +55,20 @@ def select_branch_config(branches_config: list, branch: str):
     raise Exception("no config found for %s in %s" % (branch, CONFIG_PATH))
 
 
+def select_upload_config(upload_targets: list, name: str):
+    for upload_target in upload_targets:
+        if upload_target["name"] == name:
+            return upload_target
+    raise Exception("no config found for %s in upload-targets" % name)
+
+
 class Config:
     def __init__(self, branch: str):
         if not os.path.exists(CONFIG_PATH):
             raise Exception("cannot find branches config at %s, use %s.example to create one" % (CONFIG_PATH, CONFIG_PATH))
-        branches_config = validate.load_validated(CONFIG_PATH, CONFIG_SCHEMA_NAME)["branches"]
+        configs = validate.load_validated(CONFIG_PATH, CONFIG_SCHEMA_NAME)
+        branches_config = configs["branches"]
+        self.upload_targets = configs.get("upload-targets", [])
         self.config = select_branch_config(branches_config, branch)
 
         check_signing_key(self.signing_key)
@@ -74,6 +83,7 @@ class Config:
     
     @property
     def upload_config(self):
-        if "upload" not in self.config:
-            raise Exception("no upload config found in branch %s" % self.name)
-        return self.config["upload"]
+        if "upload-target" not in self.config:
+            raise Exception("no upload target found for branch %s" % self.name)
+        upload_target_name = self.config["upload-target"]
+        return select_upload_config(self.upload_targets, upload_target_name)

@@ -2,6 +2,29 @@ $schema: "http://json-schema.org/draft-07/schema#"
 title: BranchesConfig
 type: object
 properties:
+  upload-targets:
+    type: array
+    items:
+      type: object
+      oneOf:
+        - properties:
+            name:
+              type: string
+            method:
+              enum: ["google-cloud-storage"]
+          required: ["name", "method"]
+          additionalProperties: false
+        - properties:
+            name:
+              type: string
+            method:
+              enum: ["rsync"]
+            user:
+              type: string
+            dir:
+              type: string
+          required: ["name", "method", "user", "dir"]
+          additionalProperties: false
   branches:
     type: array
     items:
@@ -13,23 +36,8 @@ properties:
         signing-key:
           type: string
           pattern: "^[a-fA-F0-9]+$"
-        upload:
-          type: object
-          oneOf:
-          - properties:
-              method:
-                enum: ["google-cloud-storage"]
-            required: ["method"]
-            additionalProperties: false
-          - properties:
-              method:
-                enum: ["rsync"]
-              user:
-                type: string
-              dir:
-                type: string
-            required: ["method", "user", "dir"]
-            additionalProperties: false
+        upload-target:
+          type: string
       required: ["name", "signing-key"]
       additionalProperties: false
 required: ["branches"]
