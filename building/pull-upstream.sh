@@ -12,7 +12,7 @@ else
 fi
 cd upstream
 sha512sum --check ../SHA512SUM.UPSTREAM || (echo "CHECKSUM MISMATCH" && false)
-COUNT_UPSTREAM=$(find -type f | grep -vF README.md | grep -vE '^[.]/[.]git/' | wc -l)
+COUNT_UPSTREAM=$(find -type f | grep -vF README.md | grep -vE '^\./snapshot\.debian\.org/archive/debian/[0-9]+T[0-9]+Z/pool/' | grep -vE '^[.]/[.]git/' | wc -l)
 COUNT_HERE=$(wc -l <../SHA512SUM.UPSTREAM)
 if [ "${COUNT_UPSTREAM}" != "${COUNT_HERE}" ]
 then

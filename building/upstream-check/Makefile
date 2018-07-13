@@ -23,6 +23,7 @@ all: PyYAML-${PYYAML_VER}.tar.gz
 all: qemu-2.11.0.tar.xz
 RKT_VER=1.29.0
 all: rkt-${RKT_VER}.tar.xz
+all: snapshot.debian.org-20180710T043017Z.stamp
 
 .PHONY: verify just-verify
 just-verify:
@@ -331,3 +332,10 @@ PyYAML-${PYYAML_VER}.tar.gz: https/pypi.python.org/packages/4a/85/db5a2df477072b
 qemu-%.tar.xz: https/download.qemu.org/qemu-2.11.0.tar.xz https/download.qemu.org/qemu-2.11.0.tar.xz.sig keys/qemu.ring
 	$(call gpg-verify,$<,.sig,qemu)
 	@cp $< $@
+
+# **** SNAPSHOT.DEBIAN.ORG ****
+
+snapshot.debian.org-%.stamp:
+	@echo "[snapshot] mirroring snapshot.debian.org version $(@:snapshot.debian.org-%.stamp=%)"
+	@python3 snapshot-pull.py "$(@:snapshot.debian.org-%.stamp=%)" <packages.list
+	@touch $@

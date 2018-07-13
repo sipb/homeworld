@@ -15,3 +15,5 @@
 /*.cpio.gz
 /coreos-binary-manifest-*.txt
 /coreos-squashfs-*
+/snapshot.debian.org
+/snapshot.debian.org-*.stamp
