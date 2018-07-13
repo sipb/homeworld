@@ -2,11 +2,13 @@
 set -e -u
 cd "$(dirname "$0")"
 
+BRANCH="${1:-master}"
+
 if [ -e "upstream" ]
 then
-	(cd upstream && git pull)
+	(cd upstream && git checkout "$BRANCH" && git pull)
 else
-	git clone https://github.com/sipb/homeworld-upstream.git upstream
+	git clone https://github.com/sipb/homeworld-upstream.git upstream -b "$BRANCH"
 fi
 cd upstream
 sha512sum --check ../SHA512SUM.UPSTREAM || (echo "CHECKSUM MISMATCH" && false)
