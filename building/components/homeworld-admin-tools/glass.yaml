@@ -1,7 +1,7 @@
 control:
   name: homeworld-admin-tools
-  version: 0.2.0
-  date: 2018-06-01T18:24:10-0700
+  version: 0.2.1
+  date: 2018-07-10T15:28:30-0700
   type: deb
   depends:
     - homeworld-keysystem
@@ -49,7 +49,7 @@ build:
 
   - type: upstream
     upstream: debian-%-amd64-mini.iso
-    version: 9.4.0
+    version: 9.5.0
     stage: debian.iso
 
   # todo: add a 'pypack' target or something
