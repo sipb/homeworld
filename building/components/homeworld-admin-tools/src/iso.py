@@ -17,18 +17,6 @@ PACKAGES = ("homeworld-apt-setup",)
 
 # TODO: refactor this file to be more maintainable
 
-# converts debian-9.X.Y-amd64-mini.iso into a "cdpack", which can be more easily remastered
-def regen_cdpack(source_iso, dest_cdpack):
-    with tempfile.TemporaryDirectory() as d:
-        loopdir = os.path.join(d, "loopdir")
-        os.mkdir(loopdir)
-        cddir = os.path.join(d, "cd")
-        os.mkdir(cddir)
-        subprocess.check_call(["bsdtar", "-xf", source_iso, "-C", cddir])
-        subprocess.check_call(["chmod", "+w", "--recursive", cddir])
-        subprocess.check_call(["gunzip", os.path.join(cddir, "initrd.gz")])
-        subprocess.check_call(["tar", "-czf", dest_cdpack, "-C", d, os.path.basename(cddir)])
-
 
 def add_password_to_log(password, creation_time):
     passwords = os.path.join(configuration.get_project(), "passwords")
@@ -51,12 +39,12 @@ def list_passphrases():
     print("End of list.")
 
 
-def gen_iso(iso_image, authorized_key, cdpack=None):
+def gen_iso(iso_image, authorized_key):
     with tempfile.TemporaryDirectory() as d:
         inclusion = []
 
         with open(os.path.join(d, "dns_bootstrap_lines"), "w") as outfile:
-            outfile.writelines(setup.dns_bootstrap_lines());
+            outfile.writelines(setup.dns_bootstrap_lines())
 
         inclusion += ["dns_bootstrap_lines"]
         util.copy(authorized_key, os.path.join(d, "authorized.pub"))
@@ -79,7 +67,7 @@ def gen_iso(iso_image, authorized_key, cdpack=None):
         print("generated password added to log")
         preseeded = preseeded.replace(b"{{HASH}}", util.mkpasswd(generated_password))
         preseeded = preseeded.replace(b"{{BUILDDATE}}", creation_time.encode())
-        preseeded = preseeded.replace(b"{{GITHASH}}", git_hash);
+        preseeded = preseeded.replace(b"{{GITHASH}}", git_hash)
         util.writefile(os.path.join(d, "preseed.cfg"), preseeded)
 
         inclusion += ["sshd_config.new", "preseed.cfg"]
@@ -91,25 +79,25 @@ def gen_iso(iso_image, authorized_key, cdpack=None):
             util.writefile(os.path.join(d, short_filename), package_bytes)
             inclusion.append(short_filename)
 
-        if cdpack is not None:
-            subprocess.check_call(["tar", "-C", d, "-xzf", cdpack, "cd"])
-        else:
-            subprocess.check_output(["tar", "-C", d, "-xz", "cd"], input=resource.get_resource("debian-cdpack.tgz"))
+        cddir = os.path.join(d, "cd")
+        os.mkdir(cddir)
+        subprocess.check_call(["bsdtar", "-C", cddir, "-xzf", "/usr/share/spire/debian.iso"])
+        subprocess.check_call(["chmod", "+w", "--recursive", cddir])
 
+        subprocess.check_call(["gunzip", os.path.join(cddir, "initrd.gz")])
         subprocess.check_output(["cpio", "--create", "--append", "--format=newc", "--file=cd/initrd"],
                                 input="".join("%s\n" % filename for filename in inclusion).encode(), cwd=d)
-        subprocess.check_call(["gzip", os.path.join(d, "cd/initrd")])
+        subprocess.check_call(["gzip", os.path.join(cddir, "initrd")])
 
-        files_for_md5sum = subprocess.check_output(["find", ".", "-follow", "-type", "f", "-print0"], cwd=os.path.join(d, "cd")).decode().split("\0")
+        files_for_md5sum = subprocess.check_output(["find", ".", "-follow", "-type", "f", "-print0"], cwd=cddir).decode().split("\0")
         assert files_for_md5sum.pop() == ""
-        md5s = subprocess.check_output(["md5sum", "--"] + files_for_md5sum, cwd=os.path.join(d, "cd"))
-        util.writefile(os.path.join(d, "cd", "md5sum.txt"), md5s)
+        md5s = subprocess.check_output(["md5sum", "--"] + files_for_md5sum, cwd=cddir)
+        util.writefile(os.path.join(cddir, "md5sum.txt"), md5s)
 
-        subprocess.check_call(["genisoimage", "-quiet", "-o", iso_image, "-r", "-J", "-no-emul-boot", "-boot-load-size", "4", "-boot-info-table", "-b", "isolinux.bin", "-c", "isolinux.cat", os.path.join(d, "cd")])
+        subprocess.check_call(["genisoimage", "-quiet", "-o", iso_image, "-r", "-J", "-no-emul-boot", "-boot-load-size", "4", "-boot-info-table", "-b", "isolinux.bin", "-c", "isolinux.cat", cddir])
 
 
 main_command = command.mux_map("commands about building installation ISOs", {
-    "regen-cdpack": command.wrap("regenerate cdpack from upstream ISO", regen_cdpack),
     "gen": command.wrap("generate ISO", gen_iso),
     "passphrases": command.wrap("decrypt a list of passphrases used by recently-generated ISOs", list_passphrases),
 })
