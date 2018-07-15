@@ -81,7 +81,7 @@ def gen_iso(iso_image, authorized_key):
 
         cddir = os.path.join(d, "cd")
         os.mkdir(cddir)
-        subprocess.check_call(["bsdtar", "-C", cddir, "-xzf", "/usr/share/spire/debian.iso"])
+        subprocess.check_call(["bsdtar", "-C", cddir, "-xzf", "/usr/share/homeworld/debian.iso"])
         subprocess.check_call(["chmod", "+w", "--recursive", cddir])
 
         subprocess.check_call(["gunzip", os.path.join(cddir, "initrd.gz")])

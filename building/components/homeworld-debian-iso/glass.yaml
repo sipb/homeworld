@@ -1,0 +1,15 @@
+control:
+  name: homeworld-debian-iso
+  version: 9.5.0-1
+  date: 2018-07-10T20:12:24-0700
+  type: deb
+
+build:
+  - type: upstream
+    upstream: debian-%-amd64-mini.iso
+    version: 9.5.0
+    stage: debian.iso
+
+  - type: copy
+    stage: debian.iso
+    output: /usr/share/homeworld/debian.iso
