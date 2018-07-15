@@ -87,7 +87,7 @@ spec:
           name: metrics
           protocol: TCP
       - name: dnsmasq
-        image: homeworld.mit.edu/dnsmasq-nanny:1.14.8-3
+        image: homeworld.mit.edu/dnsmasq-nanny:1.14.8-4
         livenessProbe:
           httpGet:
             path: /healthcheck/dnsmasq
