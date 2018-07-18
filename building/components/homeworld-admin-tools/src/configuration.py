@@ -35,9 +35,17 @@ class CIDR:
         self.ip = IP(ip)
         self.bits = bits
         self.cidr = "%s/%d" % (self.ip.ip, self.bits)
+        if (self.ip.to_integer() & self.addrmask_int()) != 0:
+            raise Exception("CIDR includes lower bits that are set: %s" % cidr)
+
+    def addrmask_int(self) -> int:
+        return (1 << (32 - self.bits)) - 1
+
+    def netmask_int(self) -> int:
+        return self.addrmask_int() ^ 0xFFFFFFFF
 
     def netmask(self) -> "IP":
-        return IP.from_integer(((1 << (32 - self.bits)) - 1) ^ 0xFFFFFFFF)
+        return IP.from_integer(self.netmask_int())
 
     def __contains__(self, ip):
         return (ip & self.netmask()) == self.ip
@@ -67,6 +75,9 @@ class IP:
                   ((num & 0x0000FF00) >> 8),
                   ((num & 0x000000FF) >> 0))
         return IP("%d.%d.%d.%d" % octets)
+
+    def to_integer(self) -> int:
+        return (self.octets[0] << 24) | (self.octets[1] << 16) | (self.octets[2] << 8) | self.octets[3]
 
     def __hash__(self):
         return hash(self.ip)
@@ -124,20 +135,25 @@ def keycheck(kvs: dict, *keys: str, validator=lambda k, v: True):
 
 class Config:
     def __init__(self, kv: dict):
-        v_cluster, v_addresses, v_dns_bootstrap, v_root_admins, v_nodes = \
-            keycheck(kv, "cluster", "addresses", "dns-bootstrap", "root-admins", "nodes")
+        v_cluster, v_addresses, v_dns_upstreams, v_dns_bootstrap, v_root_admins, v_nodes = \
+            keycheck(kv, "cluster", "addresses", "dns-upstreams", "dns-bootstrap", "root-admins", "nodes")
 
         self.external_domain, self.internal_domain, self.etcd_token, self.realm = \
             keycheck(v_cluster, "external-domain", "internal-domain", "etcd-token", "kerberos-realm",
                      validator=lambda _, x: type(x) == str)
 
-        cidr_pods, cidr_services, service_api, service_dns = \
-            keycheck(v_addresses, "cidr-pods", "cidr-services", "service-api", "service-dns",
+        cidr_nodes, cidr_pods, cidr_services, service_api, service_dns = \
+            keycheck(v_addresses, "cidr-nodes", "cidr-pods", "cidr-services", "service-api", "service-dns",
                      validator=lambda _, x: type(x) == str)
+        self.cidr_nodes = CIDR(cidr_nodes)
         self.cidr_pods = CIDR(cidr_pods)
         self.cidr_services = CIDR(cidr_services)
         self.service_api = IP(service_api)
         self.service_dns = IP(service_dns)
+
+        if type(v_dns_upstreams) != list:
+            command.fail("in config: expected dns-upstreams to be a list of IPs")
+        self.dns_upstreams = [IP(server) for server in v_dns_upstreams]
 
         if self.service_api not in self.cidr_services or self.service_dns not in self.cidr_services:
             command.fail("in config: expected service IPs to be in the correct CIDR")

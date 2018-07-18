@@ -5,10 +5,16 @@ cluster:
   kerberos-realm: ATHENA.MIT.EDU
 
 addresses:
+  cidr-nodes: 18.4.60.0/23
   cidr-pods: 172.18.0.0/16
   cidr-services: 172.28.0.0/16
   service-api: 172.28.0.1
   service-dns: 172.28.0.2
+
+dns-upstreams:
+  - 18.70.0.160
+  - 18.71.0.151
+  - 18.72.0.3
 
 dns-bootstrap:
   homeworld.mit.edu: <supervisor node>
