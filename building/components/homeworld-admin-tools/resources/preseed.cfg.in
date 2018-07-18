@@ -40,11 +40,11 @@ d-i netcfg/disable_autoconfig boolean true
 # Static network configuration.
 #
 # IPv4 example
-d-i netcfg/get_ipaddress string 18.4.60.
+d-i netcfg/get_ipaddress string {{IP-PREFIX}}
 d-i netcfg/get_ipaddress seen false
-d-i netcfg/get_netmask string 255.255.254.0
-d-i netcfg/get_gateway string 18.4.60.1
-d-i netcfg/get_nameservers string 18.70.0.160 18.71.0.151 18.72.0.3
+d-i netcfg/get_netmask string {{NETMASK}}
+d-i netcfg/get_gateway string {{GATEWAY}}
+d-i netcfg/get_nameservers string {{NAMESERVERS}}
 d-i netcfg/confirm_static boolean true
 #
 # IPv6 example
