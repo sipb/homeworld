@@ -2,15 +2,16 @@
 set -e -u
 cd "$(dirname "$0")"
 
-BRANCH="${1:-master}"
+COMMIT="$(cat upstream.commit)"
 
-if [ -e "upstream" ]
+if [ ! -e "upstream" ]
 then
-	(cd upstream && git checkout "$BRANCH" && git pull)
-else
-	git clone https://github.com/sipb/homeworld-upstream.git upstream -b "$BRANCH"
+	git clone https://github.com/sipb/homeworld-upstream.git upstream -b master
 fi
 cd upstream
+git fetch
+git checkout -B working "${COMMIT}"
+
 sha512sum --check ../SHA512SUM.UPSTREAM || (echo "CHECKSUM MISMATCH" && false)
 COUNT_UPSTREAM=$(find -type f | grep -vF README.md | grep -vE '^\./snapshot\.debian\.org/archive/debian/[0-9]+T[0-9]+Z/pool/' | grep -vE '^[.]/[.]git/' | wc -l)
 COUNT_HERE=$(wc -l <../SHA512SUM.UPSTREAM)
