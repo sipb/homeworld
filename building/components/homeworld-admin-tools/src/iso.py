@@ -11,6 +11,7 @@ import util
 import packages
 import keycrypt
 import setup
+import gzip
 from version import get_git_version
 
 PACKAGES = ("homeworld-apt-setup",)
@@ -84,10 +85,9 @@ def gen_iso(iso_image, authorized_key):
         subprocess.check_call(["bsdtar", "-C", cddir, "-xzf", "/usr/share/homeworld/debian.iso"])
         subprocess.check_call(["chmod", "+w", "--recursive", cddir])
 
-        subprocess.check_call(["gunzip", os.path.join(cddir, "initrd.gz")])
-        subprocess.check_output(["cpio", "--create", "--append", "--format=newc", "--file=cd/initrd"],
-                                input="".join("%s\n" % filename for filename in inclusion).encode(), cwd=d)
-        subprocess.check_call(["gzip", os.path.join(cddir, "initrd")])
+        with gzip.open(os.path.join(cddir, "initrd.gz"), "ab") as f:
+            subprocess.run(["cpio", "--create", "--format=newc"], check=True, stdout=f,
+                           input="".join("%s\n" % filename for filename in inclusion).encode(), cwd=d)
 
         files_for_md5sum = subprocess.check_output(["find", ".", "-follow", "-type", "f", "-print0"], cwd=cddir).decode().split("\0")
         assert files_for_md5sum.pop() == ""
