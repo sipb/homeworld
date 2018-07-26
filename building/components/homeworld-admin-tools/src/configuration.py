@@ -138,8 +138,8 @@ class Config:
         v_cluster, v_addresses, v_dns_upstreams, v_dns_bootstrap, v_root_admins, v_nodes = \
             keycheck(kv, "cluster", "addresses", "dns-upstreams", "dns-bootstrap", "root-admins", "nodes")
 
-        self.external_domain, self.internal_domain, self.etcd_token, self.realm = \
-            keycheck(v_cluster, "external-domain", "internal-domain", "etcd-token", "kerberos-realm",
+        self.external_domain, self.internal_domain, self.etcd_token, self.realm, self.mirror = \
+            keycheck(v_cluster, "external-domain", "internal-domain", "etcd-token", "kerberos-realm", "mirror",
                      validator=lambda _, x: type(x) == str)
 
         cidr_nodes, cidr_pods, cidr_services, service_api, service_dns = \

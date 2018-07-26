@@ -70,6 +70,13 @@ def gen_iso(iso_image, authorized_key):
         preseeded = preseeded.replace(b"{{BUILDDATE}}", creation_time.encode())
         preseeded = preseeded.replace(b"{{GITHASH}}", git_hash)
 
+        mirror = configuration.get_config().mirror
+        if mirror.count("/") < 1 or mirror.count(".") < 1:
+            command.fail("invalid mirror specification '%s'; must be of the form HOST.NAME/PATH")
+        mirror_host, mirror_dir = mirror.split("/", 1)
+        preseeded = preseeded.replace(b"{{MIRROR-HOST}}", mirror_host.encode())
+        preseeded = preseeded.replace(b"{{MIRROR-DIR}}", ("/" + mirror_dir).encode())
+
         cidr_nodes, upstream_dns_servers = configuration.get_config().cidr_nodes, configuration.get_config().dns_upstreams
         if cidr_nodes.bits == 32:
             command.fail("cidr_nodes cannot be a /32")

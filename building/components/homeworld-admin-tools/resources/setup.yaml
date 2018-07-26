@@ -3,6 +3,7 @@ cluster:
   internal-domain: hyades.local
   etcd-token: <unique-token>
   kerberos-realm: ATHENA.MIT.EDU
+  mirror: debian.csail.mit.edu/debian
 
 addresses:
   cidr-nodes: 18.4.60.0/23
