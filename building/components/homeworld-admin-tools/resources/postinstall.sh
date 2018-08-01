@@ -70,15 +70,15 @@ is_invalid_token () {
 }   
 
 db_settitle homeworld/title
-db_input critical homeworld/asktoken
+db_input critical homeworld/asktoken || true
 db_go
 
 db_get homeworld/asktoken
 while [ "$RET" != "manual" ] && is_invalid_token $RET; do
-    db_input critical homeworld/tokeninvalid
+    db_input critical homeworld/tokeninvalid || true
     db_go
 
-    db_input critical homeworld/asktoken
+    db_input critical homeworld/asktoken || true
     db_go
     db_get homeworld/asktoken
 done
