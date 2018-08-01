@@ -77,6 +77,9 @@ def gen_iso(iso_image, authorized_key):
         preseeded = preseeded.replace(b"{{MIRROR-HOST}}", mirror_host.encode())
         preseeded = preseeded.replace(b"{{MIRROR-DIR}}", ("/" + mirror_dir).encode())
 
+        realm = configuration.get_config().realm
+        preseeded = preseeded.replace(b"{{KERBEROS-REALM}}", realm.encode())
+
         cidr_nodes, upstream_dns_servers = configuration.get_config().cidr_nodes, configuration.get_config().dns_upstreams
         if cidr_nodes.bits == 32:
             command.fail("cidr_nodes cannot be a /32")

@@ -75,6 +75,9 @@ d-i netcfg/wireless_wep string
 # change to false to disable asking.
 d-i hw-detect/load_firmware boolean false
 
+# static kerberos realm configuration
+krb5-config krb5-config/default_realm string {{KERBEROS-REALM}}
+
 ### Network console
 # Use the following settings if you wish to make use of the network-console
 # component for remote installation over SSH. This only makes sense if you
