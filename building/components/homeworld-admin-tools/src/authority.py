@@ -91,6 +91,11 @@ def get_pubkey_by_filename(keyname) -> bytes:
             assert type(out) == bytes
             return out
 
+
+def get_decrypted_by_filename(name) -> bytes:
+    return keycrypt.gpg_decrypt_in_memory(get_pubkey_by_filename(name_for_encrypted_file(name)))
+
+
 def iterate_keys():  # yields (name, contents) pairs
     authorities = get_targz_path()
     with tarfile.open(authorities, mode="r:gz") as tar:

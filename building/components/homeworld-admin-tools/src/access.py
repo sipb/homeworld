@@ -96,7 +96,16 @@ def call_keyreq(keyreq_command, *params):
 
 def renew_ssh_cert() -> str:
     keypath = create_or_rotate_custom_ssh_key()
-    call_keyreq("ssh-cert", keypath + ".pub", keypath + "-cert.pub")
+    if configuration.get_config().is_kerberos_enabled():
+        print("requesting SSH cert via keyreq")
+        call_keyreq("ssh-cert", keypath + ".pub", keypath + "-cert.pub")
+    else:
+        print("generating SSH cert via local bypass method")
+        with tempfile.TemporaryDirectory() as dir:
+            ca = os.path.join(dir, "ssh_user_ca")
+            util.writefile(ca, authority.get_decrypted_by_filename("./ssh_user_ca"))
+            os.chmod(ca, 0o600)
+            subprocess.check_call(["ssh-keygen", "-s", ca, "-I", "krb-bypass-cert", "-n", "root", keypath + ".pub"])
     return keypath
 
 
