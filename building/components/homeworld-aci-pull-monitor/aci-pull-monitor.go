@@ -51,7 +51,7 @@ var (
 )
 
 func cycle() {
-	image := "homeworld.mit.edu/pullcheck:0.1.0"
+	image := "homeworld.private/pullcheck:0.1.0"
 	aciGauge := aciCheck.With(prometheus.Labels{
 		"image": image,
 	})

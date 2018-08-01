@@ -18,9 +18,9 @@ import project
 # /test01/pool/
 # /test01/pool/[...]
 # /test01/aci/
-# /test01/aci/homeworld.mit.edu/
-# /test01/aci/homeworld.mit.edu/flannel-0.8.0-4-linux-amd64.aci
-# /test01/aci/homeworld.mit.edu/flannel-0.8.0-4-linux-amd64.aci.asc
+# /test01/aci/homeworld.private/
+# /test01/aci/homeworld.private/flannel-0.8.0-4-linux-amd64.aci
+# /test01/aci/homeworld.private/flannel-0.8.0-4-linux-amd64.aci.asc
 
 
 # NOTE: currently assumes that google cloud storage is in use.
@@ -63,8 +63,8 @@ def upload(bindir: str, branch_config: aptbranch.Config) -> None:
 def upload_aci(path: str, uploads: dict, keyid: str):
     if not os.path.exists(path + ".asc"):
         subprocess.check_call(["gpg", "--armor", "--detach-sign", "--local-user", "0x" + keyid, path])
-    uploads["/aci/homeworld.mit.edu/%s" % os.path.basename(path)] = path
-    uploads["/aci/homeworld.mit.edu/%s.asc" % os.path.basename(path)] = path + ".asc"
+    uploads["/aci/homeworld.private/%s" % os.path.basename(path)] = path
+    uploads["/aci/homeworld.private/%s.asc" % os.path.basename(path)] = path + ".asc"
 
 
 distributions_base = """

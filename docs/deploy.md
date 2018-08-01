@@ -46,7 +46,7 @@ This key will be used to encrypt the private authority keys.
 **WARNING**: The disaster recovery key is used to encrypt upstream keys. If you are rotating the disaster recovery key, you should first decrypt the upstream keys:
 
     $ spire keytab export egg-sandwich egg-keytab
-    $ spire https export homeworld.mit.edu ./homeworld.mit.edu.key ./homeworld.mit.edu.pem
+    $ spire https export homeworld ./homeworld.key ./homeworld.pem
 
 Recommended method of generating the passphrase:
 
@@ -87,7 +87,7 @@ $ spire keytab delold <hostname>
  * If you are running your own homeworld bootstrap container registry, import the HTTPS key and certificate:
 
 ```
-$ spire https import homeworld.mit.edu ./homeworld.mit.edu.key ./homeworld.mit.edu.pem
+$ spire https import homeworld ./homeworld.key ./homeworld.pem
 ```
 
 Now you can consider putting this folder in Git, and then move on to 'Deploying a prepared cluster' below.

@@ -5,8 +5,8 @@ server {
         listen 443 ssl default_server;
         listen [::]:443 ssl default_server;
 
-        ssl_certificate /etc/homeworld/ssl/homeworld.mit.edu.pem;
-        ssl_certificate_key /etc/homeworld/ssl/homeworld.mit.edu.key;
+        ssl_certificate /etc/homeworld/ssl/homeworld.private.pem;
+        ssl_certificate_key /etc/homeworld/ssl/homeworld.private.key;
         ssl_session_timeout 1d;
         ssl_session_cache shared:SSL:50m;
         ssl_session_tickets off;

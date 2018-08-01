@@ -328,7 +328,7 @@ def final_deb(context: Context, control: dict) -> None:
 def final_aci(context: Context, control: dict) -> None:
     project.log("acbuild", context.project.pkgbase, "version", context.project.full_version)
     with acbuild.Build(context.branch) as b:
-        b.set_name("homeworld.mit.edu/" + context.project.pkgbase)
+        b.set_name("homeworld.private/" + context.project.pkgbase)
         if "set-exec" in control:
             b.set_exec(*control["set-exec"].split(" "))
         b.label_add("version", context.project.full_version)

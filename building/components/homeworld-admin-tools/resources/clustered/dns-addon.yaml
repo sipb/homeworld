@@ -45,7 +45,7 @@ spec:
     spec:
       containers:
       - name: kubedns
-        image: homeworld.mit.edu/kube-dns-main:1.14.8-3
+        image: homeworld.private/kube-dns-main:1.14.8-3
         resources:
           limits:
             memory: 170Mi
@@ -87,7 +87,7 @@ spec:
           name: metrics
           protocol: TCP
       - name: dnsmasq
-        image: homeworld.mit.edu/dnsmasq-nanny:1.14.8-4
+        image: homeworld.private/dnsmasq-nanny:1.14.8-4
         livenessProbe:
           httpGet:
             path: /healthcheck/dnsmasq
@@ -123,7 +123,7 @@ spec:
             cpu: 150m
             memory: 20Mi
       - name: sidecar
-        image: homeworld.mit.edu/kube-dns-sidecar:1.14.8-3
+        image: homeworld.private/kube-dns-sidecar:1.14.8-3
         livenessProbe:
           httpGet:
             path: /metrics

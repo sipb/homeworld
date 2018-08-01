@@ -1,6 +1,6 @@
 control:
   name: homeworld-etcd
-  version: 3.2.9-4
+  version: 3.2.9-5
   date: 2018-01-29T17:20:49-0500
   type: deb
 
@@ -25,7 +25,7 @@ build:
       ./build
 
   - type: acbuild
-    name: homeworld.mit.edu/etcd
+    name: homeworld.private/etcd
     exec: /usr/local/bin/etcd
     copy:
       - stage: etcd-source/bin/etcd

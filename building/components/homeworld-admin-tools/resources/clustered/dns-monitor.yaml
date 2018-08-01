@@ -44,7 +44,7 @@ spec:
       serviceAccountName: dns-monitor
       containers:
       - name: kube-dns-monitor
-        image: homeworld.mit.edu/dns-monitor:0.1.5
+        image: homeworld.private/dns-monitor:0.1.5
         command:
         - /usr/bin/dns-monitor
         - kubernetes.default.svc.{{INTERNAL_DOMAIN}}={{SERVIP_API}}

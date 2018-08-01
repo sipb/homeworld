@@ -1,7 +1,7 @@
 control:
   name: homeworld-bootstrap-registry
-  version: 0.1.7
-  date: 2018-06-01T18:23:38-0700
+  version: 0.1.8
+  date: 2018-07-30T21:57:00-0700
   type: deb
   depends:
     - nginx

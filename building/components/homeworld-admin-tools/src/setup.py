@@ -204,7 +204,7 @@ def teardown_dns_bootstrap(ops: Operations) -> None:
     modify_dns_bootstrap(ops, False)
 
 
-REGISTRY_HOSTNAME = "homeworld.mit.edu"
+REGISTRY_HOSTNAME = "homeworld"
 
 
 def setup_bootstrap_registry(ops: Operations) -> None:

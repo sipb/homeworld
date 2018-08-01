@@ -1,7 +1,7 @@
 control:
   name: homeworld-aci-pull-monitor
-  version: 0.1.6
-  date: 2018-01-31T20:28:59-0500
+  version: 0.1.7
+  date: 2018-07-30T21:57:00-0700
   type: deb
   depends:
     - homeworld-rkt
