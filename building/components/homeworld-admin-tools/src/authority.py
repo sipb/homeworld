@@ -10,20 +10,24 @@ import keycrypt
 
 ENCRYPTED_EXTENSION = ".encrypted"
 
+
 def get_targz_path(check_exists=True):
     authorities = os.path.join(configuration.get_project(), "authorities.tgz")
     if check_exists and not os.path.exists(authorities):
         command.fail("authorities.tgz does not exist (run spire authority gen?)")
     return authorities
 
+
 def name_for_encrypted_file(filename):
     return filename + ENCRYPTED_EXTENSION
+
 
 def name_for_decrypted_file(name_of_encrypted_file):
     if name_of_encrypted_file.endswith(ENCRYPTED_EXTENSION):
         return name_of_encrypted_file[:-len(ENCRYPTED_EXTENSION)]
     raise ValueError("Filename " + name_of_encrypted_file + " does not have expected suffix '" + ENCRYPTED_EXTENSION + "'.")
-   
+
+
 def validate_pem_file(full_file_name: str) -> bool:
     with open(full_file_name) as pem_file:
         has_certificate = False
@@ -31,16 +35,17 @@ def validate_pem_file(full_file_name: str) -> bool:
             # PEM data that is a certificate should have the following header
             if line.startswith("-----BEGIN CERTIFICATE-----"):
                 if has_certificate:
-                    command.fail("pem file \"" + file_name + "\" should only contain 1 certificate, but it contains additional certificates!")
+                    command.fail("pem file \"" + full_file_name + "\" should only contain 1 certificate, but it contains additional certificates!")
                 has_certificate = True
             # The file should not have other types of PEM data
             elif line.startswith("-----BEGIN "):
-                command.fail("pem file \"" + file_name + "\" contains non-certificate PEM data!")
+                command.fail("pem file \"" + full_file_name + "\" contains non-certificate PEM data!")
         # The file should have had a certificate
         if not has_certificate:
-            command.fail("pem file \"" + file_name + "\" does not contain any PEM certificates!")
+            command.fail("pem file \"" + full_file_name + "\" does not contain any PEM certificates!")
 
         return True
+
 
 def generate() -> None:
     authorities = get_targz_path(check_exists=False)

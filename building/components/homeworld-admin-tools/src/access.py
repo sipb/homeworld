@@ -120,6 +120,7 @@ def access_ssh(add_to_agent=False):
             fail_hint = "ssh-add returned non-zero exit code. do you have an ssh-agent?"
             command.fail("*** ssh-add failed! ***", fail_hint)
 
+
 def access_ssh_with_add():
     access_ssh(add_to_agent=True)
 
