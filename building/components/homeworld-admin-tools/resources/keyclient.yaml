@@ -17,6 +17,12 @@ downloads:
     mode: 644
 
   - type: authority
+    name: clustertls
+    path: /usr/local/share/ca-certificates/extra/cluster.tls.crt
+    refresh: 24h
+    mode: 644
+
+  - type: authority
     name: ssh-user
     path: /etc/ssh/ssh_user_ca.pub
     refresh: 168h   # allow a week for mistakes to be noticed on this one

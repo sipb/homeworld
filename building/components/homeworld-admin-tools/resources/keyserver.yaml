@@ -18,6 +18,11 @@ authorities:
     key: server.key
     cert: server.pem
 
+  clustertls:
+    type: TLS
+    key: cluster.key
+    cert: cluster.cert
+
   ssh-user:
     type: SSH
     key: ssh_user_ca
