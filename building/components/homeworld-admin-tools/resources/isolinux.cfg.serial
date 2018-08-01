@@ -1,0 +1,9 @@
+# modified version to support serial access
+serial 0 115200
+console 0
+path
+prompt 1
+
+label install
+	kernel linux
+	append vga=off console=ttyS0,115200n8 initrd=initrd.gz --- quiet console=ttyS0,115200n8

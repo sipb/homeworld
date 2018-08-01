@@ -40,7 +40,14 @@ def list_passphrases():
     print("End of list.")
 
 
-def gen_iso(iso_image, authorized_key):
+def mode_serial(includedir, cddir, inclusion):
+    resource.copy_to("isolinux.cfg.serial", os.path.join(cddir, "isolinux.cfg"))
+
+
+MODES={"serial": mode_serial}
+
+
+def gen_iso(iso_image, authorized_key, mode=None):
     with tempfile.TemporaryDirectory() as d:
         inclusion = []
 
@@ -109,6 +116,11 @@ def gen_iso(iso_image, authorized_key):
         os.mkdir(cddir)
         subprocess.check_call(["bsdtar", "-C", cddir, "-xzf", "/usr/share/homeworld/debian.iso"])
         subprocess.check_call(["chmod", "+w", "--recursive", cddir])
+
+        if mode is not None:
+            if mode not in MODES:
+                command.fail("no such ISO mode: %s" % mode)
+            MODES[mode](d, cddir, inclusion)
 
         with gzip.open(os.path.join(cddir, "initrd.gz"), "ab") as f:
             subprocess.run(["cpio", "--create", "--format=newc"], check=True, stdout=f,
