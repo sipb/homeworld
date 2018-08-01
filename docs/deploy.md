@@ -43,10 +43,9 @@ This key will be used to encrypt the private authority keys.
 
 **WARNING**: because gpg's `--passphrase-file` option is used, only the first line from the file will be used as the key!
 
-**WARNING**: The disaster recovery key is used to encrypt upstream keys. If you are rotating the disaster recovery key, you should first decrypt the upstream keys:
+**WARNING**: The disaster recovery key is used to encrypt upstream keys. If you are rotating the disaster recovery key, you should first decrypt the upstream keytab:
 
     $ spire keytab export egg-sandwich egg-keytab
-    $ spire https export homeworld ./homeworld.key ./homeworld.pem
 
 Recommended method of generating the passphrase:
 
@@ -84,12 +83,6 @@ $ spire keytab rotate <hostname>
 $ spire keytab delold <hostname>
 ```
 
- * If you are running your own homeworld bootstrap container registry, import the HTTPS key and certificate:
-
-```
-$ spire https import homeworld ./homeworld.key ./homeworld.pem
-```
-
 Now you can consider putting this folder in Git, and then move on to 'Deploying a prepared cluster' below.
 
 ## Uploading to Git
@@ -98,7 +91,7 @@ Be very careful not to add unencrypted key material, because that could cause a 
 
     $ cd $HOMEWORLD_DIR
     $ git init
-    $ git add setup.yaml authorities.tgz keytab.*.crypt https.*    # be VERY CAREFUL about what you're adding!
+    $ git add setup.yaml authorities.tgz keytab.*.crypt    # be VERY CAREFUL about what you're adding!
     $ git commit
     $ git remote add origin ...
     $ git push -u origin master

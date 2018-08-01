@@ -204,22 +204,12 @@ def teardown_dns_bootstrap(ops: Operations) -> None:
     modify_dns_bootstrap(ops, False)
 
 
-REGISTRY_HOSTNAME = "homeworld"
-
-
 def setup_bootstrap_registry(ops: Operations) -> None:
     config = configuration.get_config()
     for node in config.nodes:
         if node.kind != "supervisor":
             continue
-        keypath = os.path.join(configuration.get_project(), "https.%s.key.crypt" % REGISTRY_HOSTNAME)
-        certpath = os.path.join(configuration.get_project(), "https.%s.pem" % REGISTRY_HOSTNAME)
 
-        keydata = keycrypt.gpg_decrypt_to_memory(keypath)
-
-        ops.ssh_mkdir("create ssl cert directory on @HOST", node, "/etc/homeworld/ssl")
-        ops.ssh_upload_bytes("upload %s key to @HOST" % REGISTRY_HOSTNAME, node, keydata, "/etc/homeworld/ssl/%s.key" % REGISTRY_HOSTNAME)
-        ops.ssh_upload_path("upload %s cert to @HOST" % REGISTRY_HOSTNAME, node, certpath, "/etc/homeworld/ssl/%s.pem" % REGISTRY_HOSTNAME)
         ops.ssh("unmask nginx on @HOST", node, "systemctl", "unmask", "nginx")
         ops.ssh("enable nginx on @HOST", node, "systemctl", "enable", "nginx")
         ops.ssh("restart nginx on @HOST", node, "systemctl", "restart", "nginx")
