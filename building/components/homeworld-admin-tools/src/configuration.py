@@ -277,6 +277,7 @@ def get_keyclient_yaml(variant: str) -> str:
     kcli = {"KEYSERVER": config.keyserver.hostname + "." + config.external_domain,
             "MASTER": variant == "master",
             "WORKER": variant in ("worker", "master"),
+            "SUPERVISOR": variant == "supervisor",
             "BASE": variant == "base"}
     return template.template("keyclient.yaml", kcli)
 

@@ -88,6 +88,14 @@ keys:
     api: grant-kubernetes-worker
     in-advance: 168h   # renew one week before expiration
 
+[SUPERVISOR]    # just for supervisor nodes
+[SUPERVISOR]  - name: clustertls
+[SUPERVISOR]    type: tls
+[SUPERVISOR]    key: /etc/homeworld/ssl/homeworld.private.key
+[SUPERVISOR]    cert: /etc/homeworld/ssl/homeworld.private.pem
+[SUPERVISOR]    api: grant-registry-host
+[SUPERVISOR]    in-advance: 168h   # renew one week before expiration
+
 [MASTER]    # just for master nodes
 [MASTER]  - name: kube-master
 [MASTER]    type: tls

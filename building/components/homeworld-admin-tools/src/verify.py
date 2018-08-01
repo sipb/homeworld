@@ -105,6 +105,7 @@ def check_certs_on_supervisor():
         if node.kind == "supervisor":
             ssh.check_ssh(node, "test", "-e", "/etc/homeworld/authorities/kubernetes.pem")
             ssh.check_ssh(node, "test", "-e", "/etc/homeworld/keys/kubernetes-worker.pem")
+            ssh.check_ssh(node, "test", "-e", "/etc/homeworld/ssl/homeworld.private.pem")
 
 
 def expect_prometheus_query_exact(query, expected, description):  # description -> 'X are Y'

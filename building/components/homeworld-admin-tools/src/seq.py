@@ -25,7 +25,7 @@ def sequence_ssh(ops: setup.Operations) -> None:
 
 def sequence_supervisor(ops: setup.Operations) -> None:
     ops.add_subcommand(sequence_keysystem)
-    ops.add_operation("verify that kubernetes certs are available on supervisor", iterative_verifier(verify.check_certs_on_supervisor, 20.0))
+    ops.add_operation("verify that keysystem certs are available on supervisor", iterative_verifier(verify.check_certs_on_supervisor, 20.0))
     ops.add_subcommand(setup.setup_prometheus)
     ops.add_subcommand(sequence_ssh)
     ops.add_subcommand(setup.setup_bootstrap_registry)

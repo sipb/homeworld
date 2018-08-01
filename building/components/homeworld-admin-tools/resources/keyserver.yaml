@@ -180,6 +180,16 @@ grants:
     - (hostname)
     - (ip)
 
+  grant-registry-host:
+    group: supervisor-nodes
+    privilege: sign-tls
+    authority: clustertls
+    lifespan: 720h  # thirty day lifespan
+    ishost: true
+    common-name: homeworld-supervisor-(hostname)
+    allowed-names:
+    - homeworld.private
+
   # CLIENT CERTIFICATES
 
   grant-kubernetes-worker:
