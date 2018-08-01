@@ -5,6 +5,7 @@ import access
 import command
 import deploy
 import setup
+import configuration
 import verify
 
 
@@ -13,8 +14,11 @@ def sequence_keysystem(ops: setup.Operations) -> None:
     ops.add_operation("verify that keyserver static files can be fetched",
                       iterative_verifier(verify.check_keystatics, 10.0))
     ops.add_subcommand(setup.admit_keyserver)
-    ops.add_subcommand(setup.setup_keygateway)
-    ops.add_operation("verify that the keygateway is responsive", verify.check_keygateway)
+    if configuration.get_config().is_kerberos_enabled():
+        ops.add_subcommand(setup.setup_keygateway)
+        ops.add_operation("verify that the keygateway is responsive", verify.check_keygateway)
+    else:
+        ops.add_operation("skip keygateway enablement (kerberos is disabled)", lambda: None)
 
 
 def sequence_ssh(ops: setup.Operations) -> None:

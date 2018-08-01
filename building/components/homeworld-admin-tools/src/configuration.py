@@ -173,6 +173,9 @@ class Config:
                     command.fail("in config: multiple supervisors not yet supported")
                 self.keyserver = node
 
+    def is_kerberos_enabled(self):
+        return len(self.root_admins) > 0
+
     def has_node(self, node_name: str) -> bool:
         return any(node.hostname == node_name for node in self.nodes)
 
@@ -245,19 +248,21 @@ def get_keyserver_yaml() -> str:
     group: root-admins
         """.strip("\n"), admins, load=False)
 
-    ssh_metric_nodes = [
-        {
-            "HOSTNAME": node.hostname,
-            "DOMAIN": config.external_domain,
-            "REALM": config.realm,
-        } for node in config.nodes if node.kind == "supervisor"]
+    if config.is_kerberos_enabled():
 
-    accounts += template.template_all(
-        """
+        ssh_metric_nodes = [
+            {
+                "HOSTNAME": node.hostname,
+                "DOMAIN": config.external_domain,
+                "REALM": config.realm,
+            } for node in config.nodes if node.kind == "supervisor"]
+
+        accounts += template.template_all(
+            """
   - principal: host/{{HOSTNAME}}.{{DOMAIN}}@{{REALM}}
     disable-direct-auth: true
     group: kerberos-accounts
-        """.strip("\n"), ssh_metric_nodes, load=False)
+            """.strip("\n"), ssh_metric_nodes, load=False)
 
     ksrv = {"SERVICEAPI": config.service_api,
             "ACCOUNTS": "".join(accounts),

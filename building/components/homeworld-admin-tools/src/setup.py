@@ -1,13 +1,12 @@
 import os
-import time
 import subprocess
+import time
 
 import authority
 import command
 import configuration
-import resource
-import util
 import keycrypt
+import resource
 import ssh
 
 
@@ -132,6 +131,9 @@ def admit_keyserver(ops: Operations) -> None:
 
 def modify_keygateway(ops: Operations, overwrite_keytab: bool) -> None:
     config = configuration.get_config()
+    if not config.is_kerberos_enabled():
+        print("keygateway disabled; skipping")
+        return
     for node in config.nodes:
         if node.kind != "supervisor":
             continue
