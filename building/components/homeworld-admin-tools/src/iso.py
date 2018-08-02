@@ -88,13 +88,11 @@ def gen_iso(iso_image, authorized_key, mode=None):
         preseeded = preseeded.replace(b"{{KERBEROS-REALM}}", realm.encode())
 
         cidr_nodes, upstream_dns_servers = configuration.get_config().cidr_nodes, configuration.get_config().dns_upstreams
-        if cidr_nodes.bits == 32:
-            command.fail("cidr_nodes cannot be a /32")
 
         node_cidr_prefix = ".".join(str(cidr_nodes.ip).split(".")[:-1]) + "."
         preseeded = preseeded.replace(b"{{IP-PREFIX}}", node_cidr_prefix.encode())
 
-        node_cidr_gateway = configuration.IP.from_integer(cidr_nodes.ip.to_integer() + 1)
+        node_cidr_gateway = cidr_nodes.gateway()
         preseeded = preseeded.replace(b"{{GATEWAY}}", str(node_cidr_gateway).encode())
 
         node_cidr_netmask = cidr_nodes.netmask()

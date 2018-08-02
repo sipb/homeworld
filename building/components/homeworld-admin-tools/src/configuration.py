@@ -47,6 +47,11 @@ class CIDR:
     def netmask(self) -> "IP":
         return IP.from_integer(self.netmask_int())
 
+    def gateway(self) -> "IP":
+        if self.bits == 32:
+            command.fail("no gateway can be assumed from a /32")
+        return IP.from_integer(self.ip.to_integer() + 1)
+
     def __contains__(self, ip):
         return (ip & self.netmask()) == self.ip
 
@@ -106,7 +111,6 @@ class IP:
 
 
 class Node:
-
     VALID_NODE_KINDS = {"master", "worker", "supervisor"}
 
     def __init__(self, config: dict):
