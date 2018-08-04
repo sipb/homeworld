@@ -52,7 +52,7 @@ def gen_iso(iso_image, authorized_key, mode=None):
         inclusion = []
 
         with open(os.path.join(d, "dns_bootstrap_lines"), "w") as outfile:
-            outfile.writelines(setup.dns_bootstrap_lines())
+            outfile.write(setup.dns_bootstrap_lines())
 
         inclusion += ["dns_bootstrap_lines"]
         util.copy(authorized_key, os.path.join(d, "authorized.pub"))
