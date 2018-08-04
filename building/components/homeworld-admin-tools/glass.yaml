@@ -55,6 +55,10 @@ build:
       echo "#!/usr/bin/env python3" | cat - spire.zip >spire
       chmod +x spire
 
+  # validate that spire actually works at all
+  - type: bash
+    code: ./spire -h >/dev/null
+
   - type: copy
     stage: spire
     output: /usr/bin/spire
