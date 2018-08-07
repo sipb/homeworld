@@ -108,7 +108,7 @@ grants:
   bootstrap-keyinit:
     group: supervisor-nodes
     privilege: bootstrap-account
-    scope: supervisor-nodes
+    scope: nodes
     lifespan: 10m
 
   renew-keygrant:

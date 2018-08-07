@@ -17,11 +17,12 @@ import (
 
 func main() {
 	logger := log.New(os.Stderr, "[keyinitadmit] ", log.Ldate|log.Ltime|log.Lmicroseconds|log.Lshortfile)
-	if len(os.Args) < 4 {
-		logger.Fatal("usage: keyinitadmit <keyserver-config> <server> <bootstrap-api>\n  runs on the keyserver; requests a bootstrap token using privileged access")
+	if len(os.Args) < 5 {
+		logger.Fatal("usage: keyinitadmit <keyserver-config> <server> <principal> <bootstrap-api>\n  runs on the keyserver; requests a bootstrap token using privileged access")
 	}
-	principal := os.Args[2]
-	bootstrap_api := os.Args[3]
+	server_name := os.Args[2]
+	principal := os.Args[3]
+	bootstrap_api := os.Args[4]
 	ctx, err := config.LoadConfig(os.Args[1])
 	if err != nil {
 		logger.Fatal(err)
@@ -35,11 +36,11 @@ func main() {
 		logger.Fatal(err)
 	}
 	csr := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE REQUEST", Bytes: csrder})
-	certdata, err := ctx.AuthenticationAuthority.Sign(string(csr), false, time.Minute * 10, principal, nil)
+	certdata, err := ctx.AuthenticationAuthority.Sign(string(csr), false, time.Minute * 10, server_name, nil)
 	if err != nil {
 		logger.Fatal(err)
 	}
-	ks, err := server.NewKeyserver(ctx.ServerTLS.GetPublicKey(), principal + ":20557")
+	ks, err := server.NewKeyserver(ctx.ServerTLS.GetPublicKey(), server_name + ":20557")
 	if err != nil {
 		logger.Fatal(err)
 	}
