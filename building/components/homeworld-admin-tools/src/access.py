@@ -161,15 +161,19 @@ def _replace_cert_authority(known_hosts_lines: list, machine_list: str, pubkey: 
     return rebuilt
 
 
+def get_known_hosts_path() -> str:
+    homedir = os.getenv("HOME")
+    if homedir is None:
+        command.fail("could not determine home directory, so could not find ~/.ssh/known_hosts")
+    return os.path.join(homedir, ".ssh", "known_hosts")
+
+
 def update_known_hosts():
     # uses local copies of machine list and ssh-host pubkey
     # TODO: eliminate now-redundant machine.list download from keyserver
     machines = configuration.get_machine_list_file().strip()
     cert_authority_pubkey = authority.get_pubkey_by_filename("./ssh_host_ca.pub")
-    homedir = os.getenv("HOME")
-    if homedir is None:
-        command.fail("could not determine home directory, so could not find ~/.ssh/known_hosts")
-    known_hosts_path = os.path.join(homedir, ".ssh", "known_hosts")
+    known_hosts_path = get_known_hosts_path()
     known_hosts_old = util.readfile(known_hosts_path).decode().split("\n") if os.path.exists(known_hosts_path) else []
 
     if known_hosts_old and not known_hosts_old[-1]:
