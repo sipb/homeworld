@@ -41,8 +41,19 @@ def infra_install_packages(ops: setup.Operations) -> None:
         ops.ssh("upgrade packages on @HOST", node, "apt-get", "upgrade", "-y")
 
 
+def infra_sync(ops: setup.Operations, node_name: str) -> None:
+    node = configuration.get_config().get_node(node_name)
+    ops.ssh("synchronize operations on @HOST", node, "sync")
+
+
+def infra_sync_supervisor(ops: setup.Operations) -> None:
+    infra_sync(ops, configuration.get_config().keyserver.hostname)
+
+
 main_command = command.mux_map("commands about maintaining the infrastructure of a cluster", {
     "admit": command.wrap("request a token to admit a node to the cluster", infra_admit),
     "admit-all": command.wrap("request tokens to admit every non-supervisor node to the cluster", infra_admit_all),
     "install-packages": setup.wrapop("install and update packages on a node", infra_install_packages),
+    "sync": setup.wrapop("synchronize the filesystem to disk on a node", infra_sync),
+    "sync-supervisor": setup.wrapop("synchronize the filesystem to disk on the supervisor", infra_sync_supervisor),
 })
