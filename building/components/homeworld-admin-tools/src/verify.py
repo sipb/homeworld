@@ -10,7 +10,6 @@ import subprocess
 import command
 import configuration
 import access
-import parallel
 import random
 import json
 import ssh
