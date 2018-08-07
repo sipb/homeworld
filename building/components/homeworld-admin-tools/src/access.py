@@ -1,5 +1,6 @@
 import time
 import os
+import sys
 import command
 import subprocess
 import configuration
@@ -241,11 +242,53 @@ def ssh_foreach(ops: setup.Operations, node_kind: str, *params: str):
             ops.ssh("run command on @HOST", node, *params)
 
 
+def compute_fingerprint(key: str) -> str:
+    text = subprocess.check_output(["ssh-keygen", "-l", "-f", "-"], input=key.encode(), stderr=subprocess.STDOUT).decode()
+    if not text.endswith("\n") or text.count("\n") != 1:
+        raise Exception("invalid format of result from ssh-keygen -l: expected exactly one line")
+    return text.rstrip("\n")
+
+
+def hostkeys_by_fingerprint(node: configuration.Node, fingerprints: list):
+    keys = []
+    for line in subprocess.check_output(["ssh-keyscan", "-T", "1", "--", str(node.ip)]).decode().split("\n"):
+        if not line or line.startswith("#"): continue
+        if line.count(" ") < 1:
+            raise Exception("invalid format of result from ssh-keyscan: expected two fields")
+        server, key = line.split(" ", 1)
+        if server != str(node.ip):
+            raise Exception("ssh-keyscan returned server information for a different server than expected")
+        fingerprint = compute_fingerprint(key)
+        if fingerprint in fingerprints:
+            keys.append(key)
+    return keys
+
+
+def pull_supervisor_key(fingerprints):
+    config = configuration.get_config()
+    node = config.keyserver
+    known_hosts = get_known_hosts_path()
+
+    for remove in ["%s.%s" % (node.hostname, config.external_domain), str(node.ip)]:
+        subprocess.check_call(["ssh-keygen", "-f", known_hosts, "-R", remove],
+                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    keys = hostkeys_by_fingerprint(node, fingerprints)
+    with open(known_hosts, "a") as f:
+        for key in keys:
+            f.write("%s.%s %s\n" % (node.hostname, config.external_domain, key))
+
+
+def pull_supervisor_key_from(source_file):
+    pull_supervisor_key(util.readfile(source_file).decode().strip().split("\n"))
+
+
 etcdctl_command = command.wrap("invoke commands through the etcdctl wrapper", dispatch_etcdctl)
 kubectl_command = command.wrap("invoke commands through the kubectl wrapper", dispatch_kubectl)
 foreach_command = setup.wrapop("invoke commands on every node (or every node of a given kind) in the cluster", ssh_foreach)
 main_command = command.mux_map("commands about establishing access to a cluster", {
     "ssh": command.wrap("request SSH access to the cluster and add it to the SSH agent", access_ssh_with_add),
     "ssh-fetch": command.wrap("request SSH access to the cluster but do not register it with the agent", access_ssh),
-    "update-known-hosts": command.wrap("update ~/.ssh/known_hosts file with @ca-certificates directive", update_known_hosts)
+    "update-known-hosts": command.wrap("update ~/.ssh/known_hosts file with @ca-certificates directive", update_known_hosts),
+    "pull-supervisor-key": command.wrap("update ~/.ssh/known_hosts file with the supervisor host keys, based on their known hashes", pull_supervisor_key_from),
 })
