@@ -46,28 +46,6 @@ spec:
       containers:
       - name: kubedns
         image: homeworld.private/kube-dns-main:1.14.8-3
-        resources:
-          limits:
-            memory: 170Mi
-          requests:
-            cpu: 100m
-            memory: 70Mi
-        livenessProbe:
-          httpGet:
-            path: /healthcheck/kubedns
-            port: 10054
-            scheme: HTTP
-          initialDelaySeconds: 60
-          timeoutSeconds: 5
-          successThreshold: 1
-          failureThreshold: 5
-        readinessProbe:
-          httpGet:
-            path: /readiness
-            port: 8081
-            scheme: HTTP
-          initialDelaySeconds: 3
-          timeoutSeconds: 5
         args:
         - /usr/bin/kube-dns
         - --domain={{INTERNAL_DOMAIN}}.
@@ -88,15 +66,6 @@ spec:
           protocol: TCP
       - name: dnsmasq
         image: homeworld.private/dnsmasq-nanny:1.14.8-4
-        livenessProbe:
-          httpGet:
-            path: /healthcheck/dnsmasq
-            port: 10054
-            scheme: HTTP
-          initialDelaySeconds: 60
-          timeoutSeconds: 5
-          successThreshold: 1
-          failureThreshold: 5
         args:
         - /usr/bin/dnsmasq-nanny
         - -v=2
@@ -118,21 +87,8 @@ spec:
         - containerPort: 53
           name: dns-tcp
           protocol: TCP
-        resources:
-          requests:
-            cpu: 150m
-            memory: 20Mi
       - name: sidecar
         image: homeworld.private/kube-dns-sidecar:1.14.8-3
-        livenessProbe:
-          httpGet:
-            path: /metrics
-            port: 10054
-            scheme: HTTP
-          initialDelaySeconds: 60
-          timeoutSeconds: 5
-          successThreshold: 1
-          failureThreshold: 5
         args:
         - /usr/bin/sidecar
         - --v=2
