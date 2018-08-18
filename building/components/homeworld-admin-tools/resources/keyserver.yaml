@@ -109,7 +109,7 @@ grants:
     group: supervisor-nodes
     privilege: bootstrap-account
     scope: nodes
-    lifespan: 10m
+    lifespan: 1h
 
   renew-keygrant:
     group: nodes
