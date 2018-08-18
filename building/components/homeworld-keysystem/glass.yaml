@@ -1,6 +1,6 @@
 control:
   name: homeworld-keysystem
-  version: 0.1.21
+  version: 0.1.22
   date: 2018-07-30T21:58:00-0700
   type: deb
   depends:
@@ -53,6 +53,13 @@ build:
       - keysystem/keyinitadmit/main
     gopath: /h:go
     stage: bin/keyinitadmit
+
+  - type: go-build
+    version: 1.9.3
+    packages:
+      - keysystem/keylocalcert/main
+    gopath: /h:go
+    stage: bin/keylocalcert
 
   - type: go-build
     version: 1.9.3

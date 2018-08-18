@@ -110,6 +110,40 @@ def renew_ssh_cert() -> str:
     return keypath
 
 
+def refresh_etcd_cert(key_path, cert_path, ca_path):
+    if configuration.get_config().is_kerberos_enabled():
+        print("rotating etcd certs via keyreq")
+        call_keyreq("etcd-cert", key_path, cert_path, ca_path)
+    else:
+        print("generating etcd cert via local bypass method")
+        with tempfile.TemporaryDirectory() as dir:
+            ca_key = os.path.join(dir, "etcd-client.key")
+            ca_pem = os.path.join(dir, "etcd-client.pem")
+            util.writefile(ca_key, authority.get_decrypted_by_filename("./etcd-client.key"))
+            pem = authority.get_pubkey_by_filename("./etcd-client.pem")
+            util.writefile(ca_path, pem)
+            util.writefile(ca_pem, pem)
+            os.chmod(ca_key, 0o600)
+            subprocess.check_call(["keylocalcert", ca_key, ca_pem, "temporary-etcd-bypass-grant", "4h", key_path, cert_path])
+
+
+def refresh_kube_cert(key_path, cert_path, ca_path):
+    if configuration.get_config().is_kerberos_enabled():
+        print("rotating kubernetes certs via keyreq")
+        call_keyreq("kube-cert", key_path, cert_path, ca_path)
+    else:
+        print("generating kubernetes cert via local bypass method")
+        with tempfile.TemporaryDirectory() as dir:
+            ca_key = os.path.join(dir, "kubernetes.key")
+            ca_pem = os.path.join(dir, "kubernetes.pem")
+            util.writefile(ca_key, authority.get_decrypted_by_filename("./kubernetes.key"))
+            pem = authority.get_pubkey_by_filename("./kubernetes.pem")
+            util.writefile(ca_path, pem)
+            util.writefile(ca_pem, pem)
+            os.chmod(ca_key, 0o600)
+            subprocess.check_call(["keylocalcert", ca_key, ca_pem, "temporary-kube-bypass-grant", "4h", key_path, cert_path])
+
+
 def access_ssh(add_to_agent=False):
     keypath = renew_ssh_cert()
     print("===== v CERTIFICATE DETAILS v =====")
@@ -194,8 +228,7 @@ def call_etcdctl(params: list, return_result: bool):
     etcd_cert_path = os.path.join(project_dir, "etcd-access.pem")
     etcd_ca_path = os.path.join(project_dir, "etcd-ca.pem")
     if needs_rotate(etcd_cert_path):
-        print("rotating etcd certs...")
-        call_keyreq("etcd-cert", etcd_key_path, etcd_cert_path, etcd_ca_path)
+        refresh_etcd_cert(etcd_key_path, etcd_cert_path, etcd_ca_path)
 
     args = ["etcdctl", "--cert-file", etcd_cert_path, "--key-file", etcd_key_path,
                        "--ca-file", etcd_ca_path, "--endpoints", endpoints] + list(params)
@@ -215,8 +248,7 @@ def call_kubectl(params, return_result: bool):
     key_path, cert_path, ca_path = configuration.get_kube_cert_paths()
 
     if needs_rotate(cert_path):
-        print("rotating kubernetes certs...")
-        call_keyreq("kube-cert", key_path, cert_path, ca_path)
+        refresh_kube_cert(key_path, cert_path, ca_path)
 
     with tempfile.TemporaryDirectory() as f:
         kubeconfig_path = os.path.join(f, "temp-kubeconfig")
