@@ -1,6 +1,6 @@
 control:
   name: dns-monitor
-  version: 0.1.5
+  version: 0.1.6
   date: 2018-01-17T17:12:00-0500
   type: aci
 

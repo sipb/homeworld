@@ -66,7 +66,7 @@ func cycle(expectations map[string]net.IP) {
 		ic := internalCheck.With(prometheus.Labels{"hostname": hostname})
 		ict := internalCheckTiming.With(prometheus.Labels{"hostname": hostname})
 		if err != nil {
-			log.Printf("failed to check DNS result for %s", hostname)
+			log.Printf("failed to check DNS result for %s: %v", hostname, err)
 			ic.Set(0)
 		} else if !expectIP.Equal(foundIP) {
 			ic.Set(0)
