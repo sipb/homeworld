@@ -33,7 +33,12 @@ build:
     input: 10-containernet.conf
     output: /etc/rkt/net.d/10-containernet.conf
 
-  # TODO: extract this from GPG keyring
-  - type: copy
-    input: a1ebb6ea29a86c445a187cb9d167aca2e5fcf374
-    output: /etc/rkt/trustedkeys/prefix.d/homeworld.private/a1ebb6ea29a86c445a187cb9d167aca2e5fcf374
+  - type: python
+    code: |
+      import os
+      fingerprint = context.branch_config.signing_key.lower()
+      dest = context.output('/etc/rkt/trustedkeys/prefix.d/homeworld.private/' + fingerprint)
+      signing_key = aptbranch.export_key(context.branch_config.signing_key, armor=True)
+      os.makedirs(os.path.dirname(dest))
+      with open(dest, 'wb') as f:
+          f.write(signing_key)
