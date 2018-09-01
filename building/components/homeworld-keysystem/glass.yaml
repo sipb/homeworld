@@ -25,17 +25,6 @@ build:
     focus: src/gopkg.in
     stage: go/src/gopkg.in
 
-  # TODO: find a better way to share this code
-  - type: copy
-    input: ../sources-shared/src/keycommon
-    stage: go/src/keycommon
-    recursive: true
-
-  - type: copy
-    input: ../sources-shared/src/util
-    stage: go/src/util
-    recursive: true
-
   - type: go-build
     version: 1.9.3
     sources-input:

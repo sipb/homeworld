@@ -7,8 +7,5 @@ stages:
 
   - pattern: helper-acbuild
 
-  - pattern: sources-shared
-    build: false
-
   # excludes folders like .idea
   - pattern: "[^.].*"
