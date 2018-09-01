@@ -28,37 +28,37 @@ build:
   - type: go-build
     version: 1.9.3
     sources-input:
-      - src/keyserver/main/keyserver.go
+      - src/keysystem/keyserver/main/keyserver.go
     stage: bin/keyserver
 
   - type: go-build
     version: 1.9.3
     sources-input:
-      - src/keygateway/main/keygateway.go
+      - src/keysystem/keygateway/main/keygateway.go
     stage: bin/keygateway
 
   - type: go-build
     version: 1.9.3
     sources-input:
-      - src/keyclient/main/keyclient.go
+      - src/keysystem/keyclient/main/keyclient.go
     stage: bin/keyclient
 
   - type: go-build
     version: 1.9.3
     sources-input:
-      - src/keygen/main/keygen.go
+      - src/keysystem/keygen/main/keygen.go
     stage: bin/keygen
 
   - type: go-build
     version: 1.9.3
     sources-input:
-      - src/keyinitadmit/main/keyinitadmit.go
+      - src/keysystem/keyinitadmit/main/keyinitadmit.go
     stage: bin/keyinitadmit
 
   - type: go-build
     version: 1.9.3
     sources-input:
-      - src/keyreq/main/keyreq.go
+      - src/keysystem/keyreq/main/keyreq.go
     stage: bin/keyreq
 
   - type: copy
