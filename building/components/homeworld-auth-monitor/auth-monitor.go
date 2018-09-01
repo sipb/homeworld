@@ -1,1 +1,1 @@
-../../src/auth-monitor/auth-monitor.go
+../../src/auth-monitor/main/auth-monitor.go

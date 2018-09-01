@@ -1,1 +1,1 @@
-../../src/etcd-metrics-exporter/etcd-metrics-exporter.go
+../../src/etcd-metrics-exporter/main/etcd-metrics-exporter.go

@@ -1,1 +1,1 @@
-../../src/dns-monitor/dns-monitor.go
+../../src/dns-monitor/main/dns-monitor.go
