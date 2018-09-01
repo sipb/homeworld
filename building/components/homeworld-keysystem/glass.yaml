@@ -7,12 +7,6 @@ control:
   - homeworld-knc
 
 build:
-  - type: copy
-    input: src
-    stage: go/src
-    recursive: true
-    follow-symlinks: false
-
   - type: upstream-extract
     upstream: golang-x-crypto-%.tar.xz
     version: 5ef0053f77724838734b6945dd364d3847e5de1d
@@ -27,38 +21,44 @@ build:
 
   - type: go-build
     version: 1.9.3
-    sources-input:
-      - src/keysystem/keyserver/main/keyserver.go
+    packages:
+      - keysystem/keyserver/main
+    gopath: /h:go
     stage: bin/keyserver
 
   - type: go-build
     version: 1.9.3
-    sources-input:
-      - src/keysystem/keygateway/main/keygateway.go
+    packages:
+      - keysystem/keygateway/main
+    gopath: /h:go
     stage: bin/keygateway
 
   - type: go-build
     version: 1.9.3
-    sources-input:
-      - src/keysystem/keyclient/main/keyclient.go
+    packages:
+      - keysystem/keyclient/main
+    gopath: /h:go
     stage: bin/keyclient
 
   - type: go-build
     version: 1.9.3
-    sources-input:
-      - src/keysystem/keygen/main/keygen.go
+    packages:
+      - keysystem/keygen/main
+    gopath: /h:go
     stage: bin/keygen
 
   - type: go-build
     version: 1.9.3
-    sources-input:
-      - src/keysystem/keyinitadmit/main/keyinitadmit.go
+    packages:
+      - keysystem/keyinitadmit/main
+    gopath: /h:go
     stage: bin/keyinitadmit
 
   - type: go-build
     version: 1.9.3
-    sources-input:
-      - src/keysystem/keyreq/main/keyreq.go
+    packages:
+      - keysystem/keyreq/main
+    gopath: /h:go
     stage: bin/keyreq
 
   - type: copy
