@@ -11,6 +11,7 @@ build:
     input: src
     stage: go/src
     recursive: true
+    follow-symlinks: false
 
   # TODO: more efficient way to do this source code extraction
   - type: upstream-extract

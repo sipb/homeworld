@@ -11,6 +11,7 @@ build:
     input: src
     stage: go/src
     recursive: true
+    follow-symlinks: false
 
   - type: upstream-extract
     upstream: golang-x-crypto-%.tar.xz

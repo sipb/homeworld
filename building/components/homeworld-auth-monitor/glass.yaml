@@ -36,11 +36,13 @@ build:
     input: ../sources-shared/src/keycommon
     stage: go/src/keycommon
     recursive: true
+    follow-symlinks: false
 
   - type: copy
     input: ../sources-shared/src/util
     stage: go/src/util
     recursive: true
+    follow-symlinks: false
 
   - type: go-build
     version: 1.9.3
