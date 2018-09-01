@@ -7,12 +7,6 @@ control:
   set-exec: /usr/bin/dns-monitor
 
 build:
-  - type: copy
-    input: src
-    stage: go/src
-    recursive: true
-    follow-symlinks: false
-
   # TODO: more efficient way to do this source code extraction
   - type: upstream-extract
     upstream: kubernetes-src-v%.tar.xz
@@ -40,6 +34,7 @@ build:
     version: 1.9.3
     packages:
       - flannel-monitor/main
+    gopath: /h:go
     stage: bin/flannel-monitor
     no-cgo: true
 
@@ -47,6 +42,7 @@ build:
     version: 1.9.3
     packages:
       - flannel-monitor-reflector/main
+    gopath: /h:go
     stage: bin/flannel-monitor-reflector
     no-cgo: true
 
@@ -54,6 +50,7 @@ build:
     version: 1.9.3
     packages:
       - flannel-monitor-collector/main
+    gopath: /h:go
     stage: bin/flannel-monitor-collector
     no-cgo: true
 
