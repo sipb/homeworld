@@ -158,10 +158,10 @@ def perform_bash(context: Context, code: str, input: str = None, stage: str = No
                 out.write(proc.stdout)
 
 
-def perform_go_build(context: Context, version: str, stage: str, sources_input: list = (), packages: list = (),
+def perform_go_build(context: Context, version: str, stage: str, packages: list = (),
                      gopath: str = "go", no_cgo: bool = False, ldflags: str = None):
-    if not sources_input and not packages:
-        raise Exception("go-build expects at least one source file or package to build")
+    if not packages:
+        raise Exception("go-build expects at least one package to build")
 
     newpath = []
     for segment in gopath.split(":"):
@@ -173,8 +173,7 @@ def perform_go_build(context: Context, version: str, stage: str, sources_input: 
     project.log("go", "(%s)" % version, "compiling output", stage)
     env = {"GOPATH": ":".join(newpath), "CGO_ENABLED": "0" if no_cgo else "1"}
     output = context.stage(stage, create_parents=True)
-    sources = [context.input(source) for source in sources_input] + list(packages)
-    gobuild.build(context.branch, version, sources, output, env, ldflags)
+    gobuild.build(context.branch, version, list(packages), output, env, ldflags)
 
 
 def perform_go_prepare(context: Context, version: str, stage: str):

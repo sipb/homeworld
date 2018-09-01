@@ -156,10 +156,6 @@ definitions:
           type: string
         stage:
           type: string
-        sources-input:
-          type: array
-          items:
-            type: string
         packages:
           type: array
           items:
@@ -171,7 +167,7 @@ definitions:
           type: boolean
         ldflags:
           type: string
-      required: ["type", "version", "stage"]
+      required: ["type", "version", "stage", "packages"]
       additionalProperties: false
     # go-prepare block
     - properties:
