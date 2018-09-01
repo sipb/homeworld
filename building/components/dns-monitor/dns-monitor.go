@@ -1,1 +1,0 @@
-../../src/dns-monitor/main/dns-monitor.go

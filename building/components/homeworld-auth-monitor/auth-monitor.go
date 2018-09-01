@@ -1,1 +1,0 @@
-../../src/auth-monitor/main/auth-monitor.go

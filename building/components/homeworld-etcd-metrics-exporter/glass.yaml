@@ -23,8 +23,9 @@ build:
 
   - type: go-build
     version: 1.9.3
-    sources-input:
-      - etcd-metrics-exporter.go
+    packages:
+      - etcd-metrics-exporter/main
+    gopath: /h:go
     stage: etcd-metrics-exporter
 
   - type: copy

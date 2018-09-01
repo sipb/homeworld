@@ -46,8 +46,9 @@ build:
 
   - type: go-build
     version: 1.9.3
-    sources-input:
-      - auth-monitor.go
+    packages:
+      - auth-monitor/main
+    gopath: /h:go
     stage: auth-monitor
 
   - type: copy

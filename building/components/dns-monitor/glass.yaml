@@ -25,8 +25,9 @@ build:
 
   - type: go-build
     version: 1.9.3
-    sources-input:
-      - dns-monitor.go
+    gopath: /h:go
+    packages:
+      - dns-monitor/main
     stage: dns-monitor
     no-cgo: true
 
