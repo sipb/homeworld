@@ -13,8 +13,8 @@ import (
 	"time"
 
 	"keysystem/keyserver/verifier"
-	"util/wraputil"
 	"util/certutil"
+	"util/wraputil"
 )
 
 type TLSAuthority struct {

@@ -4,14 +4,14 @@ import (
 	"net/http"
 	"time"
 
+	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"log"
-	"os"
-	"strings"
-	"os/exec"
 	"math/rand"
-	"fmt"
+	"os"
+	"os/exec"
+	"strings"
 )
 
 var (
@@ -19,35 +19,35 @@ var (
 
 	aciCheck = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: "aci",
-		Name: "pull_check",
-		Help: "Check for whether ACIs can be pulled",
-	}, []string {"image"})
+		Name:      "pull_check",
+		Help:      "Check for whether ACIs can be pulled",
+	}, []string{"image"})
 
 	aciHashes = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: "aci",
-		Name: "pull_hash",
-		Help: "Counters for each ACI hash found",
-	}, []string {"image", "hash"})
+		Name:      "pull_hash",
+		Help:      "Counters for each ACI hash found",
+	}, []string{"image", "hash"})
 
 	rktCheck = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: "aci",
-		Name: "rkt_check",
-		Help: "Check for whether ACIs can be launched",
-	}, []string {"image"})
+		Name:      "rkt_check",
+		Help:      "Check for whether ACIs can be launched",
+	}, []string{"image"})
 
 	aciTiming = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Namespace: "aci",
-		Name: "pull_timing_seconds",
-		Help: "Timing for pulling ACIs",
-		Buckets: []float64 {8, 10, 11, 12, 13, 14, 15, 16, 18, 20, 30, 40},
-	}, []string {"image"})
+		Name:      "pull_timing_seconds",
+		Help:      "Timing for pulling ACIs",
+		Buckets:   []float64{8, 10, 11, 12, 13, 14, 15, 16, 18, 20, 30, 40},
+	}, []string{"image"})
 
 	rktTiming = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Namespace: "aci",
-		Name: "rkt_timing_seconds",
-		Help: "Timing for launching ACIs",
-		Buckets: []float64 {5, 6, 7, 8, 9, 10, 15, 30, 60},
-	}, []string {"image"})
+		Name:      "rkt_timing_seconds",
+		Help:      "Timing for launching ACIs",
+		Buckets:   []float64{5, 6, 7, 8, 9, 10, 15, 30, 60},
+	}, []string{"image"})
 )
 
 func cycle() {
@@ -88,7 +88,7 @@ func cycle() {
 
 	aciHashes.With(prometheus.Labels{
 		"image": image,
-		"hash": hash,
+		"hash":  hash,
 	}).Inc()
 
 	aciHisto.Observe(time_taken)
@@ -104,10 +104,10 @@ func cycle() {
 		return
 	}
 	lines := strings.Split(strings.Trim(string(output), "\000\r\n"), "\n")
-	if strings.Contains(lines[len(lines) - 1], "rkt: obligatory restart") && len(lines) > 1 {
-		lines = lines[:len(lines) - 1]
+	if strings.Contains(lines[len(lines)-1], "rkt: obligatory restart") && len(lines) > 1 {
+		lines = lines[:len(lines)-1]
 	}
-	parts := strings.SplitN(strings.Trim(lines[len(lines) - 1], "\000\r\n"), ": ", 2)
+	parts := strings.SplitN(strings.Trim(lines[len(lines)-1], "\000\r\n"), ": ", 2)
 	if !strings.Contains(parts[0], "] pullcheck[") || len(parts) != 2 {
 		log.Printf("output from rkt did not match expected format: '%s'", string(output))
 		rktGauge.Set(0)

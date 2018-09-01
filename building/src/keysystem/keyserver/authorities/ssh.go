@@ -93,7 +93,7 @@ func (d *SSHAuthority) Sign(request string, ishost bool, lifespan time.Duration,
 		ValidBefore:     uint64(time.Now().Add(lifespan).Unix()),
 		ValidPrincipals: principals,
 		Permissions: ssh.Permissions{
-			Extensions: map[string]string {
+			Extensions: map[string]string{
 				"permit-pty": "",
 			},
 		},

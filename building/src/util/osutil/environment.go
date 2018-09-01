@@ -9,13 +9,13 @@ func ModifiedEnviron(key string, value string) []string {
 	env := os.Environ()
 	found := false
 	for i, entry := range env {
-		if strings.HasPrefix(entry, key + "=") {
+		if strings.HasPrefix(entry, key+"=") {
 			env[i] = key + "=" + value
 			found = true
 		}
 	}
 	if !found {
-		env = append(env, key + "=" + value)
+		env = append(env, key+"="+value)
 	}
 	return env
 }

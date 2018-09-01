@@ -25,7 +25,6 @@ func (k *Keyserver) AuthenticateWithCert(cert tls.Certificate) (reqtarget.Reques
 	return &authenticated{k.endpoint.WithCertificate(cert)}, nil
 }
 
-
 func (k *Keyserver) AuthenticateWithKerberosTickets() (reqtarget.RequestTarget, error) {
 	return k.AuthenticateWithKerberosTicketsInCache("")
 }

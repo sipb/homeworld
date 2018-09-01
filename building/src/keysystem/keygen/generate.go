@@ -1,19 +1,19 @@
 package keygen
 
 import (
-	"keysystem/keyserver/config"
-	"os"
-	"crypto/rsa"
 	"crypto/rand"
-	"encoding/pem"
+	"crypto/rsa"
 	"crypto/x509"
-	"io/ioutil"
-	"path"
 	"crypto/x509/pkix"
-	"time"
-	"golang.org/x/crypto/ssh"
+	"encoding/pem"
 	"errors"
 	"fmt"
+	"golang.org/x/crypto/ssh"
+	"io/ioutil"
+	"keysystem/keyserver/config"
+	"os"
+	"path"
+	"time"
 	"util/certutil"
 )
 
@@ -31,10 +31,10 @@ func GenerateTLSSelfSignedCert(key *rsa.PrivateKey, name string, present_as []st
 		MaxPathLen: 1,
 
 		NotBefore: issueat,
-		NotAfter:  time.Unix(issueat.Unix() + 86400 * 1000000, 0), // one million days in the future
+		NotAfter:  time.Unix(issueat.Unix()+86400*1000000, 0), // one million days in the future
 
-		Subject:     pkix.Name{CommonName: "homeworld-authority-" + name},
-		DNSNames:    present_as,
+		Subject:  pkix.Name{CommonName: "homeworld-authority-" + name},
+		DNSNames: present_as,
 	}
 
 	return certutil.FinishCertificate(certTemplate, certTemplate, key.Public(), key)

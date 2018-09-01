@@ -1,10 +1,10 @@
 package main
 
 import (
+	"keysystem/keygen"
+	"keysystem/keyserver/config"
 	"log"
 	"os"
-	"keysystem/keyserver/config"
-	"keysystem/keygen"
 )
 
 func main() {

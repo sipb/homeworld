@@ -1,18 +1,18 @@
 package main
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/tls"
+	"crypto/x509"
+	"encoding/pem"
+	"keysystem/keycommon/reqtarget"
+	"keysystem/keycommon/server"
+	"keysystem/keyserver/config"
 	"log"
 	"os"
-	"keysystem/keyserver/config"
-	"crypto/rsa"
-	"crypto/rand"
-	"encoding/pem"
-	"crypto/x509"
 	"time"
-	"keysystem/keycommon/server"
-	"crypto/tls"
 	"util/wraputil"
-	"keysystem/keycommon/reqtarget"
 )
 
 func main() {
@@ -36,11 +36,11 @@ func main() {
 		logger.Fatal(err)
 	}
 	csr := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE REQUEST", Bytes: csrder})
-	certdata, err := ctx.AuthenticationAuthority.Sign(string(csr), false, time.Minute * 10, server_name, nil)
+	certdata, err := ctx.AuthenticationAuthority.Sign(string(csr), false, time.Minute*10, server_name, nil)
 	if err != nil {
 		logger.Fatal(err)
 	}
-	ks, err := server.NewKeyserver(ctx.ServerTLS.GetPublicKey(), server_name + ":20557")
+	ks, err := server.NewKeyserver(ctx.ServerTLS.GetPublicKey(), server_name+":20557")
 	if err != nil {
 		logger.Fatal(err)
 	}

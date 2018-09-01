@@ -1,19 +1,19 @@
 package main
 
 import (
+	"fmt"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"io/ioutil"
+	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"log"
-	"os"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
-	"fmt"
-	"net/http"
-	"time"
-	"io/ioutil"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"net"
+	"net/http"
+	"os"
 	"pull"
+	"time"
 )
 
 var (
@@ -21,34 +21,34 @@ var (
 
 	talkCheck = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: "flannel",
-		Name: "talk_check",
-		Help: "Check for whether flannel supports container communication",
-	}, []string {"ping_from_host", "ping_to_host"})
+		Name:      "talk_check",
+		Help:      "Check for whether flannel supports container communication",
+	}, []string{"ping_from_host", "ping_to_host"})
 
 	monRecency = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: "flannel",
-		Name: "monitor_recency",
-		Help: "Timestamp for the oldest currently reported metric",
-	}, []string {"ping_from_host"})
+		Name:      "monitor_recency",
+		Help:      "Timestamp for the oldest currently reported metric",
+	}, []string{"ping_from_host"})
 
 	talkTiming = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Namespace: "flannel",
-		Name: "talk_timing",
-		Help: "Timing for flannel communication",
-		Buckets: []float64 {0.1, 0.2, 0.5, 1, 2, 5, 10},
-	}, []string {"ping_from_host", "ping_to_host"})
+		Name:      "talk_timing",
+		Help:      "Timing for flannel communication",
+		Buckets:   []float64{0.1, 0.2, 0.5, 1, 2, 5, 10},
+	}, []string{"ping_from_host", "ping_to_host"})
 
 	monCheck = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: "flannel",
-		Name: "monitor_check",
-		Help: "Whether flannel was able to be monitored from this host (and, therefore, the other metrics are valid)",
-	}, []string {"ping_from_host"})
+		Name:      "monitor_check",
+		Help:      "Whether flannel was able to be monitored from this host (and, therefore, the other metrics are valid)",
+	}, []string{"ping_from_host"})
 
 	dupCheck = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: "flannel",
-		Name: "duplicate_check",
-		Help: "Whether flannel monitoring successfully found no duplicate reflectors",
-	}, []string {"ping_from_host"})
+		Name:      "duplicate_check",
+		Help:      "Whether flannel monitoring successfully found no duplicate reflectors",
+	}, []string{"ping_from_host"})
 )
 
 func cycle(clientset *kubernetes.Clientset, namespace string, source_hostip string, client *http.Client) {
@@ -69,7 +69,7 @@ func cycle(clientset *kubernetes.Clientset, namespace string, source_hostip stri
 	for _, nodeIP := range podlessNodeIPs {
 		talkCheck.With(prometheus.Labels{
 			"ping_from_host": source_hostip,
-			"ping_to_host": nodeIP,
+			"ping_to_host":   nodeIP,
 		}).Set(0)
 	}
 
@@ -102,14 +102,14 @@ func cycle(clientset *kubernetes.Clientset, namespace string, source_hostip stri
 					pass = 1
 					talkTiming.With(prometheus.Labels{
 						"ping_from_host": source_hostip,
-						"ping_to_host": hostIP,
+						"ping_to_host":   hostIP,
 					}).Observe(end.Sub(start).Seconds())
 				}
 			}
 		}
 		talkCheck.With(prometheus.Labels{
 			"ping_from_host": source_hostip,
-			"ping_to_host": hostIP,
+			"ping_to_host":   hostIP,
 		}).Set(pass)
 	}
 
@@ -162,14 +162,14 @@ func main() {
 
 	client := &http.Client{
 		Timeout: time.Second,
-		Transport: &http.Transport {
+		Transport: &http.Transport{
 			DialContext: (&net.Dialer{
 				Timeout:   time.Second,
 				KeepAlive: 30 * time.Second,
 			}).DialContext,
-			IdleConnTimeout: time.Minute,
+			IdleConnTimeout:       time.Minute,
 			ResponseHeaderTimeout: time.Second,
-			MaxIdleConns: 100,
+			MaxIdleConns:          100,
 		},
 	}
 

@@ -5,22 +5,22 @@ import (
 	"net/http"
 	"time"
 
+	"bytes"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/tls"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"golang.org/x/crypto/ssh"
+	"io/ioutil"
+	"keysystem/keycommon"
+	"keysystem/keycommon/reqtarget"
+	"keysystem/keycommon/server"
 	"log"
 	"os"
-	"strings"
-	"io/ioutil"
 	"os/exec"
-	"keysystem/keycommon"
-	"keysystem/keycommon/server"
+	"strings"
 	"util/osutil"
-	"keysystem/keycommon/reqtarget"
-	"crypto/tls"
-	"golang.org/x/crypto/ssh"
-	"crypto/rsa"
-	"crypto/rand"
-	"bytes"
 )
 
 var (
@@ -28,33 +28,33 @@ var (
 
 	fetchCheck = prometheus.NewGauge(prometheus.GaugeOpts{
 		Namespace: "keysystem",
-		Name: "fetch_static_check",
-		Help: "Check for whether static files can be fetched",
+		Name:      "fetch_static_check",
+		Help:      "Check for whether static files can be fetched",
 	})
 
 	keyCheck = prometheus.NewGauge(prometheus.GaugeOpts{
 		Namespace: "keysystem",
-		Name: "fetch_authority_check",
-		Help: "Check for whether authority pubkeys can be fetched",
+		Name:      "fetch_authority_check",
+		Help:      "Check for whether authority pubkeys can be fetched",
 	})
 
 	authCheck = prometheus.NewGauge(prometheus.GaugeOpts{
 		Namespace: "keysystem",
-		Name: "gateway_auth_check",
-		Help: "Check for whether the keygateway accepts authentication",
+		Name:      "gateway_auth_check",
+		Help:      "Check for whether the keygateway accepts authentication",
 	})
 
 	grantCheck = prometheus.NewGauge(prometheus.GaugeOpts{
 		Namespace: "keysystem",
-		Name: "ssh_grant_check",
-		Help: "Check for whether ssh certs can be granted",
+		Name:      "ssh_grant_check",
+		Help:      "Check for whether ssh certs can be granted",
 	})
 
 	sshCheck = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: "keysystem",
-		Name: "ssh_access_check",
-		Help: "Check for whether servers can be accessed over ssh",
-	}, []string {"server"})
+		Name:      "ssh_access_check",
+		Help:      "Check for whether servers can be accessed over ssh",
+	}, []string{"server"})
 )
 
 func attemptSSHAccess(pkey *rsa.PrivateKey, cert *ssh.Certificate, host_ca ssh.PublicKey, machine string) error {
@@ -71,12 +71,12 @@ func attemptSSHAccess(pkey *rsa.PrivateKey, cert *ssh.Certificate, host_ca ssh.P
 			return auth.Type() == host_ca.Type() && bytes.Equal(auth.Marshal(), host_ca.Marshal())
 		},
 	}
-	client, err := ssh.Dial("tcp", machine + ":22", &ssh.ClientConfig{
-		Timeout: time.Second * 10,
-		User: "root",
-		HostKeyAlgorithms: []string {ssh.CertAlgoRSAv01},
-		HostKeyCallback: checker.CheckHostKey,
-		Auth: []ssh.AuthMethod {ssh.PublicKeys(signer)},
+	client, err := ssh.Dial("tcp", machine+":22", &ssh.ClientConfig{
+		Timeout:           time.Second * 10,
+		User:              "root",
+		HostKeyAlgorithms: []string{ssh.CertAlgoRSAv01},
+		HostKeyCallback:   checker.CheckHostKey,
+		Auth:              []ssh.AuthMethod{ssh.PublicKeys(signer)},
 	})
 	if err != nil {
 		return err
@@ -150,9 +150,9 @@ func attemptKAuth(keyserver *server.Keyserver, config keycommon.Config) error {
 		return err
 	}
 
-	host := strings.Split(config.Keyserver, ":")[0]  // using keyserver's definition to refer to this node
+	host := strings.Split(config.Keyserver, ":")[0] // using keyserver's definition to refer to this node
 
-	cmd := exec.Command("kinit", "-l2m", "-k", "host/" + host)
+	cmd := exec.Command("kinit", "-l2m", "-k", "host/"+host)
 	cmd.Env = osutil.ModifiedEnviron("KRB5CCNAME", f.Name())
 	err = cmd.Run()
 	if err != nil {

@@ -13,8 +13,8 @@ import (
 	"keysystem/keyclient/state"
 	"keysystem/keycommon/server"
 	"log"
-	"time"
 	"os/exec"
+	"time"
 )
 
 // TODO: private key rotation, not just getting new certs

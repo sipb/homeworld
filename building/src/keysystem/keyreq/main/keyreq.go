@@ -1,24 +1,24 @@
 package main
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
+	"io/ioutil"
+	"keysystem/keycommon/reqtarget"
+	"keysystem/keycommon/server"
 	"log"
 	"os"
-	"keysystem/keycommon/reqtarget"
-	"io/ioutil"
-	"keysystem/keycommon/server"
-	"crypto/rsa"
-	"crypto/rand"
-	"encoding/pem"
-	"crypto/x509"
 	"util/csrutil"
 )
 
 const (
-	ERR_UNKNOWN_FAILURE = 1
+	ERR_UNKNOWN_FAILURE             = 1
 	ERR_CANNOT_ESTABLISH_CONNECTION = 2
-	ERR_NO_ACCESS = 3
-	ERR_INVALID_CONFIG = 254
-	ERR_INVALID_INVOCATION = 255
+	ERR_NO_ACCESS                   = 3
+	ERR_INVALID_CONFIG              = 254
+	ERR_INVALID_INVOCATION          = 255
 )
 
 func get_keyserver(logger *log.Logger, authority_path string, keyserver_domain string) *server.Keyserver {

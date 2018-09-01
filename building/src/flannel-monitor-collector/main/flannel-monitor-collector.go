@@ -1,19 +1,19 @@
 package main
 
 import (
-	"net/http"
-	"net"
-	"time"
 	"fmt"
-	"log"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
 	"k8s.io/client-go/kubernetes"
-	"os"
 	"k8s.io/client-go/rest"
+	"log"
+	"net"
+	"net/http"
+	"os"
 	"pull"
+	"time"
 )
 
 var (
@@ -21,19 +21,19 @@ var (
 
 	collectCheck = prometheus.NewGauge(prometheus.GaugeOpts{
 		Namespace: "flannel",
-		Name: "collect_enum_check",
-		Help: "Check for whether the flannel-monitor collector can enumerate the monitor containers",
+		Name:      "collect_enum_check",
+		Help:      "Check for whether the flannel-monitor collector can enumerate the monitor containers",
 	})
 	dupCheck = prometheus.NewGauge(prometheus.GaugeOpts{
 		Namespace: "flannel",
-		Name: "collect_enum_dup_check",
-		Help: "Check for whether the flannel-monitor collector successfully found no duplicate reflectors",
+		Name:      "collect_enum_dup_check",
+		Help:      "Check for whether the flannel-monitor collector successfully found no duplicate reflectors",
 	})
 	scrapeCheck = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: "flannel",
-		Name: "collect_check",
-		Help: "Check for whether the flannel-monitor collector can scrape the monitor containers",
-	}, []string {"monitor_hostip"})
+		Name:      "collect_check",
+		Help:      "Check for whether the flannel-monitor collector can scrape the monitor containers",
+	}, []string{"monitor_hostip"})
 
 	additional_metrics []*io_prometheus_client.MetricFamily
 )
@@ -96,7 +96,7 @@ func gather() ([]*io_prometheus_client.MetricFamily, error) {
 	if err != nil {
 		return nil, err
 	}
-	temp := make([]*io_prometheus_client.MetricFamily, 0, len(adl) + len(gathered))
+	temp := make([]*io_prometheus_client.MetricFamily, 0, len(adl)+len(gathered))
 	temp = append(temp, gathered...)
 	temp = append(temp, adl...)
 	return temp, nil
@@ -133,14 +133,14 @@ func main() {
 
 	client := &http.Client{
 		Timeout: time.Second,
-		Transport: &http.Transport {
+		Transport: &http.Transport{
 			DialContext: (&net.Dialer{
 				Timeout:   time.Second,
 				KeepAlive: 30 * time.Second,
 			}).DialContext,
-			IdleConnTimeout: time.Minute,
+			IdleConnTimeout:       time.Minute,
 			ResponseHeaderTimeout: time.Second,
-			MaxIdleConns: 100,
+			MaxIdleConns:          100,
 		},
 	}
 

@@ -1,12 +1,12 @@
 package certutil
 
 import (
-	"crypto/x509"
-	"crypto/rsa"
-	"math/big"
-	"encoding/pem"
-	"crypto/rand"
 	"crypto"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
+	"math/big"
 )
 
 func FinishCertificate(template *x509.Certificate, parent *x509.Certificate, pubkey crypto.PublicKey, signer *rsa.PrivateKey) ([]byte, error) {

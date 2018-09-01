@@ -10,7 +10,7 @@ import (
 )
 
 type KncServer struct {
-	Hostname string
+	Hostname            string
 	KerberosTicketCache string
 }
 

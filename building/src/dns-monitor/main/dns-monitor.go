@@ -1,16 +1,16 @@
 package main
 
 import (
-	"log"
-	"os"
+	"context"
 	"fmt"
-	"net/http"
-	"time"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"log"
 	"net"
-	"context"
+	"net/http"
+	"os"
 	"strings"
+	"time"
 )
 
 var (
@@ -18,21 +18,21 @@ var (
 
 	internalCheck = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: "dns",
-		Name: "lookup_internal_check",
-		Help: "Check for whether in-cluster dns lookups work",
-	}, []string {"hostname"})
+		Name:      "lookup_internal_check",
+		Help:      "Check for whether in-cluster dns lookups work",
+	}, []string{"hostname"})
 
 	internalCheckTiming = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Namespace: "dns",
-		Name: "lookup_internal_timing",
-		Help: "Timing for flannel communication",
-		Buckets: []float64 {0.1, 0.2, 0.5, 1, 2, 5, 10},
-	}, []string {"hostname"})
+		Name:      "lookup_internal_timing",
+		Help:      "Timing for flannel communication",
+		Buckets:   []float64{0.1, 0.2, 0.5, 1, 2, 5, 10},
+	}, []string{"hostname"})
 
 	monRecency = prometheus.NewGauge(prometheus.GaugeOpts{
 		Namespace: "dns",
-		Name: "lookup_recency",
-		Help: "Timestamp for the oldest currently reported metric",
+		Name:      "lookup_recency",
+		Help:      "Timestamp for the oldest currently reported metric",
 	})
 
 	// TODO: monitor external lookups as well

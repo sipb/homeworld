@@ -334,7 +334,7 @@ func TestCompileAccounts_RecursiveMembership(t *testing.T) {
 
 func TestCompileAccounts_Fail(t *testing.T) {
 	test_group := &account.Group{
-		Name:       "test-group",
+		Name: "test-group",
 	}
 	for _, test := range []struct {
 		account ConfigAccount

@@ -32,7 +32,7 @@ func (s *ServerEndpoint) buildClient() {
 				MinVersion:   tls.VersionTLS12,
 			},
 			TLSHandshakeTimeout: s.timeout,
-			DisableCompression: true,
+			DisableCompression:  true,
 		},
 		Timeout: s.timeout,
 	}
