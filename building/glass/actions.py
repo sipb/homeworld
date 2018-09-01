@@ -25,7 +25,8 @@ def invoke_final(ctx: Context, build_type, control):
     getattr(actions, "final_%s" % build_type)(ctx, control)
 
 
-def perform_copy(context: Context, input: str=None, stage: str=None, output: str=None, recursive: bool = False) -> None:
+def perform_copy(context: Context, input: str=None, stage: str=None, output: str=None, recursive: bool = False,
+                 follow_symlinks: bool = True) -> None:
     input = context.input(input, allow_none=True)
     stage = context.stage(stage, create_parents=True, allow_none=True)
     output = context.output(output, create_parents=True, allow_none=True)
@@ -41,11 +42,11 @@ def perform_copy(context: Context, input: str=None, stage: str=None, output: str
                 raise Exception("cannot recursively copy into directory with existing contents")
             for rel in os.listdir(source):
                 shutil.copytree(os.path.join(source, rel), os.path.join(dest, rel), copy_function=util.copy3,
-                                symlinks=True)
+                                symlinks=follow_symlinks)
         else:
             if os.path.exists(dest):
                 raise Exception("cannot recursively copy over existing file")
-            shutil.copytree(source, dest, copy_function=util.copy3, symlinks=True)
+            shutil.copytree(source, dest, copy_function=util.copy3, symlinks=follow_symlinks)
     else:
         util.copy3(source, dest)
 

@@ -89,6 +89,8 @@ definitions:
           type: string
         recursive:
           type: boolean
+        follow-symlinks:
+          type: boolean
       required: ["type"]
       additionalProperties: false
     # upstream-extract block
