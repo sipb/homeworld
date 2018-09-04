@@ -26,25 +26,6 @@ def needs_rotate(path, interval=DEFAULT_ROTATE_INTERVAL):
         return True
 
 
-def create_or_rotate_custom_ssh_key(interval=DEFAULT_ROTATE_INTERVAL, bits=DEFAULT_SHORTLIVED_RSA_BITS):
-    project_dir = configuration.get_project()
-    keypath = os.path.join(project_dir, "ssh-key")
-    if needs_rotate(keypath, interval):
-        if os.path.exists(keypath):
-            os.remove(keypath)
-        if os.path.exists(keypath + ".pub"):
-            os.remove(keypath + ".pub")
-        if os.path.exists(keypath + "-cert.pub"):
-            os.remove(keypath + "-cert.pub")
-        # 2048 bits is sufficient for a key only used for the duration of the certificate (probably four hours)
-        subprocess.check_call(["ssh-keygen",
-                               "-f", keypath,                 # output file
-                               "-t", "rsa", "-b", str(bits),  # a <bits>-bit RSA key
-                               "-C", "autogen-homeworld",     # generic comment
-                               "-N", ""])                     # no passphrase
-    return keypath
-
-
 KEYREQ_ERROR_CODES = {
     1: "ERR_UNKNOWN_FAILURE",
     2: "ERR_CANNOT_ESTABLISH_CONNECTION",
@@ -96,24 +77,19 @@ def call_keyreq(keyreq_command, *params):
 
 
 def renew_ssh_cert() -> str:
-    keypath = create_or_rotate_custom_ssh_key()
-    if configuration.get_config().is_kerberos_enabled():
-        print("requesting SSH cert via keyreq")
-        call_keyreq("ssh-cert", keypath + ".pub", keypath + "-cert.pub")
-    else:
-        print("generating SSH cert via local bypass method")
-        with tempfile.TemporaryDirectory() as dir:
-            ca = os.path.join(dir, "ssh_user_ca")
-            util.writefile(ca, authority.get_decrypted_by_filename("./ssh_user_ca"))
-            os.chmod(ca, 0o600)
-            subprocess.check_call(["ssh-keygen", "-s", ca, "-I", "krb-bypass-cert", "-n", "root", "-V", "+4h", keypath + ".pub"])
+    project_dir = configuration.get_project()
+    keypath = os.path.join(project_dir, "ssh-key")
+    refresh_cert(keypath, keypath + "-cert.pub", None, "ssh", "ssh_user_ca", "ssh_user_ca.pub")
     return keypath
 
 
 def refresh_cert(key_path, cert_path, ca_path, variant, ca_key_name, ca_cert_name):
     if configuration.get_config().is_kerberos_enabled():
         print("rotating", variant, "certs via keyreq")
-        call_keyreq(variant + "-cert", key_path, cert_path, ca_path)
+        if ca_path is None:
+            call_keyreq(variant + "-cert", key_path, cert_path)
+        else:
+            call_keyreq(variant + "-cert", key_path, cert_path, ca_path)
     else:
         print("generating", variant, "cert via local bypass method")
         with tempfile.TemporaryDirectory() as dir:
@@ -121,7 +97,8 @@ def refresh_cert(key_path, cert_path, ca_path, variant, ca_key_name, ca_cert_nam
             ca_pem = os.path.join(dir, ca_cert_name)
             util.writefile(ca_key, authority.get_decrypted_by_filename("./" + ca_key_name))
             pem = authority.get_pubkey_by_filename("./" + ca_cert_name)
-            util.writefile(ca_path, pem)
+            if ca_path is not None:
+                util.writefile(ca_path, pem)
             util.writefile(ca_pem, pem)
             os.chmod(ca_key, 0o600)
             subprocess.check_call(["keylocalcert", ca_key, ca_pem, "temporary-%s-bypass-grant" % variant, "4h", key_path, cert_path])
