@@ -106,7 +106,7 @@ def renew_ssh_cert() -> str:
             ca = os.path.join(dir, "ssh_user_ca")
             util.writefile(ca, authority.get_decrypted_by_filename("./ssh_user_ca"))
             os.chmod(ca, 0o600)
-            subprocess.check_call(["ssh-keygen", "-s", ca, "-I", "krb-bypass-cert", "-n", "root", keypath + ".pub"])
+            subprocess.check_call(["ssh-keygen", "-s", ca, "-I", "krb-bypass-cert", "-n", "root", "-V", "+4h", keypath + ".pub"])
     return keypath
 
 
