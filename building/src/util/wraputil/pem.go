@@ -33,6 +33,15 @@ func LoadSinglePEMBlock(data []byte, expected_types []string) ([]byte, error) {
 	return pemBlock.Bytes, nil
 }
 
+func IsPEMBlock(data []byte) bool {
+	if bytes.HasPrefix(data, []byte("-----BEGIN ")) {
+		pemBlock, remain := pem.Decode(data)
+		return pemBlock != nil && len(remain) == 0
+	} else {
+		return false
+	}
+}
+
 func LoadX509CertFromPEM(certdata []byte) (*x509.Certificate, error) {
 	certblock, err := LoadSinglePEMBlock(certdata, []string{"CERTIFICATE"})
 	if err != nil {

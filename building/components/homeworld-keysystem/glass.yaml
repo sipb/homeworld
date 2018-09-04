@@ -1,6 +1,6 @@
 control:
   name: homeworld-keysystem
-  version: 0.1.22
+  version: 0.1.23
   date: 2018-07-30T21:58:00-0700
   type: deb
   depends:

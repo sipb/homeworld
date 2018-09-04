@@ -11,6 +11,8 @@ import (
 	"os"
 	"time"
 	"util/csrutil"
+	"util/wraputil"
+	"golang.org/x/crypto/ssh"
 )
 
 func main() {
@@ -26,7 +28,13 @@ func main() {
 	if err != nil {
 		logger.Fatal(err)
 	}
-	authority, err := authorities.LoadTLSAuthority(keydata, certdata)
+	isSSH := !wraputil.IsPEMBlock(certdata)
+	var authority authorities.Authority
+	if isSSH {
+		authority, err = authorities.LoadSSHAuthority(keydata, certdata)
+	} else {
+		authority, err = authorities.LoadTLSAuthority(keydata, certdata)
+	}
 	if err != nil {
 		logger.Fatal(err)
 	}
@@ -41,12 +49,28 @@ func main() {
 		logger.Fatal(err)
 	}
 	privkey := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(pkey)})
-	csr, err := csrutil.BuildTLSCSR(privkey)
-	if err != nil {
-		logger.Fatal(err)
+
+	var csr []byte
+	if isSSH {
+		pubkey, err := ssh.NewPublicKey(pkey.Public())
+		if err != nil {
+			logger.Fatal(err)
+		}
+
+		csr = ssh.MarshalAuthorizedKey(pubkey)
+	} else {
+		csr, err = csrutil.BuildTLSCSR(privkey)
+		if err != nil {
+			logger.Fatal(err)
+		}
 	}
 
-	result, err := authority.(*authorities.TLSAuthority).Sign(string(csr), false, lifespan, commonname, nil)
+	var result string
+	if isSSH {
+		result, err = authority.(*authorities.SSHAuthority).Sign(string(csr), false, lifespan, commonname, []string{ "root" })
+	} else {
+		result, err = authority.(*authorities.TLSAuthority).Sign(string(csr), false, lifespan, commonname, nil)
+	}
 	if err != nil {
 		logger.Fatal(err)
 	}
@@ -54,6 +78,12 @@ func main() {
 	err = ioutil.WriteFile(os.Args[5], privkey, os.FileMode(0600))
 	if err != nil {
 		logger.Fatal(err)
+	}
+	if isSSH {
+		err = ioutil.WriteFile(os.Args[5] + ".pub", csr, os.FileMode(0644))
+		if err != nil {
+			logger.Fatal(err)
+		}
 	}
 	err = ioutil.WriteFile(os.Args[6], []byte(result), os.FileMode(0644))
 	if err != nil {
