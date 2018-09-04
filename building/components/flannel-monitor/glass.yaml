@@ -33,7 +33,7 @@ build:
   - type: go-build
     version: 1.9.3
     packages:
-      - flannel-monitor/main
+      - flannel-monitor/monitor/main
     gopath: /h:go
     stage: bin/flannel-monitor
     no-cgo: true
@@ -41,7 +41,7 @@ build:
   - type: go-build
     version: 1.9.3
     packages:
-      - flannel-monitor-reflector/main
+      - flannel-monitor/reflector/main
     gopath: /h:go
     stage: bin/flannel-monitor-reflector
     no-cgo: true
@@ -49,7 +49,7 @@ build:
   - type: go-build
     version: 1.9.3
     packages:
-      - flannel-monitor-collector/main
+      - flannel-monitor/collector/main
     gopath: /h:go
     stage: bin/flannel-monitor-collector
     no-cgo: true

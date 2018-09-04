@@ -12,7 +12,7 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"pull"
+	"flannel-monitor/common"
 	"time"
 )
 
@@ -39,7 +39,7 @@ var (
 )
 
 func cycle(clientset *kubernetes.Clientset, namespace string, client *http.Client) {
-	podlessNodeIPs, anyDuplicateNodes, mapHostIPToPodIP, err := pull.ListAndMatchRunningAppPodsToNodes(clientset, namespace, "flannel-monitor")
+	podlessNodeIPs, anyDuplicateNodes, mapHostIPToPodIP, err := common.ListAndMatchRunningAppPodsToNodes(clientset, namespace, "flannel-monitor")
 	if err != nil {
 		scrapeCheck.Reset()
 		additional_metrics = nil

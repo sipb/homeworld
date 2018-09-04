@@ -12,7 +12,7 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"pull"
+	"flannel-monitor/common"
 	"time"
 )
 
@@ -56,7 +56,7 @@ func cycle(clientset *kubernetes.Clientset, namespace string, source_hostip stri
 	dupOkay := dupCheck.With(prometheus.Labels{"ping_from_host": source_hostip})
 	monRecencySpec := monRecency.With(prometheus.Labels{"ping_from_host": source_hostip})
 
-	podlessNodeIPs, anyDuplicateNodes, mapHostIPToPodIP, err := pull.ListAndMatchRunningAppPodsToNodes(clientset, namespace, "flannel-monitor-reflector")
+	podlessNodeIPs, anyDuplicateNodes, mapHostIPToPodIP, err := common.ListAndMatchRunningAppPodsToNodes(clientset, namespace, "flannel-monitor-reflector")
 	if err != nil {
 		talkCheck.Reset()
 		talkTiming.Reset()
