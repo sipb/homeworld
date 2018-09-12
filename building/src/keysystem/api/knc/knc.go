@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"keysystem/keycommon/reqtarget"
+	"keysystem/api/reqtarget"
 	"os/exec"
 	"util/osutil"
 )

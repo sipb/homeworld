@@ -3,7 +3,7 @@ package server
 import (
 	"crypto/x509"
 	"fmt"
-	"keysystem/keycommon/endpoint"
+	"keysystem/api/endpoint"
 	"util/wraputil"
 )
 

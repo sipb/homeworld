@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
-	"keysystem/keycommon"
-	"keysystem/keycommon/reqtarget"
+	"keysystem/api"
+	"keysystem/api/reqtarget"
 	"log"
 	"os"
 )
@@ -17,7 +17,7 @@ func HandleRequest(principal string, request_data []byte, configfile string) ([]
 		return nil, err
 	}
 
-	_, rt, err := keycommon.LoadKeyserverWithCert(configfile)
+	_, rt, err := api.LoadKeyserverWithCert(configfile)
 	if err != nil {
 		return nil, err
 	}

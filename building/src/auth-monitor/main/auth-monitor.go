@@ -13,9 +13,9 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
-	"keysystem/keycommon"
-	"keysystem/keycommon/reqtarget"
-	"keysystem/keycommon/server"
+	"keysystem/api"
+	"keysystem/api/reqtarget"
+	"keysystem/api/server"
 	"log"
 	"os"
 	"os/exec"
@@ -97,7 +97,7 @@ func attemptSSHAccess(pkey *rsa.PrivateKey, cert *ssh.Certificate, host_ca ssh.P
 	return nil
 }
 
-func attemptSSHAcquire(keyserver *server.Keyserver, config keycommon.Config) (*rsa.PrivateKey, *ssh.Certificate, error) {
+func attemptSSHAcquire(keyserver *server.Keyserver, config api.Config) (*rsa.PrivateKey, *ssh.Certificate, error) {
 	keypair, err := tls.LoadX509KeyPair(config.CertPath, config.KeyPath)
 	if err != nil {
 		return nil, nil, err
@@ -139,7 +139,7 @@ func attemptSSHAcquire(keyserver *server.Keyserver, config keycommon.Config) (*r
 	return privkey, cert, nil
 }
 
-func attemptKAuth(keyserver *server.Keyserver, config keycommon.Config) error {
+func attemptKAuth(keyserver *server.Keyserver, config api.Config) error {
 	f, err := ioutil.TempFile("", "krb5cc_keygateway_checker_")
 	if err != nil {
 		return err
@@ -179,7 +179,7 @@ func attemptKAuth(keyserver *server.Keyserver, config keycommon.Config) error {
 	return nil
 }
 
-func cycle(keyserver *server.Keyserver, config keycommon.Config) {
+func cycle(keyserver *server.Keyserver, config api.Config) {
 	// basic functionality testing
 	host_ca_pub, err := keyserver.GetPubkey("ssh-host")
 	if err != nil {
@@ -255,7 +255,7 @@ func cycle(keyserver *server.Keyserver, config keycommon.Config) {
 	}
 }
 
-func loop(keyserver *server.Keyserver, config keycommon.Config, stopChannel <-chan struct{}) {
+func loop(keyserver *server.Keyserver, config api.Config, stopChannel <-chan struct{}) {
 	for {
 		next_cycle_at := time.Now().Add(time.Second * 15)
 		cycle(keyserver, config)
@@ -278,7 +278,7 @@ func main() {
 		log.Fatal("expected one argument: configpath")
 	}
 
-	ks, config, err := keycommon.LoadKeyserver(os.Args[1])
+	ks, config, err := api.LoadKeyserver(os.Args[1])
 	if err != nil {
 		log.Fatal(err)
 	}

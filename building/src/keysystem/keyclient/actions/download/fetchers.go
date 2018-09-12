@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"keysystem/keyclient/state"
-	"keysystem/keycommon/reqtarget"
-	"keysystem/keycommon/server"
+	"keysystem/api/reqtarget"
+	"keysystem/api/server"
 )
 
 type DownloadFetcher interface {

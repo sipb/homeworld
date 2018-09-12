@@ -8,7 +8,7 @@ import (
 	"encoding/pem"
 	"io/ioutil"
 	"keysystem/keyclient/state"
-	"keysystem/keycommon/server"
+	"keysystem/api/server"
 	"net"
 	"net/http"
 	"strings"

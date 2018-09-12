@@ -1,12 +1,12 @@
-package keycommon
+package api
 
 import (
 	"crypto/tls"
 	"fmt"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	"keysystem/keycommon/reqtarget"
-	"keysystem/keycommon/server"
+	"keysystem/api/reqtarget"
+	"keysystem/api/server"
 )
 
 type Config struct {

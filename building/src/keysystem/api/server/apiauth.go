@@ -4,9 +4,9 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"keysystem/keycommon/endpoint"
-	"keysystem/keycommon/knc"
-	"keysystem/keycommon/reqtarget"
+	"keysystem/api/endpoint"
+	"keysystem/api/knc"
+	"keysystem/api/reqtarget"
 	"net/url"
 )
 

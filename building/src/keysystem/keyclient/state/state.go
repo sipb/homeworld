@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"keysystem/keyclient/config"
-	"keysystem/keycommon/server"
+	"keysystem/api/server"
 	"os"
 	"path"
 	"util/fileutil"

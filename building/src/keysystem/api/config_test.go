@@ -1,4 +1,4 @@
-package keycommon
+package api
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"io/ioutil"
-	"keysystem/keycommon/reqtarget"
+	"keysystem/api/reqtarget"
 	"net"
 	"net/http"
 	"os"

@@ -7,7 +7,7 @@ import (
 	"keysystem/keyclient/actloop"
 	"keysystem/keyclient/config"
 	"keysystem/keyclient/state"
-	"keysystem/keycommon/reqtarget"
+	"keysystem/api/reqtarget"
 	"log"
 	"os"
 	"path/filepath"

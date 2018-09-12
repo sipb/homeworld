@@ -11,7 +11,7 @@ import (
 	"keysystem/keyclient/actloop"
 	"keysystem/keyclient/config"
 	"keysystem/keyclient/state"
-	"keysystem/keycommon/server"
+	"keysystem/api/server"
 	"log"
 	"os/exec"
 	"time"

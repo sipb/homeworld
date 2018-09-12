@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"keysystem/keyclient/actloop"
 	"keysystem/keyclient/state"
-	"keysystem/keycommon/reqtarget"
+	"keysystem/api/reqtarget"
 	"log"
 	"os"
 	"strings"

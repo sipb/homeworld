@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"keysystem/keyclient/config"
 	"keysystem/keyclient/state"
-	"keysystem/keycommon/server"
+	"keysystem/api/server"
 	"os"
 	"testing"
 	"time"
