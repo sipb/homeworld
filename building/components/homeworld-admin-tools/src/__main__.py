@@ -13,6 +13,7 @@ import keys
 import seq
 import deploy
 import version
+import virt
 
 main_command = command.mux_map("invoke a top-level command", {
     "iso": iso.main_command,
@@ -29,6 +30,7 @@ main_command = command.mux_map("invoke a top-level command", {
     "infra": infra.main_command,
     "seq": seq.main_command,
     "deploy": deploy.main_command,
+    "virt": virt.main_command,
     "version": version.main_command
 })
 
