@@ -1,5 +1,7 @@
+import contextlib
 import os
 import subprocess
+import sys
 import time
 
 import authority
@@ -19,6 +21,7 @@ class Operations:
     def __init__(self):
         self._ops = []
         self._annotations = []
+        self._cleanup = []
         self._ignore_annotations = 0
 
     def add_operation(self, name: str, callback, node: configuration.Node=None) -> None:
@@ -33,6 +36,18 @@ class Operations:
         func(self)
         self._ignore_annotations -= 1
 
+    def context(self, name, ctx):
+        # TODO: figure out annotations so that this can be processed correctly by --dry-run
+        def enter():
+            ctx.__enter__()
+            self._cleanup.append(ctx.__exit__)
+
+        def subctx():
+            self.add_operation("enter context: %s" % name, enter)
+            yield ctx
+            self.add_operation("exit context: %s" % name, self.context_cleanup)
+        return contextlib.contextmanager(subctx)()
+
     def annotate_from(self, func):
         self.annotate_subcommand(command.get_command_for_function(func))
 
@@ -45,14 +60,32 @@ class Operations:
             for annotation in self._annotations:
                 print("  %s" % annotation)
 
+    def context_cleanup(self, exc_info=(None, None, None)):
+        if not self._cleanup:
+            raise Exception("internal error: context manager stack underflow")
+        if self._cleanup.pop()(*exc_info):
+            print("unsupported: context manager attempted to suppress exception")
+
     def run_operations(self) -> None:
         print("== executing %d operations ==" % len(self._ops))
         print()
+        if self._cleanup:
+            raise Exception("attempt to reuse Operations object that was never fully cleaned up")
         startat = time.time()
-        for i, (name, operation) in enumerate(self._ops, 1):
-            print("--", name, " (%d/%d) --" % (i, len(self._ops)))
-            operation()
-            print()
+        try:
+            for i, (name, operation) in enumerate(self._ops, 1):
+                print("--", name, " (%d/%d) --" % (i, len(self._ops)))
+                operation()
+                print()
+            if self._cleanup:
+                raise Exception("Operations object failed to fully clean up during operation sequence")
+        finally:
+            if self._cleanup:
+                print("== running %d cleanup operations ==" % len(self._cleanup))
+                exc_info = sys.exc_info()
+                while self._cleanup:
+                    self.context_cleanup(exc_info)
+
         print("== all operations executed in %.2f seconds! ==" % (time.time() - startat))
 
     def pause(self, name: str, duration):
