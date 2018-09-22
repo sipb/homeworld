@@ -35,7 +35,7 @@ properties:
           pattern: "^[0-9a-zA-Z_.-][0-9a-zA-Z_./-]+[0-9a-zA-Z_.-]$"
         signing-key:
           type: string
-          pattern: "^[a-fA-F0-9]+$"
+          pattern: "^[a-fA-F0-9]{40}$"
         upload-target:
           type: string
       required: ["name", "signing-key"]
