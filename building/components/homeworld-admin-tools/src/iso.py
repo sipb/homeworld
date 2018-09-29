@@ -129,7 +129,10 @@ def gen_iso(iso_image, authorized_key, mode=None):
         md5s = subprocess.check_output(["md5sum", "--"] + files_for_md5sum, cwd=cddir)
         util.writefile(os.path.join(cddir, "md5sum.txt"), md5s)
 
-        subprocess.check_call(["genisoimage", "-quiet", "-o", iso_image, "-r", "-J", "-no-emul-boot", "-boot-load-size", "4", "-boot-info-table", "-b", "isolinux.bin", "-c", "isolinux.cat", cddir])
+        temp_iso = os.path.join(d, "temp.iso")
+        subprocess.check_call(["xorriso", "-as", "mkisofs", "-quiet", "-o", temp_iso, "-r", "-J", "-c", "boot.cat", "-b", "isolinux.bin", "-no-emul-boot", "-boot-load-size", "4", "-boot-info-table", cddir])
+        subprocess.check_call(["isohybrid", "-h", "64", "-s", "32", temp_iso])
+        util.copy(temp_iso, iso_image)
 
 
 main_command = command.mux_map("commands about building installation ISOs", {

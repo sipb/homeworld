@@ -1,7 +1,7 @@
 control:
   name: homeworld-admin-tools
-  version: 0.2.31
-  date: 2018-07-31T23:12:30-0700
+  version: 0.2.32
+  date: 2018-09-29T15:12:12-0400
   type: deb
   depends:
     - homeworld-keysystem
@@ -13,7 +13,8 @@ control:
     - python3-yaml
     - python3-requests
     - pwgen
-    - genisoimage
+    - xorriso
+    - syslinux-utils
     - whois
     - cpio
 
