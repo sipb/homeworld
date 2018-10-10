@@ -11,9 +11,9 @@ then
     exit 1
 fi
 
-if [ "${HOMEWORLD_CHROOT}" =~ " " ]
+if [[ "${HOMEWORLD_CHROOT}" =~ " " ]]
 then
-    echo "chroot name canot include a space" 1>&2
+    echo "chroot name cannot include a space" 1>&2
     exit 1
 fi
 
@@ -29,7 +29,7 @@ then
     exit 1
 fi
 
-mkdir "${HOMEWORLD_CHROOT}"
+mkdir -m 'u=rwx,go=rx' "${HOMEWORLD_CHROOT}"
 sudo debootstrap --include="$(cat chroot-packages.list | grep -vE '^#' | tr '\n ' ',,' | sed 's/,$//' | sed 's/,,/,/g')" stretch "${HOMEWORLD_CHROOT}" http://debian.csail.mit.edu/debian/
 sudo ln -sT "homeworld/building" "${HOMEWORLD_CHROOT}/h"
 sudo ln -sT /h/glass/glass.py "${HOMEWORLD_CHROOT}/usr/local/bin/glass"

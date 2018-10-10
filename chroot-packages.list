@@ -32,7 +32,7 @@ bzip2, ca-certificates, curl, gzip, less, sudo
 python3-jsonschema, reprepro, python3-apt
 
 # uploading
-python-pip, python-setuptools, ssh
+python-crcmod, python-pip, python-setuptools, python-wheel, ssh
 
 # killall
 psmisc
