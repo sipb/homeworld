@@ -98,14 +98,12 @@ def gs_rsync(local_path: str, remote_path: str, boto_path: str):
     # TODO: do this directly rather than by shelling out
     env = dict(os.environ)
     env["BOTO_PATH"] = boto_path
-    subprocess.check_call(["gsutil", "-h", "Cache-Control:private, max-age=0, no-transform", "-m", "rsync", "-d", "-r", "-c", local_path, "gs://" + remote_path], env=env)
+    subprocess.check_call(["gsutil", "-h", "Cache-Control:private, max-age=0, no-transform", "-m", "rsync", "-d", "-r", "-c", local_path, remote_path], env=env)
 
 
-GS_BRANCH_REGEX = re.compile("[a-z0-9-]+[.][a-z0-9.-]+/[a-z0-9-]+")
-
+GS_BRANCH_REGEX = re.compile('([a-z0-9_.-]+)((/[a-z0-9/_.-]*)?)')
 
 BOTO_PATH = "/homeworld/boto-key"
-
 
 BOTO_TEMPLATE = """
 [Credentials]
@@ -118,11 +116,17 @@ default_api_version = 2
 default_project_id = %s
 """.lstrip()
 
+def gs_upload_path(branch):
+    m = GS_BRANCH_REGEX.fullmatch(branch)
+    if m is None:
+        raise ValueError('not an uploadable branch: %s' % branch)
+    domain, path = m.group(1), m.group(2)
+    if domain.endswith('.storage.googleapis.com'):
+        domain = domain[:-len('.storage.googleapis.com')]
+    return 'gs://' + domain + path
 
 def upload_gs(staging, root: str, branch_config: aptbranch.Config):
-    branch = branch_config.name
-    if not GS_BRANCH_REGEX.match(branch):
-        raise Exception("not an uploadable branch: %s" % branch)
+    upload_path = gs_upload_path(branch_config.name)
     if not os.path.exists(BOTO_PATH):
         raise Exception("you need to put the GCP service account private key file into /homeworld/boto-key")
     botoconfig_name = os.path.join(staging, "boto.config")
@@ -131,7 +135,7 @@ def upload_gs(staging, root: str, branch_config: aptbranch.Config):
             project_id = json.load(f)["project_id"]
         bout.write(BOTO_TEMPLATE % (BOTO_PATH, project_id))
         bout.flush()
-    gs_rsync(root, branch, botoconfig_name)
+    gs_rsync(root, upload_path, botoconfig_name)
 
 
 def upload_rsync(staging, root: str, branch_config: aptbranch.Config):
