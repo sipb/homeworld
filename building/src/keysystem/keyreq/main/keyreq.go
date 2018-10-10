@@ -5,6 +5,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"golang.org/x/crypto/ssh"
 	"io/ioutil"
 	"keysystem/api/reqtarget"
 	"keysystem/api/server"
@@ -57,6 +58,7 @@ func main() {
 		logger.Print("keyreq should only be used by scripts that already know how to invoke it")
 		os.Exit(ERR_INVALID_INVOCATION)
 	}
+
 	switch os.Args[1] {
 	case "check":
 		if len(os.Args) < 4 {
@@ -65,18 +67,30 @@ func main() {
 		}
 		// just by calling this, we confirm that we do have access to the server. yay!
 		_, _ = auth_kerberos(logger, os.Args[2], os.Args[3])
-	case "ssh-cert": // called programmatically
+
+	// TODO: deduplicate code
+	case "ssh-cert":
 		if len(os.Args) < 6 {
-			logger.Print("not enough parameters to keyreq ssh-cert <authority-path> <keyserver-domain> <ssh.pub-in> <ssh-cert-output>")
+			logger.Print("not enough parameters to keyreq ssh-cert <authority-path> <keyserver-domain> <ssh-key-out> <ssh-cert-output>")
 			os.Exit(ERR_INVALID_INVOCATION)
 		}
-		ssh_pubkey, err := ioutil.ReadFile(os.Args[4])
+
+		_, rt := auth_kerberos(logger, os.Args[2], os.Args[3])
+
+		pkey, err := rsa.GenerateKey(rand.Reader, 2048)
 		if err != nil {
 			logger.Print(err)
-			os.Exit(ERR_INVALID_INVOCATION)
+			os.Exit(ERR_UNKNOWN_FAILURE)
 		}
-		_, rt := auth_kerberos(logger, os.Args[2], os.Args[3])
-		req, err := reqtarget.SendRequest(rt, "access-ssh", string(ssh_pubkey))
+		privkey := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(pkey)})
+		pubkey_tmp, err := ssh.NewPublicKey(pkey.Public())
+		if err != nil {
+			logger.Print(err)
+			os.Exit(ERR_UNKNOWN_FAILURE)
+		}
+		pubkey := ssh.MarshalAuthorizedKey(pubkey_tmp)
+
+		req, err := reqtarget.SendRequest(rt, "access-ssh", string(pubkey))
 		if err != nil {
 			logger.Print(err)
 			os.Exit(ERR_NO_ACCESS)
@@ -85,10 +99,19 @@ func main() {
 			logger.Print("empty result")
 			os.Exit(ERR_UNKNOWN_FAILURE)
 		}
+
+		err = ioutil.WriteFile(os.Args[4], privkey, os.FileMode(0600))
+		if err != nil {
+			logger.Fatal(err)
+		}
+		err = ioutil.WriteFile(os.Args[4]+".pub", pubkey, os.FileMode(0644))
+		if err != nil {
+			logger.Fatal(err)
+		}
 		err = ioutil.WriteFile(os.Args[5], []byte(req), os.FileMode(0644))
 		if err != nil {
 			logger.Print(err)
-			os.Exit(ERR_INVALID_INVOCATION)
+			os.Exit(ERR_UNKNOWN_FAILURE)
 		}
 	case "kube-cert":
 		if len(os.Args) < 7 {
@@ -137,7 +160,6 @@ func main() {
 			os.Exit(ERR_INVALID_INVOCATION)
 		}
 	case "etcd-cert":
-		// TODO: deduplicate code
 		if len(os.Args) < 7 {
 			logger.Print("not enough parameters to keyreq etcd-cert <authority-path> <keyserver-domain> <privkey-out> <cert-out> <ca-out>")
 			os.Exit(ERR_INVALID_INVOCATION)

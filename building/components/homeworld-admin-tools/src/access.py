@@ -14,7 +14,6 @@ import setup
 from typing import Tuple
 
 DEFAULT_ROTATE_INTERVAL = 60 * 60 * 2  # rotate local key every two hours (if we happen to renew)
-DEFAULT_SHORTLIVED_RSA_BITS = 2048
 
 
 def needs_rotate(path, interval=DEFAULT_ROTATE_INTERVAL):
