@@ -22,16 +22,16 @@ def infra_admit(server_principal: str) -> None:
 
 def infra_admit_all() -> None:
     config = configuration.get_config()
-    tokens = {}
+    tokens = []
     for node in config.nodes:
         if node.kind == "supervisor":
             continue
         token = admit(node.hostname)
-        tokens[node.hostname] = (node.kind, node.ip, token)
-    print("host".center(16, "="), "kind".center(8, "="), "ip".center(14, "="), "token".center(23, "="))
-    for key, (kind, ip, token) in sorted(tokens.items()):
-        print(key.rjust(16), kind.center(8), str(ip).center(14), token.ljust(23))
-    print("host".center(16, "="), "kind".center(8, "="), "ip".center(14, "="), "token".center(23, "="))
+        tokens.append((node.hostname, node.kind, node.ip, token))
+    print('{:=^16} {:=^8} {:=^14} {:=^23}'.format('host', 'kind', 'ip', 'token'))
+    for hostname, kind, ip, token in tokens:
+        print('{:>16} {:^8} {:^14} {:<23}'.format(hostname, kind, str(ip), token))
+    print('{:=^16} {:=^8} {:=^14} {:=^23}'.format('host', 'kind', 'ip', 'token'))
 
 
 def infra_install_packages(ops: setup.Operations) -> None:
