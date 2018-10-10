@@ -21,7 +21,7 @@ Set up your build chroot:
     $ export HOMEWORLD_CHROOT="$HOME/homeworld-chroot"     # this can be any directory you choose
     $ ./create-chroot.sh
 
-You might consider adding the variable declaration to your ~/.bashrc.
+You might consider adding the variable declaration to your ~/.profile.
 
 Import the default branch signing key:
 
@@ -36,9 +36,12 @@ Pull down the upstream dependencies for Homeworld:
 A build branch will, first and foremost, require a Google Cloud Storage bucket to upload into.
 (Other providers are also planned for support.)
 
-You should set up your bucket to serve files with a public default ACL. TODO: explain.
+You should set up your bucket to serve files with a public default ACL:
 
-Put the service account's private key JSON file into the homeworld/boto-key directory.
+    $ gsutil defacl ch -u AllUsers:R gs://<name of bucket>
+
+Create a service account with the Storage Object Admin permission on the bucket's project.
+Put the service account's private key JSON file into a file named `boto-key` in the `homeworld` directory.
 (That is, put the file in the root directory of the repository.)
 
 You can then use the bucket's public domain name to construct a build branch:
@@ -54,7 +57,8 @@ Create the branches config:
 
     $ (cd building/apt-branch-config && cp branches.yaml.example branches.yaml)
 
-Run `gpg --list-keys --keyid-format long` to find the ID of the key you have just generated, and add it to `branches.yaml`.
+Run `gpg --list-keys --keyid-format none` to find the full-length fingerprint of the key you have just generated, and add it to `branches.yaml`.
+Remove the unnecessary `apt-url-prefix` line.
 
 # Launching a build
 
