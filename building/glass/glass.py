@@ -27,7 +27,9 @@ if args.branch is None:
     print("Error: need to specify apt branch:")
     print("$ export HOMEWORLD_APT_BRANCH=<domain>/<branch>")
     print("or include --branch=<domain>/<branch> on command line for glass")
-    print("There is no current default upload location available.")
+    print('Available apt branches:')
+    for branch_name in aptbranch.Config.list_branches():
+        print(branch_name)
     raise Exception("no apt branch specified")
 
 branch_config = aptbranch.Config(args.branch)

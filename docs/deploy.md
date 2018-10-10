@@ -172,7 +172,7 @@ Note that you will need a toastfs-dev SSH session running so that VNC can commun
 
  * Boot the ISO on the hardware
    - Select `Install`
-   - Enter the IP address for the server (18.4.60.150 on our test infrastructure)
+   - Enter the IP address for the server (see `hyades-cluster/setup.yaml`)
    - Wait a while
    - Enter "manual" for the bootstrap token (so that your SSH keys will work)
  * Log into the server directly with your SSH keys
@@ -200,7 +200,7 @@ Request bootstrap tokens:
 
     $ spire infra admit-all
 
-For development, currently the order in which the nodes are listed is deceiving. This should be fixed soon, but here's a reference for now.
+The VMs on toastfs-dev correspond to hostnames as follows:
 
    - master01: eggs-benedict
    - master02: huevos-rancheros
@@ -212,7 +212,7 @@ For development, currently the order in which the nodes are listed is deceiving.
 Boot the ISO on each piece of hardware:
 
    - Select `Install`
-   - Enter the IP address for the server
+   - Enter the IP address for the server (see `hyades-cluster/setup.yaml`)
    - Wait a while
    - Enter the bootstrap token
 
