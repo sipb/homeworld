@@ -1,7 +1,7 @@
 control:
   name: homeworld-keysystem
-  version: 0.1.23
-  date: 2018-07-30T21:58:00-0700
+  version: 0.1.24
+  date: 2018-10-13T20:45:38-0400
   type: deb
   depends:
   - homeworld-knc
