@@ -98,11 +98,13 @@ def routing_up(bridge_name, upstream_link):
     sudo("iptables", "-I", "INPUT", "1", "-i", bridge_name, "-j", "ACCEPT")
     sudo("iptables", "-I", "FORWARD", "1", "-i", bridge_name, "-o", upstream_link, "-j", "ACCEPT")
     sudo("iptables", "-I", "FORWARD", "1", "-i", upstream_link, "-o", bridge_name, "-j", "ACCEPT")
+    sudo("iptables", "-I", "FORWARD", "1", "-i", bridge_name, "-o", bridge_name, "-j", "ACCEPT")
     sudo("iptables", "-t", "nat", "-I", "POSTROUTING", "1", "-o", upstream_link, "-j", "MASQUERADE")
 
 
 def routing_down(bridge_name, upstream_link):
     ok = sudo_ok("iptables", "-t", "nat", "-D", "POSTROUTING", "-o", upstream_link, "-j", "MASQUERADE")
+    ok &= sudo_ok("iptables", "-D", "FORWARD", "-i", bridge_name, "-o", bridge_name, "-j", "ACCEPT")
     ok &= sudo_ok("iptables", "-D", "FORWARD", "-i", upstream_link, "-o", bridge_name, "-j", "ACCEPT")
     ok &= sudo_ok("iptables", "-D", "FORWARD", "-i", bridge_name, "-o", upstream_link, "-j", "ACCEPT")
     ok &= sudo_ok("iptables", "-D", "INPUT", "-i", bridge_name, "-j", "ACCEPT")
