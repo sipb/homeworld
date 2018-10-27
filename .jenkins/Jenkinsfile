@@ -1,0 +1,35 @@
+pipeline {
+	agent any
+	options {
+		lock("homeworld")
+	}
+	stages {
+		stage('Build') {
+			agent {
+				docker {
+					// TODO: Find a way to avoid relying
+					// on the public Docker registry
+					image 'debian:stretch-slim'
+					args '-v /dev/urandom:/dev/urandom:ro -v /var/homeworld-binaries:/binaries -v /var/jenkins-extra:/extra:ro -u root --privileged'
+					reuseNode true
+				}
+			}
+			steps {
+				sh '''
+apt-get -qq update && apt-get -qq upgrade
+apt-get -qq install -y python
+python /extra/authenticate.py
+./.jenkins/jenkins-build.sh
+				'''
+			}
+		}
+		stage('Test Deploy') {
+			steps {
+				sh '''
+./.jenkins/jenkins-deploy.sh
+				'''
+			}
+		}
+	}
+}
+

@@ -1,0 +1,42 @@
+cluster:
+  external-domain: pink.example.org
+  internal-domain: hyades.local
+  etcd-token: sample-1
+  kerberos-realm: ATHENA.MIT.EDU
+  mirror: debian.csail.mit.edu/debian
+  user-grant-domain: ''
+
+addresses:
+  cidr-nodes: 10.1.0.0/24
+  cidr-pods: 172.18.0.0/16
+  cidr-services: 172.28.0.0/16
+  service-api: 172.28.0.1
+  service-dns: 172.28.0.2
+
+dns-upstreams:
+  - 18.70.0.160
+  - 18.71.0.151
+  - 18.72.0.3
+
+dns-bootstrap:
+  homeworld.private: 10.1.0.2
+  jet.pink.example.org: 10.1.0.2
+  jade.pink.example.org: 10.1.0.3
+  jasper.pink.example.org: 10.1.0.4
+
+# WARNING: empty root admins means that Kerberos authentication is
+# disabled. Make sure this is not empty in production.
+root-admins: []
+
+nodes:
+  - hostname: jet
+    ip: 10.1.0.2
+    kind: supervisor
+
+  - hostname: jade
+    ip: 10.1.0.3
+    kind: master
+
+  - hostname: jasper
+    ip: 10.1.0.4
+    kind: worker

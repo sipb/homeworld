@@ -1,0 +1,7 @@
+%no-protection
+%transient-key
+Key-Type: RSA
+Key-Length: 4096
+Expire-Date: 1
+Name-Real: Autodeploy
+Name-Email: hyades@mit.edu
