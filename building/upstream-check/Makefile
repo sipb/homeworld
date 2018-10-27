@@ -329,7 +329,7 @@ PyYAML-${PYYAML_VER}.tar.gz: https/pypi.python.org/packages/4a/85/db5a2df477072b
 
 # **** QEMU ****
 
-qemu-%.tar.xz: https/download.qemu.org/qemu-2.11.0.tar.xz https/download.qemu.org/qemu-2.11.0.tar.xz.sig keys/qemu.ring
+qemu-%.tar.xz: https/download.qemu.org/qemu-%.tar.xz https/download.qemu.org/qemu-%.tar.xz.sig keys/qemu.ring
 	$(call gpg-verify,$<,.sig,qemu)
 	@cp $< $@
 
