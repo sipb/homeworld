@@ -68,14 +68,18 @@ build:
 
       ./autogen.sh
 
+      # TODO: consider using kvm stage1 for better security
+      # currently using coreos stage1 for development purposes
+      DEFAULT_FLAVOR=coreos
+
       ./configure \
           --disable-tpm --prefix=/usr \
           --with-stage1-flavors=coreos,kvm \
-          --with-stage1-default-flavor=kvm \
+          --with-stage1-default-flavor=${DEFAULT_FLAVOR} \
           --with-coreos-local-pxe-image-path=coreos_production_pxe_image.cpio.gz \
           --with-coreos-local-pxe-image-systemd-version=v233 \
           --with-stage1-default-images-directory=/usr/lib/rkt/stage1-images \
-          --with-stage1-default-location=/usr/lib/rkt/stage1-images/stage1-kvm.aci
+          --with-stage1-default-location=/usr/lib/rkt/stage1-images/stage1-${DEFAULT_FLAVOR}.aci
 
       make -j4
 
