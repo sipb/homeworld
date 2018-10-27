@@ -333,9 +333,9 @@ class VirtualMachine:
 
     def boot_install(self, bootstrap_token):
         self.create_disk()
-        # TODO: do something better than a two-second delay to detect "boot:" prompt
+        # TODO: do something better than a ten-second delay to detect "boot:" prompt
         bootline = ("install netcfg/get_ipaddress=%s homeworld/asktoken=%s\n" % (self.node.ip, bootstrap_token)).encode()
-        if self.boot_with_io("install", text=bootline, delay=2.0).wait():
+        if self.boot_with_io("install", text=bootline, delay=10.0).wait():
             command.fail("qemu virtual machine failed")
 
     def create_disk(self, size_gb=25):
