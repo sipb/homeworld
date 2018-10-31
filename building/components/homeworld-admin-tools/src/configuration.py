@@ -412,15 +412,8 @@ def get_kube_spec_vars() -> dict:
             "INTERNAL_DOMAIN": config.internal_domain}
 
 
-def gen_kube_specs(output_dir: str) -> None:
-    if not os.path.isdir(output_dir):
-        os.mkdir(output_dir)
-    clustered, = keycheck(yaml.safe_load(resource.get_resource("clustered/list.yaml")), "clustered",
-                          validator=lambda _, x: type(x) == list)
-    vars = get_kube_spec_vars()
-    for configname in clustered:
-        templated = template.template("clustered/%s" % configname, vars)
-        util.writefile(os.path.join(output_dir, configname), templated.encode())
+def gen_kube_spec(output_name: str) -> None:
+    util.writefile(output_name, get_single_kube_spec(os.path.basename(output_name)).encode())
 
 
 def get_single_kube_spec(name: str) -> str:
@@ -430,7 +423,7 @@ def get_single_kube_spec(name: str) -> str:
 main_command = command.mux_map("commands about cluster configuration", {
     "populate": command.wrap("initialize the cluster's setup.yaml with the template", populate),
     "edit": command.wrap("open $EDITOR (defaults to nano) to edit the project's setup.yaml", edit),
-    "gen-kube": command.wrap("generate kubernetes specs for the base cluster", gen_kube_specs),
+    "gen-kube": command.wrap("generate kubernetes spec for the base cluster", gen_kube_spec),
     "show": command.mux_map("commands about showing different aspects of the configuration", {
         "keyserver.yaml": command.wrap("display the generated keyserver.yaml", print_keyserver_yaml),
         "keyclient.yaml": command.wrap("display the specified variant of keyclient.yaml", print_keyclient_yaml),
