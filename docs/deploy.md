@@ -43,7 +43,7 @@ This key will be used to encrypt the private authority keys.
 
 **WARNING**: because gpg's `--passphrase-file` option is used, only the first line from the file will be used as the key!
 
-**WARNING**: The disaster recovery key is used to encrypt upstream keys. If you are rotating the disaster recovery key, you should first decrypt the upstream keytab:
+**WARNING**: The disaster recovery key is used to encrypt upstream keys. If you are rotating the disaster recovery key, you should first decrypt the upstream keys:
 
     $ spire keytab export egg-sandwich egg-keytab
 
@@ -91,7 +91,7 @@ Be very careful not to add unencrypted key material, because that could cause a 
 
     $ cd $HOMEWORLD_DIR
     $ git init
-    $ git add setup.yaml authorities.tgz keytab.*.crypt    # be VERY CAREFUL about what you're adding!
+    $ git add setup.yaml authorities.tgz keytab.*.crypt https.*    # be VERY CAREFUL about what you're adding!
     $ git commit
     $ git remote add origin ...
     $ git push -u origin master

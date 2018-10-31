@@ -5,6 +5,7 @@ import tempfile
 import command
 import configuration
 import keycrypt
+import util
 
 
 def import_keytab(node, keytab_file):
@@ -12,6 +13,32 @@ def import_keytab(node, keytab_file):
         command.fail("no such node: %s" % node)
     keytab_target = os.path.join(configuration.get_project(), "keytab.%s.crypt" % node)
     keycrypt.gpg_encrypt_file(keytab_file, keytab_target)
+
+
+def check_pem_type(filepath, expect):
+    with open(filepath, "r") as f:
+        first_line = f.readline()
+    if not first_line.startswith("-----BEGIN ") or not first_line.rstrip().endswith("-----"):
+        command.fail("not a PEM file: %s" % filepath)
+    pem_header_type = first_line.rstrip()[len("-----BEGIN "):-len("-----")]
+    if pem_header_type != expect:
+        command.fail("incorrect PEM header: expected %s, not %s" % (expect, pem_header_type))
+
+
+def import_https(name, keyfile, certfile):
+    check_pem_type(certfile, "CERTIFICATE")
+    check_pem_type(keyfile, "RSA PRIVATE KEY")
+
+    keypath = os.path.join(configuration.get_project(), "https.%s.key.crypt" % name)
+    certpath = os.path.join(configuration.get_project(), "https.%s.pem" % name)
+
+    keycrypt.gpg_encrypt_file(keyfile, keypath)
+    util.copy(certfile, certpath)
+
+
+def decrypt_https(hostname):
+    return keycrypt.gpg_decrypt_to_memory(os.path.join(configuration.get_project(), "https.%s.key.crypt" % hostname)), \
+           util.readfile(os.path.join(configuration.get_project(), "https.%s.pem" % hostname))
 
 
 def keytab_op(node, op):
@@ -66,10 +93,23 @@ def export_keytab(node, keytab_file):
     keycrypt.gpg_decrypt_file(keytab_source, keytab_file)
 
 
+def export_https(name, keyout, certout):
+    keypath = os.path.join(configuration.get_project(), "https.%s.key.crypt" % name)
+    certpath = os.path.join(configuration.get_project(), "https.%s.pem" % name)
+
+    keycrypt.gpg_decrypt_file(keypath, keyout)
+    util.copy(certpath, certout)
+
+
 keytab_command = command.mux_map("commands about keytabs granted by external sources", {
     "import": command.wrap("import and encrypt a keytab for a particular server", import_keytab),
     "rotate": command.wrap("decrypt, rotate, and re-encrypt the keytab for a particular server", rotate_keytab),
     "delold": command.wrap("decrypt, delete old entries from, and re-encrypt a keytab", delold_keytab),
     "list": command.wrap("decrypt and list one or all of the stored keytabs", list_keytabs),
     "export": command.wrap("decrypt and export the keytab for a particular server", export_keytab),
+})
+
+https_command = command.mux_map("commands about HTTPS certs granted by external sources", {
+    "import": command.wrap("import and encrypt a HTTPS keypair for a particular server", import_https),
+    "export": command.wrap("decrypt and export the HTTPS keypair for a particular server", export_https),
 })
