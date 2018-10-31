@@ -46,6 +46,7 @@ This key will be used to encrypt the private authority keys.
 **WARNING**: The disaster recovery key is used to encrypt upstream keys. If you are rotating the disaster recovery key, you should first decrypt the upstream keys:
 
     $ spire keytab export egg-sandwich egg-keytab
+    $ spire https export homeworld.mit.edu ./homeworld.key ./homeworld.pem
 
 Recommended method of generating the passphrase:
 
@@ -81,6 +82,12 @@ $ spire keytab import <hostname> <path-to-keytab>
 $ spire keytab rotate <hostname>
    # the following means invalidating current tickets:
 $ spire keytab delold <hostname>
+```
+
+ * If you are using the user grant system, import the HTTPS key and certificate for the host you configured:
+
+```
+$ spire https import homeworld.mit.edu ./homeworld.key ./homeworld.pem
 ```
 
 Now you can consider putting this folder in Git, and then move on to 'Deploying a prepared cluster' below.

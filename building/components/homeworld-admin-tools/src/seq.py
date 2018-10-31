@@ -39,6 +39,7 @@ def sequence_supervisor(ops: setup.Operations) -> None:
     ops.add_operation("pre-deploy dns-addon", deploy.launch_dns_addon)
     ops.add_operation("pre-deploy flannel-monitor", deploy.launch_flannel_monitor)
     ops.add_operation("pre-deploy dns-monitor", deploy.launch_dns_monitor)
+    ops.add_operation("pre-deploy user-grant", deploy.launch_user_grant)
 
     # TODO: have a way to do this without a specialized just-for-supervisor method
     ops.add_subcommand(infra.infra_sync_supervisor)

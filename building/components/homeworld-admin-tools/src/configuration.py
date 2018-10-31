@@ -142,8 +142,9 @@ class Config:
         v_cluster, v_addresses, v_dns_upstreams, v_dns_bootstrap, v_root_admins, v_nodes = \
             keycheck(kv, "cluster", "addresses", "dns-upstreams", "dns-bootstrap", "root-admins", "nodes")
 
-        self.external_domain, self.internal_domain, self.etcd_token, self.realm, self.mirror = \
+        self.external_domain, self.internal_domain, self.etcd_token, self.realm, self.mirror, self.user_grant_domain = \
             keycheck(v_cluster, "external-domain", "internal-domain", "etcd-token", "kerberos-realm", "mirror",
+                                "user-grant-domain",
                      validator=lambda _, x: type(x) == str)
 
         cidr_nodes, cidr_pods, cidr_services, service_api, service_dns = \
@@ -403,21 +404,28 @@ def print_prometheus_yaml() -> None:
     print(get_prometheus_yaml())
 
 
-def get_kube_spec_vars() -> dict:
+def get_kube_spec_vars(extra_kvs: dict=None) -> dict:
     config = Config.load_from_project()
 
-    return {"NETWORK": config.cidr_pods,
+    kvs = {
+            "NETWORK": config.cidr_pods,
             "SERVIP_API": config.service_api,
             "SERVIP_DNS": config.service_dns,
-            "INTERNAL_DOMAIN": config.internal_domain}
+            "INTERNAL_DOMAIN": config.internal_domain,
+            # TODO: stop allowing use of just a single apiserver
+            "SOME_APISERVER": [node for node in config.nodes if node.kind == "master"][0].ip,
+    }
+    if extra_kvs:
+        kvs.update(extra_kvs)
+    return kvs
 
 
 def gen_kube_spec(output_name: str) -> None:
     util.writefile(output_name, get_single_kube_spec(os.path.basename(output_name)).encode())
 
 
-def get_single_kube_spec(name: str) -> str:
-    return template.template("clustered/%s" % name, get_kube_spec_vars())
+def get_single_kube_spec(name: str, extra_kvs: dict=None) -> str:
+    return template.template("clustered/%s" % name, get_kube_spec_vars(extra_kvs))
 
 
 main_command = command.mux_map("commands about cluster configuration", {
