@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flannel-monitor/common"
 	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -12,7 +13,6 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"flannel-monitor/common"
 	"time"
 )
 

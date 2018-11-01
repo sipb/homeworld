@@ -3,9 +3,9 @@ package download
 import (
 	"errors"
 	"io/ioutil"
+	"keysystem/api/server"
 	"keysystem/keyclient/config"
 	"keysystem/keyclient/state"
-	"keysystem/api/server"
 	"os"
 	"testing"
 	"time"

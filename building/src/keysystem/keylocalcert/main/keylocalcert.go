@@ -5,6 +5,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"golang.org/x/crypto/ssh"
 	"io/ioutil"
 	"keysystem/keyserver/authorities"
 	"log"
@@ -12,7 +13,6 @@ import (
 	"time"
 	"util/csrutil"
 	"util/wraputil"
-	"golang.org/x/crypto/ssh"
 )
 
 func main() {
@@ -67,7 +67,7 @@ func main() {
 
 	var result string
 	if isSSH {
-		result, err = authority.(*authorities.SSHAuthority).Sign(string(csr), false, lifespan, commonname, []string{ "root" })
+		result, err = authority.(*authorities.SSHAuthority).Sign(string(csr), false, lifespan, commonname, []string{"root"})
 	} else {
 		result, err = authority.(*authorities.TLSAuthority).Sign(string(csr), false, lifespan, commonname, nil)
 	}
@@ -80,7 +80,7 @@ func main() {
 		logger.Fatal(err)
 	}
 	if isSSH {
-		err = ioutil.WriteFile(os.Args[5] + ".pub", csr, os.FileMode(0644))
+		err = ioutil.WriteFile(os.Args[5]+".pub", csr, os.FileMode(0644))
 		if err != nil {
 			logger.Fatal(err)
 		}

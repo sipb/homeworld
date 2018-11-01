@@ -3,9 +3,9 @@ package download
 import (
 	"errors"
 	"fmt"
-	"keysystem/keyclient/state"
 	"keysystem/api/reqtarget"
 	"keysystem/api/server"
+	"keysystem/keyclient/state"
 )
 
 type DownloadFetcher interface {
