@@ -75,7 +75,7 @@ def sequence_cluster(ops: setup.Operations) -> None:
                       iterative_verifier(verify.check_kube_health, 120.0))
 
     ops.add_operation("verify that acis can be pulled from the registry", iterative_verifier(verify.check_aci_pull, 60.0))
-    ops.add_operation("verify that flannel is online", iterative_verifier(verify.check_flannel, 180.0))
+    ops.add_operation("verify that flannel is online", iterative_verifier(verify.check_flannel, 210.0))
     ops.add_operation("verify that dns-addon is online", iterative_verifier(verify.check_dns, 120.0))
 
 
