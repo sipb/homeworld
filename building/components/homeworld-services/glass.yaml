@@ -15,9 +15,6 @@ control:
     - iptables
     - conntrack
 
-  install-scripts:
-    prerm: prerm.sh
-
 build:
   - type: bash
     code: |
