@@ -8,7 +8,7 @@ control:
 
 build:
   - type: bash
-    code: gcc -static ${INPUT}/pullcheck.c -o pullcheck
+    code: gcc -static /h/src/aci-pull-monitor/pullcheck.c -o pullcheck
 
   - type: copy
     stage: pullcheck

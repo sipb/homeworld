@@ -72,13 +72,3 @@ build:
     stage: bin
     output: /usr/bin
     recursive: true
-
-  - type: copy
-    input: services
-    output: /usr/lib/systemd/system/
-    recursive: true
-
-  - type: copy
-    input: wrappers
-    output: /usr/lib/homeworld/
-    recursive: true

@@ -5,7 +5,7 @@ After=keyclient.service
 
 [Service]
 Type=oneshot
-ExecStart=/usr/lib/homeworld/update-keyclient-config.sh
+ExecStart=/usr/lib/hyades/launch-keyclient-config-update.sh
 Restart=no
 
 [Install]

@@ -36,7 +36,3 @@ build:
     stage: bin
     output: /usr/bin/
     recursive: true
-
-  - type: copy
-    input: prometheus-node-exporter.service
-    output: /usr/lib/systemd/system/prometheus-node-exporter.service

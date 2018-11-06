@@ -41,7 +41,3 @@ build:
   - type: copy
     stage: auth-monitor
     output: /usr/bin/auth-monitor
-
-  - type: copy
-    input: auth-monitor.service
-    output: /usr/lib/systemd/system/auth-monitor.service

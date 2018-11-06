@@ -5,7 +5,7 @@ After=keyclient.service update-keyclient-config.service
 
 [Service]
 Type=oneshot
-ExecStart=/usr/lib/hyades/homeworld-autostart.sh
+ExecStart=/usr/lib/hyades/launch-autostart.sh
 Restart=no
 
 [Install]

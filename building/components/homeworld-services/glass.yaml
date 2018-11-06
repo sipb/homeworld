@@ -19,15 +19,16 @@ control:
     prerm: prerm.sh
 
 build:
-  - type: copy
-    input: services
-    output: /usr/lib/systemd/system
-    recursive: true
+  - type: bash
+    code: |
+      mkdir -p ${OUTPUT}/usr/lib/systemd/system/
+      find /h/src/ -name '*.service' -exec cp {} ${OUTPUT}/usr/lib/systemd/system/ ';'
+      find /h/src/ -name '*.timer' -exec cp {} ${OUTPUT}/usr/lib/systemd/system/ ';'
 
-  - type: copy
-    input: wrappers
-    output: /usr/lib/hyades
-    recursive: true
+  - type: bash
+    code: |
+      mkdir -p ${OUTPUT}/usr/lib/hyades/
+      find /h/src/ -name 'launch-*.sh' -exec cp {} ${OUTPUT}/usr/lib/hyades/ ';'
 
   - type: copy
     input: 10-containernet.conf

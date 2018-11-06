@@ -19,15 +19,10 @@ control:
     - cpio
 
 build:
-  - type: copy
-    input: src
-    stage: src
-    recursive: true
-
-  - type: copy
-    input: resources
-    stage: src/resources
-    recursive: true
+  - type: bash
+    code: |
+      cp -R /h/src/spire/src/ src
+      cp -R /h/src/spire/resources/ src/resources
 
   - type: bash
     stage: src/resources/GIT_VERSION

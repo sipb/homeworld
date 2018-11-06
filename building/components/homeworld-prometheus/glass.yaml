@@ -37,7 +37,3 @@ build:
     stage: bin
     output: /usr/bin/
     recursive: true
-
-  - type: copy
-    input: prometheus.service
-    output: /usr/lib/systemd/system/prometheus.service
