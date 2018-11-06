@@ -18,6 +18,10 @@ control:
 build:
   - type: bash
     code: |
+      cp -R /h/src/rootfs/* ${OUTPUT}/
+
+  - type: bash
+    code: |
       mkdir -p ${OUTPUT}/usr/lib/systemd/system/
       find /h/src/ -name '*.service' -exec cp {} ${OUTPUT}/usr/lib/systemd/system/ ';'
       find /h/src/ -name '*.timer' -exec cp {} ${OUTPUT}/usr/lib/systemd/system/ ';'
@@ -26,10 +30,6 @@ build:
     code: |
       mkdir -p ${OUTPUT}/usr/lib/hyades/
       find /h/src/ -name 'launch-*.sh' -exec cp {} ${OUTPUT}/usr/lib/hyades/ ';'
-
-  - type: copy
-    input: 10-containernet.conf
-    output: /etc/rkt/net.d/10-containernet.conf
 
   - type: python
     code: |
