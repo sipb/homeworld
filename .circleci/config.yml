@@ -22,7 +22,7 @@ jobs:
           command: echo "make -C upstream-check/ -j2 verify && killall gpg-agent" | HOMEWORLD_CHROOT="$HOME/autobuild-chroot" USER="circleci" ./enter-chroot-ci.sh
       - run:
           name: Launch build with glass
-          command: cp building/apt-branch-config/branches-ci.yaml building/apt-branch-config/branches.yaml && echo "glass components -b ci" | HOMEWORLD_CHROOT="$HOME/autobuild-chroot" USER="circleci" ./enter-chroot-ci.sh
+          command: cp .circleci/branches.yaml building/apt-branch-config/branches.yaml && echo "glass components -b ci" | HOMEWORLD_CHROOT="$HOME/autobuild-chroot" USER="circleci" ./enter-chroot-ci.sh
           no_output_timeout: 3600
       - run:
           name: Display resulting binaries
