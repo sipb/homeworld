@@ -1,7 +1,7 @@
 control:
   name: homeworld-admin-tools
-  version: 0.2.37
-  date: 2018-10-31T19:26:40-0400
+  version: 0.2.38
+  date: 2018-11-15T16:58:00-0400
   type: deb
   depends:
     - homeworld-keysystem

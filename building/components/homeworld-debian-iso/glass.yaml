@@ -1,13 +1,13 @@
 control:
   name: homeworld-debian-iso
-  version: 9.5.0-1
-  date: 2018-07-10T20:12:24-0700
+  version: 9.6.0
+  date: 2018-11-15T17:01:00-0400
   type: deb
 
 build:
   - type: upstream
     upstream: debian-%-amd64-mini.iso
-    version: 9.5.0
+    version: 9.6.0
     stage: debian.iso
 
   - type: copy
