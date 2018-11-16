@@ -48,7 +48,7 @@ keys/%.ring: keys/%.asc
 	@echo "[gpg] preparing keyring $@"
 	@rm -rf $@ $@.tmp
 	@mkdir -m=0700 $@.tmp
-	@GNUPGHOME="$@.tmp" gpg --quiet --import $^
+	@GNUPGHOME="$@.tmp" gpg --quiet --batch --import $^
 	@mv "$@.tmp" "$@"
 
 clean: clean-git
