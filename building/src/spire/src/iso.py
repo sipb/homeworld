@@ -121,8 +121,8 @@ def gen_iso(iso_image, authorized_key, mode=None):
             MODES[mode](d, cddir, inclusion)
 
         with gzip.open(os.path.join(cddir, "initrd.gz"), "ab") as f:
-            subprocess.run(["cpio", "--create", "--format=newc"], check=True, stdout=f,
-                           input="".join("%s\n" % filename for filename in inclusion).encode(), cwd=d)
+            f.write(subprocess.check_output(["cpio", "--create", "--format=newc"],
+                           input="".join("%s\n" % filename for filename in inclusion).encode(), cwd=d))
 
         files_for_md5sum = subprocess.check_output(["find", ".", "-follow", "-type", "f", "-print0"], cwd=cddir).decode().split("\0")
         assert files_for_md5sum.pop() == ""
