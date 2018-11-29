@@ -29,6 +29,7 @@ def sequence_ssh(ops: setup.Operations) -> None:
 
 
 def sequence_supervisor(ops: setup.Operations) -> None:
+    config = configuration.get_config()
     ops.add_subcommand(sequence_keysystem)
     ops.add_operation("verify that keysystem certs are available on supervisor", iterative_verifier(verify.check_certs_on_supervisor, 20.0))
     ops.add_subcommand(setup.setup_prometheus)
@@ -39,7 +40,9 @@ def sequence_supervisor(ops: setup.Operations) -> None:
     ops.add_operation("pre-deploy dns-addon", deploy.launch_dns_addon)
     ops.add_operation("pre-deploy flannel-monitor", deploy.launch_flannel_monitor)
     ops.add_operation("pre-deploy dns-monitor", deploy.launch_dns_monitor)
-    ops.add_operation("pre-deploy user-grant", deploy.launch_user_grant)
+
+    if config.user_grant_domain != '':
+        ops.add_operation("pre-deploy user-grant", deploy.launch_user_grant)
 
     # TODO: have a way to do this without a specialized just-for-supervisor method
     ops.add_subcommand(infra.infra_sync_supervisor)
