@@ -67,7 +67,7 @@ is_invalid_token () {
     fi
 
     return 1
-}   
+}
 
 db_settitle homeworld/title
 db_input critical homeworld/asktoken || true

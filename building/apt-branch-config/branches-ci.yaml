@@ -1,3 +1,4 @@
 branches:
-  - name: root/master
+  - name: ci
     signing-key: d167aca2e5fcf374
+    download: no_download

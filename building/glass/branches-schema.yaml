@@ -2,29 +2,6 @@ $schema: "http://json-schema.org/draft-07/schema#"
 title: BranchesConfig
 type: object
 properties:
-  upload-targets:
-    type: array
-    items:
-      type: object
-      oneOf:
-        - properties:
-            name:
-              type: string
-            method:
-              enum: ["google-cloud-storage"]
-          required: ["name", "method"]
-          additionalProperties: false
-        - properties:
-            name:
-              type: string
-            method:
-              enum: ["rsync"]
-            user:
-              type: string
-            dir:
-              type: string
-          required: ["name", "method", "user", "dir"]
-          additionalProperties: false
   branches:
     type: array
     items:
@@ -32,13 +9,31 @@ properties:
       properties:
         name:
           type: string
-          pattern: "^[0-9a-zA-Z_.-][0-9a-zA-Z_./-]+[0-9a-zA-Z_.-]$"
+          pattern: "^[0-9a-zA-Z_-]+$"
+        download:
+          type: string
+          pattern: "^no_download$|^https?://[0-9a-zA-Z_.-]+(:[0-9]+)?(/[0-9a-zA-Z_./-]*[0-9a-zA-Z_.-])?$"
         signing-key:
           type: string
           pattern: "^[a-fA-F0-9]+$"
-        upload-target:
-          type: string
-      required: ["name", "signing-key"]
+        upload:
+          type: object
+          oneOf:
+            - properties:
+                method:
+                  enum: ["google-cloud-storage"]
+                gcs-target:
+                  type: string
+              required: ["method", "gcs-target"]
+              additionalProperties: false
+            - properties:
+                method:
+                  enum: ["rsync"]
+                rsync-target:
+                  type: string
+              required: ["method", "rsync-target"]
+              additionalProperties: false
+      required: ["name", "signing-key", "download"]
       additionalProperties: false
 required: ["branches"]
 additionalProperties: false

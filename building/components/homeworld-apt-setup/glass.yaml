@@ -12,7 +12,7 @@ build:
   - type: python
     input: homeworld.sources.in
     output: /etc/apt/sources.list.d/homeworld.sources
-    code: return input.format(APT_URL=context.branch)
+    code: return input.format(APT_URL=context.branch_config.download)
 
   - type: python
     input: homeworld.pref.in

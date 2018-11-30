@@ -8,20 +8,17 @@ import tempfile
 import aptbranch
 import project
 
-# given a repository descriptor of:
-#   HOMEWORLD_APT_BRANCH=hyades-deploy.celskeggs.com/test01
-# the following would be populated into hyades-deploy.celskeggs.com
-# (or, for rsync, <host>:<dir>/hyades-deploy.celskeggs.com/)
+# uploads the following files to the target described by the upload
+# configuration
 #
-# /test01/
-# /test01/dists/
-# /test01/dists/[...]
-# /test01/pool/
-# /test01/pool/[...]
-# /test01/aci/
-# /test01/aci/homeworld.private/
-# /test01/aci/homeworld.private/flannel-0.8.0-4-linux-amd64.aci
-# /test01/aci/homeworld.private/flannel-0.8.0-4-linux-amd64.aci.asc
+# dists/
+# dists/[...]
+# pool/
+# pool/[...]
+# aci/
+# aci/homeworld.private/
+# aci/homeworld.private/flannel-0.8.0-4-linux-amd64.aci
+# aci/homeworld.private/flannel-0.8.0-4-linux-amd64.aci.asc
 
 
 def upload(bindir: str, branch_config: aptbranch.Config) -> None:
@@ -101,8 +98,6 @@ def gs_rsync(local_path: str, remote_path: str, boto_path: str):
     subprocess.check_call(["gsutil", "-h", "Cache-Control:private, max-age=0, no-transform", "-m", "rsync", "-d", "-r", "-c", local_path, remote_path], env=env)
 
 
-GS_BRANCH_REGEX = re.compile('([a-z0-9_.-]+)((/[a-z0-9/_.-]*)?)')
-
 BOTO_PATH = "/homeworld/boto-key"
 
 BOTO_TEMPLATE = """
@@ -116,19 +111,10 @@ default_api_version = 2
 default_project_id = %s
 """.lstrip()
 
-def gs_upload_path(branch):
-    m = GS_BRANCH_REGEX.fullmatch(branch)
-    if m is None:
-        raise ValueError('not an uploadable branch: %s' % branch)
-    domain, path = m.group(1), m.group(2)
-    if domain.endswith('.storage.googleapis.com'):
-        domain = domain[:-len('.storage.googleapis.com')]
-    return 'gs://' + domain + path
-
 def upload_gs(staging, root: str, branch_config: aptbranch.Config):
-    upload_path = gs_upload_path(branch_config.name)
+    upload_path = branch_config.upload_config['gcs-target']
     if not os.path.exists(BOTO_PATH):
-        raise Exception("you need to put the GCP service account private key file into /homeworld/boto-key")
+        raise Exception("you need to put the GCP service account private key file into {}".format(BOTO_PATH))
     botoconfig_name = os.path.join(staging, "boto.config")
     with open(botoconfig_name, "w") as bout:
         with open(BOTO_PATH, "r") as f:
@@ -139,13 +125,8 @@ def upload_gs(staging, root: str, branch_config: aptbranch.Config):
 
 
 def upload_rsync(staging, root: str, branch_config: aptbranch.Config):
-    host, path = branch_config.name.split('/', 1)
-    target_dir = os.path.join(branch_config.upload_config["dir"], path)
-    user = branch_config.upload_config["user"]
-    if "@" in user or ":" in user:
-        raise Exception("unsupported characters (@ or :) in upload user")
-    dest = "%s@%s:%s" % (user, host, target_dir)
-    subprocess.check_call(["rsync", "-avzc", "--progress", "--delete-delay", "--", root + "/", dest])
+    target = branch_config.upload_config['rsync-target']
+    subprocess.check_call(["rsync", "-avzc", "--progress", "--delete-delay", "--", root + "/", target])
 
 
 UPLOAD_FUNCS = {

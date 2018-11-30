@@ -7,8 +7,6 @@ import subprocess
 import validate
 
 
-APT_BRANCH_REGEX = "^[0-9a-zA-Z_.-][0-9a-zA-Z_./-]+[0-9a-zA-Z_.-]$"
-
 CONFIG_PATH = "/h/apt-branch-config/branches.yaml"
 CONFIG_SCHEMA_NAME = "branches-schema.yaml"
 
@@ -21,12 +19,6 @@ def get_env_branch():
     if not branch:
         return None
 
-    if not re.match(APT_BRANCH_REGEX, branch):
-        print("apt branch should be a url path")
-        print("e.g. homeworld.apt/branch/subbranch")
-        print("allowed characters: [0-9a-zA-Z_./-]")
-        raise Exception("invalid apt branch: %s" % branch)
-
     return branch
 
 
@@ -34,9 +26,6 @@ def check_signing_key(key_id):
     "Throw an exception if the specified key key doesn't exist in the gpg keyring."
 
     if subprocess.call(["gpg", "--list-keys", key_id], stdout=subprocess.DEVNULL) != 0:
-        if branch == "root/master":
-            print("If you're basing this build off the master branch, import its signing key with")
-            print('gpg --import building/apt-branch-config/default-key.asc')
         raise Exception("apt signing key not in gpg keyring: %s" % branch)
 
 
@@ -53,13 +42,6 @@ def select_branch_config(branches_config: list, branch: str):
         if config["name"] == branch:
             return config
     raise Exception("no config found for %s in %s" % (branch, CONFIG_PATH))
-
-
-def select_upload_config(upload_targets: list, name: str):
-    for upload_target in upload_targets:
-        if upload_target["name"] == name:
-            return upload_target
-    raise Exception("no config found for %s in upload-targets" % name)
 
 
 class Config:
@@ -90,8 +72,12 @@ class Config:
         return self.config["signing-key"]
 
     @property
+    def download(self) -> str:
+        return self.config["download"]
+
+    @property
     def upload_config(self):
-        if "upload-target" not in self.config:
-            raise Exception("no upload target found for branch %s" % self.name)
-        upload_target_name = self.config["upload-target"]
-        return select_upload_config(self.upload_targets, upload_target_name)
+        try:
+            return self.config["upload"]
+        except KeyError as e:
+            raise Exception('no upload configuration for branch {}'.format(self.name)) from e

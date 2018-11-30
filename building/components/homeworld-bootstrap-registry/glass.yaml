@@ -17,7 +17,7 @@ build:
   - type: python
     input: index.html.in
     output: /usr/lib/hyades/registry/index.html
-    code: return input.format(APT_URL=context.branch)
+    code: return input.format(APT_URL=context.branch_config.download)
 
   - type: python
     output: /usr/lib/hyades/registry/pubkey.asc

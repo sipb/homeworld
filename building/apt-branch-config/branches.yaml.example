@@ -1,14 +1,16 @@
-upload-targets:
-  - name: <upload target>
-    method: rsync
-    # these will be passed to rsync as
-	# <username>@<host>:<dir>/<location>/<of>/<repository>
-	user: <username>
-    dir: /var/www/html
-
 branches:
-  - name: root/master
+  - name: ci
     signing-key: d167aca2e5fcf374
-  - name: <host>/<location>/<of>/<repository>
+    download: no_download
+  - name: example-name
     signing-key: <signing key>
-    upload-target: <upload target>
+    download: http://<bucket>.storage.googleapis.com/<location>/<of>/<branch>
+    upload:
+      method: google-cloud-storage
+      gcs-target: gs://<bucket>/<location>/<of>/<branch>
+  - name: another-example-name
+    signing-key: <signing key>
+    download: http://<host>/<location>/<of>/<branch>
+    upload:
+      method: rsync
+      rsync-target: <user>@<host>:/var/www/html/<location>/<of>/<branch>
