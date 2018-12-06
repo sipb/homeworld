@@ -1,6 +1,6 @@
 control:
   name: homeworld-auth-monitor
-  version: 0.1.4
+  version: 0.1.5
   date: 2018-01-29T17:05:04-0500
   type: deb
   depends:

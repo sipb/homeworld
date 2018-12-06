@@ -1,6 +1,6 @@
 control:
   name: homeworld-prometheus-node-exporter
-  version: 0.15.2-4
+  version: 0.15.2-5
   date: 2018-01-29T17:32:04-0500
   type: deb
 

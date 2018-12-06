@@ -1,6 +1,6 @@
 control:
   name: homeworld-services
-  version: 0.1.35
+  version: 0.1.36
   date: 2018-07-30T21:58:00-0700
   type: deb
   depends:
