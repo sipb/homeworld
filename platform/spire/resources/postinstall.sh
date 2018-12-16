@@ -58,24 +58,25 @@ EOF
 
 debconf-loadtemplate homeworld /tmp/token.template
 
-is_invalid_token () {
-    TOKEN="${1%??}"
-    TOKEN_PROVIDED_HASH=$(echo -n $1 | tail -c 2)
-    TOKEN_ACTUAL_HASH=$(echo -n "$TOKEN" | /target/usr/bin/openssl dgst -sha256 -binary | /target/usr/bin/base64 | cut -c -2)
-
-    if [ "$TOKEN_PROVIDED_HASH" != "$TOKEN_ACTUAL_HASH" ]; then
+is_valid_token () {
+    if [ "$1" = "manual" ]; then
         return 0
     fi
 
-    return 1
+    TOKEN="${1%??}"
+    TOKEN_PROVIDED_HASH=$(echo -n "$1" | tail -c 2)
+    TOKEN_ACTUAL_HASH=$(echo -n "$TOKEN" | /target/usr/bin/openssl dgst -sha256 -binary | /target/usr/bin/base64 | cut -c -2)
+
+    [ "$TOKEN_PROVIDED_HASH" = "$TOKEN_ACTUAL_HASH" ]
+    return
 }
 
 db_settitle homeworld/title
+
 db_input critical homeworld/asktoken || true
 db_go
-
 db_get homeworld/asktoken
-while [ "$RET" != "manual" ] && is_invalid_token $RET; do
+while ! is_valid_token "$RET"; do
     db_input critical homeworld/tokeninvalid || true
     db_go
 
@@ -84,15 +85,12 @@ while [ "$RET" != "manual" ] && is_invalid_token $RET; do
     db_get homeworld/asktoken
 done
 
-if [ "$RET" != "" ]
+if [ "$RET" = "manual" ]
 then
-    if [ "$RET" = "manual" ]
-    then
-        mkdir -p /target/root/.ssh/
-        cp /authorized.pub /target/root/.ssh/authorized_keys
-    else
-        echo "$RET" > /target/etc/homeworld/keyclient/bootstrap.token
-    fi
+    mkdir -p /target/root/.ssh/
+    cp /authorized.pub /target/root/.ssh/authorized_keys
+else
+    echo "$RET" > /target/etc/homeworld/keyclient/bootstrap.token
 fi
 
 echo "ISO used to install this node generated at: ${BUILDDATE}" >>/target/etc/issue
