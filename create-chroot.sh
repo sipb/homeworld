@@ -45,9 +45,6 @@ export PS1="\[\033[01;31m\][homeworld] \[\033[01;32m\]\u\[\033[00m\] \[\033[01;3
 EOF
 sudo mkdir "${HOMEWORLD_CHROOT}/fstemp/"
 sudo chown "$USER" "${HOMEWORLD_CHROOT}/fstemp/"
-(echo "127.0.0.1 $(basename "$HOMEWORLD_CHROOT")"; echo "127.0.0.2 snapshot.debian.org") | sudo bash -c "cat >>'$HOMEWORLD_CHROOT/etc/hosts'"
-sudo rm "${HOMEWORLD_CHROOT}/etc/nginx/sites-enabled/default"
-sudo cp snapshot-cache-nginx "${HOMEWORLD_CHROOT}/etc/nginx/sites-available/snapshot.debian.org"
-sudo ln -s /etc/nginx/sites-available/snapshot.debian.org "${HOMEWORLD_CHROOT}/etc/nginx/sites-enabled/snapshot.debian.org"
+echo "127.0.0.1 $(basename "$HOMEWORLD_CHROOT")" | sudo bash -c "cat >>'$HOMEWORLD_CHROOT/etc/hosts'"
 
 echo "Done!"

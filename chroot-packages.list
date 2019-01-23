@@ -36,6 +36,3 @@ python-crcmod, python-pip, python-setuptools, python-wheel, rsync, ssh
 
 # killall
 psmisc
-
-# local debian repository cache
-nginx-light

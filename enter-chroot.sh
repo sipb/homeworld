@@ -29,4 +29,4 @@ then
 	mkdir -p "$HOMEWORLD_CHROOT/home/$USER/.ssh/"
 	cp -R "$HOME/.ssh/." "$HOMEWORLD_CHROOT/home/$USER/.ssh"
 fi
-sudo systemd-nspawn -M "$(basename $HOMEWORLD_CHROOT)" --bind $(pwd):/homeworld:norbind -u "$USER" -a -D "$HOMEWORLD_CHROOT" bash -c "cd /h/${ORIG_REL} && gpg-agent --daemon --keep-tty && sudo nginx && exec bash"
+sudo systemd-nspawn -M "$(basename $HOMEWORLD_CHROOT)" --bind $(pwd):/homeworld:norbind -u "$USER" -a -D "$HOMEWORLD_CHROOT" bash -c "cd /h/${ORIG_REL} && gpg-agent --daemon --keep-tty && exec bash"
