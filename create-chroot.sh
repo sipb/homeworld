@@ -31,7 +31,11 @@ fi
 
 mkdir -m 'u=rwx,go=rx' "${HOMEWORLD_CHROOT}"
 sudo debootstrap --include="$(cat chroot-packages.list | grep -vE '^#' | tr '\n ' ',,' | sed 's/,$//' | sed 's/,,/,/g')" stretch "${HOMEWORLD_CHROOT}" http://debian.csail.mit.edu/debian/
-sudo ln -sT /h/glass/glass.py "${HOMEWORLD_CHROOT}/usr/local/bin/glass"
+# TODO: build our own Bazel, rather than grabbing it from Google's repo
+echo "deb [arch=amd64] http://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee "${HOMEWORLD_CHROOT}/etc/apt/sources.list.d/bazel.list"
+cat bazel-release.pub.gpg | sudo chroot "${HOMEWORLD_CHROOT}" apt-key add -
+sudo chroot "${HOMEWORLD_CHROOT}" apt-get update
+sudo chroot "${HOMEWORLD_CHROOT}" apt-get install -y bazel
 sudo chroot "${HOMEWORLD_CHROOT}" groupadd "$(id -gn)" -g "$(id -g)"
 sudo chroot "${HOMEWORLD_CHROOT}" useradd -m -u "$(id -u)" -g "$(id -g)" "$USER" -s "/bin/bash"
 sudo chroot "${HOMEWORLD_CHROOT}" pip install -U gsutil pyasn1

@@ -36,3 +36,6 @@ python-crcmod, python-pip, python-setuptools, python-wheel, rsync, ssh
 
 # killall
 psmisc
+
+# bazel
+openjdk-8-jdk, g++, unzip
