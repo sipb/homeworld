@@ -8,7 +8,6 @@ homeworld_deb(
         ":launch-ctrlmgr.sh": "/usr/lib/hyades/launch-ctrlmgr.sh",
         ":launch-proxy.sh": "/usr/lib/hyades/launch-proxy.sh",
         ":launch-scheduler.sh": "/usr/lib/hyades/launch-scheduler.sh",
-        ":launch-kube-state-metrics.sh": "/usr/lib/hyades/launch-kube-state-metrics.sh",
         ":launch-kubelet.sh": "/usr/lib/hyades/launch-kubelet.sh",
     },
     data = {
@@ -16,7 +15,6 @@ homeworld_deb(
         ":kube-ctrlmgr.service": "/usr/lib/systemd/system/kube-ctrlmgr.service",
         ":kube-proxy.service": "/usr/lib/systemd/system/kube-proxy.service",
         ":kube-scheduler.service": "/usr/lib/systemd/system/kube-scheduler.service",
-        ":kube-state-metrics.service": "/usr/lib/systemd/system/kube-state-metrics.service",
         ":kubelet.service": "/usr/lib/systemd/system/kubelet.service",
     },
     package = "homeworld-hyperkube",

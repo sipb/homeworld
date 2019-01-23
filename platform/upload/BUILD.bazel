@@ -10,7 +10,6 @@ upload(
         "//flannel-monitor:aci",
         "//kube-dns:kube-dns-main",
         "//kube-dns:kube-dns-sidecar",
-        "//kube-state-metrics:aci",
         "//user-grant:aci",
     ],
     debs = [
@@ -23,6 +22,7 @@ upload(
         "//etcd-metrics-exporter:package.deb",
         "//keysystem:package.deb",
         "//knc:package.deb",
+        "//kube-state-metrics:package.deb",
         "//kubernetes:hyperkube.deb",
         "//prometheus:package.deb",
         "//prometheus-node-exporter:package.deb",

@@ -11,6 +11,7 @@ homeworld_deb(
         "homeworld-etcd",
         "homeworld-etcd-metrics-exporter",
         "homeworld-hyperkube",
+        "homeworld-kube-state-metrics",
         "homeworld-rkt",
         "homeworld-rkt-config",
         "homeworld-setup-queue",

@@ -1,5 +1,5 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary")
-load("//bazel:package.bzl", "homeworld_aci")
+load("//bazel:package.bzl", "homeworld_deb")
 
 go_binary(
     name = "kube-state-metrics",
@@ -7,19 +7,17 @@ go_binary(
     embed = [
         "@com_github_kubernetes_kube_state_metrics//:go_default_library",
     ],
-    pure = "on",
 )
 
-homeworld_aci(
-    name = "aci",
+homeworld_deb(
+    name = "package",
     bin = {
         ":kube-state-metrics": "/usr/bin/kube-state-metrics",
+        ":launch-kube-state-metrics.sh": "/usr/lib/hyades/launch-kube-state-metrics.sh",
     },
-    aciname = "homeworld.private/kube-state-metrics",
-    exec = ["/usr/bin/kube-state-metrics"],
-    ports = {
-        "metrics": "tcp:80",
-        "metametrics": "tcp:81",
+    data = {
+        ":kube-state-metrics.service": "/usr/lib/systemd/system/kube-state-metrics.service",
     },
+    package = "homeworld-kube-state-metrics",
     visibility = ["//visibility:public"],
 )
