@@ -1,3 +1,6 @@
+# This is a modified version of go_repository.bzl, to fix the location of the patch() call.
+# TODO: fix the actual problem, instead
+
 # Copyright 2014 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -77,6 +80,9 @@ def _go_repository_impl(ctx):
         if result.return_code:
             fail("failed to fetch %s: %s" % (ctx.name, result.stderr))
 
+    # Apply pre-patches if necessary.
+    patch(ctx, False)
+
     generate = ctx.attr.build_file_generation == "on"
     if ctx.attr.build_file_generation == "auto":
         generate = True
@@ -115,10 +121,10 @@ def _go_repository_impl(ctx):
                 result.stderr,
             ))
 
-    # Apply patches if necessary.
-    patch(ctx)
+    # Apply post-patches if necessary.
+    patch(ctx, True)
 
-go_repository = repository_rule(
+go_repository_alt = repository_rule(
     implementation = _go_repository_impl,
     attrs = {
         # Fundamental attributes of a go repository
@@ -175,33 +181,43 @@ go_repository = repository_rule(
         ),
         "build_extra_args": attr.string_list(),
 
+        # Patches to apply before running gazelle.
+        "prepatches": attr.label_list(),
+        "prepatch_tool": attr.string(default = "patch"),
+        "prepatch_args": attr.string_list(default = ["-p0"]),
+        "prepatch_cmds": attr.string_list(default = []),
+
         # Patches to apply after running gazelle.
-        "patches": attr.label_list(),
-        "patch_tool": attr.string(default = "patch"),
-        "patch_args": attr.string_list(default = ["-p0"]),
-        "patch_cmds": attr.string_list(default = []),
+        "postpatches": attr.label_list(),
+        "postpatch_tool": attr.string(default = "patch"),
+        "postpatch_args": attr.string_list(default = ["-p0"]),
+        "postpatch_cmds": attr.string_list(default = []),
     },
 )
 """See repository.rst#go-repository for full documentation."""
 
 # Copied from @bazel_tools//tools/build_defs/repo:utils.bzl
-def patch(ctx):
+def patch(ctx, post):
     """Implementation of patching an already extracted repository"""
     bash_exe = ctx.os.environ["BAZEL_SH"] if "BAZEL_SH" in ctx.os.environ else "bash"
-    for patchfile in ctx.attr.patches:
+    if post:
+        patches, patch_tool, patch_args, patch_cmds = ctx.attr.postpatches, ctx.attr.postpatch_tool, ctx.attr.postpatch_args, ctx.attr.postpatch_cmds
+    else:
+        patches, patch_tool, patch_args, patch_cmds = ctx.attr.prepatches, ctx.attr.prepatch_tool, ctx.attr.prepatch_args, ctx.attr.prepatch_cmds
+    for patchfile in patches:
         command = "{patchtool} {patch_args} < {patchfile}".format(
-            patchtool = ctx.attr.patch_tool,
+            patchtool = patch_tool,
             patchfile = ctx.path(patchfile),
             patch_args = " ".join([
                 "'%s'" % arg
-                for arg in ctx.attr.patch_args
+                for arg in patch_args
             ]),
         )
         st = ctx.execute([bash_exe, "-c", command])
         if st.return_code:
             fail("Error applying patch %s:\n%s%s" %
                  (str(patchfile), st.stderr, st.stdout))
-    for cmd in ctx.attr.patch_cmds:
+    for cmd in patch_cmds:
         st = ctx.execute([bash_exe, "-c", cmd])
         if st.return_code:
             fail("Error applying patch command %s:\n%s%s" %
