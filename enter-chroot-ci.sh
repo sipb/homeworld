@@ -35,7 +35,7 @@ sudo mkdir -p "$HOMEWORLD_CHROOT/homeworld"
 sudo mount --bind "$(pwd)" "$HOMEWORLD_CHROOT/homeworld"
 sudo mount -t proc procfs "$HOMEWORLD_CHROOT/proc"
 NEWPATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-sudo chroot "$HOMEWORLD_CHROOT" su "$USER" -c "cd /h/ && PATH=$NEWPATH exec bash"
+sudo chroot "$HOMEWORLD_CHROOT" su "$USER" -c "cd /homeworld/platform/ && PATH=$NEWPATH bash"
 sudo umount "$HOMEWORLD_CHROOT/proc"
 # keep trying until all processes have been killed
 echo "Trying to unmount $HOMEWORLD_CHROOT/homeworld..."
