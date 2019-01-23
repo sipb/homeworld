@@ -1,0 +1,32 @@
+commit f31183fa3dad7f0b6544724fb74555c26472c78a
+Author: Jeff Grafton <jgrafton@google.com>
+Date:   Tue May 15 17:50:55 2018 -0700
+
+    Set gazelle:prefix on staging/src and remove sed hack
+
+diff --git a/hack/update-bazel.sh b/hack/update-bazel.sh
+index 14d57eff4b..98def35f9f 100755
+--- a/hack/update-bazel.sh
++++ b/hack/update-bazel.sh
+@@ -41,11 +41,5 @@ gazelle fix \
+     -build_file_name=BUILD,BUILD.bazel \
+     -external=vendored \
+     -mode=fix
+-# gazelle gets confused by our staging/ directory, prepending an extra
+-# "k8s.io/kubernetes/staging/src" to the import path.
+-# gazelle won't follow the symlinks in vendor/, so we can't just exclude
+-# staging/. Instead we just fix the bad paths with sed.
+-find staging -name BUILD -o -name BUILD.bazel | \
+-  xargs ${SED} -i 's|\(importpath = "\)k8s.io/kubernetes/staging/src/\(.*\)|\1\2|'
+ 
+ kazel
+diff --git a/staging/src/BUILD b/staging/src/BUILD
+new file mode 100644
+index 0000000000..713eaec423
+--- /dev/null
++++ b/staging/src/BUILD
+@@ -0,0 +1,4 @@
++# gazelle gets confused by our staging/ directory, prepending an extra
++# "k8s.io/kubernetes/staging/src" to the importpath.
++# Using this directive ensures that it sets the correct importpath.
++# gazelle:prefix

@@ -1,0 +1,21 @@
+part of:
+commit 4186abf72b9596c5e447807c25b69a187b99dd4a
+Author: Mike Danese <mikedanese@google.com>
+Date:   Mon Feb 26 10:49:49 2018 -0800
+
+    bzl: fix update-bazel.sh
+    
+    pickup https://github.com/bazelbuild/bazel-gazelle/commit/a85b63b06c2e0c75931e57c4a1a18d4e566bb6f4
+
+diff --git a/build/root/BUILD.root b/build/root/BUILD.root
+index 5b162716fc..ee3f1e49ca 100644
+--- a/build/root/BUILD.root
++++ b/build/root/BUILD.root
+@@ -2,6 +2,7 @@
+ # gazelle:exclude _gopath
+ # gazelle:exclude _output
+ # gazelle:exclude _tmp
++# gazelle:prefix k8s.io/kubernetes
+ 
+ package(default_visibility = ["//visibility:public"])
+ 

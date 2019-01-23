@@ -11,7 +11,6 @@ all: golang-x-crypto-5ef0053f77724838734b6945dd364d3847e5de1d.tar.xz
 all: gopkg.in-yaml.v2-eb3733d160e74a9c7e442f435eb3bea458e1d19f.tar.xz
 all: knc-1.7.1.tar.xz
 all: kubernetes-dns-1.14.8.tar.xz
-all: kubernetes-src-v1.9.2.tar.xz
 all: linux-4.14.16.tar.xz
 all: prometheus-2.0.0.tar.xz
 all: prometheus-client_golang-0.9.0-pre1.tar.xz
@@ -267,14 +266,6 @@ kubernetes-dns-%.tar: git/kubernetes/dns
 	@rm -f $@ $@.tmp
 	$(call git-archive,$(@:kubernetes-dns-%.tar=%),kubernetes/dns,$(@:kubernetes-dns-%.tar=dns-%/),$@.tmp)
 	$(call sha256-verify,$@.tmp,$(@:%.tar=%))
-	@mv $@.tmp $@
-
-# **** KUBERNETES ****
-
-kubernetes-src-v%.tar.gz: https/dl.k8s.io/v%/kubernetes-src.tar.gz
-	@rm -f $@ $@.tmp
-	@cp $< $@.tmp
-	$(call sha256-verify,$@.tmp,$(@:kubernetes-src-v%.tar.gz=kubernetes-%))
 	@mv $@.tmp $@
 
 # **** LINUX ****

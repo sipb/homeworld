@@ -29,6 +29,35 @@ load("//bazel:gorepo_patchfix.bzl", "go_repository_alt")
 
 gazelle_dependencies()
 
+http_archive(
+    name = "io_kubernetes_build",
+    sha256 = "9d4948cb1d6e70c7eab21e06186aa32ce9063a70b2b2092ae9346f3302ce7ff9",
+    strip_prefix = "repo-infra-9759aa30612237743df7bece2462d8d98630d49b",
+    urls = ["https://github.com/kubernetes/repo-infra/archive/9759aa30612237743df7bece2462d8d98630d49b.tar.gz"],
+)
+
+# TODO: update to a newer kubernetes
+http_archive(
+    name = "kubernetes",
+    sha256 = "9f128809cdd442d71a13f7c61c7a0e03e832cf0c068a86184c1bcc9acdb78872",
+    type = "tar.gz",
+    urls = ["https://dl.k8s.io/v1.9.2/kubernetes-src.tar.gz"],
+    patches = [
+        "//kubernetes:0101-bump-openapi.patch",
+        "//kubernetes:0102-gazelle-prefix.patch",
+        "//kubernetes:0103-gazelle-proto-disable.patch",
+        "//kubernetes:0104-staging-prefix.patch",
+        "//kubernetes:0105-vendor-importmap.patch",
+        "//kubernetes:0106-reformat-generators.patch",
+        "//kubernetes:0107-go-genrule-bump.patch",
+        "//kubernetes:0108-no-prefix.patch",
+        "//kubernetes:0109-staging-importmap.patch",
+        "//kubernetes:0110-rerun-gazelle.patch",
+        "//kubernetes:0200-aci-launch.patch",
+    ],
+    patch_args = ["-p1"],
+)
+
 # kube-state-metrics
 
 go_repository_alt(

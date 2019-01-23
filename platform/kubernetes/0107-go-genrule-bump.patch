@@ -1,0 +1,64 @@
+modified from:
+commit 095a9e53cae8ba21bcd2a73816255d2af56cb025
+Author: Jeff Grafton <jgrafton@google.com>
+Date:   Fri May 18 15:20:56 2018 -0700
+
+    Use new go_genrule from kubernetes/repo-infra based on go_path
+
+diff --git a/pkg/generated/openapi/def.bzl b/pkg/generated/openapi/def.bzl
+index 49b83fde34..7acab157aa 100644
+--- a/pkg/generated/openapi/def.bzl
++++ b/pkg/generated/openapi/def.bzl
+@@ -19,16 +19,17 @@ def openapi_library(name, tags, srcs, go_prefix, vendor_prefix = "", openapi_tar
+     deps = [
+         "//vendor/github.com/go-openapi/spec:go_default_library",
+         "//vendor/k8s.io/kube-openapi/pkg/common:go_default_library",
+-    ] + ["//%s:go_default_library" % target for target in openapi_targets] + ["//vendor/%s:go_default_library" % target for target in vendor_targets]
++    ] + ["//%s:go_default_library" % target for target in openapi_targets] + ["//staging/src/%s:go_default_library" % target for target in vendor_targets]
+     go_library(
+         name = name,
+         srcs = srcs + [":zz_generated.openapi"],
++        importpath = go_prefix + "pkg/generated/openapi",
+         tags = tags,
+         deps = deps,
+     )
+     go_genrule(
+         name = "zz_generated.openapi",
+-        srcs = srcs + ["//" + vendor_prefix + "hack/boilerplate:boilerplate.go.txt"],
++        srcs = ["//" + vendor_prefix + "hack/boilerplate:boilerplate.go.txt"],
+         outs = ["zz_generated.openapi.go"],
+         cmd = " ".join([
+             "$(location //vendor/k8s.io/code-generator/cmd/openapi-gen)",
+@@ -36,9 +37,9 @@ def openapi_library(name, tags, srcs, go_prefix, vendor_prefix = "", openapi_tar
+             "--logtostderr",
+             "--go-header-file $(location //" + vendor_prefix + "hack/boilerplate:boilerplate.go.txt)",
+             "--output-file-base zz_generated.openapi",
+-            "--output-package " + go_prefix + vendor_prefix + "pkg/generated/openapi",
+-            "--input-dirs " + ",".join([go_prefix + target for target in openapi_targets] + [go_prefix + "vendor/" + target for target in vendor_targets]),
+-            "&& cp " + vendor_prefix + "pkg/generated/openapi/zz_generated.openapi.go $(location :zz_generated.openapi.go)",
++            "--output-package " + go_prefix + "pkg/generated/openapi",
++            "--input-dirs " + ",".join([go_prefix + target for target in openapi_targets] + vendor_targets),
++            "&& cp $$GOPATH/src/" + go_prefix + "pkg/generated/openapi/zz_generated.openapi.go $(location :zz_generated.openapi.go)",
+         ]),
+         go_deps = deps,
+         tools = ["//vendor/k8s.io/code-generator/cmd/openapi-gen"],
+diff --git a/staging/src/k8s.io/apimachinery/pkg/util/sets/BUILD b/staging/src/k8s.io/apimachinery/pkg/util/sets/BUILD
+index aaccd789b4..2c03d83471 100644
+--- a/staging/src/k8s.io/apimachinery/pkg/util/sets/BUILD
++++ b/staging/src/k8s.io/apimachinery/pkg/util/sets/BUILD
+@@ -35,13 +35,13 @@ go_genrule(
+     ],
+     cmd = """
+ $(location //vendor/k8s.io/code-generator/cmd/set-gen) \
+-    --input-dirs ./vendor/k8s.io/apimachinery/pkg/util/sets/types \
++    --input-dirs k8s.io/apimachinery/pkg/util/sets/types \
+     --output-base $$(dirname $$(dirname $(location :byte.go))) \
+     --go-header-file $(location //hack/boilerplate:boilerplate.go.txt) \
+     --output-package sets
+     """,
+     go_deps = [
+-        "//vendor/k8s.io/apimachinery/pkg/util/sets/types:go_default_library",
++        "//staging/src/k8s.io/apimachinery/pkg/util/sets/types:go_default_library",
+     ],
+     tools = [
+         "//vendor/k8s.io/code-generator/cmd/set-gen",

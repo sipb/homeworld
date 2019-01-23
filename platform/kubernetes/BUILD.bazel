@@ -1,0 +1,24 @@
+load("//bazel:package.bzl", "homeworld_deb")
+
+homeworld_deb(
+    name = "hyperkube",
+    bin = {
+        "@kubernetes//cmd/hyperkube": "/usr/bin/hyperkube",
+        ":launch-apiserver.sh": "/usr/lib/hyades/launch-apiserver.sh",
+        ":launch-ctrlmgr.sh": "/usr/lib/hyades/launch-ctrlmgr.sh",
+        ":launch-proxy.sh": "/usr/lib/hyades/launch-proxy.sh",
+        ":launch-scheduler.sh": "/usr/lib/hyades/launch-scheduler.sh",
+        ":launch-kube-state-metrics.sh": "/usr/lib/hyades/launch-kube-state-metrics.sh",
+        ":launch-kubelet.sh": "/usr/lib/hyades/launch-kubelet.sh",
+    },
+    data = {
+        ":apiserver.service": "/usr/lib/systemd/system/apiserver.service",
+        ":kube-ctrlmgr.service": "/usr/lib/systemd/system/kube-ctrlmgr.service",
+        ":kube-proxy.service": "/usr/lib/systemd/system/kube-proxy.service",
+        ":kube-scheduler.service": "/usr/lib/systemd/system/kube-scheduler.service",
+        ":kube-state-metrics.service": "/usr/lib/systemd/system/kube-state-metrics.service",
+        ":kubelet.service": "/usr/lib/systemd/system/kubelet.service",
+    },
+    package = "homeworld-hyperkube",
+    visibility = ["//visibility:public"],
+)
