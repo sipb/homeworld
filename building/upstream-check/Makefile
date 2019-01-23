@@ -12,7 +12,6 @@ all: gopkg.in-yaml.v2-eb3733d160e74a9c7e442f435eb3bea458e1d19f.tar.xz
 all: knc-1.7.1.tar.xz
 all: kubernetes-dns-1.14.8.tar.xz
 all: kubernetes-src-v1.9.2.tar.xz
-all: kube-state-metrics-1.2.0.tar.xz
 all: linux-4.14.16.tar.xz
 all: prometheus-2.0.0.tar.xz
 all: prometheus-client_golang-0.9.0-pre1.tar.xz
@@ -277,12 +276,6 @@ kubernetes-src-v%.tar.gz: https/dl.k8s.io/v%/kubernetes-src.tar.gz
 	@cp $< $@.tmp
 	$(call sha256-verify,$@.tmp,$(@:kubernetes-src-v%.tar.gz=kubernetes-%))
 	@mv $@.tmp $@
-
-# **** KUBE-STATE-METRICS ****
-
-kube-state-metrics-%.tar: git/kubernetes/kube-state-metrics keys/kube-state-metrics.ring
-	$(call git-verify,$(@:kube-state-metrics-%.tar=v%),kubernetes/kube-state-metrics,kube-state-metrics)
-	$(call git-archive,$(@:kube-state-metrics-%.tar=v%),kubernetes/kube-state-metrics,$(@:%.tar=%/),$@)
 
 # **** LINUX ****
 

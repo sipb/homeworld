@@ -1,0 +1,25 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary")
+load("//bazel:package.bzl", "homeworld_aci")
+
+go_binary(
+    name = "kube-state-metrics",
+    visibility = ["//visibility:public"],
+    embed = [
+        "@com_github_kubernetes_kube_state_metrics//:go_default_library",
+    ],
+    pure = "on",
+)
+
+homeworld_aci(
+    name = "aci",
+    bin = {
+        ":kube-state-metrics": "/usr/bin/kube-state-metrics",
+    },
+    aciname = "homeworld.private/kube-state-metrics",
+    exec = ["/usr/bin/kube-state-metrics"],
+    ports = {
+        "metrics": "tcp:80",
+        "metametrics": "tcp:81",
+    },
+    visibility = ["//visibility:public"],
+)
