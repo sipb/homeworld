@@ -1,0 +1,5 @@
+native.py_binary(
+    name = "aci-manifest-gen",
+    srcs = ["aci-manifest-gen.py"],
+    visibility = ["//visibility:public"],
+)
