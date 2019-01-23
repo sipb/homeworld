@@ -9,15 +9,7 @@ case "$1" in
             groupadd --force --system rkt
         else
             if command -v rkt > /dev/null; then
-                if rkt list --no-legend | awk '{print $4}' | grep -q running; then
-                    printf 'rkt/preinst error: detected running containers.\n'
-                    exit 1
-                fi
                 rkt gc --grace-period=0s
-                if grep -q "/var/lib/rkt/pods/run/" /proc/mounts; then
-                    printf 'rkt/preinst error: detected active mounts in [/var/lib/rkt].\n'
-                    exit 1
-                fi
             fi
         fi
     ;;
