@@ -1,0 +1,26 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "expiration.go",
+        "sign.go",
+    ],
+    importpath = "github.com/sipb/homeworld/platform/util/certutil",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//util/wraputil:go_default_library",
+        "@org_golang_x_crypto//ssh:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["expiration_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//util/testkeyutil:go_default_library",
+        "//util/testutil:go_default_library",
+        "@org_golang_x_crypto//ssh:go_default_library",
+    ],
+)

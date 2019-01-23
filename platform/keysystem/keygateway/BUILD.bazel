@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["keygateway.go"],
+    importpath = "github.com/sipb/homeworld/platform/keysystem/keygateway",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//keysystem/api:go_default_library",
+        "//keysystem/api/reqtarget:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "keygateway",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

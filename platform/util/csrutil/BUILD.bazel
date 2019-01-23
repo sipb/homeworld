@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["csr.go"],
+    importpath = "github.com/sipb/homeworld/platform/util/csrutil",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//util/wraputil:go_default_library",
+        "@org_golang_x_crypto//ssh:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["csr_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//util/testutil:go_default_library",
+        "//util/wraputil:go_default_library",
+    ],
+)

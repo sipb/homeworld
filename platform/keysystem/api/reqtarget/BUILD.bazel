@@ -1,0 +1,21 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "impersonate.go",
+        "reqtarget.go",
+    ],
+    importpath = "github.com/sipb/homeworld/platform/keysystem/api/reqtarget",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "impersonate_test.go",
+        "reqtarget_test.go",
+    ],
+    embed = [":go_default_library"],
+    deps = ["//util/testutil:go_default_library"],
+)

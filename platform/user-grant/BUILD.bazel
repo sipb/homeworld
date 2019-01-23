@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["grant.go"],
+    importpath = "github.com/sipb/homeworld/platform/user-grant",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//util/certutil:go_default_library",
+        "//util/wraputil:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "user-grant",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

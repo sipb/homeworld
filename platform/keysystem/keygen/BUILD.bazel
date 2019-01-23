@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["generate.go"],
+    importpath = "github.com/sipb/homeworld/platform/keysystem/keygen",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//keysystem/keyserver/config:go_default_library",
+        "//util/certutil:go_default_library",
+        "@org_golang_x_crypto//ssh:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["generate_test.go"],
+    embed = [":go_default_library"],
+)

@@ -1,0 +1,9 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["keygen.go"],
+    importpath = "github.com/sipb/homeworld/platform/util/testkeyutil",
+    visibility = ["//visibility:public"],
+    deps = ["//util/wraputil:go_default_library"],
+)

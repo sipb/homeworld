@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["keyclient.go"],
+    importpath = "github.com/sipb/homeworld/platform/keysystem/keyclient",
+    visibility = ["//visibility:private"],
+    deps = ["//keysystem/keyclient/setup:go_default_library"],
+)
+
+go_binary(
+    name = "keyclient",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

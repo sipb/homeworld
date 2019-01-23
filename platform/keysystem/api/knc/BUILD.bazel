@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["knc.go"],
+    importpath = "github.com/sipb/homeworld/platform/keysystem/api/knc",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//keysystem/api/reqtarget:go_default_library",
+        "//util/osutil:go_default_library",
+    ],
+)

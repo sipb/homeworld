@@ -1,0 +1,36 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "download.go",
+        "fetchers.go",
+    ],
+    importpath = "github.com/sipb/homeworld/platform/keysystem/keyclient/actions/download",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//keysystem/api/reqtarget:go_default_library",
+        "//keysystem/api/server:go_default_library",
+        "//keysystem/keyclient/actloop:go_default_library",
+        "//keysystem/keyclient/config:go_default_library",
+        "//keysystem/keyclient/state:go_default_library",
+        "//util/fileutil:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "download_test.go",
+        "fetchers_test.go",
+    ],
+    embed = [":go_default_library"],
+    deps = [
+        "//keysystem/api/server:go_default_library",
+        "//keysystem/keyclient/config:go_default_library",
+        "//keysystem/keyclient/state:go_default_library",
+        "//util/fileutil:go_default_library",
+        "//util/testkeyutil:go_default_library",
+        "//util/testutil:go_default_library",
+    ],
+)

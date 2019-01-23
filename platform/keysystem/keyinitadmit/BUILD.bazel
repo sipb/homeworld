@@ -1,0 +1,20 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["keyinitadmit.go"],
+    importpath = "github.com/sipb/homeworld/platform/keysystem/keyinitadmit",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//keysystem/api/reqtarget:go_default_library",
+        "//keysystem/api/server:go_default_library",
+        "//keysystem/keyserver/config:go_default_library",
+        "//util/wraputil:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "keyinitadmit",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)
