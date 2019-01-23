@@ -2,7 +2,7 @@ package token
 
 import (
 	"fmt"
-	"keysystem/keyserver/token/scoped"
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/token/scoped"
 	"sync"
 	"time"
 )

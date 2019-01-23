@@ -5,14 +5,14 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/authorities"
+	"github.com/sipb/homeworld/platform/util/csrutil"
+	"github.com/sipb/homeworld/platform/util/wraputil"
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
-	"keysystem/keyserver/authorities"
 	"log"
 	"os"
 	"time"
-	"util/csrutil"
-	"util/wraputil"
 )
 
 func main() {

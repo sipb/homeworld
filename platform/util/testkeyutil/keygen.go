@@ -7,11 +7,11 @@ import (
 	"crypto/x509/pkix"
 	"encoding/asn1"
 	"encoding/pem"
+	"github.com/sipb/homeworld/platform/util/wraputil"
 	"math/big"
 	"net"
 	"testing"
 	"time"
-	"util/wraputil"
 )
 
 func GenerateTLSRootForTests(t *testing.T, commonname string, dns []string, ips []net.IP) (*rsa.PrivateKey, *x509.Certificate) {

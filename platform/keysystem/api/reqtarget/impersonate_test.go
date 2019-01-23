@@ -2,8 +2,8 @@ package reqtarget
 
 import (
 	"errors"
+	"github.com/sipb/homeworld/platform/util/testutil"
 	"testing"
-	"util/testutil"
 )
 
 type FakeTarget struct {

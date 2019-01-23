@@ -1,8 +1,8 @@
 package main
 
 import (
-	"keysystem/keygen"
-	"keysystem/keyserver/config"
+	"github.com/sipb/homeworld/platform/keysystem/keygen"
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/config"
 	"log"
 	"os"
 )

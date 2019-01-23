@@ -1,10 +1,10 @@
 package fileutil
 
 import (
+	"github.com/sipb/homeworld/platform/util/testutil"
 	"io/ioutil"
 	"os"
 	"testing"
-	"util/testutil"
 )
 
 func TestExists_Not(t *testing.T) {

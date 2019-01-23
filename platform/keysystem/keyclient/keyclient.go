@@ -1,7 +1,7 @@
 package main
 
 import (
-	"keysystem/keyclient/setup"
+	"github.com/sipb/homeworld/platform/keysystem/keyclient/setup"
 	"log"
 	"os"
 )

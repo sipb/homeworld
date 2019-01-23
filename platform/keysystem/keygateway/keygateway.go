@@ -3,9 +3,9 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"github.com/sipb/homeworld/platform/keysystem/api"
+	"github.com/sipb/homeworld/platform/keysystem/api/reqtarget"
 	"io/ioutil"
-	"keysystem/api"
-	"keysystem/api/reqtarget"
 	"log"
 	"os"
 )

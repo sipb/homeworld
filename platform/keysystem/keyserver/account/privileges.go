@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"keysystem/keyserver/authorities"
-	"keysystem/keyserver/token"
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/authorities"
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/token"
 )
 
 type OperationContext struct {

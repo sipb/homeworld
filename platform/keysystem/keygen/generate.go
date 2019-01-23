@@ -8,13 +8,13 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/config"
+	"github.com/sipb/homeworld/platform/util/certutil"
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
-	"keysystem/keyserver/config"
 	"os"
 	"path"
 	"time"
-	"util/certutil"
 )
 
 const AUTHORITY_BITS = 4096

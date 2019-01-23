@@ -1,7 +1,7 @@
 package main
 
 import (
-	"keysystem/keyserver/keyapi"
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/keyapi"
 	"log"
 	"os"
 )

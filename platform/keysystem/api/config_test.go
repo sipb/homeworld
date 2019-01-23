@@ -6,16 +6,16 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
+	"github.com/sipb/homeworld/platform/keysystem/api/reqtarget"
+	"github.com/sipb/homeworld/platform/util/testkeyutil"
+	"github.com/sipb/homeworld/platform/util/testutil"
 	"io/ioutil"
-	"keysystem/api/reqtarget"
 	"net"
 	"net/http"
 	"os"
 	"strings"
 	"testing"
 	"time"
-	"util/testkeyutil"
-	"util/testutil"
 )
 
 func launchTestServer(t *testing.T, f http.HandlerFunc) (stop func(), clientcakey *rsa.PrivateKey, clientcacert *x509.Certificate, servercert *x509.Certificate, hostname string) {

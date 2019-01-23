@@ -3,16 +3,16 @@ package bootstrap
 import (
 	"errors"
 	"fmt"
+	"github.com/sipb/homeworld/platform/keysystem/api/reqtarget"
+	"github.com/sipb/homeworld/platform/keysystem/keyclient/actloop"
+	"github.com/sipb/homeworld/platform/keysystem/keyclient/state"
+	"github.com/sipb/homeworld/platform/util/csrutil"
+	"github.com/sipb/homeworld/platform/util/fileutil"
 	"io/ioutil"
-	"keysystem/api/reqtarget"
-	"keysystem/keyclient/actloop"
-	"keysystem/keyclient/state"
 	"log"
 	"os"
 	"strings"
 	"unicode"
-	"util/csrutil"
-	"util/fileutil"
 )
 
 type BootstrapAction struct {

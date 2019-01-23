@@ -2,16 +2,16 @@ package download
 
 import (
 	"fmt"
+	"github.com/sipb/homeworld/platform/keysystem/keyclient/actloop"
+	"github.com/sipb/homeworld/platform/keysystem/keyclient/config"
+	"github.com/sipb/homeworld/platform/keysystem/keyclient/state"
+	"github.com/sipb/homeworld/platform/util/fileutil"
 	"io/ioutil"
-	"keysystem/keyclient/actloop"
-	"keysystem/keyclient/config"
-	"keysystem/keyclient/state"
 	"log"
 	"os"
 	"path"
 	"strconv"
 	"time"
-	"util/fileutil"
 )
 
 type DownloadAction struct {

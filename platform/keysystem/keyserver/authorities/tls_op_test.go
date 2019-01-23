@@ -7,6 +7,9 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"github.com/sipb/homeworld/platform/util/csrutil"
+	"github.com/sipb/homeworld/platform/util/testkeyutil"
+	"github.com/sipb/homeworld/platform/util/wraputil"
 	"io/ioutil"
 	"math"
 	"math/rand"
@@ -16,9 +19,6 @@ import (
 	"strings"
 	"testing"
 	"time"
-	"util/csrutil"
-	"util/testkeyutil"
-	"util/wraputil"
 )
 
 const (

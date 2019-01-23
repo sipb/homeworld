@@ -5,13 +5,13 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"github.com/sipb/homeworld/platform/keysystem/api/reqtarget"
+	"github.com/sipb/homeworld/platform/keysystem/api/server"
+	"github.com/sipb/homeworld/platform/util/csrutil"
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
-	"keysystem/api/reqtarget"
-	"keysystem/api/server"
 	"log"
 	"os"
-	"util/csrutil"
 )
 
 const (

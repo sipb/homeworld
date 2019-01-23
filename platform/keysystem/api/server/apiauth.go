@@ -4,9 +4,9 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"keysystem/api/endpoint"
-	"keysystem/api/knc"
-	"keysystem/api/reqtarget"
+	"github.com/sipb/homeworld/platform/keysystem/api/endpoint"
+	"github.com/sipb/homeworld/platform/keysystem/api/knc"
+	"github.com/sipb/homeworld/platform/keysystem/api/reqtarget"
 	"net/url"
 )
 

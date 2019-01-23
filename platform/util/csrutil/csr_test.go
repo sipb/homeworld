@@ -6,10 +6,10 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"github.com/sipb/homeworld/platform/util/testutil"
+	"github.com/sipb/homeworld/platform/util/wraputil"
 	"strings"
 	"testing"
-	"util/testutil"
-	"util/wraputil"
 )
 
 const (

@@ -12,9 +12,9 @@ import (
 	"net/http"
 	"time"
 
-	"keysystem/keyserver/verifier"
-	"util/certutil"
-	"util/wraputil"
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/verifier"
+	"github.com/sipb/homeworld/platform/util/certutil"
+	"github.com/sipb/homeworld/platform/util/wraputil"
 )
 
 type TLSAuthority struct {

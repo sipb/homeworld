@@ -1,7 +1,7 @@
 package verifier
 
 import (
-	"keysystem/keyserver/token"
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/token"
 	"net/http"
 	"net/http/httptest"
 	"strings"

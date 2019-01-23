@@ -5,11 +5,13 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/account"
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/authorities"
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/config"
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/verifier"
+	"github.com/sipb/homeworld/platform/util/testkeyutil"
+	"github.com/sipb/homeworld/platform/util/wraputil"
 	"io/ioutil"
-	"keysystem/keyserver/account"
-	"keysystem/keyserver/authorities"
-	"keysystem/keyserver/config"
-	"keysystem/keyserver/verifier"
 	"log"
 	"net"
 	"net/http"
@@ -17,8 +19,6 @@ import (
 	"strings"
 	"testing"
 	"time"
-	"util/testkeyutil"
-	"util/wraputil"
 )
 
 func TestVerifyAccountIP_NoLimit(t *testing.T) {

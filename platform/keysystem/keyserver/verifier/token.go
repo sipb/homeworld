@@ -2,7 +2,7 @@ package verifier
 
 import (
 	"errors"
-	"keysystem/keyserver/token"
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/token"
 	"net/http"
 )
 

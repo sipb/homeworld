@@ -8,14 +8,14 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
+	"github.com/sipb/homeworld/platform/util/testkeyutil"
+	"github.com/sipb/homeworld/platform/util/testutil"
 	"io/ioutil"
 	"net"
 	"net/http"
 	"strings"
 	"testing"
 	"time"
-	"util/testkeyutil"
-	"util/testutil"
 )
 
 func createBaseEndpoint(t *testing.T, rootcert *x509.Certificate) ServerEndpoint {

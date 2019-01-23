@@ -4,12 +4,12 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"github.com/sipb/homeworld/platform/keysystem/api/server"
+	"github.com/sipb/homeworld/platform/keysystem/keyclient/config"
+	"github.com/sipb/homeworld/platform/util/fileutil"
 	"io/ioutil"
-	"keysystem/api/server"
-	"keysystem/keyclient/config"
 	"os"
 	"path"
-	"util/fileutil"
 )
 
 type ClientState struct {

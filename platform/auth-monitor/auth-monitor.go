@@ -11,16 +11,16 @@ import (
 	"crypto/tls"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/sipb/homeworld/platform/keysystem/api"
+	"github.com/sipb/homeworld/platform/keysystem/api/reqtarget"
+	"github.com/sipb/homeworld/platform/keysystem/api/server"
+	"github.com/sipb/homeworld/platform/util/osutil"
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
-	"keysystem/api"
-	"keysystem/api/reqtarget"
-	"keysystem/api/server"
 	"log"
 	"os"
 	"os/exec"
 	"strings"
-	"util/osutil"
 )
 
 var (

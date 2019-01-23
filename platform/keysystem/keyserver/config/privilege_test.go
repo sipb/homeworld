@@ -1,15 +1,15 @@
 package config
 
 import (
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/account"
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/authorities"
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/verifier"
+	"github.com/sipb/homeworld/platform/util/wraputil"
 	"golang.org/x/crypto/ssh"
-	"keysystem/keyserver/account"
-	"keysystem/keyserver/authorities"
-	"keysystem/keyserver/verifier"
 	"reflect"
 	"strings"
 	"testing"
 	"time"
-	"util/wraputil"
 )
 
 func TestConfigGrant_CompileGrant_Empty(t *testing.T) {

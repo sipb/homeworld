@@ -12,6 +12,8 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"github.com/sipb/homeworld/platform/util/certutil"
+	"github.com/sipb/homeworld/platform/util/wraputil"
 	"html/template"
 	"io/ioutil"
 	"log"
@@ -21,8 +23,6 @@ import (
 	"regexp"
 	"strings"
 	"time"
-	"util/certutil"
-	"util/wraputil"
 )
 
 type Config struct {

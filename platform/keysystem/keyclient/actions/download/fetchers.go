@@ -3,9 +3,9 @@ package download
 import (
 	"errors"
 	"fmt"
-	"keysystem/api/reqtarget"
-	"keysystem/api/server"
-	"keysystem/keyclient/state"
+	"github.com/sipb/homeworld/platform/keysystem/api/reqtarget"
+	"github.com/sipb/homeworld/platform/keysystem/api/server"
+	"github.com/sipb/homeworld/platform/keysystem/keyclient/state"
 )
 
 type DownloadFetcher interface {

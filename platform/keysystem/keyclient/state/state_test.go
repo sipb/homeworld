@@ -3,13 +3,13 @@ package state
 import (
 	"crypto/rsa"
 	"crypto/tls"
+	"github.com/sipb/homeworld/platform/keysystem/keyclient/config"
+	"github.com/sipb/homeworld/platform/util/fileutil"
+	"github.com/sipb/homeworld/platform/util/testkeyutil"
+	"github.com/sipb/homeworld/platform/util/testutil"
 	"io/ioutil"
-	"keysystem/keyclient/config"
 	"os"
 	"testing"
-	"util/fileutil"
-	"util/testkeyutil"
-	"util/testutil"
 )
 
 func TestClientState_ReloadKeygrantingCert_NoCerts(t *testing.T) {

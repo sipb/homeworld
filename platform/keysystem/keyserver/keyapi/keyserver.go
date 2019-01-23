@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"context"
-	"keysystem/keyserver/config"
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/config"
 	"net"
 )
 

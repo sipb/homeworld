@@ -2,8 +2,8 @@ package config
 
 import (
 	"bytes"
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/authorities"
 	"io/ioutil"
-	"keysystem/keyserver/authorities"
 	"strings"
 	"testing"
 	"time"

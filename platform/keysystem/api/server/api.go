@@ -3,8 +3,8 @@ package server
 import (
 	"crypto/x509"
 	"fmt"
-	"keysystem/api/endpoint"
-	"util/wraputil"
+	"github.com/sipb/homeworld/platform/keysystem/api/endpoint"
+	"github.com/sipb/homeworld/platform/util/wraputil"
 )
 
 type Keyserver struct {

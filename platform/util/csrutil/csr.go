@@ -6,9 +6,9 @@ import (
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"fmt"
+	"github.com/sipb/homeworld/platform/util/wraputil"
 	"golang.org/x/crypto/ssh"
 	"strings"
-	"util/wraputil"
 )
 
 // accepts both public and private keys

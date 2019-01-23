@@ -2,15 +2,15 @@ package download
 
 import (
 	"errors"
+	"github.com/sipb/homeworld/platform/keysystem/api/server"
+	"github.com/sipb/homeworld/platform/keysystem/keyclient/config"
+	"github.com/sipb/homeworld/platform/keysystem/keyclient/state"
+	"github.com/sipb/homeworld/platform/util/fileutil"
+	"github.com/sipb/homeworld/platform/util/testutil"
 	"io/ioutil"
-	"keysystem/api/server"
-	"keysystem/keyclient/config"
-	"keysystem/keyclient/state"
 	"os"
 	"testing"
 	"time"
-	"util/fileutil"
-	"util/testutil"
 )
 
 func TestPrepareDownloadAction_Static(t *testing.T) {

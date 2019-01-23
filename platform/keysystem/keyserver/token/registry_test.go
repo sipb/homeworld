@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"keysystem/keyserver/token/scoped"
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/token/scoped"
 )
 
 func TestNonexistentTokens(t *testing.T) {

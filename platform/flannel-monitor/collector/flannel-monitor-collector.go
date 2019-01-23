@@ -1,12 +1,12 @@
 package main
 
 import (
-	"flannel-monitor/common"
 	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
+	"github.com/sipb/homeworld/platform/flannel-monitor/common"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"log"
