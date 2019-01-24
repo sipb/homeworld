@@ -8,6 +8,7 @@ upload(
     ],
     debs = [
         "//aci-pull-monitor/aci-pull-monitor:package.deb",
+        "//apt-setup:package.deb",
         "//kubernetes:hyperkube.deb",
     ],
     visibility = ["//visibility:public"],
@@ -29,5 +30,21 @@ genrule(
     srcs = ["BRANCH_NAME", "branches.yaml"] + ["//upload:" + x for x in glob(["src/*.py"])],
     tools = [":parse-branch"],
     cmd = "$(location :parse-branch) upload/src/parse.py $(location BRANCH_NAME) $(location branches.yaml) $(location DOWNLOAD_URL) $(location DOWNLOAD_URL_HOST) $(location KEYID)",
+    visibility = ["//visibility:public"],
+)
+
+genrule(
+    name = "keyexport",
+    outs = ["keyring.gpg"],
+    srcs = ["KEYID"],
+    cmd = "gpg --export -- \"$$(cat '$<')\" >'$@'",
+    visibility = ["//visibility:public"],
+)
+
+genrule(
+    name = "keyarmor",
+    outs = ["keyring.asc"],
+    srcs = ["KEYID"],
+    cmd = "gpg --export --armor -- \"$$(cat '$<')\" >'$@'",
     visibility = ["//visibility:public"],
 )

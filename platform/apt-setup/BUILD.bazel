@@ -1,0 +1,30 @@
+load("//bazel:substitute.bzl", "substitute")
+load("//bazel:package.bzl", "homeworld_deb")
+
+substitute(
+    name = "homeworld.sources",
+    template = ":homeworld.sources.in",
+    kfs = {
+        "APT_URL": "//upload:DOWNLOAD_URL",
+        "APT_BRANCH": "//upload:BRANCH_NAME",
+    },
+)
+
+substitute(
+    name = "homeworld.pref",
+    template = ":homeworld.pref.in",
+    kfs = {
+        "HOST_BRANCH": "//upload:DOWNLOAD_URL_HOST",
+    },
+)
+
+homeworld_deb(
+    name = "package",
+    data = {
+        "//upload:keyring.gpg": "/usr/share/keyrings/homeworld-archive-keyring.gpg",
+        ":homeworld.sources": "/etc/apt/sources.list.d/homeworld.sources",
+        ":homeworld.pref": "/etc/apt/preferences.d/homeworld.pref",
+    },
+    package = "homeworld-apt-setup",
+    visibility = ["//visibility:public"],
+)
