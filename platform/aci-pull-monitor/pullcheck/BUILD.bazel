@@ -1,0 +1,17 @@
+load("//bazel:package.bzl", "homeworld_aci")
+
+cc_binary(
+    name = "pullcheck",
+    srcs = ["pullcheck.c"],
+    features = ["fully_static_link"],
+)
+
+homeworld_aci(
+    name = "aci",
+    bin = {
+        ":pullcheck": "/usr/bin/pullcheck",
+    },
+    aciname = "homeworld.private/pullcheck",
+    exec = ["/usr/bin/pullcheck"],
+    visibility = ["//visibility:public"],
+)

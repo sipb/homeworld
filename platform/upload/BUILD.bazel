@@ -3,6 +3,7 @@ load(":upload.bzl", "upload")
 upload(
     name = "upload",
     acis = [
+        "//aci-pull-monitor/pullcheck:aci",
         "//kube-state-metrics:aci",
     ],
     debs = [
