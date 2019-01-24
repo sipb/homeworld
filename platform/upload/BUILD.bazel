@@ -6,6 +6,7 @@ upload(
         "//kube-state-metrics:aci",
     ],
     debs = [
+        "//aci-pull-monitor/aci-pull-monitor:package.deb",
         "//kubernetes:hyperkube.deb",
     ],
     visibility = ["//visibility:public"],

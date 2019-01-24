@@ -1,4 +1,5 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("//bazel:package.bzl", "homeworld_deb")
 
 go_library(
     name = "go_default_library",
@@ -14,5 +15,20 @@ go_library(
 go_binary(
     name = "aci-pull-monitor",
     embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)
+
+homeworld_deb(
+    name = "package",
+    bin = {
+        ":aci-pull-monitor": "/usr/bin/aci-pull-monitor",
+    },
+    data = {
+        ":aci-pull-monitor.service": "/usr/lib/systemd/system/aci-pull-monitor.service",
+    },
+    package = "homeworld-aci-pull-monitor",
+    depends = [
+        "homeworld-rkt",
+    ],
     visibility = ["//visibility:public"],
 )
