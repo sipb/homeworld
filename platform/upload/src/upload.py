@@ -1,94 +1,10 @@
 import json
 import os
-import re
 import shutil
 import subprocess
 import tempfile
 
 import aptbranch
-import project
-
-# uploads the following files to the target described by the upload
-# configuration
-#
-# dists/
-# dists/[...]
-# pool/
-# pool/[...]
-# aci/
-# aci/homeworld.private/
-# aci/homeworld.private/flannel-0.8.0-4-linux-amd64.aci
-# aci/homeworld.private/flannel-0.8.0-4-linux-amd64.aci.asc
-
-
-def upload(bindir: str, branch_config: aptbranch.Config) -> None:
-    branch = branch_config.name
-    keyid = branch_config.signing_key
-
-    files = os.listdir(bindir)
-
-    project.log("upload", "preparing uploads...")
-
-    with tempfile.TemporaryDirectory() as tempdir:
-        uploads = {}
-        debs = []
-        if any(file.endswith(".aci") for file in files):
-            project.log("upload", "preparing upload of acis...")
-        for file in files:
-            path = os.path.join(bindir, file)
-            if not os.path.isfile(path):
-                raise Exception("not a normal file: %s" % file)
-            if file.endswith(".aci"):
-                upload_aci(path, uploads, keyid)
-            elif file.endswith(".deb"):
-                debs.append(path)
-        project.log("upload", "preparing upload of debs...")
-        upload_apt(debs, uploads, keyid, tempdir)
-
-        project.log("upload", "performing", len(uploads), "uploads to", branch)
-        perform_uploads(uploads, branch_config)
-        project.log("upload", "upload to", branch, "complete!")
-
-
-def upload_aci(path: str, uploads: dict, keyid: str):
-    if not os.path.exists(path + ".asc"):
-        subprocess.check_call(["gpg", "--armor", "--detach-sign", "--local-user", "0x" + keyid, path])
-    uploads["/aci/homeworld.private/%s" % os.path.basename(path)] = path
-    uploads["/aci/homeworld.private/%s.asc" % os.path.basename(path)] = path + ".asc"
-
-
-distributions_base = """
-Origin: Homeworld
-Label: Homeworld
-Suite: stretch
-Codename: homeworld
-Version: 9.0
-Architectures: amd64
-Components: main
-Description: Homeworld code-deployment repository
-SignWith: %s
-Update: homeworld
-""".lstrip()
-
-
-def upload_apt(debs: list, uploads: dict, keyid: str, tempdir: str) -> None:
-    basenames = {os.path.basename(deb).split("_")[0] for deb in debs}
-    # the packages that get built differently on each apt branch
-    if "homeworld-apt-setup" not in basenames:
-        raise Exception("homeworld-apt-setup is not built!")
-    if "homeworld-admin-tools" not in basenames:
-        raise Exception("homeworld-admin-tools is not built!")
-    staging = os.path.join(tempdir, "apt-stage")
-    os.makedirs(os.path.join(staging, "conf"))
-    with open(os.path.join(staging, "conf", "distributions"), "w") as f:
-        f.write(distributions_base % keyid)
-    subprocess.check_call(["reprepro", "--verbose", "--basedir", staging, "includedeb", "homeworld"] + debs)
-    for subdir in ("dists", "pool"):
-        for root, dirs, files in os.walk(os.path.join(staging, subdir)):
-            for filename in files:
-                source = os.path.join(root, filename)
-                rel = os.path.relpath(source, staging)
-                uploads[rel] = source
 
 
 def gs_rsync(local_path: str, remote_path: str, boto_path: str):
@@ -110,6 +26,7 @@ content_language = en
 default_api_version = 2
 default_project_id = %s
 """.lstrip()
+
 
 def upload_gs(staging, root: str, branch_config: aptbranch.Config):
     upload_path = branch_config.upload_config['gcs-target']

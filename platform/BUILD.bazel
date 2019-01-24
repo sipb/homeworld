@@ -2,3 +2,7 @@ load("@bazel_gazelle//:def.bzl", "gazelle")
 
 # gazelle:prefix github.com/sipb/homeworld/platform
 gazelle(name = "gazelle")
+
+exports_files([
+    "VERSION",
+])
