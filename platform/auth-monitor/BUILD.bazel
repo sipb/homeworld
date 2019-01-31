@@ -1,4 +1,5 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("//bazel:package.bzl", "homeworld_deb")
 
 go_library(
     name = "go_default_library",
@@ -19,5 +20,20 @@ go_library(
 go_binary(
     name = "auth-monitor",
     embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)
+
+homeworld_deb(
+    name = "package",
+    bin = {
+        ":auth-monitor": "/usr/bin/auth-monitor",
+    },
+    data = {
+        ":auth-monitor.service": "/usr/lib/systemd/system/auth-monitor.service",
+    },
+    package = "homeworld-auth-monitor",
+    depends = [
+        "homeworld-keysystem",
+    ],
     visibility = ["//visibility:public"],
 )

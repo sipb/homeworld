@@ -9,6 +9,7 @@ upload(
     debs = [
         "//aci-pull-monitor/aci-pull-monitor:package.deb",
         "//apt-setup:package.deb",
+        "//auth-monitor:package.deb",
         "//keysystem:package.deb",
         "//kubernetes:hyperkube.deb",
     ],
