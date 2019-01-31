@@ -7,8 +7,6 @@ all: etcd-${ETCD_VER}.tar.xz
 all: flannel-0.10.0.tar.xz
 all: go1.4-bootstrap-20170531.tar.xz
 all: go1.9.3.src.tar.xz
-all: golang-x-crypto-5ef0053f77724838734b6945dd364d3847e5de1d.tar.xz
-all: gopkg.in-yaml.v2-eb3733d160e74a9c7e442f435eb3bea458e1d19f.tar.xz
 all: knc-1.7.1.tar.xz
 all: kubernetes-dns-1.14.8.tar.xz
 all: linux-4.14.16.tar.xz
@@ -239,18 +237,6 @@ go%.src.tar.gz: https/dl.google.com/go/go%.src.tar.gz
 	@cp $< $@.tmp
 	$(call sha256-verify,$@.tmp,go-1.9.3)
 	@mv $@.tmp $@
-
-# **** golang/x/crypto ****
-
-golang-x-crypto-%.tar: git/golang/crypto
-	# no verification required, because this is essentially pinning to a specific hash
-	$(call git-archive,$(@:golang-x-crypto-%.tar=%),golang/crypto,src/golang.org/x/crypto/,$@)
-
-# **** gopkg.in-yaml.v2 ****
-
-gopkg.in-yaml.v2-%.tar: git/go-yaml/yaml
-	# no verification required, because this is essentially pinning to a specific hash
-	$(call git-archive,$(@:gopkg.in-yaml.v2-%.tar=%),go-yaml/yaml,src/gopkg.in/yaml.v2/,$@)
 
 # **** KNC ****
 

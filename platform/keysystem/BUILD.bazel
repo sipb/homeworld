@@ -1,0 +1,26 @@
+load("//bazel:package.bzl", "homeworld_deb")
+
+homeworld_deb(
+    name = "package",
+    bin = {
+        "//keysystem/keyserver": "/usr/bin/keyserver",
+        "//keysystem/keygateway": "/usr/bin/keygateway",
+        "//keysystem/keyclient": "/usr/bin/keyclient",
+        "//keysystem/keygen/main": "/usr/bin/keygen",
+        "//keysystem/keyinitadmit": "/usr/bin/keyinitadmit",
+        "//keysystem/keylocalcert": "/usr/bin/keylocalcert",
+        "//keysystem/keyreq": "/usr/bin/keyreq",
+        ":systemd/launch-keyclient-config-update.sh": "/usr/lib/hyades/launch-keyclient-config-update.sh",
+    },
+    data = {
+        ":systemd/keyclient.service": "/usr/lib/systemd/system/keyclient.service",
+        ":systemd/keyserver.service": "/usr/lib/systemd/system/keyserver.service",
+        ":systemd/keygateway.service": "/usr/lib/systemd/system/keygateway.service",
+        ":systemd/update-keyclient-config.service": "/usr/lib/systemd/system/update-keyclient-config.service",
+    },
+    package = "homeworld-keysystem",
+    depends = [
+        "homeworld-knc",
+    ],
+    visibility = ["//visibility:public"],
+)
