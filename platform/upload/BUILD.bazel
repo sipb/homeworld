@@ -10,6 +10,7 @@ upload(
         "//aci-pull-monitor/aci-pull-monitor:package.deb",
         "//apt-setup:package.deb",
         "//auth-monitor:package.deb",
+        "//autostart:package.deb",
         "//keysystem:package.deb",
         "//kubernetes:hyperkube.deb",
     ],

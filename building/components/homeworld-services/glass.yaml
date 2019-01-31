@@ -4,6 +4,7 @@ control:
   date: 2018-07-30T21:58:00-0700
   type: deb
   depends:
+    - homeworld-autostart
     - homeworld-rkt
     - homeworld-etcd
     - homeworld-hyperkube (>= 1.8.0)

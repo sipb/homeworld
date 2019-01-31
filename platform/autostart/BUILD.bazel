@@ -1,0 +1,13 @@
+load("//bazel:package.bzl", "homeworld_deb")
+
+homeworld_deb(
+    name = "package",
+    bin = {
+        ":launch-autostart.sh": "/usr/lib/hyades/launch-autostart.sh",
+    },
+    data = {
+        ":homeworld-autostart.service": "/usr/lib/systemd/system/homeworld-autostart.service",
+    },
+    package = "homeworld-autostart",
+    visibility = ["//visibility:public"],
+)
