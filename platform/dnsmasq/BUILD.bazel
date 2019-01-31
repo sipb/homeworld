@@ -1,0 +1,26 @@
+load("//bazel:package.bzl", "homeworld_aci")
+
+# originally based on https://github.com/kubernetes/dns builds
+
+homeworld_aci(
+    name = "dnsmasq",
+    bin = {
+        "@dnsmasq//:dnsmasq": "/usr/sbin/dnsmasq",
+    },
+    data = {
+        ":empty": "/var/run",
+        ":dnsmasq.conf": "/etc/dnsmasq.conf",
+    },
+    aciname = "homeworld.private/dnsmasq",
+    deps = [
+        "//debian:debian-micro.tgz",
+    ],
+    exec = ["/usr/sbin/dnsmasq", "--keep-in-foreground"],
+    visibility = ["//visibility:public"],
+)
+
+genrule(
+    name = "empty-rule",
+    outs = ["empty"],
+    cmd = "mkdir $@",
+)

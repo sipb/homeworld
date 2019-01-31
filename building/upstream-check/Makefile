@@ -1,7 +1,6 @@
 all: acbuild-src-0.4.0.tgz
 all: coreos_binaries-1478.0.0.tar.xz
 all: debian-9.6.0-amd64-mini.iso
-all: dnsmasq-2.78.tar.xz
 ETCD_VER=3.2.9
 all: etcd-${ETCD_VER}.tar.xz
 all: flannel-0.10.0.tar.xz
@@ -201,12 +200,6 @@ debian-%-amd64-mini.iso: http/debian.csail.mit.edu/debian/dists/stretch/main/ins
 	@echo "[gpg] verifying hash for iso against installer SHA256SUMS"
 	@cd workdir-$@ && grep ./netboot/mini.iso SHA256SUMS | sha256sum --check --strict --quiet
 	@cp workdir-$@/netboot/mini.iso $@
-
-# **** DNSMASQ ****
-
-dnsmasq-%.tar.xz: http/www.thekelleys.org.uk/dnsmasq/dnsmasq-2.78.tar.xz http/www.thekelleys.org.uk/dnsmasq/dnsmasq-2.78.tar.xz.asc keys/dnsmasq.ring
-	$(call gpg-verify,$<,.asc,dnsmasq)
-	@cp http/www.thekelleys.org.uk/dnsmasq/dnsmasq-2.78.tar.xz $@
 
 # **** ETCD ****
 

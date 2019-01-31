@@ -1,0 +1,14 @@
+
+genrule(
+    name = "dnsmasq-build",
+    outs = [":dnsmasq"],
+    srcs = glob(["dnsmasq-2.78/**/*"]),
+    cmd = """
+        BTEMP="$$(mktemp -d)"
+        DEST="$$(realpath "$@")"
+        cd "$$(dirname "$(location :dnsmasq-2.78/Makefile)")"
+        make BUILDDIR="$${BTEMP}"
+        cp "$${BTEMP}/dnsmasq" "$${DEST}"
+    """,
+    visibility = ["//visibility:public"],
+)
