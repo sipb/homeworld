@@ -8,7 +8,6 @@ all: flannel-0.10.0.tar.xz
 all: go1.4-bootstrap-20170531.tar.xz
 all: go1.9.3.src.tar.xz
 all: knc-1.7.1.tar.xz
-all: kubernetes-dns-1.14.8.tar.xz
 all: linux-4.14.16.tar.xz
 all: prometheus-2.0.0.tar.xz
 all: prometheus-client_golang-0.9.0-pre1.tar.xz
@@ -244,14 +243,6 @@ knc-%.tar.gz: http/oskt.secure-endpoints.com/downloads/knc-%.tar.gz
 	@rm -f $@ $@.tmp
 	@cp $< $@.tmp
 	$(call sha256-verify,$@.tmp,$(@:%.tar.gz=%))
-	@mv $@.tmp $@
-
-# **** KUBERNETES-DNS ****
-
-kubernetes-dns-%.tar: git/kubernetes/dns
-	@rm -f $@ $@.tmp
-	$(call git-archive,$(@:kubernetes-dns-%.tar=%),kubernetes/dns,$(@:kubernetes-dns-%.tar=dns-%/),$@.tmp)
-	$(call sha256-verify,$@.tmp,$(@:%.tar=%))
 	@mv $@.tmp $@
 
 # **** LINUX ****

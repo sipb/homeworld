@@ -1,0 +1,22 @@
+--- cmd/sidecar/BUILD.bazel	2019-01-20 18:51:55.651000000 -0500
++++ cmd/sidecar/BUILD.bazel	2019-01-20 18:52:18.021000000 -0500
+@@ -4,7 +4,7 @@
+     name = "go_default_library",
+     srcs = ["main.go"],
+     importpath = "k8s.io/dns/cmd/sidecar",
+-    visibility = ["//visibility:private"],
++    visibility = ["//visibility:public"],
+     deps = [
+         "//pkg/sidecar:go_default_library",
+         "//pkg/version:go_default_library",
+--- cmd/kube-dns/BUILD.bazel	2019-01-20 18:51:55.651000000 -0500
++++ cmd/kube-dns/BUILD.bazel	2019-01-20 18:52:18.021000000 -0500
+@@ -4,7 +4,7 @@
+     name = "go_default_library",
+     srcs = ["dns.go"],
+     importpath = "k8s.io/dns/cmd/kube-dns",
+-    visibility = ["//visibility:private"],
++    visibility = ["//visibility:public"],
+     deps = [
+         "//cmd/kube-dns/app:go_default_library",
+         "//cmd/kube-dns/app/options:go_default_library",

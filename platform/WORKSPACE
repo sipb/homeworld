@@ -110,6 +110,17 @@ go_repository(
     importpath = "github.com/beorn7/perks",
 )
 
+# kubernetes-dns
+
+go_repository_alt(
+    name = "com_github_kubernetes_dns",
+    commit = "d01e5e58d114fcddff98e4f6bf8b2b1484d06c3e", # 1.14.8
+    importpath = "k8s.io/dns",
+    build_external = "vendored",
+    prepatch_cmds = ["find vendor/k8s.io/kubernetes -name BUILD -delete"],
+    postpatches = ["//kube-dns:dns-visibility.patch"],
+)
+
 # kube-state-metrics
 
 go_repository_alt(

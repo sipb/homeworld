@@ -1,0 +1,40 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary")
+load("//bazel:package.bzl", "homeworld_aci")
+
+go_binary(
+    name = "kube-dns",
+    visibility = ["//visibility:public"],
+    embed = [
+        "@com_github_kubernetes_dns//cmd/kube-dns:go_default_library",
+    ],
+    pure = "on",
+)
+
+homeworld_aci(
+    name = "kube-dns-main",
+    bin = {
+        ":kube-dns": "/usr/bin/kube-dns",
+    },
+    aciname = "homeworld.private/kube-dns-main",
+    exec = ["/usr/bin/kube-dns"],
+    visibility = ["//visibility:public"],
+)
+
+go_binary(
+    name = "sidecar",
+    visibility = ["//visibility:public"],
+    embed = [
+        "@com_github_kubernetes_dns//cmd/sidecar:go_default_library",
+    ],
+    pure = "on",
+)
+
+homeworld_aci(
+    name = "kube-dns-sidecar",
+    bin = {
+        ":sidecar": "/usr/bin/sidecar",
+    },
+    aciname = "homeworld.private/kube-dns-sidecar",
+    exec = ["/usr/bin/sidecar"],
+    visibility = ["//visibility:public"],
+)
