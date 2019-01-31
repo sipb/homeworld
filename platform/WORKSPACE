@@ -67,6 +67,18 @@ http_archive(
     build_file = "//dnsmasq:BUILD.import",
 )
 
+# etcd
+
+go_repository_alt(
+    name = "com_github_coreos_etcd",
+    commit = "f1d7dd87da3e8feab4aaf675b8e29c6a5ed5f58b",
+    importpath = "github.com/coreos/etcd",
+    build_external = "vendored",
+    build_file_proto_mode = "disable_global",
+    prepatch_cmds = ["mv -Tn cmd/vendor vendor"],  # to get etcd's vendoring strategy to be compatible with gazelle
+    postpatches = ["//etcd:etcd-visibility.patch", "//etcd:etcdctl-visibility.patch"],
+)
+
 # keysystem dependencies
 
 go_repository(

@@ -1,0 +1,10 @@
+--- BUILD.bazel	2018-12-13 18:36:55.835000000 -0500
++++ BUILD.bazel	2018-12-13 18:37:14.120000000 -0500
+@@ -4,7 +4,7 @@
+     name = "go_default_library",
+     srcs = ["main.go"],
+     importpath = "github.com/coreos/etcd",
+-    visibility = ["//visibility:private"],
++    visibility = ["//visibility:public"],
+     deps = ["//etcdmain:go_default_library"],
+ )

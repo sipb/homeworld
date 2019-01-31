@@ -1,0 +1,44 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary")
+load("//bazel:package.bzl", "homeworld_deb")
+
+# TODO: include GIT SHA
+# GIT_SHA=`git rev-parse --short HEAD || echo "GitNotFound"`
+# GO_LDFLAGS="-X github.com/coreos/etcd/cmd/vendor/github.com/coreos/etcd/version.GitSHA=${GIT_SHA}"
+
+# TODO: do we actually need these binaries to be pure?
+# they aren't used in ACIs, and so if they don't need to be pure,
+# we could probably eliminate a bunch of headache.
+
+go_binary(
+    name = "etcd",
+    visibility = ["//visibility:public"],
+    embed = [
+        "@com_github_coreos_etcd//:go_default_library",
+    ],
+    #    gc_linkopts = "${GO_LDFLAGS}",
+    pure = "on",
+)
+
+go_binary(
+    name = "etcdctl",
+    visibility = ["//visibility:public"],
+    embed = [
+        "@com_github_coreos_etcd//etcdctl:go_default_library",
+    ],
+    #    gc_linkopts = "${GO_LDFLAGS}",
+    pure = "on",
+)
+
+homeworld_deb(
+    name = "package",
+    bin = {
+        ":etcd": "/usr/bin/etcd",
+        ":etcdctl": "/usr/bin/etcdctl",
+        ":launch-etcd.sh": "/usr/lib/hyades/launch-etcd.sh",
+    },
+    data = {
+        ":etcd.service": "/usr/lib/systemd/system/etcd.service",
+    },
+    package = "homeworld-etcd",
+    visibility = ["//visibility:public"],
+)

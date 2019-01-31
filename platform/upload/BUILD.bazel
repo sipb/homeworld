@@ -16,6 +16,7 @@ upload(
         "//auth-monitor:package.deb",
         "//autostart:package.deb",
         "//bootstrap-registry:package.deb",
+        "//etcd:package.deb",
         "//keysystem:package.deb",
         "//kubernetes:hyperkube.deb",
     ],

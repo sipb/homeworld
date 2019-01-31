@@ -1,8 +1,6 @@
 all: acbuild-src-0.4.0.tgz
 all: coreos_binaries-1478.0.0.tar.xz
 all: debian-9.6.0-amd64-mini.iso
-ETCD_VER=3.2.9
-all: etcd-${ETCD_VER}.tar.xz
 all: flannel-0.10.0.tar.xz
 all: go1.4-bootstrap-20170531.tar.xz
 all: go1.9.3.src.tar.xz
@@ -200,15 +198,6 @@ debian-%-amd64-mini.iso: http/debian.csail.mit.edu/debian/dists/stretch/main/ins
 	@echo "[gpg] verifying hash for iso against installer SHA256SUMS"
 	@cd workdir-$@ && grep ./netboot/mini.iso SHA256SUMS | sha256sum --check --strict --quiet
 	@cp workdir-$@/netboot/mini.iso $@
-
-# **** ETCD ****
-
-etcd-${ETCD_VER}.tar.gz: https/github.com/coreos/etcd/archive/v3.2.9.tar.gz https/github.com/coreos/etcd/releases/download/v${ETCD_VER}/v${ETCD_VER}.tar.gz.asc keys/coreos-app.ring
-	@rm -f $@ $@.tmp $@.tmp.asc
-	@cp $< $@.tmp
-	@cp $(word 2,$^) $@.tmp.asc
-	$(call gpg-verify,$@.tmp,.asc,coreos-app)
-	@mv $@.tmp $@
 
 # **** FLANNEL ****
 
