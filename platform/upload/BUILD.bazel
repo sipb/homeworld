@@ -4,6 +4,7 @@ upload(
     name = "upload",
     acis = [
         "//aci-pull-monitor/pullcheck:aci",
+        "//dns-monitor:aci",
         "//kube-state-metrics:aci",
     ],
     debs = [
