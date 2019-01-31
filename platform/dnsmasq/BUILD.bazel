@@ -19,6 +19,20 @@ homeworld_aci(
     visibility = ["//visibility:public"],
 )
 
+homeworld_aci(
+    name = "dnsmasq-nanny",
+    bin = {
+        "@com_github_kubernetes_dns//cmd/dnsmasq-nanny": "/usr/bin/dnsmasq-nanny",
+    },
+    data = {
+        ":empty": "/etc/k8s/dns/dnsmasq-nanny",
+    },
+    aci_dep = ":dnsmasq",
+    exec = ["/usr/bin/dnsmasq-nanny"],
+    aciname = "homeworld.private/dnsmasq-nanny",
+    visibility = ["//visibility:public"],
+)
+
 genrule(
     name = "empty-rule",
     outs = ["empty"],

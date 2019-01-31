@@ -5,6 +5,7 @@ upload(
     acis = [
         "//aci-pull-monitor/pullcheck:aci",
         "//dns-monitor:aci",
+        "//dnsmasq:dnsmasq-nanny",
         "//kube-dns:kube-dns-main",
         "//kube-dns:kube-dns-sidecar",
         "//kube-state-metrics:aci",
