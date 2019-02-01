@@ -19,5 +19,6 @@ go_library(
 go_binary(
     name = "collector",
     embed = [":go_default_library"],
+    pure = "on",
     visibility = ["//visibility:public"],
 )

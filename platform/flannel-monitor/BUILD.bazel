@@ -1,0 +1,12 @@
+load("//bazel:package.bzl", "homeworld_aci")
+
+homeworld_aci(
+    name = "aci",
+    bin = {
+        "//flannel-monitor/monitor": "/usr/bin/flannel-monitor",
+        "//flannel-monitor/reflector": "/usr/bin/flannel-monitor-reflector",
+        "//flannel-monitor/collector": "/usr/bin/flannel-monitor-collector",
+    },
+    aciname = "homeworld.private/flannel-monitor",
+    visibility = ["//visibility:public"],
+)
