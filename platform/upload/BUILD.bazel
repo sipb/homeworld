@@ -6,6 +6,7 @@ upload(
         "//aci-pull-monitor/pullcheck:aci",
         "//dns-monitor:aci",
         "//dnsmasq:dnsmasq-nanny",
+        "//flannel:aci",
         "//kube-dns:kube-dns-main",
         "//kube-dns:kube-dns-sidecar",
         "//kube-state-metrics:aci",

@@ -79,6 +79,16 @@ go_repository_alt(
     postpatches = ["//etcd:etcd-visibility.patch", "//etcd:etcdctl-visibility.patch"],
 )
 
+# flannel
+
+go_repository(
+    name = "com_github_coreos_flannel",
+    commit = "2fd6898a7c9a11a12e63b56ca01143a260ee0aad", # 0.10.0
+    importpath = "github.com/coreos/flannel",
+    patches = ["//flannel:flannel.patch"],
+    patch_args = ["-p1"],
+)
+
 # keysystem dependencies
 
 go_repository(

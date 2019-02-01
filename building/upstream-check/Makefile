@@ -1,7 +1,6 @@
 all: acbuild-src-0.4.0.tgz
 all: coreos_binaries-1478.0.0.tar.xz
 all: debian-9.6.0-amd64-mini.iso
-all: flannel-0.10.0.tar.xz
 all: go1.4-bootstrap-20170531.tar.xz
 all: go1.9.3.src.tar.xz
 all: knc-1.7.1.tar.xz
@@ -198,12 +197,6 @@ debian-%-amd64-mini.iso: http/debian.csail.mit.edu/debian/dists/stretch/main/ins
 	@echo "[gpg] verifying hash for iso against installer SHA256SUMS"
 	@cd workdir-$@ && grep ./netboot/mini.iso SHA256SUMS | sha256sum --check --strict --quiet
 	@cp workdir-$@/netboot/mini.iso $@
-
-# **** FLANNEL ****
-
-flannel-%.tar: git/coreos/flannel keys/flannel.ring
-	$(call git-verify-commit,$(@:flannel-%.tar=v%),coreos/flannel,flannel)
-	$(call git-archive,$(@:flannel-%.tar=v%),coreos/flannel,$(@:flannel-%.tar=flannel-%/),$@)
 
 # **** GOLANG ****
 

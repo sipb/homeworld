@@ -1,0 +1,22 @@
+load("//bazel:package.bzl", "homeworld_aci")
+load("//debian:debian.bzl", "debinstall")
+
+debinstall(
+    name = "debian-mini-with-iptables.tgz",
+    base = "//debian:debian-mini.tgz",
+    packages = ["iptables"],
+)
+
+homeworld_aci(
+    name = "aci",
+    bin = {
+        "@com_github_coreos_flannel//:flannel": "/usr/bin/flanneld",
+        # TODO: ldflags: "-X github.com/coreos/flannel/version.Version=${FLANNEL_VER}"
+    },
+    aciname = "homeworld.private/flannel",
+    deps = [
+        ":debian-mini-with-iptables.tgz",
+    ],
+    exec = ["/usr/bin/flanneld"],
+    visibility = ["//visibility:public"],
+)
