@@ -17,6 +17,7 @@ upload(
         "//autostart:package.deb",
         "//bootstrap-registry:package.deb",
         "//etcd:package.deb",
+        "//etcd-metrics-exporter:package.deb",
         "//keysystem:package.deb",
         "//kubernetes:hyperkube.deb",
     ],

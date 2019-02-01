@@ -1,4 +1,5 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("//bazel:package.bzl", "homeworld_deb")
 
 go_library(
     name = "go_default_library",
@@ -16,5 +17,18 @@ go_library(
 go_binary(
     name = "etcd-metrics-exporter",
     embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)
+
+homeworld_deb(
+    name = "package",
+    bin = {
+        ":etcd-metrics-exporter": "/usr/bin/etcd-metrics-exporter",
+        ":launch-etcd-metrics-exporter.sh": "/usr/lib/hyades/launch-etcd-metrics-exporter.sh",
+    },
+    data = {
+        ":etcd-metrics-exporter.service": "/usr/lib/systemd/system/etcd-metrics-exporter.service",
+    },
+    package = "homeworld-etcd-metrics-exporter",
     visibility = ["//visibility:public"],
 )
