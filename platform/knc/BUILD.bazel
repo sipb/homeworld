@@ -1,0 +1,11 @@
+load("//bazel:package.bzl", "homeworld_deb")
+
+homeworld_deb(
+    name = "package",
+    bin = {
+        "@knc//:knc": "/usr/bin/knc",
+    },
+    package = "homeworld-knc",
+    # TODO: maybe this should depend on krb5-user?
+    visibility = ["//visibility:public"],
+)

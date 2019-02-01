@@ -1,0 +1,15 @@
+
+genrule(
+    name = "knc-build",
+    outs = [":knc"],
+    srcs = glob(["knc-1.7.1/**/*"]),
+    cmd = """
+        DEST="$$(realpath "$@")"
+        CONFIG="$$(realpath "$(location knc-1.7.1/configure)")"
+        cd "$$(mktemp -d)"
+        "$${CONFIG}"
+        make
+        cp "bin/knc" "$${DEST}"
+    """,
+    visibility = ["//visibility:public"],
+)
