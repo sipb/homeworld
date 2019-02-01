@@ -19,10 +19,6 @@ control:
 build:
   - type: bash
     code: |
-      cp -R /h/src/rootfs/* ${OUTPUT}/
-
-  - type: bash
-    code: |
       mkdir -p ${OUTPUT}/usr/lib/systemd/system/
       find /h/src/ -name '*.service' -exec cp {} ${OUTPUT}/usr/lib/systemd/system/ ';'
       find /h/src/ -name '*.timer' -exec cp {} ${OUTPUT}/usr/lib/systemd/system/ ';'
@@ -31,13 +27,3 @@ build:
     code: |
       mkdir -p ${OUTPUT}/usr/lib/hyades/
       find /h/src/ -name 'launch-*.sh' -exec cp {} ${OUTPUT}/usr/lib/hyades/ ';'
-
-  - type: python
-    code: |
-      import os
-      fingerprint = context.branch_config.signing_key.lower()
-      dest = context.output('/etc/rkt/trustedkeys/prefix.d/homeworld.private/' + fingerprint)
-      signing_key = aptbranch.export_key(context.branch_config.signing_key, armor=True)
-      os.makedirs(os.path.dirname(dest))
-      with open(dest, 'wb') as f:
-          f.write(signing_key)

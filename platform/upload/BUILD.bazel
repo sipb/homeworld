@@ -26,6 +26,7 @@ upload(
         "//prometheus:package.deb",
         "//prometheus-node-exporter:package.deb",
         "//rkt:package.deb",
+        "//rkt-config:package.deb",
     ],
     visibility = ["//visibility:public"],
 )
