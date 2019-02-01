@@ -1,0 +1,115 @@
+load("//bazel:package.bzl", "homeworld_aci")
+load(":debian.bzl", "debootstrap")
+
+SNAPSHOT = "20180710T043017Z"
+
+debootstrap(
+    name = "debian.tgz",
+    release = "stretch",
+    mirror = "http://snapshot.debian.org/archive/debian/" + SNAPSHOT + "/",
+    variant = "minbase",
+    extra = [
+        "bzip2",
+        "curl",
+        "ca-certificates",
+        "dnsutils",
+        "file",
+        "git",
+        "gnupg",
+        "gzip",
+        "iproute2",
+        "iptables",
+        "iputils-arping",
+        "iputils-ping",
+        "less",
+        "net-tools",
+        "netcat-traditional",
+        "python",
+        "python3",
+        "realpath",
+        "wget",
+    ],
+    clean_opts = [
+        "apt_files",
+        "ld_aux",
+        "pycache",
+        "resolv_conf",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+homeworld_aci(
+    name = "debian",
+    deps = [":debian.tgz"],
+    aciname = "homeworld.private/debian",
+    exec = ["/bin/bash"],
+    visibility = ["//visibility:public"],
+)
+
+debootstrap(
+    name = "debian-mini.tgz",
+    release = "stretch",
+    mirror = "http://snapshot.debian.org/archive/debian/" + SNAPSHOT + "/",
+    variant = "minbase",
+    remove = [
+        "e2fslibs",
+        "e2fsprogs",
+        "login",
+    ],
+    clean_opts = [
+        "apt_files",
+        "ld_aux",
+        "doc_files",
+        "locales",
+        "resolv_conf",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+homeworld_aci(
+    name = "debian-mini",
+    deps = [":debian-mini.tgz"],
+    aciname = "homeworld.private/debian-mini",
+    exec = ["/bin/bash"],
+    visibility = ["//visibility:public"],
+)
+
+debootstrap(
+    name = "debian-micro.tgz",
+    release = "stretch",
+    mirror = "http://snapshot.debian.org/archive/debian/" + SNAPSHOT + "/",
+    variant = "minbase",
+    remove = [
+        "e2fslibs",
+        "e2fsprogs",
+        "login",
+        "adduser",
+        "apt",
+        "base-files",
+        "base-passwd",
+        "bash",
+        "debian-archive-keyring",
+        "init-system-helpers",
+        "gpgv",
+        "mount",
+        "sysvinit-utils",
+        "tzdata",
+    ],
+    remove_dpkg = True,
+    clean_opts = [
+        "apt_files",
+        "ld_aux",
+        "doc_files",
+        "locales",
+        "resolv_conf",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+homeworld_aci(
+    name = "debian-micro",
+    deps = [":debian-micro.tgz"],
+    aciname = "homeworld.private/debian-micro",
+    exec = ["/bin/bash"],
+    visibility = ["//visibility:public"],
+)
