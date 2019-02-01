@@ -1,0 +1,65 @@
+alias(
+    name = "rkt.conf",
+    actual = "rkt-1.29.0/dist/init/systemd/tmpfiles.d/rkt.conf",
+    visibility = ["//visibility:public"],
+)
+alias(
+    name = "rkt-metadata.socket",
+    actual = "rkt-1.29.0/dist/init/systemd/rkt-metadata.socket",
+    visibility = ["//visibility:public"],
+)
+alias(
+    name = "rkt-metadata.service",
+    actual = "rkt-1.29.0/dist/init/systemd/rkt-metadata.service",
+    visibility = ["//visibility:public"],
+)
+alias(
+    name = "rkt-api.service",
+    actual = "rkt-1.29.0/dist/init/systemd/rkt-api.service",
+    visibility = ["//visibility:public"],
+)
+alias(
+    name = "rkt-api-tcp.socket",
+    actual = "rkt-1.29.0/dist/init/systemd/rkt-api-tcp.socket",
+    visibility = ["//visibility:public"],
+)
+
+genrule(
+    name = "rkt-build",
+    outs = [":rkt", ":stage1-coreos.aci", ":stage1-kvm.aci"],
+    srcs = glob(["rkt-1.29.0/**/*"]) + ["@coreos_image//file", "@linux_kernel//file", "@qemu//file", "@go_sdk//:bin/go", "@go_sdk//:bin/gofmt"],
+    cmd = """
+        BASE="$$PWD"
+        DEST="$$(dirname "$$(realpath "$(location :stage1-coreos.aci)")")"
+        RP="$$(dirname "$$(realpath "$(location rkt-1.29.0/autogen.sh)")")"
+        cd "$$(mktemp -d)"
+        cp -R "$${RP}" rkt
+        cd rkt
+        cp "$${BASE}/$(location @coreos_image//file)" coreos_production_pxe_image.cpio.gz
+        mkdir -p build-rkt-1.29.0/tmp/usr_from_kvm/qemu/ build-rkt-1.29.0/tmp/usr_from_kvm/kernel/
+        cp "$${BASE}/$(location @linux_kernel//file)" build-rkt-1.29.0/tmp/usr_from_kvm/kernel/linux-4.14.16.tar.xz
+        cp "$${BASE}/$(location @qemu//file)" build-rkt-1.29.0/tmp/usr_from_kvm/qemu/qemu-2.11.0.tar.xz
+        export PATH="$$PATH:$$(dirname "$${BASE}/$(location @go_sdk//:bin/go)")"
+        echo $$PATH
+        go version
+
+        ./autogen.sh
+
+        # TODO: consider using kvm stage1 for better security
+        # currently using coreos stage1 for development purposes
+        DEFAULT_FLAVOR=coreos
+
+        ./configure \
+          --disable-tpm --prefix=/usr \
+          --with-stage1-flavors=coreos,kvm \
+          --with-stage1-default-flavor=$${DEFAULT_FLAVOR} \
+          --with-coreos-local-pxe-image-path=coreos_production_pxe_image.cpio.gz \
+          --with-coreos-local-pxe-image-systemd-version=v233 \
+          --with-stage1-default-images-directory=/usr/lib/rkt/stage1-images \
+          --with-stage1-default-location=/usr/lib/rkt/stage1-images/stage1-$${DEFAULT_FLAVOR}.aci
+
+        make -j4
+        cp build-rkt-1.29.0/target/bin/{rkt,stage1-coreos.aci,stage1-kvm.aci} "$${DEST}"
+    """,
+    visibility = ["//visibility:public"],
+)

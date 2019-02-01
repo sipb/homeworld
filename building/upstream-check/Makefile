@@ -1,16 +1,11 @@
 all: acbuild-src-0.4.0.tgz
-all: coreos_binaries-1478.0.0.tar.xz
 all: debian-9.6.0-amd64-mini.iso
 all: go1.4-bootstrap-20170531.tar.xz
 all: go1.9.3.src.tar.xz
-all: linux-4.14.16.tar.xz
 all: prometheus-client_golang-0.9.0-pre1.tar.xz
 all: promu-sipb-0.1.1.tar.xz
 PYYAML_VER=3.12
 all: PyYAML-${PYYAML_VER}.tar.gz
-all: qemu-2.11.0.tar.xz
-RKT_VER=1.29.0
-all: rkt-${RKT_VER}.tar.xz
 all: snapshot.debian.org-20180710T043017Z.stamp
 
 .PHONY: verify just-verify
@@ -114,60 +109,6 @@ acbuild-src-%.tar: git/containers/build keys/acbuild.ring
 	$(call git-verify,$(@:acbuild-src-%.tar=v%),containers/build,acbuild)
 	$(call git-archive,$(@:acbuild-src-%.tar=v%),containers/build,acbuild/,$@)
 
-# **** RKT ****
-
-rkt-%.tar: git/rkt/rkt keys/coreos-app.ring
-	$(call git-verify,$(@:rkt-%.tar=v%),rkt/rkt,coreos-app)
-	$(call git-archive,$(@:rkt-%.tar=v%),rkt/rkt,rkt-1.29.0/,$@)
-
-# **** COREOS ****
-
-COREOS_BASE := alpha.release.core-os.net/amd64-usr/%/coreos_production_pxe_image.cpio.gz
-coreos_production_pxe_image-%.cpio.gz: https/${COREOS_BASE} https/${COREOS_BASE}.sig keys/coreos-image.ring
-	$(call gpg-verify,$<,.sig,coreos-image)
-	@cp $< $@
-
-coreos_production_pxe_image-%.cpio: coreos_production_pxe_image-%.cpio.gz
-	@echo "[gzip] decompressing $<"
-	@gunzip "$<" --to-stdout >"$@"
-
-.PHONY: clean-coreos
-clean: clean-coreos
-clean-coreos:
-	rm -rf rkt-unpacked-* coreos-binary-manifest-* coreos-squashfs-* coreos-unsquash-dir-*
-
-.PRECIOUS: rkt-unpacked-%
-rkt-unpacked-%: rkt-%.tar
-	@echo "[tar] unpacking working copy of $<"
-	@rm -rf $@
-	@rm -rf workdir-$@
-	@mkdir workdir-$@
-	@tar -C workdir-$@ -xf $<
-	@mv workdir-$@/$(@:rkt-unpacked-%=rkt-%) $@
-	@rm -rf workdir-$@
-
-coreos-binary-manifest-%.txt: rkt-unpacked-%
-	@echo "[coreos] compiling rkt manifest from $<"
-	@find $< -name '*.manifest' -print0 | grep -z amd64 | xargs -0 cat -- | sort -u >$@
-
-coreos-squashfs-%: coreos_production_pxe_image-%.cpio
-	@echo "[cpio] extracting usr.squashfs from $<"
-	@cpio --quiet --extract --to-stdout usr.squashfs <$< >$@
-
-.PRECIOUS: coreos-unsquash-dir-%
-coreos-unsquash-dir-%: coreos-squashfs-% coreos-binary-manifest-${RKT_VER}.txt
-	@echo "[coreos] unsquashing $@ with manifest $(word 2,$^)"
-	@rm -rf $@
-	@unsquashfs -no-progress -no-xattrs -d $@ -e $(word 2,$^) $< >/dev/null
-
-coreos_binaries-%.tar: coreos-unsquash-dir-%
-	@echo "[tar] packing $@"
-	@rm -rf workdir-$@ $@ $@.tmp
-	@mkdir workdir-$@
-	@mv $^ "workdir-$@/coreos_minimal_dir/"
-	@tar --sort=name --owner=user:1000 --group=user:1000 -C workdir-$@ --mtime="Mon, 1 Jan 2018 00:00:00 -0500" -cf $@.tmp "coreos_minimal_dir/"
-	@mv $@.tmp $@
-
 # **** DEBIAN ****
 
 clean: clean-debian-stretch-release
@@ -209,16 +150,6 @@ go%.src.tar.gz: https/dl.google.com/go/go%.src.tar.gz
 	$(call sha256-verify,$@.tmp,go-1.9.3)
 	@mv $@.tmp $@
 
-# **** LINUX ****
-
-linux-4.%.tar.xz: https/www.kernel.org/pub/linux/kernel/v4.x/linux-4.%.tar.xz https/www.kernel.org/pub/linux/kernel/v4.x/linux-4.%.tar.sign keys/linux.ring
-	@cp $< $(@:.tar.xz=.tmp.tar.xz)
-	@echo "[xz] extracting $@"
-	@unxz $(@:.tar.xz=.tmp.tar.xz)
-	@cp $(word 2,$^) $(@:.tar.xz=.tmp.tar.sign)
-	$(call gpg-verify,$(@:.tar.xz=.tmp.tar),.sign,linux)
-	@cp $< $@
-
 # **** PROMETHEUS-CLIENT_GOLANG ****
 
 prometheus-client_golang-%.tar: git/prometheus/client_golang
@@ -238,12 +169,6 @@ promu-sipb-%.tar: git/sipb/promu keys/promu.ring
 # I don't believe that this will handle incrementing versions correctly. When that happens, though, we should switch to grabbing these from the git repo.
 PyYAML-${PYYAML_VER}.tar.gz: https/pypi.python.org/packages/4a/85/db5a2df477072b2902b0eb892feb37d88ac635d36245a72a6a69b23b383a/PyYAML-${PYYAML_VER}.tar.gz
 	$(call sha256-verify,$<,$(@:%.tar.gz=%))
-	@cp $< $@
-
-# **** QEMU ****
-
-qemu-%.tar.xz: https/download.qemu.org/qemu-%.tar.xz https/download.qemu.org/qemu-%.tar.xz.sig keys/qemu.ring
-	$(call gpg-verify,$<,.sig,qemu)
 	@cp $< $@
 
 # **** SNAPSHOT.DEBIAN.ORG ****
