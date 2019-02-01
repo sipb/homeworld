@@ -5,7 +5,6 @@ all: go1.4-bootstrap-20170531.tar.xz
 all: go1.9.3.src.tar.xz
 all: linux-4.14.16.tar.xz
 all: prometheus-client_golang-0.9.0-pre1.tar.xz
-all: prometheus-node-exporter-0.15.2.tar.xz
 all: promu-sipb-0.1.1.tar.xz
 PYYAML_VER=3.12
 all: PyYAML-${PYYAML_VER}.tar.gz
@@ -227,12 +226,6 @@ prometheus-client_golang-%.tar: git/prometheus/client_golang
 	$(call git-archive,$(@:prometheus-client_golang-%.tar=v%),prometheus/client_golang,$(@:prometheus-%.tar=%/),$@.tmp)
 	$(call sha256-verify,$@.tmp,$(@:%.tar=%))
 	@mv $@.tmp $@
-
-# **** PROMETHEUS-NODE_EXPORTER ****
-
-prometheus-node-exporter-%.tar: git/prometheus/node_exporter keys/prometheus-node_exporter.ring
-	$(call git-verify,$(@:prometheus-node-exporter-%.tar=v%),prometheus/node_exporter,prometheus-node_exporter)
-	$(call git-archive,$(@:prometheus-node-exporter-%.tar=v%),prometheus/node_exporter,$(@:prometheus-node-exporter-%.tar=node_exporter-%/),$@)
 
 # **** PROMU-SIPB ****
 

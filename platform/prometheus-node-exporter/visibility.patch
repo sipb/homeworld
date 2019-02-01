@@ -1,0 +1,11 @@
+--- BUILD.bazel	2019-01-12 02:46:55.198000000 -0500
++++ BUILD.bazel	2019-01-12 02:47:04.460000000 -0500
+@@ -4,7 +4,7 @@
+     name = "go_default_library",
+     srcs = ["node_exporter.go"],
+     importpath = "github.com/prometheus/node_exporter",
+-    visibility = ["//visibility:private"],
++    visibility = ["//visibility:public"],
+     deps = [
+         "//collector:go_default_library",
+         "//vendor/github.com/prometheus/client_golang/prometheus:go_default_library",
