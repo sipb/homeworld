@@ -251,6 +251,17 @@ http_archive(
     build_file = "//knc:BUILD.import",
 )
 
+# prometheus
+
+go_repository(
+    name = "com_github_prometheus_prometheus",
+    commit = "0a74f98628a0463dddc90528220c94de5032d1a0",
+    importpath = "github.com/prometheus/prometheus",
+    build_external = "vendored",
+    build_file_proto_mode = "disable_global",
+    patches = ["//prometheus:prometheus-visibility.patch"],
+)
+
 # prometheus client, for packages like aci-pull-monitor
 
 go_repository(

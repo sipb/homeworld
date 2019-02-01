@@ -4,7 +4,6 @@ all: debian-9.6.0-amd64-mini.iso
 all: go1.4-bootstrap-20170531.tar.xz
 all: go1.9.3.src.tar.xz
 all: linux-4.14.16.tar.xz
-all: prometheus-2.0.0.tar.xz
 all: prometheus-client_golang-0.9.0-pre1.tar.xz
 all: prometheus-node-exporter-0.15.2.tar.xz
 all: promu-sipb-0.1.1.tar.xz
@@ -220,12 +219,6 @@ linux-4.%.tar.xz: https/www.kernel.org/pub/linux/kernel/v4.x/linux-4.%.tar.xz ht
 	@cp $(word 2,$^) $(@:.tar.xz=.tmp.tar.sign)
 	$(call gpg-verify,$(@:.tar.xz=.tmp.tar),.sign,linux)
 	@cp $< $@
-
-# **** PROMETHEUS ****
-
-prometheus-2.%.tar: git/prometheus/prometheus keys/prometheus.ring
-	$(call git-verify,$(@:prometheus-%.tar=v%),prometheus/prometheus,prometheus)
-	$(call git-archive,$(@:prometheus-%.tar=v%),prometheus/prometheus,$(@:%.tar=%/),$@)
 
 # **** PROMETHEUS-CLIENT_GOLANG ****
 

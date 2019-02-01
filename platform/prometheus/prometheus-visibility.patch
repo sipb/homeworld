@@ -1,0 +1,11 @@
+--- cmd/prometheus/BUILD.bazel	2019-01-11 21:36:25.502000000 -0500
++++ cmd/prometheus/BUILD.bazel	2019-01-11 21:36:34.267000000 -0500
+@@ -10,7 +10,7 @@
+         "uname_linux_uint8.go",
+     ],
+     importpath = "github.com/prometheus/prometheus/cmd/prometheus",
+-    visibility = ["//visibility:private"],
++    visibility = ["//visibility:public"],
+     deps = [
+         "//config:go_default_library",
+         "//notifier:go_default_library",

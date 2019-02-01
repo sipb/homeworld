@@ -1,0 +1,31 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary")
+load("//bazel:package.bzl", "homeworld_deb")
+
+go_binary(
+    name = "prometheus",
+    visibility = ["//visibility:public"],
+    embed = [
+        "@com_github_prometheus_prometheus//cmd/prometheus:go_default_library",
+    ],
+    # TODO: include -tags netgo
+)
+
+homeworld_deb(
+    name = "package",
+    bin = {
+        ":prometheus": "/usr/bin/prometheus",
+    },
+    data = {
+        ":prometheus.service": "/usr/lib/systemd/system/prometheus.service",
+    },
+    package = "homeworld-prometheus",
+    visibility = ["//visibility:public"],
+)
+
+# TODO: include these flags:
+#    ldflags:
+#        -X {{repoPath}}/vendor/github.com/prometheus/common/version.Version={{.Version}}
+#        -X {{repoPath}}/vendor/github.com/prometheus/common/version.Revision={{.Revision}}
+#        -X {{repoPath}}/vendor/github.com/prometheus/common/version.Branch={{.Branch}}
+#        -X {{repoPath}}/vendor/github.com/prometheus/common/version.BuildUser={{user}}@{{host}}
+#        -X {{repoPath}}/vendor/github.com/prometheus/common/version.BuildDate={{date "20060102-15:04:05"}}

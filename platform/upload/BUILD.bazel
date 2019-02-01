@@ -23,6 +23,7 @@ upload(
         "//keysystem:package.deb",
         "//knc:package.deb",
         "//kubernetes:hyperkube.deb",
+        "//prometheus:package.deb",
     ],
     visibility = ["//visibility:public"],
 )
