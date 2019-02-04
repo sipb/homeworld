@@ -1,0 +1,14 @@
+load("//bazel:package.bzl", "homeworld_deb")
+
+homeworld_deb(
+    name = "package",
+    bin = {
+        ":launch-setup-queue.sh": "/usr/lib/hyades/launch-setup-queue.sh",
+    },
+    data = {
+        ":setup-queue.service": "/usr/lib/systemd/system/setup-queue.service",
+        ":setup-queue.timer": "/usr/lib/systemd/system/setup-queue.timer",
+    },
+    package = "homeworld-setup-queue",
+    visibility = ["//visibility:public"],
+)
