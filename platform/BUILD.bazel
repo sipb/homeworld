@@ -6,3 +6,11 @@ gazelle(name = "gazelle")
 exports_files([
     "VERSION",
 ])
+
+genrule(
+    name = "fetchversion",
+    outs = ["GIT_VERSION"],
+    cmd = "grep STABLE_GIT_COMMIT bazel-out/stable-status.txt | cut -d ' ' -f 2 >$@",
+    stamp = 1,
+    visibility = ["//visibility:public"],
+)
