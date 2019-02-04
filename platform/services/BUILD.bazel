@@ -1,0 +1,22 @@
+load("//bazel:package.bzl", "homeworld_deb")
+
+homeworld_deb(
+    name = "package",
+    depends = [
+        "ca-certificates",
+        "conntrack",
+        "curl",
+        "homeworld-aci-pull-monitor",
+        "homeworld-autostart",
+        "homeworld-etcd",
+        "homeworld-etcd-metrics-exporter",
+        "homeworld-hyperkube",
+        "homeworld-rkt",
+        "homeworld-rkt-config",
+        "homeworld-setup-queue",
+        "iptables",
+        "openssl",
+    ],
+    package = "homeworld-services",
+    visibility = ["//visibility:public"],
+)
