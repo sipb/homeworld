@@ -45,7 +45,7 @@ spec:
     spec:
       containers:
       - name: kubedns
-        image: homeworld.private/kube-dns-main:1.14.8-3
+        image: homeworld.private/kube-dns-main:{{VERSION}}
         args:
         - /usr/bin/kube-dns
         - --domain={{INTERNAL_DOMAIN}}.
@@ -65,7 +65,7 @@ spec:
           name: metrics
           protocol: TCP
       - name: dnsmasq
-        image: homeworld.private/dnsmasq-nanny:1.14.8-4
+        image: homeworld.private/dnsmasq-nanny:{{VERSION}}
         args:
         - /usr/bin/dnsmasq-nanny
         - -v=2
@@ -88,7 +88,7 @@ spec:
           name: dns-tcp
           protocol: TCP
       - name: sidecar
-        image: homeworld.private/kube-dns-sidecar:1.14.8-3
+        image: homeworld.private/kube-dns-sidecar:{{VERSION}}
         args:
         - /usr/bin/sidecar
         - --v=2

@@ -45,7 +45,7 @@ spec:
       serviceAccountName: flannel
       containers:
       - name: kube-flannel
-        image: homeworld.private/flannel:0.10.0-4
+        image: homeworld.private/flannel:{{VERSION}}
         command: [ "/usr/bin/flanneld", "--ip-masq", "--kube-subnet-mgr" ]
         securityContext:
           privileged: true
