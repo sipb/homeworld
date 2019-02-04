@@ -16,13 +16,7 @@ fi
 
 cd "$(dirname "$0")"
 
-# for CircleCI, since it uses an old version of GPG
-if [ -e "$HOME/.gnupg/pubring.gpg" ]
-then
-	mkdir -p "$HOMEWORLD_CHROOT/home/$USER/.gnupg"
-	cp "$HOME/.gnupg/pubring.gpg" "$HOMEWORLD_CHROOT/home/$USER/.gnupg/pubring.gpg"
-fi
-
+# only for jenkins; circleci imports the gpg key within the chroot
 if [ -e "$HOME/.gnupg/pubring.kbx" ]
 then
 	mkdir -p "$HOMEWORLD_CHROOT/home/$USER/.gnupg/private-keys-v1.d/"
@@ -31,6 +25,7 @@ then
 	cp "$HOME/.gnupg/trustdb.gpg" "$HOMEWORLD_CHROOT/home/$USER/.gnupg/trustdb.gpg"
 	cp -R "$HOME/.gnupg/private-keys-v1.d/"* "$HOMEWORLD_CHROOT/home/$USER/.gnupg/private-keys-v1.d"
 fi
+
 sudo mkdir -p "$HOMEWORLD_CHROOT/homeworld"
 sudo mount --bind "$(pwd)" "$HOMEWORLD_CHROOT/homeworld"
 sudo mount -t proc procfs "$HOMEWORLD_CHROOT/proc"

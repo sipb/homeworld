@@ -9,21 +9,17 @@ jobs:
           name: Install build tools
           command: sudo apt-get update && sudo apt-get install build-essential cpio squashfs-tools debootstrap realpath
       - run:
-          name: Import gpg key
-          command: gpg --import building/apt-branch-config/ci-key.asc
-      - run:
-          name: Pull down upstream dependencies
-          command: building/pull-upstream.sh
+          name: Prepare branches
+          command: cp .circleci/branches.yaml platform/upload/branches.yaml && echo "ci" >platform/upload/BRANCH_NAME
       - run:
           name: Construct build chroot
           command: HOMEWORLD_CHROOT="$HOME/autobuild-chroot" USER="circleci" ./create-chroot.sh
       - run:
-          name: Verify upstream dependencies
-          command: echo "make -C upstream-check/ -j2 verify && killall gpg-agent" | HOMEWORLD_CHROOT="$HOME/autobuild-chroot" USER="circleci" ./enter-chroot-ci.sh
+          name: Import gpg key
+          command: echo "gpg --batch --no-tty --yes --import /homeworld/.circleci/ci-key-private.asc" | HOMEWORLD_CHROOT="$HOME/autobuild-chroot" USER="circleci" ./enter-chroot-ci.sh
       - run:
-          name: Launch build with glass
-          command: cp .circleci/branches.yaml building/apt-branch-config/branches.yaml && echo "glass components -b ci" | HOMEWORLD_CHROOT="$HOME/autobuild-chroot" USER="circleci" ./enter-chroot-ci.sh
-          no_output_timeout: 3600
+          name: Check gpg key presence
+          command: echo "gpg --list-secret-keys" | HOMEWORLD_CHROOT="$HOME/autobuild-chroot" USER="circleci" ./enter-chroot-ci.sh
       - run:
-          name: Display resulting binaries
-          command: find building/binaries
+          name: Launch build with bazel
+          command: echo "bazel build //upload --verbose_failures" | HOMEWORLD_CHROOT="$HOME/autobuild-chroot" USER="circleci" ./enter-chroot-ci.sh

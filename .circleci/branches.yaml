@@ -1,4 +1,4 @@
 branches:
   - name: ci
-    signing-key: A1EBB6EA29A86C445A187CB9D167ACA2E5FCF374
+    signing-key: F4981350AF4982FCB25B7E3F499ED4E878E7A339
     download: no_download
