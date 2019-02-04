@@ -13,7 +13,7 @@ sudo apt-get clean
 # should match only one binary
 sudo dpkg -i /var/homeworld-binaries/autobuild/pool/main/h/homeworld-apt-setup/homeworld-apt-setup_*.deb
 sudo apt-get -qq update
-sudo apt-get -qq install -y homeworld-admin-tools
+sudo apt-get -qq install -y homeworld-spire
 find /var/homeworld-deploy/ -mindepth 1 -delete
 cp .jenkins/deploy-setup.yaml /var/homeworld-deploy/setup.yaml
 

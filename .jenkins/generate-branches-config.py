@@ -16,7 +16,10 @@ if len(fpr_fields) < 10:
 
 fpr = fpr_fields[9]
 
-with open(".jenkins/branches.yaml.in") as fin, open("building/apt-branch-config/branches.yaml", "w") as fout:
+with open(".jenkins/branches.yaml.in") as fin, open("platform/upload/branches.yaml", "w") as fout:
 	fout.write(fin.read()
 		.replace("$$_SIGNING_KEY_$$", fpr)
 		.replace("$$_APT_URL_$$", os.environ["APT_URL"]))
+
+with open("platform/upload/BRANCH_NAME", "w") as fout:
+	fout.write("jenkins-ci\n")

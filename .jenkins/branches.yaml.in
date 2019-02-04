@@ -4,4 +4,4 @@ branches:
     download: https://$$_APT_URL_$$/apt/autobuild
     upload:
       method: rsync
-      rsync-target: /h/binaries
+      rsync-target: /homeworld/binaries
