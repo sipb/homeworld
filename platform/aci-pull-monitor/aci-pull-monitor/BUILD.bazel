@@ -22,6 +22,7 @@ homeworld_deb(
     name = "package",
     bin = {
         ":aci-pull-monitor": "/usr/bin/aci-pull-monitor",
+        ":launch-aci-pull-monitor.sh": "/usr/lib/homeworld/launch-aci-pull-monitor.sh",
     },
     data = {
         ":aci-pull-monitor.service": "/usr/lib/systemd/system/aci-pull-monitor.service",

@@ -50,8 +50,7 @@ var (
 	}, []string{"image"})
 )
 
-func cycle() {
-	image := "homeworld.private/pullcheck:0.1.0"
+func cycle(image string) {
 	aciGauge := aciCheck.With(prometheus.Labels{
 		"image": image,
 	})
@@ -125,10 +124,10 @@ func cycle() {
 	rktHisto.Observe(time_rkt_taken)
 }
 
-func loop(stopChannel <-chan struct{}) {
+func loop(image string, stopChannel <-chan struct{}) {
 	for {
 		next_cycle_at := time.Now().Add(time.Second * 15)
-		cycle()
+		cycle(image)
 
 		delta := next_cycle_at.Sub(time.Now())
 		if delta < time.Second {
@@ -144,9 +143,10 @@ func loop(stopChannel <-chan struct{}) {
 }
 
 func main() {
-	if len(os.Args) != 1 {
-		log.Fatal("expected no arguments")
+	if len(os.Args) != 2 {
+		log.Fatal("expected exactly one argument: <image-to-pull>")
 	}
+	image := os.Args[1]
 
 	registry.MustRegister(aciCheck)
 	registry.MustRegister(aciHashes)
@@ -156,7 +156,7 @@ func main() {
 
 	stopChannel := make(chan struct{})
 	defer close(stopChannel)
-	go loop(stopChannel)
+	go loop(image, stopChannel)
 
 	address := ":9103"
 

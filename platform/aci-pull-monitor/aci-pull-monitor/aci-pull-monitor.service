@@ -5,7 +5,7 @@ After=network-online.target
 
 [Service]
 Slice=machine.slice
-ExecStart=/usr/bin/aci-pull-monitor
+ExecStart=/usr/lib/homeworld/launch-aci-pull-monitor.sh
 Restart=always
 RestartSec=5s
 
