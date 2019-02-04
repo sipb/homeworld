@@ -29,6 +29,7 @@ upload(
         "//rkt-config:package.deb",
         "//services:package.deb",
         "//setup-queue:package.deb",
+        "//spire:package.deb",
     ],
     visibility = ["//visibility:public"],
 )

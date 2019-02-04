@@ -112,3 +112,12 @@ def homeworld_aci(name, aciname, bin=None, data=None, deps=None, aci_dep=None, p
         mode = "0644",
         visibility = visibility,
     )
+
+def pythonize(name, zip, visibility=None):
+    native.genrule(
+        name = name + "-rule",
+        srcs = [zip],
+        outs = [name],
+        cmd = "echo '#!/usr/bin/env python3' | cat - $< >$@",
+        visibility = visibility,
+    )
