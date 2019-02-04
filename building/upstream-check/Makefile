@@ -1,5 +1,4 @@
 all: acbuild-src-0.4.0.tgz
-all: debian-9.6.0-amd64-mini.iso
 all: go1.4-bootstrap-20170531.tar.xz
 all: go1.9.3.src.tar.xz
 all: prometheus-client_golang-0.9.0-pre1.tar.xz
@@ -108,33 +107,6 @@ sha256-verify = @echo "[sha256] checking $1 against $2" && (echo "$$(cat ${TOP}/
 acbuild-src-%.tar: git/containers/build keys/acbuild.ring
 	$(call git-verify,$(@:acbuild-src-%.tar=v%),containers/build,acbuild)
 	$(call git-archive,$(@:acbuild-src-%.tar=v%),containers/build,acbuild/,$@)
-
-# **** DEBIAN ****
-
-clean: clean-debian-stretch-release
-.PHONY: clean-debian-stretch-release
-clean-debian-stretch-release:
-	rm -f debian-stretch-release
-
-debian-stretch-release: http/debian.csail.mit.edu/debian/dists/stretch/Release http/debian.csail.mit.edu/debian/dists/stretch/Release.gpg keys/debian.ring
-	$(call gpg-verify,$<,.gpg,debian)
-	@cp http/debian.csail.mit.edu/debian/dists/stretch/Release $@
-
-debian-9.6.0-amd64-mini.iso: debian-20170615+deb9u5-amd64-mini.iso
-	@cp $< $@
-
-debian-%-amd64-mini.iso: http/debian.csail.mit.edu/debian/dists/stretch/main/installer-amd64/%/images/netboot/mini.iso \
-                         http/debian.csail.mit.edu/debian/dists/stretch/main/installer-amd64/%/images/SHA256SUMS \
-                         debian-stretch-release
-	@rm -rf "workdir-$@" "$@"
-	@mkdir -p workdir-$@/netboot
-	@cp $(word 2,$^) workdir-$@/SHA256SUMS
-	@echo "[gpg] verifying hash for installer SHA256SUMS against release"
-	@echo "$$(grep $(patsubst http/debian.csail.mit.edu/debian/dists/stretch/%,%,$(word 2,$^)) debian-stretch-release | tail -n 1 | cut -d " " -f 2)  workdir-$@/SHA256SUMS" | sha256sum --check --strict --quiet
-	@cp $< workdir-$@/netboot/mini.iso
-	@echo "[gpg] verifying hash for iso against installer SHA256SUMS"
-	@cd workdir-$@ && grep ./netboot/mini.iso SHA256SUMS | sha256sum --check --strict --quiet
-	@cp workdir-$@/netboot/mini.iso $@
 
 # **** GOLANG ****
 

@@ -1,0 +1,10 @@
+load("//bazel:package.bzl", "homeworld_deb")
+
+homeworld_deb(
+    name = "package",
+    bin = {
+        "@debian_iso//file": "/usr/share/homeworld/debian.iso",
+    },
+    package = "homeworld-debian-iso",
+    visibility = ["//visibility:public"],
+)

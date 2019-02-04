@@ -30,6 +30,7 @@ upload(
         "//services:package.deb",
         "//setup-queue:package.deb",
         "//spire:package.deb",
+        "//spire/debian-iso:package.deb",
     ],
     visibility = ["//visibility:public"],
 )

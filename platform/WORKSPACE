@@ -58,6 +58,14 @@ http_archive(
     patch_args = ["-p1"],
 )
 
+# debian ISO
+
+http_file(
+    name = "debian_iso",
+    urls = ["http://ftp.debian.org/debian/dists/stretch/main/installer-amd64/20170615+deb9u5/images/netboot/mini.iso"],
+    sha256 = "53fbdc4469216d7cf80023d58925d37add5a81817b43b7a36cd53dd7f606816d",
+)
+
 # dnsmasq
 
 http_archive(
