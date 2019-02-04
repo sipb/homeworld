@@ -15,8 +15,12 @@ def get_apt_url():
     return get_resource("APT_URL").decode().rstrip()
 
 
+def get_deb_version():
+    return get_resource("DEB_VERSION").decode().rstrip()
+
+
 def display_version():
-    deb_version = get_resource("DEB_VERSION").decode().rstrip()
+    deb_version = get_deb_version()
     print("Debian package version:", deb_version)
 
     git_version = get_git_version()
