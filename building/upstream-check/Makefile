@@ -3,8 +3,6 @@ all: go1.4-bootstrap-20170531.tar.xz
 all: go1.9.3.src.tar.xz
 all: prometheus-client_golang-0.9.0-pre1.tar.xz
 all: promu-sipb-0.1.1.tar.xz
-PYYAML_VER=3.12
-all: PyYAML-${PYYAML_VER}.tar.gz
 all: snapshot.debian.org-20180710T043017Z.stamp
 
 .PHONY: verify just-verify
@@ -135,13 +133,6 @@ prometheus-client_golang-%.tar: git/prometheus/client_golang
 promu-sipb-%.tar: git/sipb/promu keys/promu.ring
 	$(call git-verify-commit,$(@:promu-%.tar=%),sipb/promu,promu)
 	$(call git-archive,$(@:promu-%.tar=%),sipb/promu,$(@:%.tar=%/),$@)
-
-# **** PYYAML ****
-
-# I don't believe that this will handle incrementing versions correctly. When that happens, though, we should switch to grabbing these from the git repo.
-PyYAML-${PYYAML_VER}.tar.gz: https/pypi.python.org/packages/4a/85/db5a2df477072b2902b0eb892feb37d88ac635d36245a72a6a69b23b383a/PyYAML-${PYYAML_VER}.tar.gz
-	$(call sha256-verify,$<,$(@:%.tar.gz=%))
-	@cp $< $@
 
 # **** SNAPSHOT.DEBIAN.ORG ****
 
