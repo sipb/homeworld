@@ -11,6 +11,7 @@ upload(
         "//kube-dns:kube-dns-main",
         "//kube-dns:kube-dns-sidecar",
         "//kube-state-metrics:aci",
+        "//user-grant:aci",
     ],
     debs = [
         "//aci-pull-monitor/aci-pull-monitor:package.deb",

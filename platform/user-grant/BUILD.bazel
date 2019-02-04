@@ -1,4 +1,5 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("//bazel:package.bzl", "homeworld_aci")
 
 go_library(
     name = "go_default_library",
@@ -14,5 +15,16 @@ go_library(
 go_binary(
     name = "user-grant",
     embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+    pure = "on",
+)
+
+homeworld_aci(
+    name = "aci",
+    bin = {
+        ":user-grant": "/usr/bin/user-grant",
+    },
+    exec = ["/usr/bin/user-grant"],
+    aciname = "homeworld.private/user-grant",
     visibility = ["//visibility:public"],
 )
