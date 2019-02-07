@@ -1,7 +1,7 @@
 branches:
   - name: jenkins-ci
     signing-key: $$_SIGNING_KEY_$$
-    download: http://$$_APT_URL_$$/apt/autobuild
+    download: https://$$_APT_URL_$$/apt/autobuild
     upload:
       method: rsync
       rsync-target: /h/binaries

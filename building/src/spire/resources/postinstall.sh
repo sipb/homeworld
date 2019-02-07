@@ -24,6 +24,7 @@ in-target systemctl mask nginx.service
 
 # install packages
 cp /homeworld-*.deb /target/
+in-target apt-get install --yes apt-transport-https
 in-target dpkg --install /homeworld-*.deb
 rm /target/homeworld-*.deb
 in-target apt-get update
