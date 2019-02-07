@@ -1,0 +1,180 @@
+=== Machine setup ===
+- Download Debian netinst, check sha512sum (and signature of sha512sum), use Startup Disk Creator (preinstalled on Ubuntu) to make flash drive
+- In BIOS (F2, and then F2 again later), set flash drive mode to hard disk and put flash drive to the top of boot sequence
+- Load firmware from http://cdimage.debian.org/cdimage/unofficial/non-free/firmware/stretch/current/, need bnx2 and qlogic
+	- Via usb:
+		lsblk
+		mkdir /media/<drive name> # <drive name> is entirely arbitrary
+		mount /dev/sdb1 /media/<drive name>
+		(remember to umount afterwards)
+- Network config:
+	- address: 18.4.60.253
+		(from `stella hijinks`)
+	- netmask: 255.255.254.0
+		(from `moira 5 1 sipb-460`)
+	- gateway: 18.4.60.1
+		(from `moira 5 1 sipb-460`, but note that
+			the last octet should be 1, by convention
+			for network gateways)
+	- nameservers: 18.72.0.3 18.70.0.160 18.71.0.151
+		(from `dig mit.edu` from within MIT's network)
+
+=== Standard setup ===
+apt update
+apt upgrade
+apt dist-upgrade
+apt install sudo openssh-server git
+apt install vim htop less xclip
+ssh-keygen -lf /etc/ssh/ssh_host_ecdsa_key.pub
+usermod -aG sudo <user>
+
+ssh-copy-id <user>@18.4.60.253
+ssh <user>@18.4.60.253
+# disable password authentication in /etc/ssh/sshd_config
+
+=== Docker ===
+sudo apt install apt-transport-https ca-certificates curl gnupg2 software-properties-common
+curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
+# check fingerprint
+sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
+sudo apt update && sudo apt install docker-ce
+
+=== nginx ===
+sudo apt install nginx
+sudo cp /etc/nginx/sites-available/default /etc/nginx/sites-available/hijinks
+sudo ln -s /etc/nginx/sites-available/hijinks /etc/nginx/sites-enabled/hijinks
+sudo rm /etc/nginx/sites-enabled/default
+# edit /etc/nginx/sites-available/hijinks:
+	server_name hijinks.mit.edu;
+sudo rm /var/www/html/index.nginx-debian.html
+
+=== Let's Encrypt ===
+sudo bash -c "echo 'deb http://ftp.debian.org/debian stretch-backports main' >> /etc/apt/sources.list"
+sudo apt update
+sudo apt install python-certbot-nginx -t stretch-backports
+sudo certbot --nginx --must-staple --hsts
+	- yes to redirect
+sudo certbot renew --dry-run
+# edit /etc/nginx/sites-available/hijinks: (replace location / block)
+	location /jenkins/ {
+		include /etc/nginx/proxy_params;
+		proxy_pass http://localhost:8080;
+		proxy_read_timeout 90s;
+		proxy_redirect http://localhost:8080 https://hijinks.mit.edu;
+		sendfile off;
+		if ($scheme != "https") {
+			return 301 https://$host$request_uri;
+		}
+	}
+sudo nginx -t && sudo nginx -s reload
+
+=== Jenkins ===
+sudo apt install default-jre
+wget -q -O - https://pkg.jenkins.io/debian/jenkins.io.key | sudo apt-key add -
+# check fingerprint
+sudo sh -c 'echo deb http://pkg.jenkins.io/debian-stable binary/ > /etc/apt/sources.list.d/jenkins.list'
+sudo apt update && sudo apt install jenkins
+# add "--prefix=/jenkins" in JENKINS_ARGS in /etc/default/jenkins
+sudo usermod -aG docker jenkins
+systemctl restart jenkins
+sudo cat /var/lib/jenkins/secrets/initialAdminPassword
+# enter password into https://hijinks.mit.edu/jenkins/
+# select plugins:
+	- Build Timeout
+	- Timestamper
+	- Pipeline
+	- Github Branch Source
+	- Pipeline: Stage View
+	- Git
+	- Github
+# create user
+# jenkins url: https://hijinks.mit.edu/jenkins/
+systemctl restart jenkins # jenkins bug
+
+=== Jenkins Homeworld ===
+# Manage Jenkins > Configure System > set # of executors 1
+	(not really necessary since there's a global lock in place)
+# Manage Jenkins > Configure System > Global properties
+	- Add environment variable:
+		- Name: APT_URL
+		- Value: hijinks.mit.edu
+# (in Github) sipb / homeworld
+	- Settings > Webhooks > Add:
+		- Payload URL: https://hijinks.mit.edu/jenkins/github-webhook/
+		- Select individual events: Pull requests, Pushes
+# (in Github) Settings > Developer Settings > Personal Access Tokens
+	- Description: jenkins testing token
+	- Permissions: repo:status
+	(note that this needs to be an account with push access to repo)
+# Credentials > Jenkins > Global Credentials > Add Credentials
+	- Username: <github user with access token>
+	- Password: <github access token>];
+	- ID: personal-access-token
+# New Item: homeworld, multibranch pipeline
+	- Display name: homeworld
+	- Branch sources: Github
+		- Credentials: <github user with access token>/***,
+		- Owner: sipb
+		- Repository: homeworld
+		- Trust: nobody
+		- Add: Clean before checkout
+	- Build Configuration > Script Path: .jenkins/Jenkinsfile
+
+=== Setup Homeworld Pipeline ===
+sudo apt install bridge-utils qemu
+sudo modprobe -r kvm_intel
+sudo modprobe kvm_intel nested=1
+sudo bash -c 'echo "options kvm_intel nested=1" >> /etc/modprobe.d/kvm.conf'
+sudo usermod -aG kvm jenkins # allow jenkins to use qemu
+sudo service jenkins restart
+sudo bash -c "echo 'jenkins ALL=(ALL:ALL) NOPASSWD:ALL' >> /etc/sudoers"
+echo 'jenkins ALL=(ALL:ALL) NOPASSWD:ALL' > /etc/sudoers
+sudo mkdir /var/homeworld-binaries
+sudo chown jenkins:jenkins /var/homeworld-binaries
+sudo mkdir /var/homeworld-deploy
+sudo chown jenkins:jenkins /var/homeworld-deploy
+sudo mkdir -p /var/www/html/apt/autobuild
+sudo mkdir /var/jenkins-extra
+# edit /var/jenkins-extra/authenticate.py
+	import os
+	# if CHANGE_AUTHOR is not present, then it should be a
+	# push instead of a pull request
+	if 'CHANGE_AUTHOR' in os.environ and os.environ['CHANGE_AUTHOR'] not in [
+		# access control list
+	]:
+		raise Exception("user not authorized to run jenkins builds");
+sudo chown -R jenkins:jenkins /var/jenkins-extra
+
+# This should not be necessary. I did it to resolve a permission
+# denied error when jenkins tried to access /dev/kvm, but the
+# "sudo service jenkins restart" I added after
+# "sudo usermod -aG kvm jenkins" should be sufficient.
+# In any case, it's good to know that the system still works
+# after a reboot.
+sudo reboot
+
+=== Kerberos Authentication ===
+wget -N https://debathena.mit.edu/install-debathena.sh
+sudo chmod +x install-debathena.sh
+sudo ./install-debathena.sh
+# choose "standard"
+# yes to debathena-msmtp-mta
+# no to extra-software
+
+# request keytab from IS&T from https://ist.mit.edu/accounts/keytab
+# upload keytab to /etc/krb5.keytab
+k5srvutil change
+k5srvutil delold
+kadmin -p host/hijinks.mit.edu -k -t /etc/krb5.keytab
+	ktadd -k /etc/krb5.keytab -e aes256-cts:normal,aes128-cts:normal host/hijinks.mit.edu
+	ktremove -k /etc/krb5.keytab host/hijinks.mit.edu old
+	q
+sudo apt install debathena-ssh-server-config
+# add users to /root/.k5login (in the form <user>/root@ATHENA.MIT.EDU)
+
+=== Debug (not necessary for main pipeline) ===
+sudo apt install screen
+sudo apt install zip
+
+# This allows us to easily mount and inspect qcow images.
+sudo modprobe nbd max_part=8

@@ -1,0 +1,3 @@
+If you want to do anything that might affect or be affected by running builds, acquire the global lock in the Jenkins web interface (under Lockable Resources). This might include installing from the local apt repository or creating multiple VMs (too many VMs would cause memory problems). If you're just inspecting files, it's recommended that you copy the files out to another directory so you don't need to lock up the whole CI.
+
+If your problem is in the build stage, the relevant files are in /var/lib/jenkins/workspace/homeworld_<branch or PR name>/. If your problem is in the deploy stage, the relevant files are in /var/homeworld-deploy. Note that the apt repository is served off /var/www/html/apt/autobuild, which would be overwritten by the CI during the deploy phase.
