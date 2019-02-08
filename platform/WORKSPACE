@@ -39,12 +39,10 @@ http_archive(
 # TODO: update to a newer kubernetes
 http_archive(
     name = "kubernetes",
-    sha256 = "9f128809cdd442d71a13f7c61c7a0e03e832cf0c068a86184c1bcc9acdb78872",
+    sha256 = "f797ae96c9f024549edb129110b64be34e5bb9c3ab71e3990e0dc5e3e4a0bd4d", # for 1.10.12
     type = "tar.gz",
-    urls = ["https://dl.k8s.io/v1.9.2/kubernetes-src.tar.gz"],
+    urls = ["https://dl.k8s.io/v1.10.12/kubernetes-src.tar.gz"],
     patches = [
-        "//kubernetes:0101-bump-openapi.patch",
-        "//kubernetes:0102-gazelle-prefix.patch",
         "//kubernetes:0103-gazelle-proto-disable.patch",
         "//kubernetes:0104-staging-prefix.patch",
         "//kubernetes:0105-vendor-importmap.patch",
@@ -52,7 +50,7 @@ http_archive(
         "//kubernetes:0107-go-genrule-bump.patch",
         "//kubernetes:0108-no-prefix.patch",
         "//kubernetes:0109-staging-importmap.patch",
-        "//kubernetes:0110-rerun-gazelle.patch",
+        "//kubernetes:0110-rerun-gazelle-2.patch",
         "//kubernetes:0200-aci-launch.patch",
     ],
     patch_args = ["-p1"],
@@ -322,6 +320,7 @@ go_repository(
 
 go_repository_alt(
     name = "com_github_kubernetes_dns",
+# TODO: bump to d522d10e2e5e0797637e89ddb0a68a318cc8be60 (1.14.9)
     commit = "d01e5e58d114fcddff98e4f6bf8b2b1484d06c3e", # 1.14.8
     importpath = "k8s.io/dns",
     build_external = "vendored",
