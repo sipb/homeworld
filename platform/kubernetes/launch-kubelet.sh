@@ -28,7 +28,7 @@ EOCONFIG
 
 KUBEOPT=()
 # just use one API server for now -- TODO: BETTER HIGH-AVAILABILITY
-KUBEOPT+=(--kubeconfig=/etc/homeworld/config/kubeconfig --require-kubeconfig)
+KUBEOPT+=(--kubeconfig=/etc/homeworld/config/kubeconfig)
 if [ "${SCHEDULE_WORK}" = "true" ]
 then
 	# register as schedulable (i.e. for a worker node)
