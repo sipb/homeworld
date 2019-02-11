@@ -41,7 +41,6 @@ spec:
       annotations:
         scheduler.alpha.kubernetes.io/critical-pod: ''
         scheduler.alpha.kubernetes.io/tolerations: '[{{"key":"CriticalAddonsOnly", "operator":"Exists"}}]'
-        homeworld.mit.edu/unsupported-fetch-info: aci
     spec:
       containers:
       - name: kubedns

@@ -71,7 +71,13 @@ func cycle(image string) {
 		rktGauge.Set(0)
 		return
 	}
-	cmd = exec.Command("rkt", "fetch", image, "--full")
+	args := []string{
+		"fetch", image, "--full",
+	}
+	if strings.HasPrefix(image, "docker://") {
+		args = append(args, "--insecure-options=image")
+	}
+	cmd = exec.Command("rkt", args...)
 	time_start := time.Now()
 	hash_raw, err := cmd.Output()
 	time_end := time.Now()

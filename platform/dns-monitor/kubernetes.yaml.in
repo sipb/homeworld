@@ -38,8 +38,6 @@ spec:
       labels:
         app: dns-monitor
         version: v0.1.4
-      annotations:
-        homeworld.mit.edu/unsupported-fetch-info: aci
     spec:
       serviceAccountName: dns-monitor
       containers:

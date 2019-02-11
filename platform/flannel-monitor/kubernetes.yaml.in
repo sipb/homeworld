@@ -19,8 +19,6 @@ spec:
       labels:
         tier: node
         app: flannel-monitor-reflector
-      annotations:
-        homeworld.mit.edu/unsupported-fetch-info: aci
     spec:
       tolerations:
       - key: node-role.kubernetes.io/master

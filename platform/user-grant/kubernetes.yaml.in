@@ -70,8 +70,6 @@ spec:
     metadata:
       labels:
         app: user-grant
-      annotations:
-        homeworld.mit.edu/unsupported-fetch-info: aci
     spec:
       containers:
       - name: user-grant
