@@ -1,10 +1,9 @@
 [Unit]
-Description=Hyades etcd server
+Description=Kubernetes State Metrics Exporter
 Requires=network-online.target
 After=network-online.target
 
 [Service]
-Slice=machine.slice
 ExecStart=/usr/lib/hyades/launch-kube-state-metrics.sh
 KillMode=mixed
 Restart=always
