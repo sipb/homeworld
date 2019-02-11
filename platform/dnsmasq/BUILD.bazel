@@ -1,9 +1,9 @@
-load("//bazel:package.bzl", "homeworld_aci")
+load("//bazel:package.bzl", "homeworld_oci")
 load("//bazel:substitute.bzl", "substitute")
 
 # originally based on https://github.com/kubernetes/dns builds
 
-homeworld_aci(
+homeworld_oci(
     name = "dnsmasq",
     bin = {
         "@dnsmasq//:dnsmasq": "/usr/sbin/dnsmasq",
@@ -12,7 +12,6 @@ homeworld_aci(
         ":empty": "/var/run",
         ":dnsmasq.conf": "/etc/dnsmasq.conf",
     },
-    aciname = "homeworld.private/dnsmasq",
     deps = [
         "//debian:debian-micro.tgz",
     ],
@@ -20,7 +19,7 @@ homeworld_aci(
     visibility = ["//visibility:public"],
 )
 
-homeworld_aci(
+homeworld_oci(
     name = "dnsmasq-nanny",
     bin = {
         "@com_github_kubernetes_dns//cmd/dnsmasq-nanny": "/usr/bin/dnsmasq-nanny",
@@ -28,9 +27,8 @@ homeworld_aci(
     data = {
         ":empty": "/etc/k8s/dns/dnsmasq-nanny",
     },
-    aci_dep = ":dnsmasq",
+    oci_dep = ":dnsmasq",
     exec = ["/usr/bin/dnsmasq-nanny"],
-    aciname = "homeworld.private/dnsmasq-nanny",
     visibility = ["//visibility:public"],
 )
 

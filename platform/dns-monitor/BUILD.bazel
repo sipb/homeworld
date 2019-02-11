@@ -1,5 +1,5 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
-load("//bazel:package.bzl", "homeworld_aci")
+load("//bazel:package.bzl", "homeworld_oci")
 load("//bazel:substitute.bzl", "substitute")
 
 go_library(
@@ -20,12 +20,11 @@ go_binary(
     visibility = ["//visibility:public"],
 )
 
-homeworld_aci(
-    name = "aci",
+homeworld_oci(
+    name = "oci",
     bin = {
         ":dns-monitor": "/usr/bin/dns-monitor",
     },
-    aciname = "homeworld.private/dns-monitor",
     exec = ["/usr/bin/dns-monitor"],
     visibility = ["//visibility:public"],
 )

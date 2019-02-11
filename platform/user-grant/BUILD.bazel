@@ -1,5 +1,5 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
-load("//bazel:package.bzl", "homeworld_aci")
+load("//bazel:package.bzl", "homeworld_oci")
 load("//bazel:substitute.bzl", "substitute")
 
 go_library(
@@ -20,13 +20,12 @@ go_binary(
     pure = "on",
 )
 
-homeworld_aci(
-    name = "aci",
+homeworld_oci(
+    name = "oci",
     bin = {
         ":user-grant": "/usr/bin/user-grant",
     },
     exec = ["/usr/bin/user-grant"],
-    aciname = "homeworld.private/user-grant",
     visibility = ["//visibility:public"],
 )
 

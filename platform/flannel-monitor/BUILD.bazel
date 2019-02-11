@@ -1,14 +1,13 @@
-load("//bazel:package.bzl", "homeworld_aci")
+load("//bazel:package.bzl", "homeworld_oci")
 load("//bazel:substitute.bzl", "substitute")
 
-homeworld_aci(
-    name = "aci",
+homeworld_oci(
+    name = "oci",
     bin = {
         "//flannel-monitor/monitor": "/usr/bin/flannel-monitor",
         "//flannel-monitor/reflector": "/usr/bin/flannel-monitor-reflector",
         "//flannel-monitor/collector": "/usr/bin/flannel-monitor-collector",
     },
-    aciname = "homeworld.private/flannel-monitor",
     visibility = ["//visibility:public"],
 )
 

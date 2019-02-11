@@ -1,4 +1,4 @@
-load("//bazel:package.bzl", "homeworld_aci")
+load("//bazel:package.bzl", "homeworld_oci")
 
 cc_binary(
     name = "pullcheck",
@@ -6,12 +6,11 @@ cc_binary(
     features = ["fully_static_link"],
 )
 
-homeworld_aci(
-    name = "aci",
+homeworld_oci(
+    name = "oci",
     bin = {
         ":pullcheck": "/usr/bin/pullcheck",
     },
-    aciname = "homeworld.private/pullcheck",
     exec = ["/usr/bin/pullcheck"],
     visibility = ["//visibility:public"],
 )

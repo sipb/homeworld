@@ -1,5 +1,5 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary")
-load("//bazel:package.bzl", "homeworld_aci")
+load("//bazel:package.bzl", "homeworld_oci")
 
 go_binary(
     name = "kube-dns",
@@ -10,12 +10,11 @@ go_binary(
     pure = "on",
 )
 
-homeworld_aci(
+homeworld_oci(
     name = "kube-dns-main",
     bin = {
         ":kube-dns": "/usr/bin/kube-dns",
     },
-    aciname = "homeworld.private/kube-dns-main",
     exec = ["/usr/bin/kube-dns"],
     visibility = ["//visibility:public"],
 )
@@ -29,12 +28,11 @@ go_binary(
     pure = "on",
 )
 
-homeworld_aci(
+homeworld_oci(
     name = "kube-dns-sidecar",
     bin = {
         ":sidecar": "/usr/bin/sidecar",
     },
-    aciname = "homeworld.private/kube-dns-sidecar",
     exec = ["/usr/bin/sidecar"],
     visibility = ["//visibility:public"],
 )

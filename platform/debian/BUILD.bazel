@@ -1,4 +1,4 @@
-load("//bazel:package.bzl", "homeworld_aci")
+load("//bazel:package.bzl", "homeworld_oci")
 load(":debian.bzl", "debootstrap")
 
 SNAPSHOT = "20180710T043017Z"
@@ -38,10 +38,9 @@ debootstrap(
     visibility = ["//visibility:public"],
 )
 
-homeworld_aci(
+homeworld_oci(
     name = "debian",
     deps = [":debian.tgz"],
-    aciname = "homeworld.private/debian",
     exec = ["/bin/bash"],
     visibility = ["//visibility:public"],
 )
@@ -66,10 +65,9 @@ debootstrap(
     visibility = ["//visibility:public"],
 )
 
-homeworld_aci(
+homeworld_oci(
     name = "debian-mini",
     deps = [":debian-mini.tgz"],
-    aciname = "homeworld.private/debian-mini",
     exec = ["/bin/bash"],
     visibility = ["//visibility:public"],
 )
@@ -106,10 +104,9 @@ debootstrap(
     visibility = ["//visibility:public"],
 )
 
-homeworld_aci(
+homeworld_oci(
     name = "debian-micro",
     deps = [":debian-micro.tgz"],
-    aciname = "homeworld.private/debian-micro",
     exec = ["/bin/bash"],
     visibility = ["//visibility:public"],
 )
