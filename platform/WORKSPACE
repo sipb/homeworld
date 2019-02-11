@@ -84,6 +84,16 @@ http_archive(
     build_file = "//dnsmasq:BUILD.import",
 )
 
+# docker-registry
+
+go_repository(
+    name = "com_github_docker_distribution",
+    commit = "2461543d988979529609e8cb6fca9ca190dc48da",
+    importpath = "github.com/docker/distribution",
+    build_external = "vendored",
+    patches = ["//docker-registry:docker-registry.patch"],
+)
+
 # etcd
 
 go_repository_alt(

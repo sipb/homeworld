@@ -245,6 +245,9 @@ def setup_bootstrap_registry(ops: Operations) -> None:
         if node.kind != "supervisor":
             continue
 
+        ops.ssh("enable docker-registry on @HOST", node, "systemctl", "enable", "docker-registry")
+        ops.ssh("restart docker-registry on @HOST", node, "systemctl", "restart", "docker-registry")
+
         ops.ssh("unmask nginx on @HOST", node, "systemctl", "unmask", "nginx")
         ops.ssh("enable nginx on @HOST", node, "systemctl", "enable", "nginx")
         ops.ssh("restart nginx on @HOST", node, "systemctl", "restart", "nginx")

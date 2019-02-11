@@ -1,0 +1,8 @@
+--- vendor/github.com/gorilla/mux/BUILD.bazel	2019-02-10 00:37:52.456000000 -0500
++++ vendor/github.com/gorilla/mux/BUILD.bazel	2019-02-10 00:37:45.853000000 -0500
+@@ -13,5 +13,4 @@
+     importmap = "github.com/docker/distribution/vendor/github.com/gorilla/mux",
+     importpath = "github.com/gorilla/mux",
+     visibility = ["//visibility:public"],
+-    deps = ["//vendor/github.com/gorilla/context:go_default_library"],
+ )

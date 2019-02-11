@@ -1,0 +1,23 @@
+load("//bazel:package.bzl", "homeworld_deb")
+
+homeworld_deb(
+    name = "package",
+    bin = {
+        "@com_github_docker_distribution//cmd/registry": "/usr/bin/docker-registry",
+    },
+    data = {
+        ":homeworld": "/etc/nginx/sites-available/homeworld",
+        ":docker-registry.yaml": "/etc/homeworld/config/docker-registry.yaml",
+        ":docker-registry.service": "/usr/lib/systemd/system/docker-registry.service",
+    },
+    package = "homeworld-docker-registry",
+    depends = [
+        "nginx",
+    ],
+    prerm = ":prerm.sh",
+    postinst = ":postinst.sh",
+    visibility = ["//visibility:public"],
+)
+
+# TODO: readd LDFLAGS
+# GO_LDFLAGS=-ldflags '-s -w -X $(PKG)/version.Version=$(VERSION) -X $(PKG)/version.Revision=$(REVISION) -X $(PKG)/version.Package=$(PKG) $(EXTRA_LDFLAGS)'

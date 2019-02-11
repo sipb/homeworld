@@ -29,7 +29,7 @@ in-target dpkg --install /homeworld-*.deb
 rm /target/homeworld-*.deb
 in-target apt-get update
 in-target apt-get install --fix-broken --yes homeworld-keysystem homeworld-prometheus-node-exporter \
-    homeworld-services homeworld-bootstrap-registry homeworld-prometheus homeworld-auth-monitor
+    homeworld-services homeworld-docker-registry homeworld-prometheus homeworld-auth-monitor
 
 in-target systemctl enable keyclient.service prometheus-node-exporter.service rkt-gc.timer
 in-target systemctl enable homeworld-autostart.service update-keyclient-config.service

@@ -1,0 +1,12 @@
+[Unit]
+Description=Docker Registry
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/bin/docker-registry serve /etc/homeworld/config/docker-registry.yaml
+Restart=always
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

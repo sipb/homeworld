@@ -1,0 +1,16 @@
+version: 0.1
+storage:
+  delete:
+    enabled: true
+  cache:
+    blobdescriptor: inmemory
+  filesystem:
+    rootdirectory: /var/lib/registry
+http:
+  # unauthenticated, but scoped to JUST localhost.
+  # we use an nginx proxy to limit external clients to just read operations.
+  # TODO: secure this better against local attackers
+  addr: 127.0.0.1:580
+  headers:
+    X-Content-Type-Options: [nosniff]
+threshold: 3
