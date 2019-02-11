@@ -1,5 +1,7 @@
 load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar", "pkg_deb")
 load("//bazel:version.bzl", "hash_compute", "version_compute")
+load("//bazel:oci_digest.bzl", "oci_digest")
+load("@io_bazel_rules_docker//container:container.bzl", "container_image")
 
 def homeworld_deb(name, package, bin=None, data=None, deps=None, depends=None, prerm=None, postrm=None, preinst=None, postinst=None, visibility=None):
     pkg_tar(
@@ -173,6 +175,52 @@ def homeworld_aci(name, aciname, bin=None, data=None, deps=None, aci_dep=None, p
         },
         deps = [name + "-rootdir"],
         mode = "0644",
+        visibility = visibility,
+    )
+
+def homeworld_oci(name, bin=None, data=None, deps=None, oci_dep=None, ports=None, exec=None, visibility=None):
+    pkg_tar(
+        name = name + "-contents-bin",
+        files = bin or {},
+        mode = "0755",
+    )
+    pkg_tar(
+        name = name + "-contents-data",
+        files = data or {},
+        mode = "0644",
+    )
+    tar_deps = [
+        name + "-contents-bin",
+        name + "-contents-data",
+    ]
+    if deps:
+        tar_deps += deps
+
+    container_image(
+        name = name,
+        repository = "homeworld.private",
+        base = oci_dep,
+        cmd = exec,
+        tars = tar_deps,
+        ports = ports,
+        visibility = visibility,
+    )
+
+    # version references are provided by <name>.ocidigest, which is the sha256:AAA....AAA identifier that we can use to
+    # pin a particular image for deployment.
+    oci_digest(
+        name = name + ".ocidigest",
+        image = name,
+        visibility = visibility,
+    )
+
+    # to facilitate our rather unfortunate tag workaround, we need a hash-only digest, not including the
+    # sha256: prefix. this is a stop-gap solution and should be removed once we've switched away from rkt.
+    native.genrule(
+        name = name + ".shortdigest-rule",
+        srcs = [name + ".ocidigest"],
+        outs = [name + ".shortdigest"],
+        cmd = "cut -d ':' -f 2 <'$<' >'$@'",
         visibility = visibility,
     )
 
