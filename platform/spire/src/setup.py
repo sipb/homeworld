@@ -253,6 +253,17 @@ def setup_bootstrap_registry(ops: Operations) -> None:
         ops.ssh("restart nginx on @HOST", node, "systemctl", "restart", "nginx")
 
 
+def update_registry(ops: Operations) -> None:
+    config = configuration.get_config()
+    for node in config.nodes:
+        if node.kind != "supervisor":
+            continue
+
+        ops.ssh("update apt repositories on @HOST", node, "apt-get", "update")
+        ops.ssh("update package of OCIs on @HOST", node, "apt-get", "install", "-y", "homeworld-oci-pack")
+        ops.ssh("re-push OCIs to registry on @HOST", node, "/usr/lib/homeworld/push-ocis.sh")
+
+
 def setup_prometheus(ops: Operations) -> None:
     config = configuration.get_config()
     for node in config.nodes:
@@ -280,5 +291,6 @@ main_command = command.mux_map("commands about setting up a cluster", {
     "dns-bootstrap": wrapop("switch cluster nodes into 'bootstrapped DNS' mode", setup_dns_bootstrap),
     "stop-dns-bootstrap": wrapop("switch cluster nodes out of 'bootstrapped DNS' mode", teardown_dns_bootstrap),
     "bootstrap-registry": wrapop("bring up the bootstrap container registry on the supervisor nodes", setup_bootstrap_registry),
+    "update-registry": wrapop("upload the latest container versions to the bootstrap container registry", update_registry),
     "prometheus": wrapop("bring up the supervisor node prometheus instance", setup_prometheus),
 })

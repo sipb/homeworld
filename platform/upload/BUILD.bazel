@@ -1,16 +1,17 @@
 load(":upload.bzl", "upload")
 load("//bazel:version.bzl", "generate_version_cache")
+load(":container_push.bzl", "oci_pusher")
 
-acis = [
-    "//aci-pull-monitor/pullcheck:aci",
-    "//dns-monitor:aci",
-    "//dnsmasq:dnsmasq-nanny",
-    "//flannel:aci",
-    "//flannel-monitor:aci",
-    "//kube-dns:kube-dns-main",
-    "//kube-dns:kube-dns-sidecar",
-    "//user-grant:aci",
-]
+ocis = {
+    "pullcheck": "//aci-pull-monitor/pullcheck:oci",
+    "dns-monitor": "//dns-monitor:oci",
+    "dnsmasq-nanny": "//dnsmasq:dnsmasq-nanny",
+    "flannel": "//flannel:oci",
+    "flannel-monitor": "//flannel-monitor:oci",
+    "kube-dns-main": "//kube-dns:kube-dns-main",
+    "kube-dns-sidecar": "//kube-dns:kube-dns-sidecar",
+    "user-grant": "//user-grant:oci",
+}
 
 debs = [
     "//aci-pull-monitor/aci-pull-monitor:package",
@@ -34,17 +35,21 @@ debs = [
     "//spire/debian-iso:package",
 ]
 
+debs += oci_pusher(
+    name = "oci-pack",
+    packagebase = "homeworld-oci-pack",
+    images = ocis,
+)
+
 upload(
     name = "upload",
     new_version_cache = ":new-version-cache",
-    acis = acis,
     debs = debs,
     visibility = ["//visibility:public"],
 )
 
 generate_version_cache(
     name = "new-version-cache",
-    acis = acis,
     debs = debs,
 )
 

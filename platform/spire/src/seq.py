@@ -35,6 +35,7 @@ def sequence_supervisor(ops: setup.Operations) -> None:
     ops.add_subcommand(setup.setup_prometheus)
     ops.add_subcommand(sequence_ssh)
     ops.add_subcommand(setup.setup_bootstrap_registry)
+    ops.add_subcommand(setup.update_registry)
 
     ops.add_operation("pre-deploy flannel", deploy.launch_flannel)
     ops.add_operation("pre-deploy dns-addon", deploy.launch_dns_addon)
