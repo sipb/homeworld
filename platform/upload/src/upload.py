@@ -25,6 +25,7 @@ https_validate_certificates = True
 content_language = en
 default_api_version = 2
 default_project_id = %s
+parallel_composite_upload_threshold = 100M
 """.lstrip()
 
 
