@@ -1,38 +1,42 @@
 load(":upload.bzl", "upload")
 
+acis = [
+    "//aci-pull-monitor/pullcheck:aci",
+    "//dns-monitor:aci",
+    "//dnsmasq:dnsmasq-nanny",
+    "//flannel:aci",
+    "//flannel-monitor:aci",
+    "//kube-dns:kube-dns-main",
+    "//kube-dns:kube-dns-sidecar",
+    "//user-grant:aci",
+]
+
+debs = [
+    "//aci-pull-monitor/aci-pull-monitor:package.deb",
+    "//apt-setup:package.deb",
+    "//auth-monitor:package.deb",
+    "//autostart:package.deb",
+    "//bootstrap-registry:package.deb",
+    "//etcd:package.deb",
+    "//etcd-metrics-exporter:package.deb",
+    "//keysystem:package.deb",
+    "//knc:package.deb",
+    "//kube-state-metrics:package.deb",
+    "//kubernetes:hyperkube.deb",
+    "//prometheus:package.deb",
+    "//prometheus-node-exporter:package.deb",
+    "//rkt:package.deb",
+    "//rkt-config:package.deb",
+    "//services:package.deb",
+    "//setup-queue:package.deb",
+    "//spire:package.deb",
+    "//spire/debian-iso:package.deb",
+]
+
 upload(
     name = "upload",
-    acis = [
-        "//aci-pull-monitor/pullcheck:aci",
-        "//dns-monitor:aci",
-        "//dnsmasq:dnsmasq-nanny",
-        "//flannel:aci",
-        "//flannel-monitor:aci",
-        "//kube-dns:kube-dns-main",
-        "//kube-dns:kube-dns-sidecar",
-        "//user-grant:aci",
-    ],
-    debs = [
-        "//aci-pull-monitor/aci-pull-monitor:package.deb",
-        "//apt-setup:package.deb",
-        "//auth-monitor:package.deb",
-        "//autostart:package.deb",
-        "//bootstrap-registry:package.deb",
-        "//etcd:package.deb",
-        "//etcd-metrics-exporter:package.deb",
-        "//keysystem:package.deb",
-        "//knc:package.deb",
-        "//kube-state-metrics:package.deb",
-        "//kubernetes:hyperkube.deb",
-        "//prometheus:package.deb",
-        "//prometheus-node-exporter:package.deb",
-        "//rkt:package.deb",
-        "//rkt-config:package.deb",
-        "//services:package.deb",
-        "//setup-queue:package.deb",
-        "//spire:package.deb",
-        "//spire/debian-iso:package.deb",
-    ],
+    acis = acis,
+    debs = debs,
     visibility = ["//visibility:public"],
 )
 
