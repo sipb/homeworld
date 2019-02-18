@@ -40,8 +40,8 @@ def homeworld_deb(name, package, bin=None, data=None, deps=None, depends=None, p
 def _escape(s):
     return "'" + s.replace("'", "'\"'\"'") + "'"
 
-def aci_manifest(name, aciname, ports=None, exec=None, visibility=None):
-    cmdline = "./$(location //bazel:aci-manifest-gen) $(location //:VERSION) " + _escape(aciname)
+def aci_manifest(name, aciname, version_file, ports=None, exec=None, visibility=None):
+    cmdline = "./$(location //bazel:aci-manifest-gen) $(location " + version_file + ") " + _escape(aciname)
     if exec != None:
         if type(exec) != type([]):
             fail("exec parameter to aci_manifest must be a list, or None")
@@ -56,7 +56,7 @@ def aci_manifest(name, aciname, ports=None, exec=None, visibility=None):
     cmdline += " >\"$@\""
     native.genrule(
         name = name,
-        srcs = ["//:VERSION"],
+        srcs = [version_file],
         tools = ["//bazel:aci-manifest-gen"],
         outs = [name + ".json"],
         cmd = cmdline,
@@ -99,6 +99,7 @@ def homeworld_aci(name, aciname, bin=None, data=None, deps=None, aci_dep=None, p
     aci_manifest(
         name = name + "-manifest",
         aciname = aciname,
+        version_file = "//:VERSION",
         exec = exec,
         ports = ports,
     )
