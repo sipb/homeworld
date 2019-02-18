@@ -9,3 +9,9 @@ native.py_binary(
     srcs = ["substitute.py"],
     visibility = ["//visibility:public"],
 )
+
+native.py_binary(
+    name = "hash-compute",
+    srcs = ["hash-compute.py"],
+    visibility = ["//visibility:public"],
+)

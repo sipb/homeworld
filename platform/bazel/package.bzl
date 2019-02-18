@@ -1,4 +1,5 @@
 load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar", "pkg_deb")
+load("//bazel:version.bzl", "hash_compute")
 
 def homeworld_deb(name, package, bin=None, data=None, deps=None, depends=None, prerm=None, postrm=None, preinst=None, postinst=None, visibility=None):
     pkg_tar(
@@ -20,6 +21,23 @@ def homeworld_deb(name, package, bin=None, data=None, deps=None, depends=None, p
             name + "-contents-data",
         ] + deps,
     )
+
+    hash_compute(
+        name = name + "-hash",
+        inputs = [
+            name + "-contents",
+            prerm,
+            postrm,
+            preinst,
+            postinst,
+        ],
+        strings = [
+            package,
+            " ".join(depends or []),
+        ],
+        visibility = visibility,
+    )
+
     pkg_deb(
         name = name,
         data = name + "-contents",
@@ -96,6 +114,24 @@ def homeworld_aci(name, aciname, bin=None, data=None, deps=None, aci_dep=None, p
         deps = tar_deps,
         package_dir = "/rootfs",
     )
+
+    hash_compute(
+        name = name + "-hash",
+        inputs = [
+            name + "-rootdir",
+        ],
+        strings = [
+            aciname,
+        ] + [
+            "x" + exec_i for exec_i in (exec or [])
+        ] + [
+            "p" + portname for portname in (ports or {}).keys()
+        ] + [
+            "P" + portinfo for portinfo in (ports or {}).values()
+        ],
+        visibility = visibility,
+    )
+
     aci_manifest(
         name = name + "-manifest",
         aciname = aciname,
