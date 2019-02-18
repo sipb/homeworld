@@ -37,6 +37,7 @@ def upload(name, acis=None, debs=None, visibility=None):
     else:
         args += ["--"]
     if debs:
+        debs = [deb + ".deb" for deb in debs]  # ensure that we only get the actual *PACKAGES*
         items = " ".join(['"$(location {})"'.format(item) for item in debs])
 
         ref = name + "-debs"
