@@ -37,3 +37,19 @@ def hash_compute(name, inputs, strings, visibility=None):
         inputs = [input for input in inputs if input],
         visibility = visibility,
     )
+
+def generate_version_cache(name, acis=None, debs=None, visibility=None):
+    targets = []
+    for artifact in (acis or []) + (debs or []):
+        targets += [
+            artifact + "-name",
+            artifact + "-hash",
+            artifact + "-version",
+        ]
+    _generate(
+        name = name,
+        tool = "//bazel:cache-compute",
+        arguments = ["$(location " + entry + ")" for entry in targets],
+        inputs = targets,
+        visibility = visibility,
+    )

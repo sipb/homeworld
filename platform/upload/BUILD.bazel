@@ -1,4 +1,5 @@
 load(":upload.bzl", "upload")
+load("//bazel:version.bzl", "generate_version_cache")
 
 acis = [
     "//aci-pull-monitor/pullcheck:aci",
@@ -38,6 +39,12 @@ upload(
     acis = acis,
     debs = debs,
     visibility = ["//visibility:public"],
+)
+
+generate_version_cache(
+    name = "new-version-cache",
+    acis = acis,
+    debs = debs,
 )
 
 sh_binary(

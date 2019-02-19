@@ -22,6 +22,7 @@ def homeworld_deb(name, package, bin=None, data=None, deps=None, depends=None, p
         ] + deps,
     )
 
+    # these three are all visible so that generate_version_cache can get this info
     hash_compute(
         name = name + "-hash",
         inputs = [
@@ -35,6 +36,12 @@ def homeworld_deb(name, package, bin=None, data=None, deps=None, depends=None, p
             package,
             " ".join(depends or []),
         ],
+        visibility = visibility,
+    )
+    native.genrule(
+        name = name + "-name-rule",
+        outs = [name + "-name"],
+        cmd = "echo " + _escape(package) + " >$@",
         visibility = visibility,
     )
     version_compute(
@@ -121,6 +128,7 @@ def homeworld_aci(name, aciname, bin=None, data=None, deps=None, aci_dep=None, p
         package_dir = "/rootfs",
     )
 
+    # these three are all visible so that generate_version_cache can get this info
     hash_compute(
         name = name + "-hash",
         inputs = [
@@ -135,6 +143,12 @@ def homeworld_aci(name, aciname, bin=None, data=None, deps=None, aci_dep=None, p
         ] + [
             "P" + portinfo for portinfo in (ports or {}).values()
         ],
+        visibility = visibility,
+    )
+    native.genrule(
+        name = name + "-name-rule",
+        outs = [name + "-name"],
+        cmd = "echo " + _escape(aciname) + " >$@",
         visibility = visibility,
     )
     version_compute(

@@ -21,3 +21,9 @@ native.py_binary(
     srcs = ["hash-compute.py"],
     visibility = ["//visibility:public"],
 )
+
+native.py_binary(
+    name = "cache-compute",
+    srcs = ["cache-compute.py"],
+    visibility = ["//visibility:public"],
+)
