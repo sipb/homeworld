@@ -1,4 +1,7 @@
 
+def _escape(s):
+    return "'" + s.replace("$", "$$").replace("'", "'\"'\"'") + "'"
+
 def _generate(name, tool, arguments, inputs, visibility=None):
     native.genrule(
         name = name + "-rule",
@@ -7,6 +10,20 @@ def _generate(name, tool, arguments, inputs, visibility=None):
         outs = [name],
         cmd = "./$(location " + tool + ") " + " ".join(arguments) + " >\"$@\"",
         visibility = visibility,
+    )
+
+def version_compute(name, package, hashfile, visibility=None):
+    cmdline = [
+        "$(location //:VERSION)",
+        _escape(package),
+        "$(location " + hashfile + ")",
+    ]
+    _generate(
+        name = name,
+        tool = "//bazel:version-compute",
+        arguments = cmdline,
+        inputs = ["//:VERSION", hashfile],
+        visibility = visibility
     )
 
 def hash_compute(name, inputs, strings, visibility=None):

@@ -11,6 +11,12 @@ native.py_binary(
 )
 
 native.py_binary(
+    name = "version-compute",
+    srcs = ["version-compute.py"],
+    visibility = ["//visibility:public"],
+)
+
+native.py_binary(
     name = "hash-compute",
     srcs = ["hash-compute.py"],
     visibility = ["//visibility:public"],

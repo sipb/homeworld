@@ -1,5 +1,5 @@
 load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar", "pkg_deb")
-load("//bazel:version.bzl", "hash_compute")
+load("//bazel:version.bzl", "hash_compute", "version_compute")
 
 def homeworld_deb(name, package, bin=None, data=None, deps=None, depends=None, prerm=None, postrm=None, preinst=None, postinst=None, visibility=None):
     pkg_tar(
@@ -37,6 +37,12 @@ def homeworld_deb(name, package, bin=None, data=None, deps=None, depends=None, p
         ],
         visibility = visibility,
     )
+    version_compute(
+        name = name + "-version",
+        package = package,
+        hashfile = name + "-hash",
+        visibility = visibility,
+    )
 
     pkg_deb(
         name = name,
@@ -44,7 +50,7 @@ def homeworld_deb(name, package, bin=None, data=None, deps=None, depends=None, p
         package = package,
         architecture = "amd64",
         maintainer = "Hyades Maintenance <sipb-hyades@mit.edu>",
-        version_file = "//:VERSION",
+        version_file = name + "-version",
         description = "Code deployment package",
         section = "misc",
         depends = depends,
@@ -131,11 +137,17 @@ def homeworld_aci(name, aciname, bin=None, data=None, deps=None, aci_dep=None, p
         ],
         visibility = visibility,
     )
+    version_compute(
+        name = name + "-version",
+        package = aciname,
+        hashfile = name + "-hash",
+        visibility = visibility,
+    )
 
     aci_manifest(
         name = name + "-manifest",
         aciname = aciname,
-        version_file = "//:VERSION",
+        version_file = name + "-version",
         exec = exec,
         ports = ports,
     )
