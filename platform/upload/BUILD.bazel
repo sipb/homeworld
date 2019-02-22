@@ -55,6 +55,7 @@ sh_binary(
 exports_files([
     "BRANCH_NAME",
     "branches.yaml",
+    "version-cache",
 ])
 
 genrule(
