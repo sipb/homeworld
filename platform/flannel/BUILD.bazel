@@ -1,5 +1,6 @@
 load("//bazel:package.bzl", "homeworld_aci")
 load("//debian:debian.bzl", "debinstall")
+load("//bazel:substitute.bzl", "substitute")
 
 debinstall(
     name = "debian-mini-with-iptables.tgz",
@@ -21,8 +22,8 @@ homeworld_aci(
     visibility = ["//visibility:public"],
 )
 
-alias(
+substitute(
     name = "kubernetes.yaml",
-    actual = ":kubernetes.yaml.in",
+    template = ":kubernetes.yaml.in",
     visibility = ["//visibility:public"],
 )

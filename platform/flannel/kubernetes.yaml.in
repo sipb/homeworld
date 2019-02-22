@@ -15,9 +15,9 @@ metadata:
     app: flannel
 data:
   net-conf.json: |
-    {
-      "Network": "{{NETWORK}}"
-    }
+    {{
+      "Network": "{{{{NETWORK}}}}"
+    }}
 ---
 apiVersion: extensions/v1beta1
 kind: DaemonSet
@@ -45,7 +45,7 @@ spec:
       serviceAccountName: flannel
       containers:
       - name: kube-flannel
-        image: homeworld.private/flannel:{{VERSION}}
+        image: homeworld.private/flannel:{{{{VERSION}}}}
         command: [ "/usr/bin/flanneld", "--ip-masq", "--kube-subnet-mgr" ]
         securityContext:
           privileged: true

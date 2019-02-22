@@ -10,7 +10,7 @@ metadata:
 spec:
   selector:
     k8s-app: kube-dns
-  clusterIP: {{SERVIP_DNS}}
+  clusterIP: {{{{SERVIP_DNS}}}}
   ports:
   - name: dns
     port: 53
@@ -40,15 +40,15 @@ spec:
         version: v20
       annotations:
         scheduler.alpha.kubernetes.io/critical-pod: ''
-        scheduler.alpha.kubernetes.io/tolerations: '[{"key":"CriticalAddonsOnly", "operator":"Exists"}]'
+        scheduler.alpha.kubernetes.io/tolerations: '[{{"key":"CriticalAddonsOnly", "operator":"Exists"}}]'
         homeworld.mit.edu/unsupported-fetch-info: aci
     spec:
       containers:
       - name: kubedns
-        image: homeworld.private/kube-dns-main:{{VERSION}}
+        image: homeworld.private/kube-dns-main:{{{{VERSION}}}}
         args:
         - /usr/bin/kube-dns
-        - --domain={{INTERNAL_DOMAIN}}.
+        - --domain={{{{INTERNAL_DOMAIN}}}}.
         - --dns-port=10053
         - -v=2
         env:
@@ -65,7 +65,7 @@ spec:
           name: metrics
           protocol: TCP
       - name: dnsmasq
-        image: homeworld.private/dnsmasq-nanny:{{VERSION}}
+        image: homeworld.private/dnsmasq-nanny:{{{{VERSION}}}}
         args:
         - /usr/bin/dnsmasq-nanny
         - -v=2
@@ -77,7 +77,7 @@ spec:
         - --cache-size=1000
         - --no-negcache
         - --log-facility=-
-        - --server=/{{INTERNAL_DOMAIN}}/127.0.0.1#10053
+        - --server=/{{{{INTERNAL_DOMAIN}}}}/127.0.0.1#10053
         - --server=/in-addr.arpa/127.0.0.1#10053
         - --server=/ip6.arpa/127.0.0.1#10053
         ports:
@@ -88,13 +88,13 @@ spec:
           name: dns-tcp
           protocol: TCP
       - name: sidecar
-        image: homeworld.private/kube-dns-sidecar:{{VERSION}}
+        image: homeworld.private/kube-dns-sidecar:{{{{VERSION}}}}
         args:
         - /usr/bin/sidecar
         - --v=2
         - --logtostderr
-        - --probe=kubedns,127.0.0.1:10053,kubernetes.default.svc.{{INTERNAL_DOMAIN}},5,A
-        - --probe=dnsmasq,127.0.0.1:53,kubernetes.default.svc.{{INTERNAL_DOMAIN}},5,A
+        - --probe=kubedns,127.0.0.1:10053,kubernetes.default.svc.{{{{INTERNAL_DOMAIN}}}},5,A
+        - --probe=dnsmasq,127.0.0.1:53,kubernetes.default.svc.{{{{INTERNAL_DOMAIN}}}},5,A
         ports:
         - containerPort: 10054
           name: metrics

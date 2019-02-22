@@ -44,11 +44,11 @@ spec:
       serviceAccountName: dns-monitor
       containers:
       - name: kube-dns-monitor
-        image: homeworld.private/dns-monitor:{{VERSION}}
+        image: homeworld.private/dns-monitor:{{{{VERSION}}}}
         command:
         - /usr/bin/dns-monitor
-        - kubernetes.default.svc.{{INTERNAL_DOMAIN}}={{SERVIP_API}}
-        - kube-dns.kube-system.svc.{{INTERNAL_DOMAIN}}={{SERVIP_DNS}}
+        - kubernetes.default.svc.{{{{INTERNAL_DOMAIN}}}}={{{{SERVIP_API}}}}
+        - kube-dns.kube-system.svc.{{{{INTERNAL_DOMAIN}}}}={{{{SERVIP_DNS}}}}
         resources:
           limits:
             memory: 150Mi

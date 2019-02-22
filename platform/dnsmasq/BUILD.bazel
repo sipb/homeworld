@@ -1,4 +1,5 @@
 load("//bazel:package.bzl", "homeworld_aci")
+load("//bazel:substitute.bzl", "substitute")
 
 # originally based on https://github.com/kubernetes/dns builds
 
@@ -39,8 +40,8 @@ genrule(
     cmd = "mkdir $@",
 )
 
-alias(
+substitute(
     name = "kubernetes.yaml",
-    actual = ":kubernetes.yaml.in",
+    template = ":kubernetes.yaml.in",
     visibility = ["//visibility:public"],
 )

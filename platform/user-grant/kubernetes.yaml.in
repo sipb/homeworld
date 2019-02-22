@@ -50,10 +50,10 @@ metadata:
   namespace: kube-system
 type: Opaque
 data:
-  server.key: {{SERVER_KEY_BASE64}}
-  server.pem: {{SERVER_CERT_BASE64}}
-  issuer.key: {{ISSUER_KEY_BASE64}}
-  issuer.pem: {{ISSUER_CERT_BASE64}}
+  server.key: {{{{SERVER_KEY_BASE64}}}}
+  server.pem: {{{{SERVER_CERT_BASE64}}}}
+  issuer.key: {{{{ISSUER_KEY_BASE64}}}}
+  issuer.pem: {{{{ISSUER_CERT_BASE64}}}}
 ---
 apiVersion: v1
 kind: ReplicationController
@@ -75,7 +75,7 @@ spec:
     spec:
       containers:
       - name: user-grant
-        image: homeworld.private/user-grant:{{VERSION}}
+        image: homeworld.private/user-grant:{{{{VERSION}}}}
         command:
         - /usr/bin/user-grant
         - upstream-ca=/config/mit-ca.pem
@@ -84,7 +84,7 @@ spec:
         - server-cert=/secret/server.pem
         - issuer-key=/secret/issuer.key
         - issuer-cert=/secret/issuer.pem
-        - "apiserver={{SOME_APISERVER}}"
+        - "apiserver={{{{SOME_APISERVER}}}}"
         - email-domain=MIT.EDU  # TODO: parameterize
         ports:
         - containerPort: 443

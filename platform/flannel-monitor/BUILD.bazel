@@ -1,4 +1,5 @@
 load("//bazel:package.bzl", "homeworld_aci")
+load("//bazel:substitute.bzl", "substitute")
 
 homeworld_aci(
     name = "aci",
@@ -11,8 +12,8 @@ homeworld_aci(
     visibility = ["//visibility:public"],
 )
 
-alias(
+substitute(
     name = "kubernetes.yaml",
-    actual = ":kubernetes.yaml.in",
+    template = ":kubernetes.yaml.in",
     visibility = ["//visibility:public"],
 )

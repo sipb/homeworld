@@ -1,5 +1,6 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 load("//bazel:package.bzl", "homeworld_aci")
+load("//bazel:substitute.bzl", "substitute")
 
 go_library(
     name = "go_default_library",
@@ -29,8 +30,8 @@ homeworld_aci(
     visibility = ["//visibility:public"],
 )
 
-alias(
+substitute(
     name = "kubernetes.yaml",
-    actual = ":kubernetes.yaml.in",
+    template = ":kubernetes.yaml.in",
     visibility = ["//visibility:public"],
 )

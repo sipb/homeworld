@@ -29,7 +29,7 @@ spec:
       serviceAccountName: flannel-monitor
       containers:
       - name: kube-flannel-monitor
-        image: homeworld.private/flannel-monitor:{{VERSION}}
+        image: homeworld.private/flannel-monitor:{{{{VERSION}}}}
         env:
         - name: POD_NAME
           valueFrom:
@@ -40,7 +40,7 @@ spec:
             fieldRef:
               fieldPath: metadata.namespace
         - name: FLANNEL_NETWORK
-          value: "{{NETWORK}}"
+          value: "{{{{NETWORK}}}}"
         resources:
           limits:
             memory: 150Mi
@@ -73,7 +73,7 @@ spec:
       serviceAccountName: flannel-monitor
       containers:
       - name: kube-flannel-monitor
-        image: homeworld.private/flannel-monitor:{{VERSION}}
+        image: homeworld.private/flannel-monitor:{{{{VERSION}}}}
         env:
         - name: POD_NAME
           valueFrom:
@@ -130,7 +130,7 @@ spec:
       serviceAccountName: flannel-monitor
       containers:
       - name: kube-flannel-monitor
-        image: homeworld.private/flannel-monitor:{{VERSION}}
+        image: homeworld.private/flannel-monitor:{{{{VERSION}}}}
         env:
         - name: POD_NAMESPACE
           valueFrom:
