@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/sipb/homeworld/platform/keysystem/keyclient/setup"
 	"log"
 	"os"
+
+	"github.com/sipb/homeworld/platform/keysystem/keyclient/setup"
 )
 
 // the keyclient is a daemon with a few different responsibilities:

@@ -3,12 +3,13 @@ package server
 import (
 	"crypto/tls"
 	"encoding/pem"
-	"github.com/sipb/homeworld/platform/keysystem/api/reqtarget"
-	"github.com/sipb/homeworld/platform/util/testkeyutil"
-	"github.com/sipb/homeworld/platform/util/testutil"
 	"io/ioutil"
 	"net/http"
 	"testing"
+
+	"github.com/sipb/homeworld/platform/keysystem/api/reqtarget"
+	"github.com/sipb/homeworld/platform/util/testkeyutil"
+	"github.com/sipb/homeworld/platform/util/testutil"
 )
 
 func TestKeyserver_AuthenticateWithCert(t *testing.T) {

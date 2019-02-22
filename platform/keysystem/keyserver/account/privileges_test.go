@@ -5,13 +5,14 @@ import (
 	"crypto/tls"
 	"encoding/base64"
 	"fmt"
-	"github.com/sipb/homeworld/platform/keysystem/keyserver/authorities"
-	"github.com/sipb/homeworld/platform/keysystem/keyserver/token"
 	"golang.org/x/crypto/ssh"
 	"net"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/authorities"
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/token"
 )
 
 const (

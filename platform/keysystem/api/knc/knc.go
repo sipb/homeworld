@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os/exec"
+
 	"github.com/sipb/homeworld/platform/keysystem/api/reqtarget"
 	"github.com/sipb/homeworld/platform/util/osutil"
-	"os/exec"
 )
 
 type KncServer struct {

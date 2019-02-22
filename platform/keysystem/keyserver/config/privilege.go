@@ -3,11 +3,12 @@ package config
 import (
 	"errors"
 	"fmt"
+	"strconv"
+	"time"
+
 	"github.com/sipb/homeworld/platform/keysystem/keyserver/account"
 	"github.com/sipb/homeworld/platform/keysystem/keyserver/authorities"
 	"github.com/sipb/homeworld/platform/util/strutil"
-	"strconv"
-	"time"
 )
 
 type CompiledGrant struct {

@@ -4,10 +4,11 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"net/url"
+
 	"github.com/sipb/homeworld/platform/keysystem/api/endpoint"
 	"github.com/sipb/homeworld/platform/keysystem/api/knc"
 	"github.com/sipb/homeworld/platform/keysystem/api/reqtarget"
-	"net/url"
 )
 
 type authenticated struct {

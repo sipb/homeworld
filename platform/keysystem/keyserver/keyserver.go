@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/sipb/homeworld/platform/keysystem/keyserver/keyapi"
 	"log"
 	"os"
+
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/keyapi"
 )
 
 func main() {

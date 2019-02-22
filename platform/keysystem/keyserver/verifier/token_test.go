@@ -1,12 +1,13 @@
 package verifier
 
 import (
-	"github.com/sipb/homeworld/platform/keysystem/keyserver/token"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/token"
 )
 
 func getTestRequest(token string) *http.Request {

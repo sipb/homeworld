@@ -2,9 +2,10 @@ package token
 
 import (
 	"fmt"
-	"github.com/sipb/homeworld/platform/keysystem/keyserver/token/scoped"
 	"sync"
 	"time"
+
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/token/scoped"
 )
 
 type TokenRegistry struct {

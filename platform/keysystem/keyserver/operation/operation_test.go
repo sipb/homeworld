@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/sipb/homeworld/platform/keysystem/keyserver/account"
-	"github.com/sipb/homeworld/platform/keysystem/keyserver/config"
 	"log"
 	"strings"
 	"testing"
+
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/account"
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/config"
 )
 
 func TestInvokeAPIOperation(t *testing.T) {

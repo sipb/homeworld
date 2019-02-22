@@ -2,12 +2,13 @@ package config
 
 import (
 	"bytes"
-	"github.com/sipb/homeworld/platform/keysystem/keyserver/account"
-	"github.com/sipb/homeworld/platform/keysystem/keyserver/authorities"
 	"io/ioutil"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/account"
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/authorities"
 )
 
 func TestConfigAuthority_Load_TLS(t *testing.T) {

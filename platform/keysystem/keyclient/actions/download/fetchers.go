@@ -3,6 +3,7 @@ package download
 import (
 	"errors"
 	"fmt"
+
 	"github.com/sipb/homeworld/platform/keysystem/api/reqtarget"
 	"github.com/sipb/homeworld/platform/keysystem/api/server"
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/state"

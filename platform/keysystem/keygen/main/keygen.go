@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/sipb/homeworld/platform/keysystem/keygen"
-	"github.com/sipb/homeworld/platform/keysystem/keyserver/config"
 	"log"
 	"os"
+
+	"github.com/sipb/homeworld/platform/keysystem/keygen"
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/config"
 )
 
 func main() {

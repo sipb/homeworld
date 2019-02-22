@@ -3,10 +3,11 @@ package api
 import (
 	"crypto/tls"
 	"fmt"
-	"github.com/sipb/homeworld/platform/keysystem/api/reqtarget"
-	"github.com/sipb/homeworld/platform/keysystem/api/server"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
+
+	"github.com/sipb/homeworld/platform/keysystem/api/reqtarget"
+	"github.com/sipb/homeworld/platform/keysystem/api/server"
 )
 
 type Config struct {

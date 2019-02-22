@@ -1,13 +1,14 @@
 package keygen
 
 import (
+	"io/ioutil"
+	"os"
+	"testing"
+
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/config"
 	"github.com/sipb/homeworld/platform/util/fileutil"
 	"github.com/sipb/homeworld/platform/util/testutil"
 	"github.com/sipb/homeworld/platform/util/wraputil"
-	"io/ioutil"
-	"os"
-	"testing"
 )
 
 func TestPrepareKeygenAction_TLSPubkey_Disallowed(t *testing.T) {

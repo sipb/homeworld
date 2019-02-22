@@ -3,11 +3,12 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"github.com/sipb/homeworld/platform/keysystem/api"
-	"github.com/sipb/homeworld/platform/keysystem/api/reqtarget"
 	"io/ioutil"
 	"log"
 	"os"
+
+	"github.com/sipb/homeworld/platform/keysystem/api"
+	"github.com/sipb/homeworld/platform/keysystem/api/reqtarget"
 )
 
 func HandleRequest(principal string, request_data []byte, configfile string) ([]byte, error) {

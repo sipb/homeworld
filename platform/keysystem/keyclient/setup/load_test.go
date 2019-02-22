@@ -2,17 +2,18 @@ package setup
 
 import (
 	"bytes"
+	"io/ioutil"
+	"log"
+	"os"
+	"testing"
+	"time"
+
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/actions/bootstrap"
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/actions/download"
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/actions/keygen"
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/actions/keyreq"
 	"github.com/sipb/homeworld/platform/util/testkeyutil"
 	"github.com/sipb/homeworld/platform/util/testutil"
-	"io/ioutil"
-	"log"
-	"os"
-	"testing"
-	"time"
 )
 
 func TestLoad_Minimal(t *testing.T) {

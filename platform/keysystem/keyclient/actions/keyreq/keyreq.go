@@ -3,6 +3,12 @@ package keyreq
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"os"
+	"path/filepath"
+	"time"
+
 	"github.com/sipb/homeworld/platform/keysystem/api/reqtarget"
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/actloop"
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/config"
@@ -10,11 +16,6 @@ import (
 	"github.com/sipb/homeworld/platform/util/certutil"
 	"github.com/sipb/homeworld/platform/util/csrutil"
 	"github.com/sipb/homeworld/platform/util/fileutil"
-	"io/ioutil"
-	"log"
-	"os"
-	"path/filepath"
-	"time"
 )
 
 type RequestOrRenewAction struct {

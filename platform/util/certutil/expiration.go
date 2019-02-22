@@ -2,9 +2,10 @@ package certutil
 
 import (
 	"fmt"
-	"github.com/sipb/homeworld/platform/util/wraputil"
 	"golang.org/x/crypto/ssh"
 	"time"
+
+	"github.com/sipb/homeworld/platform/util/wraputil"
 )
 
 func CheckSSHCertExpiration(key []byte) (time.Time, error) {

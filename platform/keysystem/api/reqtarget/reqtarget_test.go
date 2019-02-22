@@ -2,8 +2,9 @@ package reqtarget
 
 import (
 	"errors"
-	"github.com/sipb/homeworld/platform/util/testutil"
 	"testing"
+
+	"github.com/sipb/homeworld/platform/util/testutil"
 )
 
 func TestSendRequest(t *testing.T) {

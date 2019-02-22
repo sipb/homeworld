@@ -8,6 +8,14 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
+	"io/ioutil"
+	"net"
+	"net/http"
+	"os"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/sipb/homeworld/platform/keysystem/api/reqtarget"
 	"github.com/sipb/homeworld/platform/keysystem/api/server"
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/config"
@@ -17,13 +25,6 @@ import (
 	"github.com/sipb/homeworld/platform/util/testkeyutil"
 	"github.com/sipb/homeworld/platform/util/testutil"
 	"github.com/sipb/homeworld/platform/util/wraputil"
-	"io/ioutil"
-	"net"
-	"net/http"
-	"os"
-	"strings"
-	"testing"
-	"time"
 )
 
 func TestPrepareBootstrapAction(t *testing.T) {

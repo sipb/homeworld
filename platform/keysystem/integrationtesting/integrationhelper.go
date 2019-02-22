@@ -9,8 +9,6 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"github.com/sipb/homeworld/platform/util/fileutil"
-	"github.com/sipb/homeworld/platform/util/wraputil"
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
 	"log"
@@ -21,6 +19,9 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/sipb/homeworld/platform/util/fileutil"
+	"github.com/sipb/homeworld/platform/util/wraputil"
 )
 
 func GenerateKeypair(commonname string, dns []string, ips []net.IP, parentkey *rsa.PrivateKey, parentcert *x509.Certificate) (*rsa.PrivateKey, *x509.Certificate, error) {

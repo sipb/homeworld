@@ -3,6 +3,7 @@ package server
 import (
 	"crypto/x509"
 	"fmt"
+
 	"github.com/sipb/homeworld/platform/keysystem/api/endpoint"
 	"github.com/sipb/homeworld/platform/util/wraputil"
 )

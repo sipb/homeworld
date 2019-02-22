@@ -6,13 +6,14 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
+	"log"
+	"os"
+	"time"
+
 	"github.com/sipb/homeworld/platform/keysystem/api/reqtarget"
 	"github.com/sipb/homeworld/platform/keysystem/api/server"
 	"github.com/sipb/homeworld/platform/keysystem/keyserver/config"
 	"github.com/sipb/homeworld/platform/util/wraputil"
-	"log"
-	"os"
-	"time"
 )
 
 func main() {

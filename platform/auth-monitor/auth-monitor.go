@@ -1,26 +1,26 @@
 package main
 
 import (
-	"fmt"
-	"net/http"
-	"time"
-
 	"bytes"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/tls"
+	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"golang.org/x/crypto/ssh"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"os"
+	"os/exec"
+	"strings"
+	"time"
+
 	"github.com/sipb/homeworld/platform/keysystem/api"
 	"github.com/sipb/homeworld/platform/keysystem/api/reqtarget"
 	"github.com/sipb/homeworld/platform/keysystem/api/server"
 	"github.com/sipb/homeworld/platform/util/osutil"
-	"golang.org/x/crypto/ssh"
-	"io/ioutil"
-	"log"
-	"os"
-	"os/exec"
-	"strings"
 )
 
 var (

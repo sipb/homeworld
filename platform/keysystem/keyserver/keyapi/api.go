@@ -4,14 +4,15 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
+
 	"github.com/sipb/homeworld/platform/keysystem/keyserver/account"
 	"github.com/sipb/homeworld/platform/keysystem/keyserver/config"
 	"github.com/sipb/homeworld/platform/keysystem/keyserver/operation"
 	"github.com/sipb/homeworld/platform/keysystem/keyserver/verifier"
 	"github.com/sipb/homeworld/platform/util/netutil"
-	"io/ioutil"
-	"log"
-	"net/http"
 )
 
 type Keyserver interface {

@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"crypto/rsa"
 	"crypto/tls"
-	"github.com/sipb/homeworld/platform/util/testkeyutil"
 	"strings"
 	"testing"
+
+	"github.com/sipb/homeworld/platform/util/testkeyutil"
 )
 
 const (

@@ -4,11 +4,12 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"encoding/pem"
-	"github.com/sipb/homeworld/platform/util/testkeyutil"
-	"github.com/sipb/homeworld/platform/util/testutil"
 	"golang.org/x/crypto/ssh"
 	"testing"
 	"time"
+
+	"github.com/sipb/homeworld/platform/util/testkeyutil"
+	"github.com/sipb/homeworld/platform/util/testutil"
 )
 
 func TestCheckSSHCertExpiration(t *testing.T) {

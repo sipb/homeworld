@@ -3,11 +3,12 @@ package config
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"path"
+
 	"github.com/sipb/homeworld/platform/keysystem/keyserver/account"
 	"github.com/sipb/homeworld/platform/keysystem/keyserver/authorities"
 	"github.com/sipb/homeworld/platform/keysystem/keyserver/verifier"
-	"io/ioutil"
-	"path"
 )
 
 type StaticFile struct {

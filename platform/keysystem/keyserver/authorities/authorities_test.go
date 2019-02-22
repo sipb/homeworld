@@ -2,9 +2,10 @@ package authorities
 
 import (
 	"bytes"
-	"github.com/sipb/homeworld/platform/util/testkeyutil"
 	"strings"
 	"testing"
+
+	"github.com/sipb/homeworld/platform/util/testkeyutil"
 )
 
 func TestLoadAuthority(t *testing.T) {

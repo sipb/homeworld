@@ -1,9 +1,10 @@
 package config
 
 import (
-	"github.com/sipb/homeworld/platform/util/testutil"
 	"reflect"
 	"testing"
+
+	"github.com/sipb/homeworld/platform/util/testutil"
 )
 
 func TestLoadConfig(t *testing.T) {

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/sipb/homeworld/platform/flannel-monitor/common"
 	"io/ioutil"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -14,6 +13,8 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/sipb/homeworld/platform/flannel-monitor/common"
 )
 
 var (

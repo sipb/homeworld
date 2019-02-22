@@ -7,12 +7,13 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"github.com/sipb/homeworld/platform/keysystem/keyclient/actloop"
-	"github.com/sipb/homeworld/platform/keysystem/keyclient/config"
-	"github.com/sipb/homeworld/platform/util/fileutil"
 	"log"
 	"os"
 	"path"
+
+	"github.com/sipb/homeworld/platform/keysystem/keyclient/actloop"
+	"github.com/sipb/homeworld/platform/keysystem/keyclient/config"
+	"github.com/sipb/homeworld/platform/util/fileutil"
 )
 
 const RSA_BITS = 4096

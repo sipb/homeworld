@@ -2,10 +2,10 @@ package operation
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 
-	"errors"
 	"github.com/sipb/homeworld/platform/keysystem/keyserver/account"
 	"github.com/sipb/homeworld/platform/keysystem/keyserver/config"
 )

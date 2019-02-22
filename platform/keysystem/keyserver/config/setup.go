@@ -3,11 +3,12 @@ package config
 import (
 	"errors"
 	"fmt"
-	"github.com/sipb/homeworld/platform/keysystem/keyserver/account"
-	"github.com/sipb/homeworld/platform/keysystem/keyserver/authorities"
 	"net"
 	"os"
 	"path"
+
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/account"
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/authorities"
 )
 
 var setup_steps = []SetupStep{CompileStaticFiles, CompileAuthorities, CompileGlobalAuthorities, CompileGroups, CompileAccounts, CompileGrants}

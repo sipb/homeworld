@@ -1,9 +1,10 @@
 package wraputil
 
 import (
-	"github.com/sipb/homeworld/platform/util/testutil"
 	"golang.org/x/crypto/ssh"
 	"testing"
+
+	"github.com/sipb/homeworld/platform/util/testutil"
 )
 
 const (

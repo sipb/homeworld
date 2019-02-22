@@ -1,13 +1,13 @@
 package keyapi
 
 import (
+	"context"
 	"crypto/tls"
 	"log"
+	"net"
 	"net/http"
 
-	"context"
 	"github.com/sipb/homeworld/platform/keysystem/keyserver/config"
-	"net"
 )
 
 func apiToHTTP(ks Keyserver, logger *log.Logger) http.Handler {

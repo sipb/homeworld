@@ -10,6 +10,16 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
+	"golang.org/x/crypto/ssh"
+	"io/ioutil"
+	"math/big"
+	"net"
+	"net/http"
+	"os"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/sipb/homeworld/platform/keysystem/api/reqtarget"
 	"github.com/sipb/homeworld/platform/keysystem/api/server"
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/config"
@@ -20,15 +30,6 @@ import (
 	"github.com/sipb/homeworld/platform/util/testkeyutil"
 	"github.com/sipb/homeworld/platform/util/testutil"
 	"github.com/sipb/homeworld/platform/util/wraputil"
-	"golang.org/x/crypto/ssh"
-	"io/ioutil"
-	"math/big"
-	"net"
-	"net/http"
-	"os"
-	"strings"
-	"testing"
-	"time"
 )
 
 func TestPrepareRequestOrRenewKeys_TLS(t *testing.T) {

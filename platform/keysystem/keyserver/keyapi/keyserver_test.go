@@ -4,10 +4,6 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
-	"github.com/sipb/homeworld/platform/keysystem/keyserver/authorities"
-	"github.com/sipb/homeworld/platform/keysystem/keyserver/config"
-	"github.com/sipb/homeworld/platform/keysystem/keyserver/verifier"
-	"github.com/sipb/homeworld/platform/util/testkeyutil"
 	"io/ioutil"
 	"log"
 	"net"
@@ -17,6 +13,11 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/authorities"
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/config"
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/verifier"
+	"github.com/sipb/homeworld/platform/util/testkeyutil"
 )
 
 func TestLoadConfiguredKeyserver(t *testing.T) {

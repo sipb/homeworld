@@ -3,6 +3,11 @@ package setup
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"os/exec"
+	"time"
+
 	"github.com/sipb/homeworld/platform/keysystem/api/server"
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/actions/bootstrap"
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/actions/download"
@@ -11,10 +16,6 @@ import (
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/actloop"
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/config"
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/state"
-	"io/ioutil"
-	"log"
-	"os/exec"
-	"time"
 )
 
 // TODO: private key rotation, not just getting new certs

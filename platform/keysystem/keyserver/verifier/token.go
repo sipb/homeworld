@@ -2,8 +2,9 @@ package verifier
 
 import (
 	"errors"
-	"github.com/sipb/homeworld/platform/keysystem/keyserver/token"
 	"net/http"
+
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/token"
 )
 
 const TokenHeader = "X-Bootstrap-Token"

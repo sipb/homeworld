@@ -6,15 +6,16 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
-	"github.com/sipb/homeworld/platform/keysystem/api/server"
-	"github.com/sipb/homeworld/platform/keysystem/keyclient/state"
-	"github.com/sipb/homeworld/platform/util/testkeyutil"
-	"github.com/sipb/homeworld/platform/util/testutil"
 	"io/ioutil"
 	"net"
 	"net/http"
 	"strings"
 	"testing"
+
+	"github.com/sipb/homeworld/platform/keysystem/api/server"
+	"github.com/sipb/homeworld/platform/keysystem/keyclient/state"
+	"github.com/sipb/homeworld/platform/util/testkeyutil"
+	"github.com/sipb/homeworld/platform/util/testutil"
 )
 
 func TestAuthorityFetcher_PrereqsSatisfied(t *testing.T) {
