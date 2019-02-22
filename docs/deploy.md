@@ -1,6 +1,6 @@
 # Prerequisites
 
-If you're re-deploying the cluster for development, you will need:
+If you're (re)deploying the cluster for development, you will need:
 
  * A Debian Stretch installation (or VM) -- note that we do not support any other environments.
  * The disaster recovery key.
@@ -11,15 +11,27 @@ If you're re-deploying the cluster for development, you will need:
 
 # Installing packages
 
-Copy building/binaries/<domain>/<subbranch>/homeworld-apt-setup_0.1.5_amd64.deb directly to the target VM from your build machine.
+Start by getting the apt-setup package directly:
 
-TODO: instructions for the case where this transfer is not easy.
+    $ cd platform
+    $ bazel build //apt-setup:package.deb
 
-Then, in your deploy VM:
+It will display a path to a package.deb:
 
-    $ sudo dpkg -i homeworld-apt-setup_0.1.5_amd64.deb
+    Target //apt-setup:package.deb up-to-date:
+      bazel-bin/apt-setup/package.deb
+
+Copy this package to a common directory outside of the chroot:
+
+    $ cp bazel-bin/apt-setup/package.deb ../apt-setup.deb
+
+Copy this file (now in the root directory of the host homeworld folder) to the installation VM.
+
+Now, in your deploy VM:
+
+    $ sudo dpkg -i apt-setup.deb
     $ sudo apt-get update
-    $ sudo apt-get install homeworld-admin-tools
+    $ sudo apt-get install homeworld-spire
 
 This will provide access to the 'spire' tool.
 
