@@ -36,6 +36,7 @@ debs = [
 
 upload(
     name = "upload",
+    new_version_cache = ":new-version-cache",
     acis = acis,
     debs = debs,
     visibility = ["//visibility:public"],

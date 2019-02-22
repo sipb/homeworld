@@ -40,7 +40,14 @@ def do_upload(acis, debs, debtar, branches_yaml, branch_name):
 
 
 if __name__ == "__main__":
-    acis, debs, debtar, branches_yaml, branch_name = sys.argv[1:]
+    acis, debs, debtar, branches_yaml, branch_name, new_version_cache, version_cache = sys.argv[1:]
     with open(branch_name, "r") as f:
         branch_name = f.read().strip()
+
+    # update the version caches, so that we don't upload new builds as this version anymore
+    with open(new_version_cache, "r") as r:
+        jsobj = json.load(r)  # validate JSON, even though we could just pass it through unchecked
+    with open(version_cache, "w") as w:
+        json.dump(jsobj, w)
+
     do_upload(acis, debs, debtar, branches_yaml, branch_name)

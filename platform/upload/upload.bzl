@@ -9,7 +9,7 @@ def sign(name, data, visibility=None):
         visibility = visibility,
     )
 
-def upload(name, acis=None, debs=None, visibility=None):
+def upload(name, new_version_cache, acis=None, debs=None, visibility=None):
     data = []
     args = []
     if acis:
@@ -67,8 +67,8 @@ def upload(name, acis=None, debs=None, visibility=None):
     native.sh_binary(
         name = name,
         srcs = ["//upload:src/wrapper.sh"],
-        args = ["$(location //upload:src/doupload.py)"] + args + ["$(location //upload:branches.yaml)", "$(location //upload:BRANCH_NAME)"],
+        args = ["$(location //upload:src/doupload.py)"] + args + ["$(location //upload:branches.yaml)", "$(location //upload:BRANCH_NAME)", "$(location " + new_version_cache + ")", "$(location //upload:version-cache)"],
         deps = [name + "-lib"],
-        data = data + ["//upload:branches.yaml", "//upload:BRANCH_NAME"],
+        data = data + ["//upload:branches.yaml", "//upload:BRANCH_NAME", new_version_cache, "//upload:version-cache"],
         visibility = ["//visibility:public"],
     )
