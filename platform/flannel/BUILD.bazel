@@ -25,5 +25,8 @@ homeworld_aci(
 substitute(
     name = "kubernetes.yaml",
     template = ":kubernetes.yaml.in",
+    kfs = {
+        "version": ":aci-version"
+    },
     visibility = ["//visibility:public"],
 )

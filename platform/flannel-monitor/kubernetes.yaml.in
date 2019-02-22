@@ -29,7 +29,7 @@ spec:
       serviceAccountName: flannel-monitor
       containers:
       - name: kube-flannel-monitor
-        image: homeworld.private/flannel-monitor:{{{{VERSION}}}}
+        image: homeworld.private/flannel-monitor:{version}
         env:
         - name: POD_NAME
           valueFrom:
@@ -73,7 +73,7 @@ spec:
       serviceAccountName: flannel-monitor
       containers:
       - name: kube-flannel-monitor
-        image: homeworld.private/flannel-monitor:{{{{VERSION}}}}
+        image: homeworld.private/flannel-monitor:{version}
         env:
         - name: POD_NAME
           valueFrom:
@@ -130,7 +130,7 @@ spec:
       serviceAccountName: flannel-monitor
       containers:
       - name: kube-flannel-monitor
-        image: homeworld.private/flannel-monitor:{{{{VERSION}}}}
+        image: homeworld.private/flannel-monitor:{version}
         env:
         - name: POD_NAMESPACE
           valueFrom:

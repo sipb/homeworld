@@ -43,5 +43,10 @@ genrule(
 substitute(
     name = "kubernetes.yaml",
     template = ":kubernetes.yaml.in",
+    kfs = {
+        "kube_dns_main_version": "//kube-dns:kube-dns-main-version",
+        "kube_dns_sidecar_version": "//kube-dns:kube-dns-sidecar-version",
+        "dnsmasq_nanny_version": ":dnsmasq-nanny-version"
+    },
     visibility = ["//visibility:public"],
 )
