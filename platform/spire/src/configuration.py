@@ -409,7 +409,6 @@ def get_kube_spec_vars(extra_kvs: dict=None) -> dict:
     config = Config.load_from_project()
 
     kvs = {
-        "VERSION": version.get_deb_version(),
         "INTERNAL_DOMAIN": config.internal_domain,
         "NETWORK": config.cidr_pods,
         "SERVIP_API": config.service_api,

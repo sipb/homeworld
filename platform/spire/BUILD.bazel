@@ -18,7 +18,6 @@ mappings = {
     "__main__/upload/keyring.gpg": "resources/homeworld-archive-keyring.gpg",
     "__main__/upload/BRANCH_NAME": "resources/APT_BRANCH",
     "__main__/upload/DOWNLOAD_URL": "resources/APT_URL",
-    "__main__/VERSION": "resources/DEB_VERSION",
 }
 
 mappings.update({
@@ -33,7 +32,6 @@ zip_file(
         "//:GIT_VERSION",
         "//upload:BRANCH_NAME",
         "//upload:DOWNLOAD_URL",
-        "//:VERSION",
         "//upload:keyring.gpg",
     ] + glob([
         "src/*.py",
