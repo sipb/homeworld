@@ -1,5 +1,6 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 load("//bazel:package.bzl", "homeworld_deb")
+load("//bazel:substitute.bzl", "substitute")
 
 go_library(
     name = "go_default_library",
@@ -18,11 +19,18 @@ go_binary(
     visibility = ["//visibility:public"],
 )
 
+substitute(
+    name = "aci-pull-monitor.service",
+    template = ":aci-pull-monitor.service.in",
+    kfs = {
+        "PULLCHECK_VERSION": "//aci-pull-monitor/pullcheck:aci-version",
+    },
+)
+
 homeworld_deb(
     name = "package",
     bin = {
         ":aci-pull-monitor": "/usr/bin/aci-pull-monitor",
-        ":launch-aci-pull-monitor.sh": "/usr/lib/homeworld/launch-aci-pull-monitor.sh",
     },
     data = {
         ":aci-pull-monitor.service": "/usr/lib/systemd/system/aci-pull-monitor.service",
