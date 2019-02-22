@@ -3,6 +3,29 @@ load("//bazel:zip_file.bzl", "zip_file")
 
 # TODO: have a stub test (checking whether spire -h >/dev/null exits successfully) during build
 
+clustered = {
+    "dns-addon.yaml": "//dnsmasq:kubernetes.yaml",
+    "dns-monitor.yaml": "//dns-monitor:kubernetes.yaml",
+    "flannel.yaml": "//flannel:kubernetes.yaml",
+    "flannel-monitor.yaml": "//flannel-monitor:kubernetes.yaml",
+    "user-grant.yaml": "//user-grant:kubernetes.yaml",
+}
+
+mappings = {
+    "__main__/spire/src": "",
+    "__main__/spire/resources": "resources",
+    "__main__/GIT_VERSION": "resources/GIT_VERSION",
+    "__main__/upload/keyring.gpg": "resources/homeworld-archive-keyring.gpg",
+    "__main__/upload/BRANCH_NAME": "resources/APT_BRANCH",
+    "__main__/upload/DOWNLOAD_URL": "resources/APT_URL",
+    "__main__/VERSION": "resources/DEB_VERSION",
+}
+
+mappings.update({
+    "__main__/" + ref.lstrip("/").replace(":","/"): "resources/clustered/" + name
+    for name, ref in clustered.items()
+})
+
 zip_file(
     name = "spirezip",
     out = "spire.zip",
@@ -15,16 +38,8 @@ zip_file(
     ] + glob([
         "src/*.py",
         "resources/**/*",
-    ]),
-    mappings = {
-        "__main__/spire/src": "",
-        "__main__/spire/resources": "resources",
-        "__main__/GIT_VERSION": "resources/GIT_VERSION",
-        "__main__/upload/keyring.gpg": "resources/homeworld-archive-keyring.gpg",
-        "__main__/upload/BRANCH_NAME": "resources/APT_BRANCH",
-        "__main__/upload/DOWNLOAD_URL": "resources/APT_URL",
-        "__main__/VERSION": "resources/DEB_VERSION",
-    },
+    ]) + clustered.values(),
+    mappings = mappings,
 )
 
 pythonize(

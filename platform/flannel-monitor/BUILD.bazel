@@ -10,3 +10,9 @@ homeworld_aci(
     aciname = "homeworld.private/flannel-monitor",
     visibility = ["//visibility:public"],
 )
+
+alias(
+    name = "kubernetes.yaml",
+    actual = ":kubernetes.yaml.in",
+    visibility = ["//visibility:public"],
+)

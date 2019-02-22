@@ -38,3 +38,9 @@ genrule(
     outs = ["empty"],
     cmd = "mkdir $@",
 )
+
+alias(
+    name = "kubernetes.yaml",
+    actual = ":kubernetes.yaml.in",
+    visibility = ["//visibility:public"],
+)

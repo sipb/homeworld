@@ -20,3 +20,9 @@ homeworld_aci(
     exec = ["/usr/bin/flanneld"],
     visibility = ["//visibility:public"],
 )
+
+alias(
+    name = "kubernetes.yaml",
+    actual = ":kubernetes.yaml.in",
+    visibility = ["//visibility:public"],
+)

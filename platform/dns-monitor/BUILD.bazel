@@ -28,3 +28,9 @@ homeworld_aci(
     exec = ["/usr/bin/dns-monitor"],
     visibility = ["//visibility:public"],
 )
+
+alias(
+    name = "kubernetes.yaml",
+    actual = ":kubernetes.yaml.in",
+    visibility = ["//visibility:public"],
+)
