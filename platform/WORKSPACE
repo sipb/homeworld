@@ -62,7 +62,6 @@ http_archive(
         "//kubernetes:0108-no-prefix.patch",
         "//kubernetes:0109-staging-importmap.patch",
         "//kubernetes:0110-rerun-gazelle-2.patch",
-        "//kubernetes:0200-aci-launch.patch",
     ],
     patch_args = ["-p1"],
 )
