@@ -15,9 +15,8 @@ def load_json(filename, default=None):
             return json.load(f)
 
 
-def do_upload(acis, debs, debtar, branches_yaml, branch_name):
-    uploads = load_json(acis, {})
-    uploads.update(load_json(debs, {}))
+def do_upload(debs, debtar, branches_yaml, branch_name):
+    uploads = load_json(debs, {})
 
     with tempfile.TemporaryDirectory() as staging:
         if debtar:
@@ -40,7 +39,7 @@ def do_upload(acis, debs, debtar, branches_yaml, branch_name):
 
 
 if __name__ == "__main__":
-    acis, debs, debtar, branches_yaml, branch_name, new_version_cache, version_cache = sys.argv[1:]
+    debs, debtar, branches_yaml, branch_name, new_version_cache, version_cache = sys.argv[1:]
     with open(branch_name, "r") as f:
         branch_name = f.read().strip()
 
@@ -50,4 +49,4 @@ if __name__ == "__main__":
     with open(version_cache, "w") as w:
         json.dump(jsobj, w)
 
-    do_upload(acis, debs, debtar, branches_yaml, branch_name)
+    do_upload(debs, debtar, branches_yaml, branch_name)

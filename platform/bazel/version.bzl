@@ -39,9 +39,9 @@ def hash_compute(name, inputs, strings, visibility=None):
         visibility = visibility,
     )
 
-def generate_version_cache(name, acis=None, debs=None, visibility=None):
+def generate_version_cache(name, debs, visibility=None):
     targets = []
-    for artifact in (acis or []) + (debs or []):
+    for artifact in debs:
         targets += [
             artifact + "-name",
             artifact + "-hash",

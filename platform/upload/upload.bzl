@@ -9,33 +9,9 @@ def sign(name, data, visibility=None):
         visibility = visibility,
     )
 
-def upload(name, new_version_cache, acis=None, debs=None, visibility=None):
+def upload(name, new_version_cache, debs, visibility=None):
     data = []
     args = []
-    if acis:
-        acis_with_sigs = []
-        for i, aci in enumerate(acis):
-            sig = "{}-sig-{}".format(name, i)
-            sign(
-                name = sig,
-                data = aci,
-            )
-            acis_with_sigs += [aci, sig]
-        items = " ".join(['"$(location {})"'.format(item) for item in acis_with_sigs])
-
-        ref = name + "-acis"
-        args += ["$(location " + ref + ")"]
-        data += [ref]
-        native.genrule(
-            name = ref + "-rule",
-            outs = [ref],
-            srcs = acis_with_sigs,
-            tools = ["//upload:src/genacis.py"],
-            cmd = """python3 $(location //upload:src/genacis.py) "$@" {}""".format(items),
-        )
-        data += acis_with_sigs
-    else:
-        args += ["--"]
     if debs:
         debs = [deb + ".deb" for deb in debs]  # ensure that we only get the actual *PACKAGES*
         items = " ".join(['"$(location {})"'.format(item) for item in debs])
