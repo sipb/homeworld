@@ -184,7 +184,7 @@ codebase, organized by directory.
       run containers, a service runs on every node, which constantly performs
       these operations. Prometheus aggregates the resulting measurements.
 
-      Components: homeworld-aci-pull-monitor, pullcheck
+      Components: homeworld-pull-monitor, pullcheck
       Configuration is in homeworld-services.
 
   * Authentication Layer:

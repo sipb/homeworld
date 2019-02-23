@@ -1,11 +1,11 @@
 [Unit]
-Description=aci pull monitor
+Description=Container pull monitor
 Requires=network-online.target
 After=network-online.target
 
 [Service]
 Slice=machine.slice
-ExecStart=/usr/bin/aci-pull-monitor docker://homeworld.private/pullcheck@{PULLCHECK_DIGEST}
+ExecStart=/usr/bin/pull-monitor docker://homeworld.private/pullcheck@{PULLCHECK_DIGEST}
 Restart=always
 RestartSec=5s
 

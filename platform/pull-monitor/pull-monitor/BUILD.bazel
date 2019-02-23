@@ -4,8 +4,8 @@ load("//bazel:substitute.bzl", "substitute")
 
 go_library(
     name = "go_default_library",
-    srcs = ["aci-pull-monitor.go"],
-    importpath = "github.com/sipb/homeworld/platform/aci-pull-monitor/aci-pull-monitor",
+    srcs = ["pull-monitor.go"],
+    importpath = "github.com/sipb/homeworld/platform/pull-monitor/pull-monitor",
     visibility = ["//visibility:private"],
     deps = [
         "@com_github_prometheus_client_golang//prometheus:go_default_library",
@@ -14,28 +14,28 @@ go_library(
 )
 
 go_binary(
-    name = "aci-pull-monitor",
+    name = "pull-monitor",
     embed = [":go_default_library"],
     visibility = ["//visibility:public"],
 )
 
 substitute(
-    name = "aci-pull-monitor.service",
-    template = ":aci-pull-monitor.service.in",
+    name = "pull-monitor.service",
+    template = ":pull-monitor.service.in",
     kfs = {
-        "PULLCHECK_DIGEST": "//aci-pull-monitor/pullcheck:oci.ocidigest",
+        "PULLCHECK_DIGEST": "//pull-monitor/pullcheck:oci.ocidigest",
     },
 )
 
 homeworld_deb(
     name = "package",
     bin = {
-        ":aci-pull-monitor": "/usr/bin/aci-pull-monitor",
+        ":pull-monitor": "/usr/bin/pull-monitor",
     },
     data = {
-        ":aci-pull-monitor.service": "/usr/lib/systemd/system/aci-pull-monitor.service",
+        ":pull-monitor.service": "/usr/lib/systemd/system/pull-monitor.service",
     },
-    package = "homeworld-aci-pull-monitor",
+    package = "homeworld-pull-monitor",
     depends = [
         "homeworld-rkt",
     ],

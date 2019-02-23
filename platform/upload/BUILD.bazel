@@ -3,7 +3,7 @@ load("//bazel:version.bzl", "generate_version_cache")
 load(":container_push.bzl", "oci_pusher")
 
 ocis = {
-    "pullcheck": "//aci-pull-monitor/pullcheck:oci",
+    "pullcheck": "//pull-monitor/pullcheck:oci",
     "dns-monitor": "//dns-monitor:oci",
     "dnsmasq-nanny": "//dnsmasq:dnsmasq-nanny",
     "flannel": "//flannel:oci",
@@ -14,7 +14,6 @@ ocis = {
 }
 
 debs = [
-    "//aci-pull-monitor/aci-pull-monitor:package",
     "//apt-setup:package",
     "//auth-monitor:package",
     "//autostart:package",
@@ -27,6 +26,7 @@ debs = [
     "//kubernetes:hyperkube",
     "//prometheus:package",
     "//prometheus-node-exporter:package",
+    "//pull-monitor/pull-monitor:package",
     "//rkt:package",
     "//rkt-config:package",
     "//services:package",

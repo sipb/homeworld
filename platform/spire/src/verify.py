@@ -168,12 +168,12 @@ def check_kube_health():
     print("kubernetes cluster passed cursory inspection!")
 
 
-def check_aci_pull():
+def check_pull():
     config = configuration.get_config()
     node_count = len([node for node in config.nodes if node.kind != "supervisor"])
-    expect_prometheus_query_exact("sum(aci_pull_check)", node_count, "nodes are pulling acis properly")
-    expect_prometheus_query_exact("sum(aci_rkt_check)", node_count, "nodes are launching acis properly")
-    print("aci pulling seems to work!")
+    expect_prometheus_query_exact("sum(oci_pull_check)", node_count, "nodes are pulling ocis properly")
+    expect_prometheus_query_exact("sum(oci_rkt_check)", node_count, "nodes are launching ocis properly")
+    print("oci pulling seems to work!")
 
 
 def check_flannel():
@@ -215,7 +215,7 @@ main_command = command.mux_map("commands about verifying the state of a cluster"
     "etcd": command.wrap("verify that etcd is healthy and working", check_etcd_health),
     "kubernetes-init": command.wrap("verify that kubernetes appears initialized", check_kube_init),
     "kubernetes": command.wrap("verify that kubernetes appears healthy", check_kube_health),
-    "aci-pull": command.wrap("verify that aci pulling from the homeworld registry, and associated container execution, are functioning", check_aci_pull),
+    "pull": command.wrap("verify that container pulling from the homeworld registry, and associated container execution, are functioning", check_pull),
     "flannel": command.wrap("verify that the flannel addon is functioning", check_flannel),
     "dns-addon": command.wrap("verify that the DNS addon is functioning", check_dns),
 })

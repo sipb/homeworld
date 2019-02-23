@@ -17,44 +17,44 @@ import (
 var (
 	registry = prometheus.NewRegistry()
 
-	aciCheck = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: "aci",
+	ociCheck = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Namespace: "oci",
 		Name:      "pull_check",
-		Help:      "Check for whether ACIs can be pulled",
+		Help:      "Check for whether OCIs can be pulled",
 	}, []string{"image"})
 
-	aciHashes = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: "aci",
+	ociHashes = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Namespace: "oci",
 		Name:      "pull_hash",
-		Help:      "Counters for each ACI hash found",
+		Help:      "Counters for each OCI hash found",
 	}, []string{"image", "hash"})
 
 	rktCheck = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: "aci",
+		Namespace: "oci",
 		Name:      "rkt_check",
-		Help:      "Check for whether ACIs can be launched",
+		Help:      "Check for whether OCIs can be launched",
 	}, []string{"image"})
 
-	aciTiming = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Namespace: "aci",
+	ociTiming = prometheus.NewHistogramVec(prometheus.HistogramOpts{
+		Namespace: "oci",
 		Name:      "pull_timing_seconds",
-		Help:      "Timing for pulling ACIs",
+		Help:      "Timing for pulling OCIs",
 		Buckets:   []float64{8, 10, 11, 12, 13, 14, 15, 16, 18, 20, 30, 40},
 	}, []string{"image"})
 
 	rktTiming = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Namespace: "aci",
+		Namespace: "oci",
 		Name:      "rkt_timing_seconds",
-		Help:      "Timing for launching ACIs",
+		Help:      "Timing for launching OCIs",
 		Buckets:   []float64{5, 6, 7, 8, 9, 10, 15, 30, 60},
 	}, []string{"image"})
 )
 
 func cycle(image string) {
-	aciGauge := aciCheck.With(prometheus.Labels{
+	ociGauge := ociCheck.With(prometheus.Labels{
 		"image": image,
 	})
-	aciHisto := aciTiming.With(prometheus.Labels{
+	ociHisto := ociTiming.With(prometheus.Labels{
 		"image": image,
 	})
 	rktGauge := rktCheck.With(prometheus.Labels{
@@ -67,7 +67,7 @@ func cycle(image string) {
 	cmd := exec.Command("rkt", "image", "rm", image)
 	if err := cmd.Run(); err != nil {
 		log.Printf("failed to remove previous image: %v", err)
-		aciGauge.Set(0)
+		ociGauge.Set(0)
 		rktGauge.Set(0)
 		return
 	}
@@ -83,20 +83,20 @@ func cycle(image string) {
 	time_end := time.Now()
 	if err != nil {
 		log.Printf("failed to fetch new image: %v", err)
-		aciGauge.Set(0)
+		ociGauge.Set(0)
 		rktGauge.Set(0)
 		return
 	}
-	aciGauge.Set(1)
+	ociGauge.Set(1)
 	time_taken := time_end.Sub(time_start).Seconds()
 	hash := strings.TrimSpace(string(hash_raw))
 
-	aciHashes.With(prometheus.Labels{
+	ociHashes.With(prometheus.Labels{
 		"image": image,
 		"hash":  hash,
 	}).Inc()
 
-	aciHisto.Observe(time_taken)
+	ociHisto.Observe(time_taken)
 
 	echo_data := fmt.Sprintf("!%d!", rand.Uint64())
 	cmd = exec.Command("rkt", "run", image, "--", echo_data)
@@ -154,10 +154,10 @@ func main() {
 	}
 	image := os.Args[1]
 
-	registry.MustRegister(aciCheck)
-	registry.MustRegister(aciHashes)
+	registry.MustRegister(ociCheck)
+	registry.MustRegister(ociHashes)
 	registry.MustRegister(rktCheck)
-	registry.MustRegister(aciTiming)
+	registry.MustRegister(ociTiming)
 	registry.MustRegister(rktTiming)
 
 	stopChannel := make(chan struct{})
