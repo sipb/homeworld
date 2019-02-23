@@ -16,10 +16,10 @@ rsync
 # homeworld-rkt
 autoconf, automake, bc, binutils, bison, cpio, file, flex, git, gnupg, libacl1-dev, libcap-dev, libelf-dev, libglib2.0-dev, libpcre3-dev, libpixman-1-dev, libreadline-dev, libssl-dev, libsystemd-dev, libxml2, libxml2-dev, locales, openssl, patch, pkg-config, python, python3, realpath, squashfs-tools, wget, xz-utils, zlib1g-dev, zlibc
 
-# debian ACIs
+# debian images
 debootstrap, devscripts, fakeroot, fakechroot
 
-# dnsmasq-nanny ACI build, other ACI builds
+# container builds
 systemd-container
 
 # generic

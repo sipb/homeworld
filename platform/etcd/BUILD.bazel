@@ -6,7 +6,7 @@ load("//bazel:package.bzl", "homeworld_deb")
 # GO_LDFLAGS="-X github.com/coreos/etcd/cmd/vendor/github.com/coreos/etcd/version.GitSHA=${GIT_SHA}"
 
 # TODO: do we actually need these binaries to be pure?
-# they aren't used in ACIs, and so if they don't need to be pure,
+# they aren't used in containers, and so if they don't need to be pure,
 # we could probably eliminate a bunch of headache.
 
 go_binary(
