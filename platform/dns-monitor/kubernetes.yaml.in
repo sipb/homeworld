@@ -42,7 +42,7 @@ spec:
       serviceAccountName: dns-monitor
       containers:
       - name: kube-dns-monitor
-        image: homeworld.private/dns-monitor:{version}
+        image: homeworld.private/dns-monitor:{digest}
         command:
         - /usr/bin/dns-monitor
         - kubernetes.default.svc.{{{{INTERNAL_DOMAIN}}}}={{{{SERVIP_API}}}}

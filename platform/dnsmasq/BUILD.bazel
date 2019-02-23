@@ -42,9 +42,9 @@ substitute(
     name = "kubernetes.yaml",
     template = ":kubernetes.yaml.in",
     kfs = {
-        "kube_dns_main_version": "//kube-dns:kube-dns-main-version",
-        "kube_dns_sidecar_version": "//kube-dns:kube-dns-sidecar-version",
-        "dnsmasq_nanny_version": ":dnsmasq-nanny-version"
+        "kube_dns_main_digest": "//kube-dns:kube-dns-main.shortdigest",
+        "kube_dns_sidecar_digest": "//kube-dns:kube-dns-sidecar.shortdigest",
+        "dnsmasq_nanny_digest": ":dnsmasq-nanny.shortdigest",
     },
     visibility = ["//visibility:public"],
 )

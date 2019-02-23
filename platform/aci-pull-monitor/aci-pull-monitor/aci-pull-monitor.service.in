@@ -5,7 +5,7 @@ After=network-online.target
 
 [Service]
 Slice=machine.slice
-ExecStart=/usr/bin/aci-pull-monitor docker://homeworld.private/pullcheck:{PULLCHECK_VERSION}
+ExecStart=/usr/bin/aci-pull-monitor docker://homeworld.private/pullcheck@{PULLCHECK_DIGEST}
 Restart=always
 RestartSec=5s
 
