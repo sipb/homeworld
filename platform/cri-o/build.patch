@@ -1,0 +1,221 @@
+diff --git a/BUILD.bazel b/BUILD.bazel
+new file mode 100644
+index 0000000..bf0a685
+--- /dev/null
++++ b/BUILD.bazel
+@@ -0,0 +1,15 @@
++exports_files([
++    "seccomp.json",
++    "crio-umount.conf",
++    "crictl.yaml",
++    "contrib/systemd/crio.service",
++    "contrib/systemd/crio-shutdown.service",
++])
++
++genrule(
++    name = "crio.conf-genrule",
++    outs = [":crio.conf"],
++    tools = ["//cmd/crio"],
++    cmd = "\"$(location //cmd/crio)\" --config=\"\" config --default >\"$@\"",
++    visibility = ["//visibility:public"],
++)
+diff --git a/conmon/BUILD.bazel b/conmon/BUILD.bazel
+new file mode 100644
+index 0000000..9b97598
+--- /dev/null
++++ b/conmon/BUILD.bazel
+@@ -0,0 +1,42 @@
++# TODO: include -std=c99 in C builds
++
++genrule(
++    name = "config.h-genrule",
++    outs = [":conf/config.h"],
++    tools = ["//cmd/crio-config"],
++    cmd = """
++        REL="$$(realpath "$(location //cmd/crio-config)")"
++        cd \"$(@D)\"
++        "$${REL}"
++    """,
++)
++
++cc_library(
++    name = "glibinc",
++    hdrs = [":glibobject-include/glibconfig.h"],
++    includes = ["glibobject-include"],
++    linkopts = ["-lglib-2.0"],
++)
++
++cc_library(
++    name = "configinc",
++    hdrs = [":conf/config.h"],
++    includes = ["conf"],
++)
++
++cc_binary(
++    name = "conmon",
++    srcs = [
++        ":conmon.c",
++        ":cmsg.c",
++        ":cmsg.h",
++    ],
++    # TODO: get these dynamically, not statically
++    defines = [
++        "VERSION='\"1.10.7-dev\"'",
++        "GIT_COMMIT='\"210d46c717c5dcb6d11302723eb9d20575ee7a78\"'",
++    ],
++    deps = [":glibinc", ":configinc"],
++    copts = ["-I/usr/include/glib-2.0"],
++    visibility = ["//visibility:public"],
++)
+diff --git a/conmon/glibobject-include b/conmon/glibobject-include
+new file mode 120000
+index 0000000..3638b19
+--- /dev/null
++++ b/conmon/glibobject-include
+@@ -0,0 +1 @@
++/usr/lib/x86_64-linux-gnu/glib-2.0/include
+\ No newline at end of file
+diff --git a/pause/BUILD.bazel b/pause/BUILD.bazel
+new file mode 100644
+index 0000000..0cab5f8
+--- /dev/null
++++ b/pause/BUILD.bazel
+@@ -0,0 +1,7 @@
++# TODO: include -std=c99 in C build
++
++cc_binary(
++    name = "pause",
++    srcs = [":pause.c"],
++    visibility = ["//visibility:public"],
++)
+diff --git a/vendor/github.com/containers/image/ostree/BUILD.bazel b/vendor/github.com/containers/image/ostree/BUILD.bazel
+index c72cf62..15fd977 100644
+--- a/vendor/github.com/containers/image/ostree/BUILD.bazel
++++ b/vendor/github.com/containers/image/ostree/BUILD.bazel
+@@ -1,5 +1,12 @@
+ load("@io_bazel_rules_go//go:def.bzl", "go_library")
+ 
++cc_library(
++    name = "cinclude",
++    hdrs = [":glibobject-include/glibconfig.h"],
++    includes = ["glibobject-include"],
++    linkopts = ["-pthread -lostree-1 -lgio-2.0 -lgobject-2.0 -lglib-2.0 -lselinux"],
++)
++
+ go_library(
+     name = "go_default_library",
+     srcs = [
+@@ -8,6 +15,8 @@ go_library(
+         "ostree_transport.go",
+     ],
+     cgo = True,
++    cdeps = [":cinclude"],
++    copts = ["-I/usr/include/ostree-1 -I/usr/include/gio-unix-2.0/ -I/usr/include/glib-2.0"],
+     importmap = "github.com/kubernetes-sigs/cri-o/vendor/github.com/containers/image/ostree",
+     importpath = "github.com/containers/image/ostree",
+     visibility = ["//visibility:public"],
+@@ -29,3 +38,4 @@ go_library(
+         "//vendor/github.com/vbatts/tar-split/tar/storage:go_default_library",
+     ],
+ )
++
+diff --git a/vendor/github.com/containers/image/ostree/glibobject-include b/vendor/github.com/containers/image/ostree/glibobject-include
+new file mode 120000
+index 0000000..3638b19
+--- /dev/null
++++ b/vendor/github.com/containers/image/ostree/glibobject-include
+@@ -0,0 +1 @@
++/usr/lib/x86_64-linux-gnu/glib-2.0/include
+\ No newline at end of file
+diff --git a/vendor/github.com/containers/storage/pkg/devicemapper/BUILD.bazel b/vendor/github.com/containers/storage/pkg/devicemapper/BUILD.bazel
+index bd64ed0..a12b9f5 100644
+--- a/vendor/github.com/containers/storage/pkg/devicemapper/BUILD.bazel
++++ b/vendor/github.com/containers/storage/pkg/devicemapper/BUILD.bazel
+@@ -12,6 +12,7 @@ go_library(
+         "log.go",
+     ],
+     cgo = True,
++    clinkopts = ["-ldevmapper"],
+     importmap = "github.com/kubernetes-sigs/cri-o/vendor/github.com/containers/storage/pkg/devicemapper",
+     importpath = "github.com/containers/storage/pkg/devicemapper",
+     visibility = ["//visibility:public"],
+diff --git a/vendor/github.com/ostreedev/ostree-go/pkg/glibobject/BUILD.bazel b/vendor/github.com/ostreedev/ostree-go/pkg/glibobject/BUILD.bazel
+index 6d6be98..9e47c2f 100644
+--- a/vendor/github.com/ostreedev/ostree-go/pkg/glibobject/BUILD.bazel
++++ b/vendor/github.com/ostreedev/ostree-go/pkg/glibobject/BUILD.bazel
+@@ -1,5 +1,12 @@
+ load("@io_bazel_rules_go//go:def.bzl", "go_library")
+ 
++cc_library(
++    name = "glibinc",
++    hdrs = [":glibobject-include/glibconfig.h"],
++    includes = ["glibobject-include"],
++    linkopts = ["-lgobject-2.0 -lglib-2.0"],
++)
++
+ go_library(
+     name = "go_default_library",
+     srcs = [
+@@ -17,6 +24,8 @@ go_library(
+         "gvariant.go",
+     ],
+     cgo = True,
++    cdeps = [":glibinc"],
++    copts = ["-I/usr/include/glib-2.0"],
+     importmap = "github.com/kubernetes-sigs/cri-o/vendor/github.com/ostreedev/ostree-go/pkg/glibobject",
+     importpath = "github.com/ostreedev/ostree-go/pkg/glibobject",
+     visibility = ["//visibility:public"],
+diff --git a/vendor/github.com/ostreedev/ostree-go/pkg/glibobject/glibobject-include b/vendor/github.com/ostreedev/ostree-go/pkg/glibobject/glibobject-include
+new file mode 120000
+index 0000000..3638b19
+--- /dev/null
++++ b/vendor/github.com/ostreedev/ostree-go/pkg/glibobject/glibobject-include
+@@ -0,0 +1 @@
++/usr/lib/x86_64-linux-gnu/glib-2.0/include
+\ No newline at end of file
+diff --git a/vendor/github.com/ostreedev/ostree-go/pkg/otbuiltin/BUILD.bazel b/vendor/github.com/ostreedev/ostree-go/pkg/otbuiltin/BUILD.bazel
+index 31e6fff..75f013c 100644
+--- a/vendor/github.com/ostreedev/ostree-go/pkg/otbuiltin/BUILD.bazel
++++ b/vendor/github.com/ostreedev/ostree-go/pkg/otbuiltin/BUILD.bazel
+@@ -1,5 +1,12 @@
+ load("@io_bazel_rules_go//go:def.bzl", "go_library")
+ 
++cc_library(
++    name = "ostreeinc",
++    hdrs = [":glibobject-include/glibconfig.h"],
++    includes = ["glibobject-include"],
++    linkopts = ["-pthread -lostree-1 -lgio-2.0 -lgobject-2.0 -lglib-2.0"],
++)
++
+ go_library(
+     name = "go_default_library",
+     srcs = [
+@@ -30,6 +37,8 @@ go_library(
+         "trivialhttpd.go",
+     ],
+     cgo = True,
++    cdeps = [":ostreeinc"],
++    copts = ["-I/usr/include/ostree-1 -I/usr/include/gio-unix-2.0/ -I/usr/include/glib-2.0"],
+     importmap = "github.com/kubernetes-sigs/cri-o/vendor/github.com/ostreedev/ostree-go/pkg/otbuiltin",
+     importpath = "github.com/ostreedev/ostree-go/pkg/otbuiltin",
+     visibility = ["//visibility:public"],
+diff --git a/vendor/github.com/ostreedev/ostree-go/pkg/otbuiltin/glibobject-include b/vendor/github.com/ostreedev/ostree-go/pkg/otbuiltin/glibobject-include
+new file mode 120000
+index 0000000..3638b19
+--- /dev/null
++++ b/vendor/github.com/ostreedev/ostree-go/pkg/otbuiltin/glibobject-include
+@@ -0,0 +1 @@
++/usr/lib/x86_64-linux-gnu/glib-2.0/include
+\ No newline at end of file
+diff --git a/vendor/github.com/seccomp/libseccomp-golang/BUILD.bazel b/vendor/github.com/seccomp/libseccomp-golang/BUILD.bazel
+index 3a0a989..9e0efbe 100644
+--- a/vendor/github.com/seccomp/libseccomp-golang/BUILD.bazel
++++ b/vendor/github.com/seccomp/libseccomp-golang/BUILD.bazel
+@@ -7,6 +7,7 @@ go_library(
+         "seccomp_internal.go",
+     ],
+     cgo = True,
++    clinkopts = ["-lseccomp"],
+     importmap = "github.com/kubernetes-sigs/cri-o/vendor/github.com/seccomp/libseccomp-golang",
+     importpath = "github.com/seccomp/libseccomp-golang",
+     visibility = ["//visibility:public"],

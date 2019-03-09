@@ -66,6 +66,21 @@ http_archive(
     patch_args = ["-p1"],
 )
 
+# CRI-O
+
+go_repository(
+    name = "com_github_kubernetes_sigs_cri_o",
+    commit = "210d46c717c5dcb6d11302723eb9d20575ee7a78", # 1.10.6 plus some recent required patches
+    importpath = "github.com/kubernetes-sigs/cri-o",
+    build_external = "vendored",
+    build_file_proto_mode = "disable_global",
+    patches = [
+        # most of this is only required because the #cgo pkg-config directive is not correctly processed by Gazelle
+        "//cri-o:build.patch",
+    ],
+    patch_args = ["-p1"],
+)
+
 # debian ISO
 
 http_file(
