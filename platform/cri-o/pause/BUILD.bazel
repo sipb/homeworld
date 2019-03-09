@@ -1,9 +1,15 @@
 load("//bazel:package.bzl", "homeworld_oci")
 
+cc_binary(
+    name = "pause",
+    srcs = ["@kubernetes//build:pause/pause.c"],
+    features = ["fully_static_link"],
+)
+
 homeworld_oci(
     name = "oci",
     bin = {
-        "@com_github_kubernetes_sigs_cri_o//pause": "/pause",
+        ":pause": "/pause",
     },
     exec = ["/pause"],
     visibility = ["//visibility:public"],

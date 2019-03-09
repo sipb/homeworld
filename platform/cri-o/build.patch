@@ -75,19 +75,6 @@ index 0000000..3638b19
 @@ -0,0 +1 @@
 +/usr/lib/x86_64-linux-gnu/glib-2.0/include
 \ No newline at end of file
-diff --git a/pause/BUILD.bazel b/pause/BUILD.bazel
-new file mode 100644
-index 0000000..0cab5f8
---- /dev/null
-+++ b/pause/BUILD.bazel
-@@ -0,0 +1,7 @@
-+# TODO: include -std=c99 in C build
-+
-+cc_binary(
-+    name = "pause",
-+    srcs = [":pause.c"],
-+    visibility = ["//visibility:public"],
-+)
 diff --git a/vendor/github.com/containers/image/ostree/BUILD.bazel b/vendor/github.com/containers/image/ostree/BUILD.bazel
 index c72cf62..15fd977 100644
 --- a/vendor/github.com/containers/image/ostree/BUILD.bazel
