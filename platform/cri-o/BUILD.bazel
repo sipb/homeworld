@@ -12,12 +12,12 @@ homeworld_deb(
         "@com_github_kubernetes_sigs_cri_o//conmon": "/usr/libexec/crio/conmon",
     },
     data = {
-        "@com_github_kubernetes_sigs_cri_o//:crio.conf": "/etc/crio/crio.conf",
+        ":crio.conf": "/etc/crio/crio.conf",
         "@com_github_kubernetes_sigs_cri_o//:seccomp.json": "/etc/crio/seccomp.json",
         "@com_github_kubernetes_sigs_cri_o//:crio-umount.conf": "/usr/local/share/oci-umount/oci-umount.d/crio-umount.conf",
         "@com_github_kubernetes_sigs_cri_o//:crictl.yaml": "/etc/crictl.yaml",
-        "@com_github_kubernetes_sigs_cri_o//:contrib/systemd/crio.service": "/usr/lib/systemd/system/crio.service",
-        "@com_github_kubernetes_sigs_cri_o//:contrib/systemd/crio-shutdown.service": "/usr/lib/systemd/system/crio-shutdown.service",
+        ":crio.service": "/usr/lib/systemd/system/crio.service",
+        ":crio-shutdown.service": "/usr/lib/systemd/system/crio-shutdown.service",
     },
     package = "homeworld-cri-o",
     depends = [
