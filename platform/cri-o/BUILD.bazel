@@ -1,4 +1,5 @@
 load("//bazel:package.bzl", "homeworld_deb")
+load("//bazel:substitute.bzl", "substitute")
 
 # TODO: for crio, use flags -ldflags '-s -w -X main.gitCommit="[...]" -X main.buildInfo=[...]'
 # and -tags "exclude_graphdriver_devicemapper libdm_no_deferred_remove containers_image_ostree_stub seccomp containers_image_ostree_stub"
@@ -8,7 +9,6 @@ homeworld_deb(
     name = "package",
     bin = {
         "@com_github_kubernetes_sigs_cri_o//cmd/crio": "/usr/bin/crio",
-        "@com_github_kubernetes_sigs_cri_o//pause": "/usr/libexec/crio/pause",
         "@com_github_kubernetes_sigs_cri_o//conmon": "/usr/libexec/crio/conmon",
     },
     data = {
@@ -28,4 +28,12 @@ homeworld_deb(
         "libostree-1-1",
     ],
     visibility = ["//visibility:public"],
+)
+
+substitute(
+    name = "crio.conf",
+    template = ":crio.conf.in",
+    kfs = {
+        "PAUSE_DIGEST": "//cri-o/pause:oci.ocidigest",
+    },
 )

@@ -10,6 +10,7 @@ ocis = {
     "flannel-monitor": "//flannel-monitor:oci",
     "kube-dns-main": "//kube-dns:kube-dns-main",
     "kube-dns-sidecar": "//kube-dns:kube-dns-sidecar",
+    "pause": "//cri-o/pause:oci",
     "user-grant": "//user-grant:oci",
 }
 

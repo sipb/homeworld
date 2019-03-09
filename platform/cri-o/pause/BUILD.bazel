@@ -1,0 +1,10 @@
+load("//bazel:package.bzl", "homeworld_oci")
+
+homeworld_oci(
+    name = "oci",
+    bin = {
+        "@com_github_kubernetes_sigs_cri_o//pause": "/pause",
+    },
+    exec = ["/pause"],
+    visibility = ["//visibility:public"],
+)
