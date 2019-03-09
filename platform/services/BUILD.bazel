@@ -12,8 +12,6 @@ homeworld_deb(
         "homeworld-hyperkube",
         "homeworld-kube-state-metrics",
         "homeworld-pull-monitor",
-        "homeworld-rkt",
-        "homeworld-rkt-config",
         "homeworld-setup-queue",
         "iptables",
         "openssl",

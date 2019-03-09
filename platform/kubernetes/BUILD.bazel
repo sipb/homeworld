@@ -18,5 +18,9 @@ homeworld_deb(
         ":kubelet.service": "/usr/lib/systemd/system/kubelet.service",
     },
     package = "homeworld-hyperkube",
+    depends = [
+        "homeworld-rkt",
+        "homeworld-rkt-config",
+    ],
     visibility = ["//visibility:public"],
 )

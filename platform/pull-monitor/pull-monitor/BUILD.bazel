@@ -38,6 +38,7 @@ homeworld_deb(
     package = "homeworld-pull-monitor",
     depends = [
         "homeworld-rkt",
+        "homeworld-rkt-config",
     ],
     visibility = ["//visibility:public"],
 )
