@@ -1,16 +1,12 @@
 [Unit]
-Description=Open Container Initiative Daemon
+Description=CRI-O daemon
 Documentation=https://github.com/kubernetes-sigs/cri-o
 After=network-online.target
 
 [Service]
 Type=notify
-EnvironmentFile=-/etc/sysconfig/crio-storage
-EnvironmentFile=-/etc/sysconfig/crio-network
 Environment=GOTRACEBACK=crash
-ExecStart=/usr/local/bin/crio \
-          $CRIO_STORAGE_OPTIONS \
-          $CRIO_NETWORK_OPTIONS
+ExecStart=/usr/bin/crio
 ExecReload=/bin/kill -s HUP $MAINPID
 TasksMax=infinity
 LimitNOFILE=1048576
