@@ -26,6 +26,7 @@ debs = [
     "//knc:package",
     "//kube-state-metrics:package",
     "//kubernetes:hyperkube",
+    "//oci-sig-policy:package",
     "//prometheus:package",
     "//prometheus-node-exporter:package",
     "//pull-monitor/pull-monitor:package",

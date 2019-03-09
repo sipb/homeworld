@@ -1,0 +1,13 @@
+load("//bazel:package.bzl", "homeworld_deb")
+
+# TODO: have a policy.json that actually verifies some things, rather than
+# blanket-permitting all containers fetched using the docker API?
+
+homeworld_deb(
+    name = "package",
+    data = {
+        ":policy.json": "/etc/containers/policy.json",
+    },
+    package = "homeworld-oci-sig-policy",
+    visibility = ["//visibility:public"],
+)
