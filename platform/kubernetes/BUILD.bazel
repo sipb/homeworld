@@ -19,8 +19,7 @@ homeworld_deb(
     },
     package = "homeworld-hyperkube",
     depends = [
-        "homeworld-rkt",
-        "homeworld-rkt-config",
+        "homeworld-cri-o",
     ],
     visibility = ["//visibility:public"],
 )

@@ -52,8 +52,8 @@ KUBEOPT+=(--tls-cert-file=/etc/homeworld/keys/kubernetes-worker.pem --tls-privat
 KUBEOPT+=(--client-ca-file=/etc/homeworld/authorities/kubernetes.pem)
 # turn off cloud provider detection
 KUBEOPT+=(--cloud-provider=)
-# use rkt
-KUBEOPT+=(--container-runtime rkt)
+# use CRI-O
+KUBEOPT+=(--container-runtime=remote --container-runtime-endpoint=unix:///var/run/crio/crio.sock)
 # pod manifests
 KUBEOPT+=(--pod-manifest-path=/etc/hyades/manifests/)
 # DNS

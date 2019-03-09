@@ -1,7 +1,7 @@
 [Unit]
 Description=Hyades Kubelet service
-Requires=network-online.target rkt-api.service
-After=network-online.target rkt-api.service
+Requires=network-online.target crio.service
+After=network-online.target crio.service
 
 [Service]
 ExecStart=/usr/lib/hyades/launch-kubelet.sh
