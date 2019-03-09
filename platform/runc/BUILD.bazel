@@ -1,0 +1,12 @@
+load("//bazel:package.bzl", "homeworld_deb")
+
+# TODO: use flags -buildmode=pie -ldflags "-X main.gitCommit="[...]" -X main.version=[...]" -tags "seccomp"
+
+homeworld_deb(
+    name = "package",
+    bin = {
+        "@com_github_opencontainers_runc//:runc": "/usr/bin/runc",
+    },
+    package = "homeworld-runc",
+    visibility = ["//visibility:public"],
+)

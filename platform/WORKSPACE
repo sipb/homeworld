@@ -386,3 +386,11 @@ http_file(
     urls = ["https://download.qemu.org/qemu-2.11.0.tar.xz"],
     sha256 = "c9d34a79024eae080ce3853aa9afe503824520eefb440190383003081ce7f437",
 )
+
+# runc
+
+go_repository(
+    name = "com_github_opencontainers_runc",
+    commit = "2b18fe1d885ee5083ef9f0838fee39b62d653e30",
+    importpath = "github.com/opencontainers/runc",
+)
