@@ -21,6 +21,7 @@ homeworld_deb(
     },
     package = "homeworld-cri-o",
     depends = [
+        "homeworld-cni-plugins",
         "homeworld-runc",
         "libgpgme11",
         "libostree-1-1",

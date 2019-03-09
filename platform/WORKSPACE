@@ -66,6 +66,14 @@ http_archive(
     patch_args = ["-p1"],
 )
 
+# cni-plugins
+
+go_repository(
+    name = "com_github_containernetworking_plugins",
+    commit = "9ebe139e77e82afb122e335328007bca86905ae4",
+    importpath = "github.com/containernetworking/plugins",
+)
+
 # CRI-O
 
 go_repository(

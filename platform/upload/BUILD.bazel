@@ -17,6 +17,7 @@ debs = [
     "//apt-setup:package",
     "//auth-monitor:package",
     "//autostart:package",
+    "//cni-plugins:package",
     "//cri-o:package",
     "//docker-registry:package",
     "//etcd:package",

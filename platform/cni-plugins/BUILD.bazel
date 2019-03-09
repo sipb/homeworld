@@ -1,0 +1,20 @@
+load("//bazel:package.bzl", "homeworld_deb")
+
+# partial list of plugins, because it doesn't seem like we need all of them, and this prevents us from accidentally
+# using the wrong ones.
+plugins = {
+    "bridge": "main/bridge",
+    "loopback": "main/loopback",
+    "host-local": "ipam/host-local",
+    "flannel": "meta/flannel",
+}
+
+homeworld_deb(
+    name = "package",
+    bin = {
+        "@com_github_containernetworking_plugins//plugins/" + path: "/opt/cni/bin/" + name
+            for name, path in plugins.items()
+    },
+    package = "homeworld-cni-plugins",
+    visibility = ["//visibility:public"],
+)
