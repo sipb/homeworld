@@ -15,7 +15,7 @@ homeworld_deb(
         ":crio.conf": "/etc/crio/crio.conf",
         "@com_github_kubernetes_sigs_cri_o//:seccomp.json": "/etc/crio/seccomp.json",
         "@com_github_kubernetes_sigs_cri_o//:crio-umount.conf": "/usr/local/share/oci-umount/oci-umount.d/crio-umount.conf",
-        "@com_github_kubernetes_sigs_cri_o//:crictl.yaml": "/etc/crictl.yaml",
+        ":crictl.yaml": "/etc/crictl.yaml",
         ":crio.service": "/usr/lib/systemd/system/crio.service",
         ":crio-shutdown.service": "/usr/lib/systemd/system/crio-shutdown.service",
     },
