@@ -6,7 +6,7 @@ Documentation=man:crio(8)
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/true
+ExecStart=/bin/true
 ExecStop=mkdir -p /var/lib/crio; touch /var/lib/crio/crio.shutdown
 RemainAfterExit=yes
 
