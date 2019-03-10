@@ -226,10 +226,10 @@ def dispatch_kubectl(*params: str):
 def ssh_foreach(ops: setup.Operations, node_kind: str, *params: str):
     config = configuration.get_config()
     valid_node_kinds = configuration.Node.VALID_NODE_KINDS
-    if not (node_kind == "node" or node_kind in valid_node_kinds):
-        command.fail("usage: spire foreach {node," + ",".join(valid_node_kinds) + "} command")
+    if not (node_kind == "node" or node_kind == "kube" or node_kind in valid_node_kinds):
+        command.fail("usage: spire foreach {node,kube," + ",".join(valid_node_kinds) + "} command")
     for node in config.nodes:
-        if node_kind == "node" or node.kind == node_kind:
+        if node_kind == "node" or node.kind == node_kind or (node_kind == "kube" and node.kind != "supervisor"):
             ops.ssh("run command on @HOST", node, *params)
 
 
