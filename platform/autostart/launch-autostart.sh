@@ -11,8 +11,8 @@ then
 fi
 if [ "$KIND" = master -o "$KIND" = worker ]
 then
-    systemctl start  rkt-api pull-monitor kubelet kube-proxy
-    systemctl enable rkt-api pull-monitor kubelet kube-proxy
+    systemctl start  crio crio-shutdown pull-monitor kubelet kube-proxy
+    systemctl enable crio crio-shutdown pull-monitor kubelet kube-proxy
 fi
 if [ "$KIND" = master ]
 then
