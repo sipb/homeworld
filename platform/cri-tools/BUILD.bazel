@@ -1,0 +1,13 @@
+load("//bazel:package.bzl", "homeworld_deb")
+
+homeworld_deb(
+    name = "package",
+    bin = {
+        "@com_github_kubernetes_sigs_cri_tools//cmd/crictl": "/usr/bin/crictl",
+    },
+    package = "homeworld-cri-tools",
+    depends = [
+        "homeworld-cri-o",
+    ],
+    visibility = ["//visibility:public"],
+)

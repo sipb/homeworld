@@ -20,6 +20,7 @@ debs = [
     "//autostart:package",
     "//cni-plugins:package",
     "//cri-o:package",
+    "//cri-tools:package",
     "//docker-registry:package",
     "//etcd:package",
     "//etcd-metrics-exporter:package",

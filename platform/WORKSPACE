@@ -89,6 +89,15 @@ go_repository(
     patch_args = ["-p1"],
 )
 
+# cri-tools
+
+go_repository(
+    name = "com_github_kubernetes_sigs_cri_tools",
+    commit = "35d7291051414e469f111be5cb4a6d9dc1df2e5b", # v1.0.0-beta.2
+    importpath = "github.com/kubernetes-sigs/cri-tools",
+    build_file_proto_mode = "disable_global",
+)
+
 # debian ISO
 
 http_file(
