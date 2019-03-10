@@ -172,7 +172,7 @@ def check_pull():
     config = configuration.get_config()
     node_count = len([node for node in config.nodes if node.kind != "supervisor"])
     expect_prometheus_query_exact("sum(oci_pull_check)", node_count, "nodes are pulling ocis properly")
-    expect_prometheus_query_exact("sum(oci_rkt_check)", node_count, "nodes are launching ocis properly")
+    expect_prometheus_query_exact("sum(oci_exec_check)", node_count, "nodes are launching ocis properly")
     print("oci pulling seems to work!")
 
 

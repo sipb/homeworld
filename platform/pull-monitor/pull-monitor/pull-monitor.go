@@ -31,7 +31,7 @@ var (
 
 	rktCheck = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: "oci",
-		Name:      "rkt_check",
+		Name:      "exec_check",
 		Help:      "Check for whether OCIs can be launched",
 	}, []string{"image"})
 
@@ -44,7 +44,7 @@ var (
 
 	rktTiming = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Namespace: "oci",
-		Name:      "rkt_timing_seconds",
+		Name:      "exec_timing_seconds",
 		Help:      "Timing for launching OCIs",
 		Buckets:   []float64{5, 6, 7, 8, 9, 10, 15, 30, 60},
 	}, []string{"image"})
