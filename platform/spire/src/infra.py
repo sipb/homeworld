@@ -38,7 +38,7 @@ def infra_install_packages(ops: setup.Operations) -> None:
     config = configuration.get_config()
     for node in config.nodes:
         ops.ssh("update apt repositories on @HOST", node, "apt-get", "update")
-        ops.ssh("upgrade packages on @HOST", node, "apt-get", "upgrade", "-y")
+        ops.ssh("upgrade packages on @HOST", node, "apt-get", "dist-upgrade", "-y")
 
 
 def infra_sync(ops: setup.Operations, node_name: str) -> None:
