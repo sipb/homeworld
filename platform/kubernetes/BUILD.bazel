@@ -4,6 +4,14 @@ homeworld_deb(
     name = "hyperkube",
     bin = {
         "@kubernetes//cmd/hyperkube": "/usr/bin/hyperkube",
+    },
+    package = "homeworld-hyperkube",
+    visibility = ["//visibility:public"],
+)
+
+homeworld_deb(
+    name = "kubernetes",
+    bin = {
         ":launch-apiserver.sh": "/usr/lib/hyades/launch-apiserver.sh",
         ":launch-ctrlmgr.sh": "/usr/lib/hyades/launch-ctrlmgr.sh",
         ":launch-proxy.sh": "/usr/lib/hyades/launch-proxy.sh",
@@ -17,9 +25,10 @@ homeworld_deb(
         ":kube-scheduler.service": "/usr/lib/systemd/system/kube-scheduler.service",
         ":kubelet.service": "/usr/lib/systemd/system/kubelet.service",
     },
-    package = "homeworld-hyperkube",
+    package = "homeworld-kubernetes",
     depends = [
         "homeworld-cri-o",
+        "homeworld-hyperkube",
     ],
     visibility = ["//visibility:public"],
 )
