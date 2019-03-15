@@ -4,14 +4,10 @@ import (
 	"net/http"
 	"time"
 
-	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"log"
-	"math/rand"
 	"os"
-	"os/exec"
-	"strings"
 )
 
 var (
@@ -63,70 +59,27 @@ func cycle(image string) {
 	rktHisto := rktTiming.With(prometheus.Labels{
 		"image": image,
 	})
-	// if the image isn't found, still returns exit code zero
-	cmd := exec.Command("rkt", "image", "rm", image)
-	if err := cmd.Run(); err != nil {
-		log.Printf("failed to remove previous image: %v", err)
-		ociGauge.Set(0)
-		rktGauge.Set(0)
-		return
-	}
-	args := []string{
-		"fetch", image, "--full",
-	}
-	if strings.HasPrefix(image, "docker://") {
-		args = append(args, "--insecure-options=image")
-	}
-	cmd = exec.Command("rkt", args...)
-	time_start := time.Now()
-	hash_raw, err := cmd.Output()
-	time_end := time.Now()
+	time_taken, hash, err := refetch(image)
 	if err != nil {
-		log.Printf("failed to fetch new image: %v", err)
+		log.Println(err)
 		ociGauge.Set(0)
 		rktGauge.Set(0)
 		return
 	}
 	ociGauge.Set(1)
-	time_taken := time_end.Sub(time_start).Seconds()
-	hash := strings.TrimSpace(string(hash_raw))
-
+	ociHisto.Observe(time_taken)
 	ociHashes.With(prometheus.Labels{
 		"image": image,
 		"hash":  hash,
 	}).Inc()
 
-	ociHisto.Observe(time_taken)
-
-	echo_data := fmt.Sprintf("!%d!", rand.Uint64())
-	cmd = exec.Command("rkt", "run", image, "--", echo_data)
-	time_rkt_start := time.Now()
-	output, err := cmd.Output()
-	time_rkt_end := time.Now()
+	time_rkt_taken, err := attemptEcho(image)
 	if err != nil {
-		log.Printf("failed to exec new image: %v", err)
-		rktGauge.Set(0)
-		return
-	}
-	lines := strings.Split(strings.Trim(string(output), "\000\r\n"), "\n")
-	if strings.Contains(lines[len(lines)-1], "rkt: obligatory restart") && len(lines) > 1 {
-		lines = lines[:len(lines)-1]
-	}
-	parts := strings.SplitN(strings.Trim(lines[len(lines)-1], "\000\r\n"), ": ", 2)
-	if !strings.Contains(parts[0], "] pullcheck[") || len(parts) != 2 {
-		log.Printf("output from rkt did not match expected format: '%s'", string(output))
-		rktGauge.Set(0)
-		return
-	}
-	if parts[1] != fmt.Sprintf("hello container world [%s]", echo_data) {
-		log.Printf("output from rkt did not match expectation: '%s' (%v) instead of '%s'", parts[1], []byte(parts[1]), echo_data)
+		log.Println(err)
 		rktGauge.Set(0)
 		return
 	}
 	rktGauge.Set(1)
-
-	time_rkt_taken := time_rkt_end.Sub(time_rkt_start).Seconds()
-
 	rktHisto.Observe(time_rkt_taken)
 }
 

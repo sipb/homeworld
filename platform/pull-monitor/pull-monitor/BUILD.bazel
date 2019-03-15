@@ -4,7 +4,7 @@ load("//bazel:substitute.bzl", "substitute")
 
 go_library(
     name = "go_default_library",
-    srcs = ["pull-monitor.go"],
+    srcs = ["pull-monitor.go", "interact.go"],
     importpath = "github.com/sipb/homeworld/platform/pull-monitor/pull-monitor",
     visibility = ["//visibility:private"],
     deps = [
