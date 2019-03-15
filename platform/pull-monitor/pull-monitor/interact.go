@@ -16,13 +16,7 @@ func refetch(image string) (time_taken float64, hash string, err error) {
 	if err := cmd.Run(); err != nil {
 		return 0, "", errors.Wrap(err, "failed to remove previous image")
 	}
-	args := []string{
-		"fetch", image, "--full",
-	}
-	if strings.HasPrefix(image, "docker://") {
-		args = append(args, "--insecure-options=image")
-	}
-	cmd = exec.Command("rkt", args...)
+	cmd = exec.Command("rkt", "fetch", "docker://"+image, "--full", "--insecure-options=image")
 	time_start := time.Now()
 	hash_raw, err := cmd.Output()
 	time_end := time.Now()
