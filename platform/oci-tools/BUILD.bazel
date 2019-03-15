@@ -1,0 +1,27 @@
+load("//bazel:package.bzl", "homeworld_deb")
+
+# TODO for skopeo:
+# BUILDTAGS = $(shell hack/btrfs_tag.sh) $(shell hack/btrfs_installed_tag.sh) $(shell hack/libdm_tag.sh) $(shell hack/ostree_tag.sh)
+# go build -buildmode=pie -ldflags "-X main.gitCommit=${GIT_COMMIT}" -tags "$(BUILDTAGS)" -o skopeo ./cmd/skopeo
+
+# TODO for image-tools:
+# -ldflags "-X main.gitCommit=${COMMIT}"
+
+homeworld_deb(
+    name = "package",
+    bin = {
+        "@com_github_containers_skopeo//cmd/skopeo": "/usr/bin/skopeo",
+        "@com_github_opencontainers_image_tools//cmd/oci-image-tool": "/usr/bin/oci-image-tool",
+    },
+    data = {
+        "@com_github_containers_skopeo//:default.yaml": "/etc/containers/registries.d/default.yaml",
+        "@com_github_containers_skopeo//:completions/bash/skopeo": "/usr/share/bash-completion/completions/skopeo",
+        "@com_github_opencontainers_image_tools//:completions/bash/oci-image-tool": "/usr/share/bash-completion/completions/oci-image-tool",
+    },
+    depends = [
+        "homeworld-oci-sig-policy",
+        "libostree-1-1",
+    ],
+    package = "homeworld-oci-tools",
+    visibility = ["//visibility:public"],
+)

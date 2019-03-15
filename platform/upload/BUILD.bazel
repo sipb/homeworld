@@ -30,6 +30,7 @@ debs = [
     "//kubernetes:hyperkube",
     "//kubernetes:kubernetes",
     "//oci-sig-policy:package",
+    "//oci-tools:package",
     "//prometheus:package",
     "//prometheus-node-exporter:package",
     "//pull-monitor/pull-monitor:package",
