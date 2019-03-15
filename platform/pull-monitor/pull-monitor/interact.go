@@ -10,22 +10,21 @@ import (
 	"github.com/pkg/errors"
 )
 
-func refetch(image string) (time_taken float64, hash string, err error) {
+func refetch(image string) (time_taken float64, err error) {
 	// if the image isn't found, still returns exit code zero
 	cmd := exec.Command("rkt", "image", "rm", image)
 	if err := cmd.Run(); err != nil {
-		return 0, "", errors.Wrap(err, "failed to remove previous image")
+		return 0, errors.Wrap(err, "failed to remove previous image")
 	}
 	cmd = exec.Command("rkt", "fetch", "docker://"+image, "--full", "--insecure-options=image")
 	time_start := time.Now()
-	hash_raw, err := cmd.Output()
+	err = cmd.Run()
 	time_end := time.Now()
 	if err != nil {
-		return 0, "", errors.Wrap(err, "failed to fetch new image")
+		return 0, errors.Wrap(err, "failed to fetch new image")
 	}
 	time_taken = time_end.Sub(time_start).Seconds()
-	hash = strings.TrimSpace(string(hash_raw))
-	return time_taken, hash, nil
+	return time_taken, nil
 }
 
 func attemptEcho(image string) (float64, error) {

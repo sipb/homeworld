@@ -19,12 +19,6 @@ var (
 		Help:      "Check for whether OCIs can be pulled",
 	}, []string{"image"})
 
-	ociHashes = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: "oci",
-		Name:      "pull_hash",
-		Help:      "Counters for each OCI hash found",
-	}, []string{"image", "hash"})
-
 	rktCheck = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: "oci",
 		Name:      "exec_check",
@@ -59,7 +53,7 @@ func cycle(image string) {
 	rktHisto := rktTiming.With(prometheus.Labels{
 		"image": image,
 	})
-	time_taken, hash, err := refetch(image)
+	time_taken, err := refetch(image)
 	if err != nil {
 		log.Println(err)
 		ociGauge.Set(0)
@@ -68,10 +62,6 @@ func cycle(image string) {
 	}
 	ociGauge.Set(1)
 	ociHisto.Observe(time_taken)
-	ociHashes.With(prometheus.Labels{
-		"image": image,
-		"hash":  hash,
-	}).Inc()
 
 	time_rkt_taken, err := attemptEcho(image)
 	if err != nil {
@@ -108,7 +98,6 @@ func main() {
 	image := os.Args[1]
 
 	registry.MustRegister(ociCheck)
-	registry.MustRegister(ociHashes)
 	registry.MustRegister(rktCheck)
 	registry.MustRegister(ociTiming)
 	registry.MustRegister(rktTiming)
