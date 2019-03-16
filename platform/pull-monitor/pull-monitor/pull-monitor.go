@@ -19,7 +19,7 @@ var (
 		Help:      "Check for whether OCIs can be pulled",
 	}, []string{"image"})
 
-	rktCheck = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+	execCheck = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: "oci",
 		Name:      "exec_check",
 		Help:      "Check for whether OCIs can be launched",
@@ -32,7 +32,7 @@ var (
 		Buckets:   []float64{8, 10, 11, 12, 13, 14, 15, 16, 18, 20, 30, 40},
 	}, []string{"image"})
 
-	rktTiming = prometheus.NewHistogramVec(prometheus.HistogramOpts{
+	execTiming = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Namespace: "oci",
 		Name:      "exec_timing_seconds",
 		Help:      "Timing for launching OCIs",
@@ -47,30 +47,30 @@ func cycle(image string) {
 	ociHisto := ociTiming.With(prometheus.Labels{
 		"image": image,
 	})
-	rktGauge := rktCheck.With(prometheus.Labels{
+	execGauge := execCheck.With(prometheus.Labels{
 		"image": image,
 	})
-	rktHisto := rktTiming.With(prometheus.Labels{
+	execHisto := execTiming.With(prometheus.Labels{
 		"image": image,
 	})
 	time_taken, err := refetch(image)
 	if err != nil {
 		log.Println(err)
 		ociGauge.Set(0)
-		rktGauge.Set(0)
+		execGauge.Set(0)
 		return
 	}
 	ociGauge.Set(1)
 	ociHisto.Observe(time_taken)
 
-	time_rkt_taken, err := attemptEcho(image)
+	time_taken_for_exec, err := attemptEcho(image)
 	if err != nil {
 		log.Println(err)
-		rktGauge.Set(0)
+		execGauge.Set(0)
 		return
 	}
-	rktGauge.Set(1)
-	rktHisto.Observe(time_rkt_taken)
+	execGauge.Set(1)
+	execHisto.Observe(time_taken_for_exec)
 }
 
 func loop(image string, stopChannel <-chan struct{}) {
@@ -98,9 +98,9 @@ func main() {
 	image := os.Args[1]
 
 	registry.MustRegister(ociCheck)
-	registry.MustRegister(rktCheck)
+	registry.MustRegister(execCheck)
 	registry.MustRegister(ociTiming)
-	registry.MustRegister(rktTiming)
+	registry.MustRegister(execTiming)
 
 	stopChannel := make(chan struct{})
 	defer close(stopChannel)

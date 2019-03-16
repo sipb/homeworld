@@ -295,14 +295,14 @@ func runPod(image string, args ...string) (result string, err error) {
 // receiving it through the logging output
 func attemptEcho(image string) (float64, error) {
 	echo_data := fmt.Sprintf("!%d!", rand.Uint64())
-	time_rkt_start := time.Now()
+	time_start := time.Now()
 	output, err := runPod(image, "/usr/bin/pullcheck", echo_data)
-	time_rkt_end := time.Now()
+	time_end := time.Now()
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to exec new image")
 	}
 	if strings.Trim(output, "\n") != fmt.Sprintf("hello container world [%s]", echo_data) {
 		return 0, errors.Errorf("mismatched output from container: '%s' instead of '%s'", output, echo_data)
 	}
-	return time_rkt_end.Sub(time_rkt_start).Seconds(), nil
+	return time_end.Sub(time_start).Seconds(), nil
 }
