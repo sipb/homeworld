@@ -1,8 +1,13 @@
 package main
 
 import (
+	rand2 "crypto/rand"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"math/rand"
+	"os"
 	"strings"
 	"time"
 
@@ -46,10 +51,95 @@ func refetch(image string) (time_taken float64, err error) {
 	return time_taken, nil
 }
 
+type PodSandboxMetadata struct {
+	Name      string `json:"name"`
+	Uid       string `json:"uid"`
+	Namespace string `json:"namespace"`
+	Attempt   uint32 `json:"attempt"`
+}
+
+type PodSandboxConfig struct {
+	Metadata     *PodSandboxMetadata `json:"metadata"`
+	LogDirectory string              `json:"log_directory"`
+}
+
+type ContainerMetadata struct {
+	Name string `json:"name"`
+}
+
+type ImageSpec struct {
+	Image string `json:"image"`
+}
+
+type ContainerConfig struct {
+	Metadata *ContainerMetadata `json:"metadata"`
+	Image    *ImageSpec         `json:"image"`
+	Command  []string           `json:"command"`
+	Args     []string           `json:"args"`
+	LogPath  string             `json:"log_path"`
+}
+
+type ContainerStatus struct {
+	State string `json:"state"`
+}
+
+type Inspection struct {
+	Status *ContainerStatus `json:"status"`
+}
+
+func generateUID() (string, error) {
+	randomID := make([]byte, 16)
+	if _, err := rand2.Read(randomID[:]); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(randomID[:]), nil
+}
+
+// create a temporary file with a JSON-encoded structure as its only content, and return a path to it.
+// the caller is responsible for deleting the file once they are done.
+func createJSONTempfile(contents interface{}) (path string, err error) {
+	file, err := ioutil.TempFile("", "pullcheck-manifest-")
+	if err != nil {
+		return "", errors.Wrap(err, "creating tempfile")
+	}
+	defer func() {
+		if err2 := file.Close(); err2 != nil {
+			err = multierror.Append(err, err2)
+		}
+	}()
+
+	enc := json.NewEncoder(file)
+	if err := enc.Encode(contents); err != nil {
+		err = multierror.Append(err, os.Remove(file.Name()))
+		return "", errors.Wrap(err, "writing JSON")
+	}
+
+	return file.Name(), nil
+}
+
 // instruct CRI-O to create a new Pod Sandbox in which we can launch our container
 // returns the Pod ID of the created sandbox, if no error occurs
-func startPodSandbox() (id string, err error) {
+func startPodSandbox() (id string, configpath string, err error) {
+	uid, err := generateUID()
+	if err != nil {
+		return "", "", errors.Wrap(err, "generating UID")
+	}
+	config := PodSandboxConfig{
+		Metadata: &PodSandboxMetadata{
+			Name:      "pullcheck-sandbox",
+			Namespace: "pullcheck",
+			Attempt:   1,
+			Uid:       "pullcheck-" + uid,
+		},
+		LogDirectory: "/tmp/pullcheck-logs/" + uid + "/",
+	}
+	configpath, err = createJSONTempfile(config)
+	if err != nil {
+		return "", "", errors.Wrap(err, "creating pod config")
+	}
 	panic("todo")
+	idstr := "unknown"
+	return idstr, configpath, nil
 }
 
 // instruct CRI-O to tear down an existing Pod Sandbox
@@ -59,8 +149,30 @@ func deletePodSandbox(podid string) error {
 
 // instruct CRI-O to create (but not start) a container within an existing Pod Sandbox, by ID
 // returns the Container ID of the created container, if no error occurs
-func createContainer(image string, podid string, args []string) (containerid string, err error) {
+func createContainer(image string, podconfigpath string, podid string, args []string) (containerid string, err error) {
+	config := &ContainerConfig{
+		Metadata: &ContainerMetadata{
+			Name: "pullcheck",
+		},
+		Image: &ImageSpec{
+			Image: image,
+		},
+		Command: args,
+		LogPath: "container.log",
+	}
+	configpath, err := createJSONTempfile(config)
+	if err != nil {
+		return "", errors.Wrap(err, "creating container config")
+	}
+	defer func() {
+		err2 := os.Remove(configpath)
+		if err2 != nil {
+			err = multierror.Append(err, err2)
+		}
+	}()
 	panic("todo")
+	idstr := "unknown"
+	return idstr, nil
 }
 
 // instruct CRI-O to start a container, by ID, that has already been created
@@ -82,8 +194,8 @@ func getContainerLogs(containerid string) (result string, err error) {
 // inside a specified Pod Sandbox (by ID), create and start a new container with particular arguments, then wait for it
 // to complete and return the contents of its logging output, if no error occurs
 // the arguments must include the name of the executable to invoke
-func runContainer(image string, podid string, args []string) (result string, err error) {
-	containerid, err := createContainer(image, podid, args)
+func runContainer(image string, podconfigpath string, podid string, args []string) (result string, err error) {
+	containerid, err := createContainer(image, podconfigpath, podid, args)
 	if err != nil {
 		return "", errors.Wrap(err, "creating container")
 	}
@@ -110,11 +222,17 @@ func runContainer(image string, podid string, args []string) (result string, err
 // the arguments must include the name of the program to launch within the container
 // return the contents of its logging output, or an error
 func runPod(image string, args ...string) (result string, err error) {
-	podid, err := startPodSandbox()
+	podid, podconfig, err := startPodSandbox()
 	if err != nil {
 		return "", errors.Wrap(err, "starting pod sandbox")
 	}
-	result, err = runContainer(image, podid, args)
+	defer func() {
+		err2 := os.Remove(podconfig)
+		if err2 != nil {
+			err = multierror.Append(err, errors.Wrap(err2, "removing pod configuration"))
+		}
+	}()
+	result, err = runContainer(image, podconfig, podid, args)
 	if err != nil {
 		err = errors.Wrap(err, "running container")
 	}
