@@ -15,7 +15,7 @@ substitute(
     name = "kubernetes.yaml",
     template = ":kubernetes.yaml.in",
     kfs = {
-        "digest": ":oci.shortdigest",
+        "digest": ":oci.ocidigest",
     },
     visibility = ["//visibility:public"],
 )

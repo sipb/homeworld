@@ -73,7 +73,7 @@ spec:
     spec:
       containers:
       - name: user-grant
-        image: homeworld.private/user-grant:{digest}
+        image: homeworld.private/user-grant@{digest}
         command:
         - /usr/bin/user-grant
         - upstream-ca=/config/mit-ca.pem

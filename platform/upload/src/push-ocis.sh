@@ -28,11 +28,8 @@ do
     do
         ARGS+=("--layer=${layer}")
     done
-    # this is a workaround. we should be able to reference images by digest without needing to make the digest into the
-    # tag name, and it's more reliable like that, anyway.
-    # but rkt + kubernetes are broken when used together with images referenced by digest. so we reuse the digest as a
-    # tag, and for the time being use tag lookup when we shouldn't.
-    TAG="$(cat "${container}/oci-digest")"
+    # we don't reference anything by tag; simply push everything to a pointless tag that we don't care about.
+    TAG="last"
     ARGS+=("--name=${REGISTRY}/$(basename "${container}"):${TAG}")
 
     echo "pushing container ${container}"

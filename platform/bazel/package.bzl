@@ -109,16 +109,6 @@ def homeworld_oci(name, bin=None, data=None, deps=None, oci_dep=None, ports=None
         visibility = visibility,
     )
 
-    # to facilitate our rather unfortunate tag workaround, we need a hash-only digest, not including the
-    # sha256: prefix. this is a stop-gap solution and should be removed once we've switched away from rkt.
-    native.genrule(
-        name = name + ".shortdigest-rule",
-        srcs = [name + ".ocidigest"],
-        outs = [name + ".shortdigest"],
-        cmd = "cut -d ':' -f 2 <'$<' >'$@'",
-        visibility = visibility,
-    )
-
 def pythonize(name, zip, visibility=None):
     native.genrule(
         name = name + "-rule",

@@ -21,9 +21,6 @@ def oci_pusher(name, packagebase, images, visibility=None):
         homeworld_deb(
             name = deb,
             package = subpackage,
-            data = {
-                label + ".shortdigest": folder + "/oci-digest"
-            },
             deps = [tar],
             visibility = visibility,
         )
