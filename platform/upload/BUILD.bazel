@@ -34,8 +34,6 @@ debs = [
     "//prometheus:package",
     "//prometheus-node-exporter:package",
     "//pull-monitor/pull-monitor:package",
-    "//rkt:package",
-    "//rkt-config:package",
     "//runc:package",
     "//services:package",
     "//setup-queue:package",

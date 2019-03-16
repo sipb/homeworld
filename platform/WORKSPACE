@@ -427,35 +427,6 @@ go_repository(
     patches = ["//oci-tools:image-tools.patch"],
 )
 
-# rkt
-
-http_archive(
-    name = "com_github_rkt_rkt",
-    urls = ["https://github.com/rkt/rkt/archive/v1.29.0.tar.gz"],
-    sha256 = "d2d89db86b4b3a586a8288ba7becdb87370d4fbe7e12aa37e9b1e30a9f9c9b20",
-    patches = ["//rkt:rkt.patch"],
-    build_file = "//rkt:BUILD.import",
-)
-
-# TODO: something way less sketchy
-http_file(
-    name = "coreos_image",
-    urls = ["https://alpha.release.core-os.net/amd64-usr/1478.0.0/coreos_production_pxe_image.cpio.gz"],
-    sha256 = "9897f9e78e207da42a75d03f7ff74c4400dce15843b752adcb3182ebe66c9868",
-)
-
-http_file(
-    name = "linux_kernel",
-    urls = ["https://www.kernel.org/pub/linux/kernel/v4.x/linux-4.14.16.tar.xz"],
-    sha256 = "070bdb482245977b1ff7f9008eb6455ec27501fb7438426bb54f3b592513ac24",
-)
-
-http_file(
-    name = "qemu",
-    urls = ["https://download.qemu.org/qemu-2.11.0.tar.xz"],
-    sha256 = "c9d34a79024eae080ce3853aa9afe503824520eefb440190383003081ce7f437",
-)
-
 # runc
 
 go_repository(
