@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"os"
+	"os/exec"
 	"strings"
 	"time"
 
@@ -17,17 +18,20 @@ import (
 
 // returns whether or not a particular image exists according to CRI-O. also returns false on error.
 func doesImageExist(image string) bool {
-	panic("todo")
+	cmd := exec.Command("crictl", "inspecti", image)
+	return cmd.Run() == nil
 }
 
 // deletes an image from CRI-O's image store
 func deleteImage(image string) error {
-	panic("todo")
+	cmd := exec.Command("crictl", "rmi", image)
+	return cmd.Run()
 }
 
 // pulls an image and saves it into CRI-O's image store
 func pullImage(image string) error {
-	panic("todo")
+	cmd := exec.Command("crictl", "pull", image)
+	return cmd.Run()
 }
 
 // attempts to delete and re-pull an image, to test whether image pulling is functional
@@ -137,14 +141,31 @@ func startPodSandbox() (id string, configpath string, err error) {
 	if err != nil {
 		return "", "", errors.Wrap(err, "creating pod config")
 	}
-	panic("todo")
-	idstr := "unknown"
+	cmd := exec.Command("crictl", "runp", configpath)
+	result, err := cmd.Output()
+	if err != nil {
+		err = multierror.Append(err, os.Remove(configpath))
+		return "", "", errors.Wrap(err, "invoking runp")
+	}
+	idstr := strings.TrimSpace(string(result))
+	if len(idstr) != 64 {
+		err = multierror.Append(err, os.Remove(configpath))
+		return "", "", errors.Errorf("not a valid ID; not 64 characters long: %s", idstr)
+	}
 	return idstr, configpath, nil
 }
 
 // instruct CRI-O to tear down an existing Pod Sandbox
 func deletePodSandbox(podid string) error {
-	panic("todo")
+	cmd := exec.Command("crictl", "stopp", podid)
+	if _, err := cmd.Output(); err != nil {
+		return err
+	}
+	cmd = exec.Command("crictl", "rmp", podid)
+	if _, err := cmd.Output(); err != nil {
+		return err
+	}
+	return nil
 }
 
 // instruct CRI-O to create (but not start) a container within an existing Pod Sandbox, by ID
@@ -170,25 +191,52 @@ func createContainer(image string, podconfigpath string, podid string, args []st
 			err = multierror.Append(err, err2)
 		}
 	}()
-	panic("todo")
-	idstr := "unknown"
+	cmd := exec.Command("crictl", "create", podid, configpath, podconfigpath)
+	result, err := cmd.Output()
+	if err != nil {
+		return "", errors.Wrap(err, "invoking create")
+	}
+	idstr := strings.TrimSpace(string(result))
+	if len(idstr) != 64 {
+		return "", errors.Errorf("not a valid ID; not 64 characters long: %s", idstr)
+	}
 	return idstr, nil
 }
 
 // instruct CRI-O to start a container, by ID, that has already been created
 func startContainer(containerid string) error {
-	panic("todo")
+	cmd := exec.Command("crictl", "start", containerid)
+	_, err := cmd.Output()
+	return err
 }
 
 // ask CRI-O whether a particular container, referenced by ID, is running or not
 func isContainerRunning(containerid string) (bool, error) {
-	panic("todo")
+	cmd := exec.Command("crictl", "inspect", containerid)
+	result, err := cmd.Output()
+	if err != nil {
+		return false, errors.Wrap(err, "inspecting container")
+	}
+	var inspection Inspection
+	err = json.Unmarshal(result, &inspection)
+	if err != nil {
+		return false, errors.Wrap(err, "reading inspection response")
+	}
+	if inspection.Status.State == "CONTAINER_RUNNING" {
+		return true, nil
+	} else if inspection.Status.State == "CONTAINER_EXITED" {
+		return false, nil
+	} else {
+		return false, errors.Errorf("unknown state: '%s'", inspection.Status.State)
+	}
 }
 
 // retrieve the container logs from CRI-O for a particular container, by ID
 // returns the retrieved logs if no error
 func getContainerLogs(containerid string) (result string, err error) {
-	panic("todo")
+	cmd := exec.Command("crictl", "logs", containerid)
+	output, err := cmd.Output()
+	return string(output), err
 }
 
 // inside a specified Pod Sandbox (by ID), create and start a new container with particular arguments, then wait for it
