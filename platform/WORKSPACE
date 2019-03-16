@@ -368,6 +368,26 @@ go_repository(
     importpath = "github.com/beorn7/perks",
 )
 
+# pull-monitor other dependencies
+
+go_repository(
+    name = "com_github_hashicorp_errwrap",
+    commit = "8a6fb523712970c966eefc6b39ed2c5e74880354",
+    importpath = "github.com/hashicorp/errwrap",
+)
+
+go_repository(
+    name = "com_github_hashicorp_go_multierror",
+    commit = "886a7fbe3eb1c874d46f623bfa70af45f425b3d1",
+    importpath = "github.com/hashicorp/go-multierror",
+)
+
+go_repository(
+    name = "com_github_pkg_errors",
+    commit = "27936f6d90f9c8e1145f11ed52ffffbfdb9e0af7",
+    importpath = "github.com/pkg/errors",
+)
+
 # kubernetes-dns
 
 go_repository_alt(
