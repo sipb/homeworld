@@ -27,7 +27,7 @@ SRVOPT+=(--admission-control='NamespaceLifecycle,LimitRanger,ServiceAccount,Defa
 # authenticate clients properly
 SRVOPT+=(--client-ca-file=/etc/homeworld/authorities/kubernetes.pem)
 # do HTTPS properly
-SRVOPT+=(--tls-ca-file=/etc/homeworld/authorities/kubernetes.pem --tls-cert-file=/etc/homeworld/keys/kubernetes-master.pem --tls-private-key-file=/etc/homeworld/keys/kubernetes-master.key)
+SRVOPT+=(--tls-cert-file=/etc/homeworld/keys/kubernetes-master.pem --tls-private-key-file=/etc/homeworld/keys/kubernetes-master.key)
 # make sure account deletion works
 SRVOPT+=(--service-account-lookup)
 # no cloud provider
