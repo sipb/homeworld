@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/sipb/homeworld/platform/keysystem/api"
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/config"
 	"github.com/sipb/homeworld/platform/keysystem/worldconfig/paths"
 )
@@ -228,7 +229,7 @@ func GenerateVariant() error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile("/etc/homeworld/config/keyclient.yaml", data, 0644)
+	return ioutil.WriteFile(api.ConfigPath, data, 0644)
 }
 
 func main() {

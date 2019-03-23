@@ -19,8 +19,8 @@ import (
 
 // TODO: private key rotation, not just getting new certs
 
-func Load(configpath string, logger *log.Logger) ([]actloop.Action, error) {
-	conf, err := config.LoadConfig(configpath)
+func LoadDefault(logger *log.Logger) ([]actloop.Action, error) {
+	conf, err := config.LoadDefaultConfig()
 	if err != nil {
 		return nil, err
 	}
@@ -97,8 +97,8 @@ func Launch(actions []actloop.Action, logger *log.Logger) (stop func()) {
 	return loop.Cancel
 }
 
-func LoadAndLaunch(configpath string, logger *log.Logger) (stop func(), errout error) {
-	actions, err := Load(configpath, logger)
+func LoadAndLaunchDefault(logger *log.Logger) (stop func(), errout error) {
+	actions, err := LoadDefault(logger)
 	if err != nil {
 		return nil, err
 	}

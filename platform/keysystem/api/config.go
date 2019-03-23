@@ -10,6 +10,8 @@ import (
 	"github.com/sipb/homeworld/platform/keysystem/api/server"
 )
 
+const ConfigPath = "/etc/homeworld/config/keyclient.yaml"
+
 type Config struct {
 	AuthorityPath string
 	Keyserver     string
@@ -17,9 +19,9 @@ type Config struct {
 	CertPath      string
 }
 
-func LoadKeyserver(configpath string) (*server.Keyserver, Config, error) {
+func LoadDefaultKeyserver() (*server.Keyserver, Config, error) {
 	config := Config{}
-	configdata, err := ioutil.ReadFile(configpath)
+	configdata, err := ioutil.ReadFile(ConfigPath)
 	if err != nil {
 		return nil, Config{}, errors.Wrap(err, "while loading configuration")
 	}
@@ -38,8 +40,8 @@ func LoadKeyserver(configpath string) (*server.Keyserver, Config, error) {
 	return ks, config, nil
 }
 
-func LoadKeyserverWithCert(configpath string) (*server.Keyserver, reqtarget.RequestTarget, error) {
-	k, config, err := LoadKeyserver(configpath)
+func LoadDefaultKeyserverWithCert() (*server.Keyserver, reqtarget.RequestTarget, error) {
+	k, config, err := LoadDefaultKeyserver()
 	if err != nil {
 		return nil, nil, err
 	}

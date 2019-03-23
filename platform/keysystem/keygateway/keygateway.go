@@ -11,14 +11,14 @@ import (
 	"github.com/sipb/homeworld/platform/keysystem/api/reqtarget"
 )
 
-func HandleRequest(principal string, request_data []byte, configfile string) ([]byte, error) {
+func HandleRequest(principal string, request_data []byte) ([]byte, error) {
 	requests := []reqtarget.Request{}
 	err := json.Unmarshal(request_data, &requests)
 	if err != nil {
 		return nil, err
 	}
 
-	_, rt, err := api.LoadKeyserverWithCert(configfile)
+	_, rt, err := api.LoadDefaultKeyserverWithCert()
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +40,7 @@ func HandleRequest(principal string, request_data []byte, configfile string) ([]
 	return json.Marshal(result)
 }
 
-func Process(configfile string) error {
+func Process() error {
 	kncCreds := os.Getenv("KNC_CREDS")
 
 	if kncCreds == "" {
@@ -55,7 +55,7 @@ func Process(configfile string) error {
 		return errors.New("empty request")
 	}
 
-	result, err := HandleRequest(kncCreds, request_data, configfile)
+	result, err := HandleRequest(kncCreds, request_data)
 	if err != nil {
 		return err
 	}
@@ -66,10 +66,7 @@ func Process(configfile string) error {
 
 func main() {
 	logger := log.New(os.Stderr, "[keygateway] ", log.Ldate|log.Ltime|log.Lmicroseconds|log.Lshortfile)
-	if len(os.Args) < 2 {
-		logger.Fatal("no configuration file provided")
-	}
-	err := Process(os.Args[1])
+	err := Process()
 	// TODO: verify that stderr does *not* get sent across knc
 	if err != nil {
 		logger.Fatal(err)
