@@ -15,12 +15,13 @@ import (
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/actloop"
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/config"
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/state"
+	"github.com/sipb/homeworld/platform/keysystem/worldconfig"
 )
 
 // TODO: private key rotation, not just getting new certs
 
 func LoadDefault(logger *log.Logger) ([]actloop.Action, error) {
-	conf, err := config.LoadDefaultConfig()
+	conf, err := worldconfig.GenerateConfig()
 	if err != nil {
 		return nil, err
 	}

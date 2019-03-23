@@ -3,52 +3,35 @@ package api
 import (
 	"crypto/tls"
 	"github.com/pkg/errors"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 
 	"github.com/sipb/homeworld/platform/keysystem/api/reqtarget"
 	"github.com/sipb/homeworld/platform/keysystem/api/server"
+	"github.com/sipb/homeworld/platform/keysystem/worldconfig/paths"
 )
 
-const ConfigPath = "/etc/homeworld/config/keyclient.yaml"
-
-type Config struct {
-	AuthorityPath string
-	Keyserver     string
-	KeyPath       string
-	CertPath      string
-}
-
-func LoadDefaultKeyserver() (*server.Keyserver, Config, error) {
-	config := Config{}
-	configdata, err := ioutil.ReadFile(ConfigPath)
+func LoadDefaultKeyserver() (*server.Keyserver, error) {
+	keyserver, err := paths.GetKeyserver()
 	if err != nil {
-		return nil, Config{}, errors.Wrap(err, "while loading configuration")
+		return nil, err
 	}
-	err = yaml.Unmarshal(configdata, &config)
+	authoritydata, err := ioutil.ReadFile(paths.KeyserverTLSCert)
 	if err != nil {
-		return nil, Config{}, errors.Wrap(err, "while decoding configuration")
+		return nil, errors.Wrap(err, "while loading authority")
 	}
-	authoritydata, err := ioutil.ReadFile(config.AuthorityPath)
+	ks, err := server.NewKeyserver(authoritydata, keyserver)
 	if err != nil {
-		return nil, Config{}, errors.Wrap(err, "while loading authority")
+		return nil, errors.Wrap(err, "while preparing setup")
 	}
-	ks, err := server.NewKeyserver(authoritydata, config.Keyserver)
-	if err != nil {
-		return nil, Config{}, errors.Wrap(err, "while preparing setup")
-	}
-	return ks, config, nil
+	return ks, nil
 }
 
 func LoadDefaultKeyserverWithCert() (*server.Keyserver, reqtarget.RequestTarget, error) {
-	k, config, err := LoadDefaultKeyserver()
+	k, err := LoadDefaultKeyserver()
 	if err != nil {
 		return nil, nil, err
 	}
-	if config.CertPath == "" || config.KeyPath == "" {
-		return nil, nil, errors.New("while preparing authentication: expected non-empty path")
-	}
-	keypair, err := tls.LoadX509KeyPair(config.CertPath, config.KeyPath)
+	keypair, err := tls.LoadX509KeyPair(paths.GrantingCertPath, paths.GrantingKeyPath)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "while loading keypair")
 	}

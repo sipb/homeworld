@@ -20,6 +20,7 @@ import (
 	"github.com/sipb/homeworld/platform/keysystem/api"
 	"github.com/sipb/homeworld/platform/keysystem/api/reqtarget"
 	"github.com/sipb/homeworld/platform/keysystem/api/server"
+	"github.com/sipb/homeworld/platform/keysystem/worldconfig/paths"
 	"github.com/sipb/homeworld/platform/util/osutil"
 )
 
@@ -97,8 +98,8 @@ func attemptSSHAccess(pkey *rsa.PrivateKey, cert *ssh.Certificate, host_ca ssh.P
 	return nil
 }
 
-func attemptSSHAcquire(keyserver *server.Keyserver, config api.Config) (*rsa.PrivateKey, *ssh.Certificate, error) {
-	keypair, err := tls.LoadX509KeyPair(config.CertPath, config.KeyPath)
+func attemptSSHAcquire(keyserver *server.Keyserver) (*rsa.PrivateKey, *ssh.Certificate, error) {
+	keypair, err := tls.LoadX509KeyPair(paths.GrantingCertPath, paths.GrantingKeyPath)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -139,7 +140,7 @@ func attemptSSHAcquire(keyserver *server.Keyserver, config api.Config) (*rsa.Pri
 	return privkey, cert, nil
 }
 
-func attemptKAuth(keyserver *server.Keyserver, config api.Config) error {
+func attemptKAuth(keyserver *server.Keyserver) error {
 	f, err := ioutil.TempFile("", "krb5cc_keygateway_checker_")
 	if err != nil {
 		return err
@@ -150,7 +151,11 @@ func attemptKAuth(keyserver *server.Keyserver, config api.Config) error {
 		return err
 	}
 
-	host := strings.Split(config.Keyserver, ":")[0] // using keyserver's definition to refer to this node
+	hostport, err := paths.GetKeyserver()
+	if err != nil {
+		return err
+	}
+	host := strings.Split(hostport, ":")[0]
 
 	cmd := exec.Command("kinit", "-l2m", "-k", "host/"+host)
 	cmd.Env = osutil.ModifiedEnviron("KRB5CCNAME", f.Name())
@@ -179,7 +184,7 @@ func attemptKAuth(keyserver *server.Keyserver, config api.Config) error {
 	return nil
 }
 
-func cycle(keyserver *server.Keyserver, config api.Config) {
+func cycle(keyserver *server.Keyserver) {
 	// basic functionality testing
 	host_ca_pub, err := keyserver.GetPubkey("ssh-host")
 	if err != nil {
@@ -207,7 +212,7 @@ func cycle(keyserver *server.Keyserver, config api.Config) {
 	}
 
 	// checking kerberos authentication
-	err = attemptKAuth(keyserver, config)
+	err = attemptKAuth(keyserver)
 	if err != nil {
 		authCheck.Set(0)
 		log.Printf("failed verification of keygateway connection: %v", err)
@@ -218,7 +223,7 @@ func cycle(keyserver *server.Keyserver, config api.Config) {
 	// checking SSH authentication
 	machine_list := strings.Split(strings.TrimSpace(string(machines)), ",")
 
-	pkey, cert, err := attemptSSHAcquire(keyserver, config)
+	pkey, cert, err := attemptSSHAcquire(keyserver)
 	if err != nil {
 		grantCheck.Set(0)
 		for _, machine := range machine_list {
@@ -255,10 +260,10 @@ func cycle(keyserver *server.Keyserver, config api.Config) {
 	}
 }
 
-func loop(keyserver *server.Keyserver, config api.Config, stopChannel <-chan struct{}) {
+func loop(keyserver *server.Keyserver, stopChannel <-chan struct{}) {
 	for {
 		next_cycle_at := time.Now().Add(time.Second * 15)
-		cycle(keyserver, config)
+		cycle(keyserver)
 
 		delta := next_cycle_at.Sub(time.Now())
 		if delta < time.Second {
@@ -274,7 +279,7 @@ func loop(keyserver *server.Keyserver, config api.Config, stopChannel <-chan str
 }
 
 func main() {
-	ks, config, err := api.LoadDefaultKeyserver()
+	ks, err := api.LoadDefaultKeyserver()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -287,7 +292,7 @@ func main() {
 
 	stopChannel := make(chan struct{})
 	defer close(stopChannel)
-	go loop(ks, config, stopChannel)
+	go loop(ks, stopChannel)
 
 	address := ":9102"
 

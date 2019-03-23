@@ -5,9 +5,4 @@ go_library(
     srcs = ["config.go"],
     importpath = "github.com/sipb/homeworld/platform/keysystem/keyclient/config",
     visibility = ["//visibility:public"],
-    deps = [
-        "//keysystem/api:go_default_library",
-        "@com_github_pkg_errors//:go_default_library",
-        "@in_gopkg_yaml_v2//:go_default_library",
-    ],
 )
