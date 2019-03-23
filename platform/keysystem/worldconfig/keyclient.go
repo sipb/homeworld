@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
@@ -19,15 +20,46 @@ const (
 	WORKER     = "worker"
 )
 
+func getLocalConf() (map[string]string, error) {
+	conf, err := ioutil.ReadFile("/etc/homeworld/config/local.conf")
+	if err != nil {
+		return nil, err
+	}
+	kvs := map[string]string{}
+	for _, line := range strings.Split(string(conf), "\n") {
+		line = strings.TrimSpace(line)
+		if len(line) > 0 && line[0] != '#' {
+			kv := strings.SplitN(line, "=", 2)
+			if len(kv) != 2 {
+				return nil, errors.New("incorrectly formatted local.conf")
+			}
+			kvs[strings.TrimSpace(kv[0])] = strings.TrimSpace(kv[1])
+		}
+	}
+	return kvs, nil
+}
+
 func GetVariant() (string, error) {
-	variant, err := ioutil.ReadFile("/etc/homeworld/config/keyserver.variant")
+	kvs, err := getLocalConf()
+	// if no local.conf available, default to "base" mode
+	if os.IsNotExist(err) {
+		return "base", nil
+	}
 	if err != nil {
 		return "", err
 	}
-	return strings.TrimSpace(string(variant)), nil
+	kind, found := kvs["KIND"]
+	if !found {
+		return "", errors.New("could not find key 'KIND'")
+	}
+	return kind, nil
 }
 
-func GenerateConfig(variant string) (*config.Config, error) {
+func GenerateConfig() (*config.Config, error) {
+	variant, err := GetVariant()
+	if err != nil {
+		return nil, err
+	}
 	if variant != BASE && variant != SUPERVISOR && variant != MASTER && variant != WORKER {
 		return nil, fmt.Errorf("invalid variant: %s", variant)
 	}
@@ -178,15 +210,17 @@ func GenerateConfig(variant string) (*config.Config, error) {
 			},
 		)
 	}
+
+	// todo: get rid of this side effect
+	err = ioutil.WriteFile("/etc/homeworld/config/keyserver.variant", []byte(variant+"\n"), 0644)
+	if err != nil {
+		return nil, err
+	}
 	return conf, nil
 }
 
 func GenerateVariant() error {
-	variant, err := GetVariant()
-	if err != nil {
-		return err
-	}
-	conf, err := GenerateConfig(variant)
+	conf, err := GenerateConfig()
 	if err != nil {
 		return err
 	}
@@ -194,11 +228,7 @@ func GenerateVariant() error {
 	if err != nil {
 		return err
 	}
-	output := string(data)
-	if variant == BASE {
-		output = "# TEMPORARY-KEYCLIENT-CONFIGURATION\n\n" + output
-	}
-	return ioutil.WriteFile("/etc/homeworld/config/keyclient.yaml", []byte(output+"\n"), 0644)
+	return ioutil.WriteFile("/etc/homeworld/config/keyclient.yaml", data, 0644)
 }
 
 func main() {
