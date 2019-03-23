@@ -1,15 +1,12 @@
-package main
+package worldconfig
 
 import (
 	"errors"
 	"fmt"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	"log"
 	"os"
 	"strings"
 
-	"github.com/sipb/homeworld/platform/keysystem/api"
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/config"
 	"github.com/sipb/homeworld/platform/keysystem/worldconfig/paths"
 )
@@ -56,25 +53,25 @@ func GetVariant() (string, error) {
 	return kind, nil
 }
 
-func GenerateConfig() (*config.Config, error) {
+func GenerateConfig() (config.Config, error) {
 	variant, err := GetVariant()
 	if err != nil {
-		return nil, err
+		return config.Config{}, err
 	}
 	if variant != BASE && variant != SUPERVISOR && variant != MASTER && variant != WORKER {
-		return nil, fmt.Errorf("invalid variant: %s", variant)
+		return config.Config{}, fmt.Errorf("invalid variant: %s", variant)
 	}
 	keyserver, err := paths.GetKeyserver()
 	if err != nil {
-		return nil, err
+		return config.Config{}, err
 	}
-	conf := &config.Config{
+	conf := config.Config{
 		Keyserver:     keyserver,
-		AuthorityPath: "/etc/homeworld/keyclient/keyservertls.pem",
-		KeyPath:       "/etc/homeworld/keyclient/granting.key",
-		CertPath:      "/etc/homeworld/keyclient/granting.pem",
-		TokenPath:     "/etc/homeworld/keyclient/bootstrap.token",
-		TokenAPI:      "renew-keygrant",
+		AuthorityPath: paths.KeyserverTLSCert,
+		KeyPath:       paths.GrantingKeyPath,
+		CertPath:      paths.GrantingCertPath,
+		TokenPath:     paths.BootstrapTokenPath,
+		TokenAPI:      paths.BootstrapTokenAPI,
 	}
 	conf.Downloads = []config.ConfigDownload{
 		{
@@ -215,27 +212,7 @@ func GenerateConfig() (*config.Config, error) {
 	// todo: get rid of this side effect
 	err = ioutil.WriteFile("/etc/homeworld/config/keyserver.variant", []byte(variant+"\n"), 0644)
 	if err != nil {
-		return nil, err
+		return config.Config{}, err
 	}
 	return conf, nil
-}
-
-func GenerateVariant() error {
-	conf, err := GenerateConfig()
-	if err != nil {
-		return err
-	}
-	data, err := yaml.Marshal(conf)
-	if err != nil {
-		return err
-	}
-	return ioutil.WriteFile(api.ConfigPath, data, 0644)
-}
-
-func main() {
-	logger := log.New(os.Stderr, "[keyconfgen] ", log.Ldate|log.Ltime|log.Lmicroseconds|log.Lshortfile)
-	err := GenerateVariant()
-	if err != nil {
-		logger.Fatalln(err)
-	}
 }

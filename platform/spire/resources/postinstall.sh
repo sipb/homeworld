@@ -38,7 +38,6 @@ mkdir -p /target/etc/homeworld/keyclient/
 mkdir -p /target/etc/homeworld/config/
 cp /keyservertls.pem /target/etc/homeworld/keyclient/keyservertls.pem
 cp /keyserver.domain /target/etc/homeworld/config/keyserver.domain
-in-target keyconfgen
 cp /sshd_config.new /target/etc/ssh/sshd_config
 cat /dns_bootstrap_lines >> /target/etc/hosts
 
