@@ -5,7 +5,7 @@ After=network-online.target
 
 [Service]
 Environment="KRB5_KTNAME=/etc/krb5.keytab"
-ExecStart=/usr/bin/knc -l 20575 /usr/bin/keygateway /etc/homeworld/config/keyclient.yaml
+ExecStart=/usr/bin/knc -l 20575 /usr/bin/keygateway
 Restart=always
 RestartSec=10s
 

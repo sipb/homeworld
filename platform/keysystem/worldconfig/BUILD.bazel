@@ -6,6 +6,7 @@ go_library(
     importpath = "github.com/sipb/homeworld/platform/keysystem/worldconfig",
     visibility = ["//visibility:private"],
     deps = [
+        "//keysystem/api:go_default_library",
         "//keysystem/keyclient/config:go_default_library",
         "//keysystem/worldconfig/paths:go_default_library",
         "@in_gopkg_yaml_v2//:go_default_library",

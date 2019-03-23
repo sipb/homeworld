@@ -4,7 +4,7 @@ Requires=network-online.target
 After=network-online.target
 
 [Service]
-ExecStart=/usr/bin/auth-monitor /etc/homeworld/config/keyclient.yaml
+ExecStart=/usr/bin/auth-monitor
 Restart=always
 RestartSec=10s
 

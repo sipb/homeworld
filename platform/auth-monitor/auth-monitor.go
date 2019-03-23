@@ -274,11 +274,7 @@ func loop(keyserver *server.Keyserver, config api.Config, stopChannel <-chan str
 }
 
 func main() {
-	if len(os.Args) != 2 {
-		log.Fatal("expected one argument: configpath")
-	}
-
-	ks, config, err := api.LoadKeyserver(os.Args[1])
+	ks, config, err := api.LoadDefaultKeyserver()
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -15,11 +15,7 @@ import (
 
 func main() {
 	logger := log.New(os.Stderr, "[keyclient] ", log.Ldate|log.Ltime|log.Lmicroseconds|log.Lshortfile)
-	if len(os.Args) < 2 {
-		logger.Fatal("no configuration file provided")
-	}
-	// "/etc/hyades/keyclient/keyclient.conf"
-	_, err := setup.LoadAndLaunch(os.Args[1], logger)
+	_, err := setup.LoadAndLaunchDefault(logger)
 	if err != nil {
 		logger.Fatal(err)
 	}

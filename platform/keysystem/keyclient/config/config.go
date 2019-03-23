@@ -4,6 +4,8 @@ import (
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
+
+	"github.com/sipb/homeworld/platform/keysystem/api"
 )
 
 type ConfigDownload struct {
@@ -34,9 +36,9 @@ type Config struct {
 	Keys          []ConfigKey
 }
 
-func LoadConfig(configpath string) (Config, error) {
+func LoadDefaultConfig() (Config, error) {
 	config := Config{}
-	configdata, err := ioutil.ReadFile(configpath)
+	configdata, err := ioutil.ReadFile(api.ConfigPath)
 	if err != nil {
 		return Config{}, errors.Wrap(err, "while loading configuration")
 	}
