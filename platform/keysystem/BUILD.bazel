@@ -10,6 +10,7 @@ homeworld_deb(
         "//keysystem/keyinitadmit": "/usr/bin/keyinitadmit",
         "//keysystem/keylocalcert": "/usr/bin/keylocalcert",
         "//keysystem/keyreq": "/usr/bin/keyreq",
+        "//keysystem/worldconfig": "/usr/bin/keyconfgen",
         ":systemd/launch-keyclient-config-update.sh": "/usr/lib/hyades/launch-keyclient-config-update.sh",
     },
     data = {

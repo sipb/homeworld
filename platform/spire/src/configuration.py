@@ -282,15 +282,8 @@ KEYCLIENT_VARIANTS = ("master", "worker", "base", "supervisor")
 
 
 def get_keyclient_yaml(variant: str) -> str:
-    if variant not in KEYCLIENT_VARIANTS:
-        command.fail("invalid variant %s; expected one of %s" % (variant, KEYCLIENT_VARIANTS))
     config = Config.load_from_project()
-    kcli = {"KEYSERVER": config.keyserver.hostname + "." + config.external_domain,
-            "MASTER": variant == "master",
-            "WORKER": variant in ("worker", "master"),
-            "SUPERVISOR": variant == "supervisor",
-            "BASE": variant == "base"}
-    return template.template("keyclient.yaml", kcli)
+    return subprocess.check_output(["keyconfgen", config.keyserver.hostname + "." + config.external_domain, variant]).decode()
 
 
 def get_etcd_endpoints() -> str:
