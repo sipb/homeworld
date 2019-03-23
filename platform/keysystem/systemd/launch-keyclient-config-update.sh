@@ -3,10 +3,11 @@ set -e -u
 
 # interacts with preseed code
 
-if grep -q TEMPORARY-KEYCLIENT-CONFIGURATION /etc/homeworld/config/keyclient.yaml
+if grep -q base /etc/homeworld/config/keyserver.variant
 then
     source /etc/homeworld/config/local.conf
-    cp "/etc/homeworld/config/keyclient-${KIND}.yaml" /etc/homeworld/config/keyclient.yaml
+    echo "${KIND}" >/etc/homeworld/config/keyserver.variant
+    keyconfgen
     systemctl restart keyclient.service
     hostnamectl set-hostname "${HOST_NODE}"
     update-ca-certificates

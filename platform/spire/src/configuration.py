@@ -278,12 +278,9 @@ def get_keyserver_yaml() -> str:
     return template.template("keyserver.yaml", ksrv)
 
 
-KEYCLIENT_VARIANTS = ("master", "worker", "base", "supervisor")
-
-
-def get_keyclient_yaml(variant: str) -> str:
+def get_keyserver_domain() -> str:
     config = Config.load_from_project()
-    return subprocess.check_output(["keyconfgen", config.keyserver.hostname + "." + config.external_domain, variant]).decode()
+    return config.keyserver.hostname + "." + config.external_domain
 
 
 def get_etcd_endpoints() -> str:
@@ -378,10 +375,6 @@ def print_keyserver_yaml() -> None:
     print(get_keyserver_yaml())
 
 
-def print_keyclient_yaml(variant) -> None:
-    print(get_keyclient_yaml(variant))
-
-
 def print_cluster_conf() -> None:
     print(get_cluster_conf())
 
@@ -428,7 +421,6 @@ main_command = command.mux_map("commands about cluster configuration", {
     "gen-kube": command.wrap("generate kubernetes spec for the base cluster", gen_kube_spec),
     "show": command.mux_map("commands about showing different aspects of the configuration", {
         "keyserver.yaml": command.wrap("display the generated keyserver.yaml", print_keyserver_yaml),
-        "keyclient.yaml": command.wrap("display the specified variant of keyclient.yaml", print_keyclient_yaml),
         "cluster.conf": command.wrap("display the generated cluster.conf", print_cluster_conf),
         "machine.list": command.wrap("display the generated machine.list", print_machine_list_file),
         "kubeconfig": command.wrap("display the generated local kubeconfig", print_local_kubeconfig),

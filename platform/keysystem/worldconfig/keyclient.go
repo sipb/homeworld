@@ -3,10 +3,13 @@ package main
 import (
 	"fmt"
 	"gopkg.in/yaml.v2"
+	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/config"
+	"github.com/sipb/homeworld/platform/keysystem/worldconfig/paths"
 )
 
 const (
@@ -16,12 +19,24 @@ const (
 	WORKER     = "worker"
 )
 
-func GenerateConfig(keyserver string, variant string) (*config.Config, error) {
+func GetVariant() (string, error) {
+	variant, err := ioutil.ReadFile("/etc/homeworld/config/keyserver.variant")
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(variant)), nil
+}
+
+func GenerateConfig(variant string) (*config.Config, error) {
 	if variant != BASE && variant != SUPERVISOR && variant != MASTER && variant != WORKER {
 		return nil, fmt.Errorf("invalid variant: %s", variant)
 	}
+	keyserver, err := paths.GetKeyserver()
+	if err != nil {
+		return nil, err
+	}
 	conf := &config.Config{
-		Keyserver:     keyserver + ":20557",
+		Keyserver:     keyserver,
 		AuthorityPath: "/etc/homeworld/keyclient/keyservertls.pem",
 		KeyPath:       "/etc/homeworld/keyclient/granting.key",
 		CertPath:      "/etc/homeworld/keyclient/granting.pem",
@@ -166,32 +181,30 @@ func GenerateConfig(keyserver string, variant string) (*config.Config, error) {
 	return conf, nil
 }
 
-func GenerateVariant(keyserver string, variant string) (string, error) {
-	conf, err := GenerateConfig(keyserver, variant)
+func GenerateVariant() error {
+	variant, err := GetVariant()
 	if err != nil {
-		return "", err
+		return err
+	}
+	conf, err := GenerateConfig(variant)
+	if err != nil {
+		return err
 	}
 	data, err := yaml.Marshal(conf)
 	if err != nil {
-		return "", err
+		return err
 	}
 	output := string(data)
 	if variant == BASE {
 		output = "# TEMPORARY-KEYCLIENT-CONFIGURATION\n\n" + output
 	}
-	return output, nil
+	return ioutil.WriteFile("/etc/homeworld/config/keyclient.yaml", []byte(output+"\n"), 0644)
 }
 
 func main() {
 	logger := log.New(os.Stderr, "[keyconfgen] ", log.Ldate|log.Ltime|log.Lmicroseconds|log.Lshortfile)
-	if len(os.Args) != 3 {
-		logger.Fatalln("usage: keyconfgen <keyserver.domain> <variant>\n  generates the configuration for a keyclient")
-	}
-	keyserver := os.Args[1]
-	variant := os.Args[2]
-	result, err := GenerateVariant(keyserver, variant)
+	err := GenerateVariant()
 	if err != nil {
 		logger.Fatalln(err)
 	}
-	fmt.Println(result)
 }
