@@ -61,9 +61,8 @@ def gen_iso(iso_image, authorized_key, mode=None):
         os.chmod(os.path.join(d, "postinstall.sh"), 0o755)
         inclusion += ["authorized.pub", "keyservertls.pem", "postinstall.sh"]
 
-        for variant in configuration.KEYCLIENT_VARIANTS:
-            util.writefile(os.path.join(d, "keyclient-%s.yaml" % variant), configuration.get_keyclient_yaml(variant).encode())
-            inclusion.append("keyclient-%s.yaml" % variant)
+        util.writefile(os.path.join(d, "keyserver.domain"), configuration.get_keyserver_domain().encode())
+        inclusion.append("keyserver.domain")
 
         resource.copy_to("sshd_config", os.path.join(d, "sshd_config.new"))
 

@@ -37,8 +37,9 @@ in-target systemctl enable homeworld-autostart.service update-keyclient-config.s
 mkdir -p /target/etc/homeworld/keyclient/
 mkdir -p /target/etc/homeworld/config/
 cp /keyservertls.pem /target/etc/homeworld/keyclient/keyservertls.pem
-cp /keyclient-*.yaml /target/etc/homeworld/config/
-cp /keyclient-base.yaml /target/etc/homeworld/config/keyclient.yaml
+cp /keyserver.domain /target/etc/homeworld/config/keyserver.domain
+echo "base" >/target/etc/homeworld/config/keyserver.variant
+in-target keyconfgen
 cp /sshd_config.new /target/etc/ssh/sshd_config
 cat /dns_bootstrap_lines >> /target/etc/hosts
 
