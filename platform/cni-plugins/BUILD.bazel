@@ -13,7 +13,7 @@ homeworld_deb(
     name = "package",
     bin = {
         "@com_github_containernetworking_plugins//plugins/" + path: "/opt/cni/bin/" + name
-            for name, path in plugins.items()
+        for name, path in plugins.items()
     },
     data = {
         ":10-flannel.conf": "/etc/cni/net.d/10-flannel.conf",

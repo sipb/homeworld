@@ -15,7 +15,10 @@ homeworld_oci(
     deps = [
         "//debian:debian-micro.tgz",
     ],
-    exec = ["/usr/sbin/dnsmasq", "--keep-in-foreground"],
+    exec = [
+        "/usr/sbin/dnsmasq",
+        "--keep-in-foreground",
+    ],
     visibility = ["//visibility:public"],
 )
 

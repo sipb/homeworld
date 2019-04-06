@@ -21,7 +21,7 @@ mappings = {
 }
 
 mappings.update({
-    "__main__/" + ref.lstrip("/").replace(":","/"): "resources/clustered/" + name
+    "__main__/" + ref.lstrip("/").replace(":", "/"): "resources/clustered/" + name
     for name, ref in clustered.items()
 })
 

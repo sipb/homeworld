@@ -72,8 +72,15 @@ exports_files([
 
 genrule(
     name = "apt-branch-rule",
-    outs = ["DOWNLOAD_URL", "DOWNLOAD_URL_HOST", "KEYID"],
-    srcs = ["BRANCH_NAME", "branches.yaml"] + ["//upload:" + x for x in glob(["src/*.py"])],
+    outs = [
+        "DOWNLOAD_URL",
+        "DOWNLOAD_URL_HOST",
+        "KEYID",
+    ],
+    srcs = [
+        "BRANCH_NAME",
+        "branches.yaml",
+    ] + ["//upload:" + x for x in glob(["src/*.py"])],
     tools = [":parse-branch"],
     cmd = "$(location :parse-branch) upload/src/parse.py $(location BRANCH_NAME) $(location branches.yaml) $(location DOWNLOAD_URL) $(location DOWNLOAD_URL_HOST) $(location KEYID)",
     visibility = ["//visibility:public"],
