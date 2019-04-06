@@ -353,8 +353,7 @@ go_repository(
 
 go_repository_alt(
     name = "com_github_kubernetes_dns",
-# TODO: bump to d522d10e2e5e0797637e89ddb0a68a318cc8be60 (1.14.9)
-    commit = "d01e5e58d114fcddff98e4f6bf8b2b1484d06c3e", # 1.14.8
+    commit = "b8d50e0e7698317816e7e6b27d48f0988098e6fc", # 1.14.13
     importpath = "k8s.io/dns",
     build_external = "vendored",
     prepatch_cmds = ["find vendor/k8s.io/kubernetes -name BUILD -delete"],
