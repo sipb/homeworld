@@ -1,4 +1,5 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
 # TODO: audit all downloads, make sure they're all source code
 http_archive(
@@ -38,11 +39,10 @@ load("@io_bazel_rules_docker//repositories:repositories.bzl", container_reposito
 
 container_repositories()
 
-http_archive(
+git_repository(
     name = "io_kubernetes_build",
-    sha256 = "9d4948cb1d6e70c7eab21e06186aa32ce9063a70b2b2092ae9346f3302ce7ff9",
-    strip_prefix = "repo-infra-9759aa30612237743df7bece2462d8d98630d49b",
-    urls = ["https://github.com/kubernetes/repo-infra/archive/9759aa30612237743df7bece2462d8d98630d49b.tar.gz"],
+    remote = "https://github.com/kubernetes/repo-infra/",
+    commit = "9759aa30612237743df7bece2462d8d98630d49b",
 )
 
 # TODO: update to a newer kubernetes
