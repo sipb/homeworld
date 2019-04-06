@@ -24,6 +24,9 @@ homeworld_deb(
         ":kube-proxy.service": "/usr/lib/systemd/system/kube-proxy.service",
         ":kube-scheduler.service": "/usr/lib/systemd/system/kube-scheduler.service",
         ":kubelet.service": "/usr/lib/systemd/system/kubelet.service",
+
+        # the br_netfilter kernel module is needed for kube-proxy to function correctly
+        ":br_netfilter.conf": "/usr/lib/modules-load.d/br_netfilter.conf",
     },
     package = "homeworld-kubernetes",
     depends = [
