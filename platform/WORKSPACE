@@ -149,22 +149,21 @@ go_repository(
 
 go_repository_alt(
     name = "io_k8s_apimachinery",
-    commit = "68f9c3a1feb3140df59c67ced62d3a5df8e6c9c2",
+    commit = "c182ff3b98419e7305cc361fd1811988591656cf", # 1.11.9
     importpath = "k8s.io/apimachinery",
     build_file_proto_mode = "disable_global",
-    prepatch_cmds = ["find -name BUILD -exec rm {} \;"],
 )
 
 go_repository(
     name = "io_k8s_client_go",
-    commit = "9389c055a838d4f208b699b3c7c51b70f2368861",
+    commit = "c4d6791c962ccbb0347c37f17bc471827d0d9ae2", # 1.11.9
     importpath = "k8s.io/client-go",
     build_file_proto_mode = "disable_global",
 )
 
 go_repository(
     name = "io_k8s_api",
-    commit = "006a217681ae70cbacdd66a5e2fca1a61a8ff28e",
+    commit = "7544f9db76f64c09e0e280c39b8d17c55958bb2b", # 1.11.9
     importpath = "k8s.io/api",
     build_file_proto_mode = "disable_global",
 )
@@ -177,14 +176,8 @@ go_repository(
 
 go_repository(
     name = "io_k8s_kube_openapi",
-    commit = "39a7bf85c140f972372c2a0d1ee40adbf0c8bfe1",
+    commit = "91cfa479c814065e420cee7ed227db0f63a5854e",
     importpath = "k8s.io/kube-openapi",
-)
-
-go_repository(
-    name = "com_github_go_openapi_spec",
-    commit = "7abd5745472fff5eb3685386d5fb8bf38683154d",
-    importpath = "github.com/go-openapi/spec",
 )
 
 go_repository(
@@ -192,12 +185,6 @@ go_repository(
     commit = "0c5108395e2debce0d731cf0287ddf7242066aba",
     importpath = "github.com/googleapis/gnostic",
     build_file_proto_mode = "disable_global",
-)
-
-go_repository(
-    name = "com_github_juju_ratelimit",
-    commit = "5b9ff866471762aa2ab2dced63c9fb6f53921342",
-    importpath = "github.com/juju/ratelimit",
 )
 
 go_repository(
@@ -220,7 +207,7 @@ go_repository(
 
 go_repository(
     name = "com_github_json_iterator_go",
-    commit = "36b14963da70d11297d313183d7e6388c8510e1e",
+    commit = "f2b4162afba35581b6d4a50d3b8f34e33c144682",
     importpath = "github.com/json-iterator/go",
 )
 
@@ -231,18 +218,6 @@ go_repository(
 )
 
 go_repository(
-    name = "com_github_go_openapi_jsonpointer",
-    commit = "46af16f9f7b149af66e5d1bd010e3574dc06de98",
-    importpath = "github.com/go-openapi/jsonpointer",
-)
-
-go_repository(
-    name = "com_github_emicklei_go_restful",
-    commit = "ff4f55a206334ef123e4f79bbf348980da81ca46",
-    importpath = "github.com/emicklei/go-restful",
-)
-
-go_repository(
     name = "in_gopkg_inf_v0",
     commit = "3887ee99ecf07df5b447e9b00d9c0b2adaa9f3e4",
     importpath = "gopkg.in/inf.v0",
@@ -250,38 +225,26 @@ go_repository(
 
 go_repository(
     name = "com_github_spf13_pflag",
-    commit = "9ff6c6923cfffbcd502984b8e0c80539a94968b7",
+    commit = "583c0c0531f06d5278b7d917446061adc344b5cd",
     importpath = "github.com/spf13/pflag",
 )
 
 go_repository(
-    name = "com_github_go_openapi_swag",
-    commit = "f3f9494671f93fcff853e3c6e9e948b3eb71e590",
-    importpath = "github.com/go-openapi/swag",
+    name = "org_golang_x_time",
+    commit = "f51c12702a4d776e4c1fa9b0fabab841babae631",
+    importpath = "golang.org/x/time",
 )
 
 go_repository(
-    name = "com_github_go_openapi_jsonreference",
-    commit = "13c6e3589ad90f49bd3e3bbe2c2cb3d7a4142272",
-    importpath = "github.com/go-openapi/jsonreference",
+    name = "com_github_modern_go_reflect2",
+    commit = "05fbef0ca5da472bbf96c9322b84a53edc03c9fd",
+    importpath = "github.com/modern-go/reflect2",
 )
 
 go_repository(
-    name = "com_github_puerkitobio_purell",
-    commit = "8a290539e2e8629dbc4e6bad948158f790ec31f4",
-    importpath = "github.com/PuerkitoBio/purell",
-)
-
-go_repository(
-    name = "com_github_mailru_easyjson",
-    commit = "2f5df55504ebc322e4d52d34df6a1f5b503bf26d",
-    importpath = "github.com/mailru/easyjson",
-)
-
-go_repository(
-    name = "com_github_puerkitobio_urlesc",
-    commit = "5bd2802263f21d8788851d5305584c82a5c75d7e",
-    importpath = "github.com/PuerkitoBio/urlesc",
+    name = "com_github_modern_go_concurrent",
+    commit = "bacd9c7ef1dd9b15be4a9909b8ac7a4e313eec94",
+    importpath = "github.com/modern-go/concurrent",
 )
 
 # keysystem dependencies
