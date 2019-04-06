@@ -1,11 +1,10 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
 
 # TODO: audit all downloads, make sure they're all source code
-# old version used for go1.9.3 support; TODO: use newer version
 http_archive(
     name = "io_bazel_rules_go",
-    urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.14.7/rules_go-0.14.7.tar.gz"],
-    sha256 = "1a5b8d49a052127af0d444c8e9711a120dd50e373a8da88714fdda46e11f7a90",
+    urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.18.1/rules_go-0.18.1.tar.gz"],
+    sha256 = "77dfd303492f2634de7a660445ee2d3de2960cbd52f97d8c0dffa9362d3ddef9",
 )
 
 http_archive(
@@ -14,7 +13,7 @@ http_archive(
     sha256 = "6e875ab4b6bf64a38c352887760f21203ab054676d9c1b274963907e0768740d",
 )
 
-load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
+load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
 
 go_rules_dependencies()
 
