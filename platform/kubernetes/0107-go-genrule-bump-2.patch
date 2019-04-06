@@ -53,7 +53,7 @@ index aaccd789b4..2c03d83471 100644
 -    --input-dirs ./vendor/k8s.io/apimachinery/pkg/util/sets/types \
 +    --input-dirs k8s.io/apimachinery/pkg/util/sets/types \
      --output-base $$(dirname $$(dirname $(location :byte.go))) \
-     --go-header-file $(location //hack/boilerplate:boilerplate.go.txt) \
+     --go-header-file $(location //hack/boilerplate:boilerplate.generatego.txt) \
      --output-package sets
      """,
      go_deps = [

@@ -1,7 +1,7 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
 
 # TODO: audit all downloads, make sure they're all source code
-# old version used for go1.9.3 support
+# old version used for go1.9.3 support; TODO: use newer version
 http_archive(
     name = "io_bazel_rules_go",
     urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.14.7/rules_go-0.14.7.tar.gz"],
@@ -20,8 +20,7 @@ go_rules_dependencies()
 
 # TODO: stop using binaries built by upstream; use our own
 go_register_toolchains(
-    # TODO: bump this to 1.10+, so that we can stop using an old version of rules_go!
-    go_version = "1.9.3",
+    go_version = "1.10.6",
 )
 
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
@@ -50,18 +49,18 @@ http_archive(
 # TODO: update to a newer kubernetes
 http_archive(
     name = "kubernetes",
-    sha256 = "f797ae96c9f024549edb129110b64be34e5bb9c3ab71e3990e0dc5e3e4a0bd4d", # for 1.10.12
+    sha256 = "fe71842d27a78d897bf9cf9039a11c285c380e5e462ddafd2301a50d660fa7ee",
     type = "tar.gz",
-    urls = ["https://dl.k8s.io/v1.10.12/kubernetes-src.tar.gz"],
+    urls = ["https://dl.k8s.io/v1.11.9/kubernetes-src.tar.gz"],
     patches = [
         "//kubernetes:0103-gazelle-proto-disable.patch",
         "//kubernetes:0104-staging-prefix.patch",
         "//kubernetes:0105-vendor-importmap.patch",
         "//kubernetes:0106-reformat-generators.patch",
-        "//kubernetes:0107-go-genrule-bump.patch",
+        "//kubernetes:0107-go-genrule-bump-2.patch",
         "//kubernetes:0108-no-prefix.patch",
         "//kubernetes:0109-staging-importmap.patch",
-        "//kubernetes:0110-rerun-gazelle-2.patch",
+        "//kubernetes:0110-rerun-gazelle-3.patch",
     ],
     patch_args = ["-p1"],
 )
