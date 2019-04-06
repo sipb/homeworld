@@ -42,7 +42,7 @@ container_repositories()
 git_repository(
     name = "io_kubernetes_build",
     remote = "https://github.com/kubernetes/repo-infra/",
-    commit = "9759aa30612237743df7bece2462d8d98630d49b",
+    commit = "df02ded38f9506e5bbcbf21702034b4fef815f2f",
 )
 
 # TODO: update to a newer kubernetes
