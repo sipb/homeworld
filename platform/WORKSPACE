@@ -391,6 +391,6 @@ go_repository(
 
 go_repository(
     name = "com_github_opencontainers_runc",
-    commit = "2b18fe1d885ee5083ef9f0838fee39b62d653e30",
+    commit = "029124da7af7360afa781a0234d1b083550f797c", # v1.0.0-rc7 plus a few patches for a regression
     importpath = "github.com/opencontainers/runc",
 )
