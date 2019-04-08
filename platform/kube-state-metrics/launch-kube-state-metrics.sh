@@ -27,4 +27,4 @@ contexts:
   name: hyades
 EOCONFIG
 
-exec /usr/bin/kube-state-metrics --kubeconfig /etc/homeworld/config/kubeconfig --in-cluster=false --port 9104 --telemetry-port 9105
+exec /usr/bin/kube-state-metrics --kubeconfig /etc/homeworld/config/kubeconfig --port 9104 --telemetry-port 9105

@@ -364,7 +364,7 @@ go_repository_alt(
 
 go_repository_alt(
     name = "com_github_kubernetes_kube_state_metrics",
-    commit = "5ccda14bbff25a1007e13dfc3a75e5bb998abe6d",           # v1.2.0
+    commit = "43fcd3cf48f9ab6d0361210c5debb4e2aa1d2fc0",           # v1.3.1
     importpath = "k8s.io/kube-state-metrics",
     prepatch_cmds = ["find vendor/k8s.io -name BUILD -delete"],    # because the vendored kubernetes comes with BUILD files that will break the generated BUILDs:
     postpatches = ["//kube-state-metrics:state-visibility.patch"], # so that we can compile our own kube-state-metrics binary with our own options:
