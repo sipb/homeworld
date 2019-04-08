@@ -364,7 +364,7 @@ go_repository_alt(
 
 go_repository_alt(
     name = "com_github_kubernetes_kube_state_metrics",
-    commit = "8a187c6344a48ec7f6c787a053d136d7f1043a1f",           # v1.4.0
+    commit = "c888603b80aa76ce27c860cfdde78945dfbe7468",           # v1.5.0
     importpath = "k8s.io/kube-state-metrics",
     postpatches = ["//kube-state-metrics:state-visibility.patch"], # so that we can compile our own kube-state-metrics binary with our own options:
 )
