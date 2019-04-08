@@ -48,20 +48,9 @@ git_repository(
 # TODO: update to a newer kubernetes
 http_archive(
     name = "kubernetes",
-    sha256 = "fe71842d27a78d897bf9cf9039a11c285c380e5e462ddafd2301a50d660fa7ee",
+    sha256 = "dc87330525fcca3ffd6602b04a2ce0419dd7df29829f7fe99e596055119fc2ea",
     type = "tar.gz",
-    urls = ["https://dl.k8s.io/v1.11.9/kubernetes-src.tar.gz"],
-    patches = [
-        "//kubernetes:0103-gazelle-proto-disable.patch",
-        "//kubernetes:0104-staging-prefix.patch",
-        "//kubernetes:0105-vendor-importmap.patch",
-        "//kubernetes:0106-reformat-generators.patch",
-        "//kubernetes:0107-go-genrule-bump-2.patch",
-        "//kubernetes:0108-no-prefix.patch",
-        "//kubernetes:0109-staging-importmap.patch",
-        "//kubernetes:0110-rerun-gazelle-3.patch",
-    ],
-    patch_args = ["-p1"],
+    urls = ["https://dl.k8s.io/v1.12.7/kubernetes-src.tar.gz"],
 )
 
 # cni-plugins
