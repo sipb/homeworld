@@ -57,7 +57,7 @@ http_archive(
 
 go_repository(
     name = "com_github_containernetworking_plugins",
-    commit = "9ebe139e77e82afb122e335328007bca86905ae4",
+    commit = "a62711a5da7a2dc2eb93eac47e103738ad923fd6", # 0.7.5
     importpath = "github.com/containernetworking/plugins",
 )
 
