@@ -138,21 +138,21 @@ go_repository(
 
 go_repository_alt(
     name = "io_k8s_apimachinery",
-    commit = "c182ff3b98419e7305cc361fd1811988591656cf", # 1.11.9
+    commit = "01f179d85dbce0f2e0e4351a92394b38694b7cae", # 1.12.7
     importpath = "k8s.io/apimachinery",
     build_file_proto_mode = "disable_global",
 )
 
 go_repository(
     name = "io_k8s_client_go",
-    commit = "c4d6791c962ccbb0347c37f17bc471827d0d9ae2", # 1.11.9
+    commit = "5392b64e5c0be49d332165ab1ac708daa9c6be1b", # 1.12.7
     importpath = "k8s.io/client-go",
     build_file_proto_mode = "disable_global",
 )
 
 go_repository(
     name = "io_k8s_api",
-    commit = "7544f9db76f64c09e0e280c39b8d17c55958bb2b", # 1.11.9
+    commit = "266ff08fa05d59ecd33aa08f9e2c1bae4ba7a444", # 1.12.7
     importpath = "k8s.io/api",
     build_file_proto_mode = "disable_global",
 )
@@ -165,7 +165,7 @@ go_repository(
 
 go_repository(
     name = "io_k8s_kube_openapi",
-    commit = "91cfa479c814065e420cee7ed227db0f63a5854e",
+    commit = "0cf8f7e6ed1d2e3d47d02e3b6e559369af24d803",
     importpath = "k8s.io/kube-openapi",
 )
 
@@ -234,6 +234,12 @@ go_repository(
     name = "com_github_modern_go_concurrent",
     commit = "bacd9c7ef1dd9b15be4a9909b8ac7a4e313eec94",
     importpath = "github.com/modern-go/concurrent",
+)
+
+go_repository(
+    name = "org_golang_x_oauth2",
+    commit = "a6bd8cefa1811bd24b86f8902872e4e8225f74c4",
+    importpath = "golang.org/x/oauth2",
 )
 
 # keysystem dependencies
