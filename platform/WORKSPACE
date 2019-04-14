@@ -136,21 +136,21 @@ go_repository(
 
 go_repository_alt(
     name = "io_k8s_apimachinery",
-    commit = "01f179d85dbce0f2e0e4351a92394b38694b7cae", # 1.12.7
+    commit = "86fb29eff6288413d76bd8506874fddd9fccdff0", # 1.13.5
     importpath = "k8s.io/apimachinery",
     build_file_proto_mode = "disable_global",
 )
 
 go_repository(
     name = "io_k8s_client_go",
-    commit = "5392b64e5c0be49d332165ab1ac708daa9c6be1b", # 1.12.7
+    commit = "7621a5ebb88b1e49ce7e7837ae8e99ca030a3c13", # 1.13.5
     importpath = "k8s.io/client-go",
     build_file_proto_mode = "disable_global",
 )
 
 go_repository(
     name = "io_k8s_api",
-    commit = "266ff08fa05d59ecd33aa08f9e2c1bae4ba7a444", # 1.12.7
+    commit = "5cb15d34447165a97c76ed5a60e4e99c8a01ecfe", # 1.13.5
     importpath = "k8s.io/api",
     build_file_proto_mode = "disable_global",
 )
@@ -163,7 +163,7 @@ go_repository(
 
 go_repository(
     name = "io_k8s_kube_openapi",
-    commit = "0cf8f7e6ed1d2e3d47d02e3b6e559369af24d803",
+    commit = "c59034cc13d587f5ef4e85ca0ade0c1866ae8e1d",
     importpath = "k8s.io/kube-openapi",
 )
 
@@ -172,12 +172,6 @@ go_repository(
     commit = "0c5108395e2debce0d731cf0287ddf7242066aba",
     importpath = "github.com/googleapis/gnostic",
     build_file_proto_mode = "disable_global",
-)
-
-go_repository(
-    name = "com_github_ghodss_yaml",
-    commit = "73d445a93680fa1a78ae23a5839bad48f32ba1ee",
-    importpath = "github.com/ghodss/yaml",
 )
 
 go_repository(
@@ -194,7 +188,7 @@ go_repository(
 
 go_repository(
     name = "com_github_json_iterator_go",
-    commit = "f2b4162afba35581b6d4a50d3b8f34e33c144682",
+    commit = "ab8a2e0c74be9d3be70b3184d9acc634935ded82",
     importpath = "github.com/json-iterator/go",
 )
 
@@ -224,7 +218,7 @@ go_repository(
 
 go_repository(
     name = "com_github_modern_go_reflect2",
-    commit = "05fbef0ca5da472bbf96c9322b84a53edc03c9fd",
+    commit = "94122c33edd36123c84d5368cfb2b69df93a0ec8",
     importpath = "github.com/modern-go/reflect2",
 )
 
@@ -238,6 +232,18 @@ go_repository(
     name = "org_golang_x_oauth2",
     commit = "a6bd8cefa1811bd24b86f8902872e4e8225f74c4",
     importpath = "golang.org/x/oauth2",
+)
+
+go_repository(
+    name = "io_k8s_klog",
+    commit = "8139d8cb77af419532b33dfa7dd09fbc5f1d344f",
+    importpath = "k8s.io/klog",
+)
+
+go_repository(
+    name = "io_k8s_sigs_yaml",
+    commit = "fd68e9863619f6ec2fdd8625fe1f02e7c877e480",
+    importpath = "sigs.k8s.io/yaml",
 )
 
 # keysystem dependencies
