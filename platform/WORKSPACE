@@ -64,9 +64,9 @@ go_repository(
 # CRI-O
 
 go_repository(
-    name = "com_github_kubernetes_sigs_cri_o",
-    commit = "2c94bb71ba7e7868b7abb86b1f05543df1671916", # 1.12.10
-    importpath = "github.com/kubernetes-sigs/cri-o",
+    name = "com_github_cri_o_cri_o",
+    commit = "a9d8dde49418572b6ea843a5d3346c966e82077f", # 1.13.5
+    importpath = "github.com/cri-o/cri-o",
     build_external = "vendored",
     build_file_proto_mode = "disable_global",
     patches = [
@@ -80,7 +80,7 @@ go_repository(
 
 go_repository(
     name = "com_github_kubernetes_sigs_cri_tools",
-    commit = "5a01d85344fae4c7a7d74312d720b4fe90a55962", # v1.12.0
+    commit = "c06001ff65b2de51c7bb8160ee902f46a3e0858d", # v1.13.0
     importpath = "github.com/kubernetes-sigs/cri-tools",
     build_file_proto_mode = "disable_global",
 )

@@ -98,7 +98,7 @@ index c72cf62..15fd977 100644
      cgo = True,
 +    cdeps = [":cinclude"],
 +    copts = ["-I/usr/include/ostree-1 -I/usr/include/gio-unix-2.0/ -I/usr/include/glib-2.0"],
-     importmap = "github.com/kubernetes-sigs/cri-o/vendor/github.com/containers/image/ostree",
+     importmap = "github.com/cri-o/cri-o/vendor/github.com/containers/image/ostree",
      importpath = "github.com/containers/image/ostree",
      visibility = ["//visibility:public"],
 @@ -29,3 +38,4 @@ go_library(
@@ -123,7 +123,7 @@ index bd64ed0..a12b9f5 100644
      ],
      cgo = True,
 +    clinkopts = ["-ldevmapper"],
-     importmap = "github.com/kubernetes-sigs/cri-o/vendor/github.com/containers/storage/pkg/devicemapper",
+     importmap = "github.com/cri-o/cri-o/vendor/github.com/containers/storage/pkg/devicemapper",
      importpath = "github.com/containers/storage/pkg/devicemapper",
      visibility = ["//visibility:public"],
 diff --git a/vendor/github.com/ostreedev/ostree-go/pkg/glibobject/BUILD.bazel b/vendor/github.com/ostreedev/ostree-go/pkg/glibobject/BUILD.bazel
@@ -149,7 +149,7 @@ index 6d6be98..9e47c2f 100644
      cgo = True,
 +    cdeps = [":glibinc"],
 +    copts = ["-I/usr/include/glib-2.0"],
-     importmap = "github.com/kubernetes-sigs/cri-o/vendor/github.com/ostreedev/ostree-go/pkg/glibobject",
+     importmap = "github.com/cri-o/cri-o/vendor/github.com/ostreedev/ostree-go/pkg/glibobject",
      importpath = "github.com/ostreedev/ostree-go/pkg/glibobject",
      visibility = ["//visibility:public"],
 diff --git a/vendor/github.com/ostreedev/ostree-go/pkg/glibobject/glibobject-include b/vendor/github.com/ostreedev/ostree-go/pkg/glibobject/glibobject-include
@@ -183,7 +183,7 @@ index 31e6fff..75f013c 100644
      cgo = True,
 +    cdeps = [":ostreeinc"],
 +    copts = ["-I/usr/include/ostree-1 -I/usr/include/gio-unix-2.0/ -I/usr/include/glib-2.0"],
-     importmap = "github.com/kubernetes-sigs/cri-o/vendor/github.com/ostreedev/ostree-go/pkg/otbuiltin",
+     importmap = "github.com/cri-o/cri-o/vendor/github.com/ostreedev/ostree-go/pkg/otbuiltin",
      importpath = "github.com/ostreedev/ostree-go/pkg/otbuiltin",
      visibility = ["//visibility:public"],
 diff --git a/vendor/github.com/ostreedev/ostree-go/pkg/otbuiltin/glibobject-include b/vendor/github.com/ostreedev/ostree-go/pkg/otbuiltin/glibobject-include
@@ -203,6 +203,6 @@ index 3a0a989..9e0efbe 100644
      ],
      cgo = True,
 +    clinkopts = ["-lseccomp"],
-     importmap = "github.com/kubernetes-sigs/cri-o/vendor/github.com/seccomp/libseccomp-golang",
+     importmap = "github.com/cri-o/cri-o/vendor/github.com/seccomp/libseccomp-golang",
      importpath = "github.com/seccomp/libseccomp-golang",
      visibility = ["//visibility:public"],
