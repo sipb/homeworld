@@ -116,7 +116,7 @@ go_repository(
 
 go_repository_alt(
     name = "com_github_coreos_etcd",
-    commit = "f1d7dd87da3e8feab4aaf675b8e29c6a5ed5f58b",
+    commit = "06cec40911744c0aca5d1afd69b2631b0a4879ba", # 3.2.26
     importpath = "github.com/coreos/etcd",
     build_external = "vendored",
     build_file_proto_mode = "disable_global",
