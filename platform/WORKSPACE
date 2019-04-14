@@ -106,7 +106,7 @@ http_archive(
 
 go_repository(
     name = "com_github_docker_distribution",
-    commit = "2461543d988979529609e8cb6fca9ca190dc48da",
+    commit = "2461543d988979529609e8cb6fca9ca190dc48da", # 2.7.1
     importpath = "github.com/docker/distribution",
     build_external = "vendored",
     patches = ["//docker-registry:docker-registry.patch"],
@@ -328,13 +328,13 @@ go_repository(
 
 go_repository(
     name = "com_github_hashicorp_errwrap",
-    commit = "8a6fb523712970c966eefc6b39ed2c5e74880354",
+    commit = "8a6fb523712970c966eefc6b39ed2c5e74880354", # 1.0.0
     importpath = "github.com/hashicorp/errwrap",
 )
 
 go_repository(
     name = "com_github_hashicorp_go_multierror",
-    commit = "886a7fbe3eb1c874d46f623bfa70af45f425b3d1",
+    commit = "886a7fbe3eb1c874d46f623bfa70af45f425b3d1", # 1.0.0
     importpath = "github.com/hashicorp/go-multierror",
 )
 
