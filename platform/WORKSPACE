@@ -20,7 +20,7 @@ go_rules_dependencies()
 
 # TODO: stop using binaries built by upstream; use our own
 go_register_toolchains(
-    go_version = "1.10.6",
+    go_version = "1.11.2",
 )
 
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
@@ -48,9 +48,9 @@ git_repository(
 # TODO: update to a newer kubernetes
 http_archive(
     name = "kubernetes",
-    sha256 = "dc87330525fcca3ffd6602b04a2ce0419dd7df29829f7fe99e596055119fc2ea",
+    sha256 = "70772ff9e24000ed86fc176a42d05d5c4371a7b514497f16d629701f7722273d",
     type = "tar.gz",
-    urls = ["https://dl.k8s.io/v1.12.7/kubernetes-src.tar.gz"],
+    urls = ["https://dl.k8s.io/v1.13.5/kubernetes-src.tar.gz"],
 )
 
 # cni-plugins
