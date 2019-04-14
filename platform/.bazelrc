@@ -1,1 +1,2 @@
+startup --host_jvm_args=-Xmx4G
 build --workspace_status_command bazel/workspace-status.sh
