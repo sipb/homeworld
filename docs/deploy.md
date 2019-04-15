@@ -9,23 +9,27 @@ If you're (re)deploying the cluster for development, you will need:
  * Access to toastfs-dev (the machine which hosts the development cluster). You will need a Kerberos root instance as a prerequisite to this.
  * Any VNC viewer. These instructions are based on [TigerVNC](https://github.com/TigerVNC/tigervnc/releases) (``sudo apt-get install tigervnc``).
 
-# Installing packages
+# Installing spire
 
-Start by getting the apt-setup package directly:
+Start by getting the apt-setup package.  Inside your build chroot, run:
 
-    $ cd platform
-    $ bazel build //apt-setup:package.deb
+    [homeworld] $ platform/extract-apt-setup.sh
 
-It will display a path to a package.deb:
+This places `apt-setup.deb` in your host homeworld directory.
 
-    Target //apt-setup:package.deb up-to-date:
-      bazel-bin/apt-setup/package.deb
+## Using spire in a chroot
 
-Copy this package to a common directory outside of the chroot:
+    $ deploy-chroot/create.sh  # create a deploy chroot
+    $ deploy-chroot/reinstall-spire.sh  # install spire in the chroot
+    $ deploy-chroot/enter.sh   # enter the chroot
 
-    $ cp bazel-bin/apt-setup/package.deb ../apt-setup.deb
+You can now run `spire` inside the deploy chroot.
+Rerun `extract-apt-setup.sh` and `reinstall-spire.sh`
+whenever you make changes in spire that you want to test.
 
-Copy this file (now in the root directory of the host homeworld folder) to the installation VM.
+## Manually installing spire
+
+Copy `apt-setup.deb` to the installation VM.
 
 Now, in your deploy VM:
 
@@ -33,7 +37,7 @@ Now, in your deploy VM:
     $ sudo apt-get update
     $ sudo apt-get install homeworld-spire
 
-This will provide access to the 'spire' tool.
+This will provide access to the `spire` command.
 
 # Setting up a new cluster from scratch
 
@@ -126,6 +130,16 @@ To download existing configuration:
     $ git clone git@github.mit.edu:sipb/hyades-cluster $HOMEWORLD_DIR
 
 Make sure to verify that you have the correct commit hash, out of band.
+
+## Autodeploy configuration
+
+To get an autodeploy configuration:
+
+    $ cp deploy-chroot/setup.yaml.in $HOMEWORLD_DIR
+    $ deploy-chroot/generate-setup.py <x>
+
+Here `<x>` is a byte which must be unique per machine
+if you plan to do multiple concurrent autodeploys.
 
 # Configuring SSH
 

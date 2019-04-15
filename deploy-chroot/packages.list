@@ -1,0 +1,14 @@
+# sudo
+sudo
+
+# brctl
+bridge-utils
+
+# qemu
+qemu-system-x86 qemu-utils
+
+# kvm
+linux-image-amd64
+
+# ssh
+ssh
