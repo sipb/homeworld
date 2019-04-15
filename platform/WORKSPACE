@@ -40,17 +40,16 @@ load("@io_bazel_rules_docker//repositories:repositories.bzl", container_reposito
 container_repositories()
 
 git_repository(
-    name = "io_kubernetes_build",
+    name = "io_k8s_repo_infra",
     remote = "https://github.com/kubernetes/repo-infra/",
     commit = "df02ded38f9506e5bbcbf21702034b4fef815f2f",
 )
 
-# TODO: update to a newer kubernetes
 http_archive(
     name = "kubernetes",
-    sha256 = "70772ff9e24000ed86fc176a42d05d5c4371a7b514497f16d629701f7722273d",
+    sha256 = "ad67dd61361f019431e5c2d455c52868082412467abb167c0501a7e0d988f37c",
     type = "tar.gz",
-    urls = ["https://dl.k8s.io/v1.13.5/kubernetes-src.tar.gz"],
+    urls = ["https://dl.k8s.io/v1.14.1/kubernetes-src.tar.gz"],
 )
 
 # cni-plugins
