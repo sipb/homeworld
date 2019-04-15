@@ -135,34 +135,34 @@ go_repository(
 
 go_repository_alt(
     name = "io_k8s_apimachinery",
-    commit = "86fb29eff6288413d76bd8506874fddd9fccdff0", # 1.13.5
+    commit = "6a84e37a896db9780c75367af8d2ed2bb944022e", # 1.14.1
     importpath = "k8s.io/apimachinery",
     build_file_proto_mode = "disable_global",
 )
 
 go_repository(
     name = "io_k8s_client_go",
-    commit = "7621a5ebb88b1e49ce7e7837ae8e99ca030a3c13", # 1.13.5
+    commit = "1a26190bd76a9017e289958b9fba936430aa3704", # 1.14.1
     importpath = "k8s.io/client-go",
     build_file_proto_mode = "disable_global",
 )
 
 go_repository(
     name = "io_k8s_api",
-    commit = "5cb15d34447165a97c76ed5a60e4e99c8a01ecfe", # 1.13.5
+    commit = "6e4e0e4f393bf5e8bbff570acd13217aa5a770cd", # 1.14.1
     importpath = "k8s.io/api",
     build_file_proto_mode = "disable_global",
 )
 
 go_repository(
     name = "com_github_google_gofuzz",
-    commit = "44d81051d367757e1c7c6a5a86423ece9afcf63c",
+    commit = "24818f796faf91cd76ec7bddd72458fbced7a6c1",
     importpath = "github.com/google/gofuzz",
 )
 
 go_repository(
     name = "io_k8s_kube_openapi",
-    commit = "c59034cc13d587f5ef4e85ca0ade0c1866ae8e1d",
+    commit = "b3a7cee44a305be0a69e1b9ac03018307287e1b0",
     importpath = "k8s.io/kube-openapi",
 )
 
@@ -235,7 +235,7 @@ go_repository(
 
 go_repository(
     name = "io_k8s_klog",
-    commit = "8139d8cb77af419532b33dfa7dd09fbc5f1d344f",
+    commit = "8e90cee79f823779174776412c13478955131846",
     importpath = "k8s.io/klog",
 )
 
@@ -243,6 +243,18 @@ go_repository(
     name = "io_k8s_sigs_yaml",
     commit = "fd68e9863619f6ec2fdd8625fe1f02e7c877e480",
     importpath = "sigs.k8s.io/yaml",
+)
+
+go_repository(
+    name = "io_k8s_utils",
+    commit = "c2654d5206da6b7b6ace12841e8f359bb89b443c",
+    importpath = "k8s.io/utils",
+)
+
+go_repository(
+    name = "com_github_davecgh_go_spew",
+    commit = "782f4967f2dc4564575ca782fe2d04090b5faca8",
+    importpath = "github.com/davecgh/go-spew",
 )
 
 # keysystem dependencies
