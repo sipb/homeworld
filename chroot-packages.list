@@ -41,4 +41,4 @@ psmisc
 openjdk-8-jdk, g++, unzip
 
 # cri-o
-libdevmapper-dev, libglib2.0-dev, btrfs-tools, libostree-dev, libgpgme-dev
+libdevmapper-dev, libglib2.0-dev, btrfs-tools, libostree-dev, libgpgme-dev, libseccomp-dev
