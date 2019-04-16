@@ -75,7 +75,10 @@ def wrap(desc: str, func, paramtx=None):
             fail("not enough parameters (expected %s)" % expect)
         if maxarg is not None and len(params) > maxarg:
             fail("too many parameters (expected %s)" % expect)
-        func(*params)
+        varnames = func.__code__.co_varnames
+        opts = vars(args)
+        opts = { k: opts[k] for k in varnames if k in opts }
+        func(*params, **opts)
         if on_end:
             on_end()
 
