@@ -1,3 +1,4 @@
+import argparse
 import atexit
 import contextlib
 import hashlib
@@ -234,11 +235,14 @@ class TerminationContext:
 
 
 class DebugContext:
+    def __init__(self, persistent):
+        self.persistent = persistent
+
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        if exc_type is not None:
+        if self.persistent or exc_type is not None:
             self.debug_shell()
 
     def debug_shell(self):
@@ -487,7 +491,7 @@ def auto_node(ops: setup.Operations, tc: TerminationContext, node: configuration
     ops.add_operation("start up node @HOST", lambda: vm.boot_launch(), node)
 
 
-def auto_cluster(ops: setup.Operations, authorized_key=None):
+def auto_cluster(ops: setup.Operations, authorized_key=None, persistent=False):
     if authorized_key is None:
         if "HOME" not in os.environ:
             command.fail("expected $HOME to be set for authorized_key autodetect")
@@ -499,7 +503,7 @@ def auto_cluster(ops: setup.Operations, authorized_key=None):
     ops.add_operation("generate ISO", lambda: iso.gen_iso(iso_path, authorized_key, "serial"))
     with ops.context("networking", net_context()):
         with ops.context("termination", TerminationContext()) as tc:
-            with ops.context("debug shell", DebugContext()):
+            with ops.context("debug shell", DebugContext(persistent)):
                 ops.add_subcommand(lambda ops: auto_supervisor(ops, tc, config.keyserver, iso_path))
                 for node in config.nodes:
                     if node == config.keyserver: continue
@@ -508,12 +512,22 @@ def auto_cluster(ops: setup.Operations, authorized_key=None):
                 ops.add_subcommand(seq.sequence_cluster)
 
 
-main_command = seq.seq_mux_map("commands to run local testing VMs", {
+def wrap_persistent(desc: str, f):
+    desc, inner_configure = seq.wrapseq(desc, f)
+
+    def configure(command: list, parser: argparse.ArgumentParser):
+        parser.add_argument("--persistent", dest="persistent", action="store_true", help="keep cluster running after it has been set up")
+        inner_configure(command, parser)
+
+    return desc, configure
+
+
+main_command = command.mux_map("commands to run local testing VMs", {
     "net": command.mux_map("commands to control the state of the local testing network", {
         "up": command.wrap("bring up local testing network", net_up),
         "down": command.wrap("bring down local testing network", net_down),
     }),
     "auto": seq.seq_mux_map("commands to perform large-scale operations automatically", {
-        "cluster": seq.wrapseq("complete cluster installation", auto_cluster),
+        "cluster": wrap_persistent("complete cluster installation", auto_cluster),
     }),
 })
