@@ -492,6 +492,8 @@ def auto_cluster(ops: setup.Operations, authorized_key=None):
         if "HOME" not in os.environ:
             command.fail("expected $HOME to be set for authorized_key autodetect")
         authorized_key = os.path.join(os.getenv("HOME"), ".ssh/id_rsa.pub")
+    if os.getenv["SSH_AUTH_SOCK"] == False:
+        command.fail("need an SSH Agent to proceed")
     project, config = configuration.get_project(), configuration.get_config()
     iso_path = os.path.join(project, "cluster-%d.iso" % os.getpid())
     ops.add_operation("check nested virtualization", qemu_check_nested_virt)
