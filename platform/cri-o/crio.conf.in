@@ -27,6 +27,9 @@ storage_driver = ""
 storage_option = [
 ]
 
+# If set to false, in-memory locking will be used instead of file-based locking.
+file_locking = true
+
 # The crio.api table contains settings for the kubelet/gRPC interface.
 [crio.api]
 
@@ -39,41 +42,13 @@ stream_address = "127.0.0.1"
 # The port on which the stream server will listen.
 stream_port = "10010"
 
-# The "crio.api" table contains settings for the kubelet/gRPC interface.
-# If set to false, in-memory locking will be used instead of file-based locking.
-file_locking = true
-
 # The crio.runtime table contains settings pertaining to the OCI runtime used
 # and options for how to set up and manage the OCI runtime.
 [crio.runtime]
 
-# runtime is the OCI compatible runtime used for trusted container workloads.
-# This is a mandatory setting as this runtime will be the default one
-# and will also be used for untrusted container workloads if
-# runtime_untrusted_workload is not set.
-runtime = "/usr/bin/runc"
-
-# runtime_untrusted_workload is the OCI compatible runtime used for untrusted
-# container workloads. This is an optional setting, except if
-# default_container_trust is set to "untrusted".
-runtime_untrusted_workload = ""
-
-# default_workload_trust is the default level of trust crio puts in container
-# workloads. It can either be "trusted" or "untrusted", and the default
-# is "trusted".
-# Containers can be run through different container runtimes, depending on
-# the trust hints we receive from kubelet:
-# - If kubelet tags a container workload as untrusted, crio will try first to
-# run it through the untrusted container workload runtime. If it is not set,
-# crio will use the trusted runtime.
-# - If kubelet does not provide any information about the container workload trust
-# level, the selected runtime will depend on the default_container_trust setting.
-# If it is set to "untrusted", then all containers except for the host privileged
-# ones, will be run by the runtime_untrusted_workload runtime. Host privileged
-# containers are by definition trusted and will always use the trusted container
-# runtime. If default_container_trust is set to "trusted", crio will use the trusted
-# container runtime for all containers.
-default_workload_trust = "trusted"
+# default_runtime is the _name_ of the OCI runtime to be used as the default.
+# The name is matched against the runtimes map below.
+default_runtime = "runc"
 
 # If true, the runtime will not use pivot_root, but instead use MS_MOVE.
 no_pivot = false
@@ -101,8 +76,10 @@ apparmor_profile = "crio-default"
 # Cgroup management implementation used for the runtime.
 cgroup_manager = "cgroupfs"
 
-# hooks_dir_path is the oci hooks directory for automatically executed hooks
-hooks_dir_path = "/usr/share/containers/oci/hooks.d"
+# Path to OCI hooks directories for automatically executed hooks.
+hooks_dir = [
+	"/usr/share/containers/oci/hooks.d",
+]
 
 # List of default mounts for each container. **Deprecated:** this option will
 # be removed in future versions in favor of default_mounts_file.
@@ -121,6 +98,15 @@ log_size_max = -1
 # Changes the verbosity of the logs based on the level it is set to. Options
 # are fatal, panic, error, warn, info, and debug.
 log_level = "error"
+
+# The "crio.runtime.runtimes" table defines a list of OCI compatible runtimes.
+# The runtime to use is picked based on the runtime_handler provided by the CRI.
+# If no runtime_handler is provided, the runtime will be picked based on the level
+# of trust of the workload.
+
+[crio.runtime.runtimes.runc]
+runtime_path = "/usr/bin/runc"
+runtime_type = "oci"
 
 # The crio.image table contains settings pertaining to the management of OCI images.
 #
@@ -170,5 +156,7 @@ registries = [
 # Path to the directory where CNI configuration files are located.
 network_dir = "/etc/cni/net.d/"
 
-# plugin_dir is is where CNI plugin binaries are stored.
-plugin_dir = "/opt/cni/bin/"
+# Paths to directories where CNI plugin binaries are located.
+plugin_dir = [
+	"/opt/cni/bin/",
+]
