@@ -97,7 +97,7 @@ def wrapseq(desc: str, f):
             else:
                 ops.run_operations()
 
-        return [ops] + args.params, invoke
+        return [ops] + args.argparse_params, invoke
 
     desc, inner_configure = command.wrap(desc, f, wrap_param_tx)
 

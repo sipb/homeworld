@@ -34,7 +34,7 @@ def get_command_for_function(f):
 
 def mux_map(desc: str, mapping: dict):
     def configure(command: list, parser: argparse.ArgumentParser):
-        parser.set_defaults(parser=parser)
+        parser.set_defaults(argparse_parser=parser)
         subparsers = parser.add_subparsers()
 
         for component, (inner_desc, inner_configure) in mapping.items():
@@ -57,7 +57,7 @@ def wrap(desc: str, func, paramtx=None):
     minarg, maxarg = get_argcount(func)
 
     def invoke(args):
-        params = args.params
+        params = args.argparse_params
         if paramtx:
             prev = len(params)
             params, on_end = paramtx(args)
@@ -83,8 +83,8 @@ def wrap(desc: str, func, paramtx=None):
             on_end()
 
     def configure(command: list, parser: argparse.ArgumentParser):
-        parser.set_defaults(invoke=invoke, parser=parser)
-        parser.add_argument('params', nargs=argparse.REMAINDER, help=argparse.SUPPRESS)
+        parser.set_defaults(argparse_invoke=invoke, argparse_parser=parser)
+        parser.add_argument('argparse_params', nargs=argparse.REMAINDER, help=argparse.SUPPRESS)
         provide_command_for_function(func, command)
 
     return desc, configure
@@ -96,10 +96,10 @@ def main_invoke(command):
     configure_parser(["spire"], parser)
     try:
         args = parser.parse_args()
-        if "invoke" in args:
-            args.invoke(args)
+        if "argparse_invoke" in args:
+            args.argparse_invoke(args)
         else:
-            args.parser.print_help()
+            args.argparse_parser.print_help()
         return 0
     except CommandFailedException as e:
         print(ANSI_ESCAPE_CODE_RED + 'command failed: ' + str(e) + ANSI_ESCAPE_CODE_RESET)
