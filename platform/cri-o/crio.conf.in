@@ -30,6 +30,10 @@ storage_option = [
 # If set to false, in-memory locking will be used instead of file-based locking.
 file_locking = true
 
+# Path to the lock file.
+file_locking_path = "/run/crio.lock"
+
+
 # The crio.api table contains settings for the kubelet/gRPC interface.
 [crio.api]
 
@@ -42,9 +46,39 @@ stream_address = "127.0.0.1"
 # The port on which the stream server will listen.
 stream_port = "10010"
 
+# Enable encrypted TLS transport of the stream server.
+stream_enable_tls = false
+
+# Path to the x509 certificate file used to serve the encrypted stream. This
+# file can change, and CRI-O will automatically pick up the changes within 5
+# minutes.
+stream_tls_cert = ""
+
+# Path to the key file used to serve the encrypted stream. This file can
+# change, and CRI-O will automatically pick up the changes within 5 minutes.
+stream_tls_key = ""
+
+# Path to the x509 CA(s) file used to verify and authenticate client
+# communication with the encrypted stream. This file can change, and CRI-O will
+# automatically pick up the changes within 5 minutes.
+stream_tls_ca = ""
+
+# Maximum grpc send message size in bytes. If not set or <=0, then CRI-O will default to 16 * 1024 * 1024.
+grpc_max_send_msg_size = 16777216
+
+# Maximum grpc receive message size. If not set or <= 0, then CRI-O will default to 16 * 1024 * 1024.
+grpc_max_recv_msg_size = 16777216
+
 # The crio.runtime table contains settings pertaining to the OCI runtime used
 # and options for how to set up and manage the OCI runtime.
 [crio.runtime]
+
+# A list of ulimits to be set in containers by default, specified as
+# "<ulimit name>=<soft limit>:<hard limit>", for example:
+# "nofile=1024:2048"
+# If nothing is set here, settings will be inherited from the CRI-O daemon
+default_ulimits = [
+]
 
 # default_runtime is the _name_ of the OCI runtime to be used as the default.
 # The name is matched against the runtimes map below.
@@ -76,6 +110,35 @@ apparmor_profile = "crio-default"
 # Cgroup management implementation used for the runtime.
 cgroup_manager = "cgroupfs"
 
+# List of default capabilities for containers. If it is empty or commented out,
+# only the capabilities defined in the containers json file by the user/kube
+# will be added.
+default_capabilities = [
+	"CHOWN",
+	"DAC_OVERRIDE",
+	"FSETID",
+	"FOWNER",
+	"NET_RAW",
+	"SETGID",
+	"SETUID",
+	"SETPCAP",
+	"NET_BIND_SERVICE",
+	"SYS_CHROOT",
+	"KILL",
+]
+
+# List of default sysctls. If it is empty or commented out, only the sysctls
+# defined in the container json file by the user/kube will be added.
+default_sysctls = [
+]
+
+# List of additional devices. specified as
+# "<device-on-host>:<device-on-container>:<permissions>", for example: "--device=/dev/sdc:/dev/xvdc:rwm".
+#If it is empty or commented out, only the devices
+# defined in the container json file by the user/kube will be added.
+additional_devices = [
+]
+
 # Path to OCI hooks directories for automatically executed hooks.
 hooks_dir = [
 	"/usr/share/containers/oci/hooks.d",
@@ -86,6 +149,21 @@ hooks_dir = [
 default_mounts = [
 ]
 
+# Path to the file specifying the defaults mounts for each container. The
+# format of the config is /SRC:/DST, one mount per line. Notice that CRI-O reads
+# its default mounts from the following two files:
+#
+#   1) /etc/containers/mounts.conf (i.e., default_mounts_file): This is the
+#      override file, where users can either add in their own default mounts, or
+#      override the default mounts shipped with the package.
+#
+#   2) /usr/share/containers/mounts.conf: This is the default file read for
+#      mounts. If you want CRI-O to read from a different, specific mounts file,
+#      you can change the default_mounts_file. Note, if this is done, CRI-O will
+#      only add mounts it finds in this file.
+#
+default_mounts_file = ""
+
 # Maximum number of processes allowed in a container.
 pids_limit = 1024
 
@@ -95,9 +173,35 @@ pids_limit = 1024
 # limit is never exceeded.
 log_size_max = -1
 
+# Whether container output should be logged to journald in addition to the kuberentes log file
+log_to_journald = false
+
+# Path to directory in which container exit files are written to by conmon.
+container_exits_dir = "/var/run/crio/exits"
+
+# Path to directory for container attach sockets.
+container_attach_socket_dir = "/var/run/crio"
+
+# If set to true, all containers will run in read-only mode.
+read_only = false
+
 # Changes the verbosity of the logs based on the level it is set to. Options
 # are fatal, panic, error, warn, info, and debug.
 log_level = "error"
+
+# The UID mappings for the user namespace of each container. A range is
+# specified in the form containerUID:HostUID:Size. Multiple ranges must be
+# separated by comma.
+uid_mappings = ""
+
+# The GID mappings for the user namespace of each container. A range is
+# specified in the form containerGID:HostGID:Size. Multiple ranges must be
+# separated by comma.
+gid_mappings = ""
+
+# The minimal amount of time in seconds to wait before issuing a timeout
+# regarding the proper termination of the container.
+ctr_stop_timeout = 0
 
 # The "crio.runtime.runtimes" table defines a list of OCI compatible runtimes.
 # The runtime to use is picked based on the runtime_handler provided by the CRI.
@@ -122,6 +226,10 @@ default_transport = "docker://"
 
 # The image used to instantiate infra containers.
 pause_image = "homeworld.private/pause@{PAUSE_DIGEST}"
+
+# If not empty, the path to a docker/config.json-like file containing credentials
+# necessary for pulling the image specified by pause_image above.
+pause_image_auth_file = ""
 
 # The command to run to have a container stay in the paused state.
 pause_command = "/pause"
