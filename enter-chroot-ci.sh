@@ -25,6 +25,10 @@ then
 	cp "$HOME/.gnupg/trustdb.gpg" "$HOMEWORLD_CHROOT/home/$USER/.gnupg/trustdb.gpg"
 	cp -R "$HOME/.gnupg/private-keys-v1.d/"* "$HOMEWORLD_CHROOT/home/$USER/.gnupg/private-keys-v1.d"
 fi
+if [ ! -e platform/upload/version-cache ]
+then
+	echo "{}" >platform/upload/version-cache
+fi
 
 sudo mkdir -p "$HOMEWORLD_CHROOT/homeworld"
 sudo mount --bind "$(pwd)" "$HOMEWORLD_CHROOT/homeworld"
