@@ -141,7 +141,6 @@ additional_devices = [
 
 # Path to OCI hooks directories for automatically executed hooks.
 hooks_dir = [
-	"/usr/share/containers/oci/hooks.d",
 ]
 
 # List of default mounts for each container. **Deprecated:** this option will
