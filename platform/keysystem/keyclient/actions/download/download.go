@@ -6,12 +6,8 @@ import (
 	"log"
 	"os"
 	"path"
-	"strconv"
 	"time"
 
-	"github.com/sipb/homeworld/platform/keysystem/keyclient/actloop"
-	"github.com/sipb/homeworld/platform/keysystem/keyclient/config"
-	"github.com/sipb/homeworld/platform/keysystem/keyclient/state"
 	"github.com/sipb/homeworld/platform/util/fileutil"
 )
 
@@ -20,30 +16,6 @@ type DownloadAction struct {
 	Path    string
 	Refresh time.Duration
 	Mode    uint64
-}
-
-func PrepareDownloadAction(s *state.ClientState, d config.ConfigDownload) (actloop.Action, error) {
-	refresh_period, err := time.ParseDuration(d.Refresh)
-	if err != nil {
-		return nil, err
-	}
-	mode, err := strconv.ParseUint(d.Mode, 8, 9)
-	if err != nil {
-		return nil, err
-	}
-	if mode&0002 != 0 {
-		return nil, fmt.Errorf("disallowed mode: %o (will not grant world-writable access)", mode)
-	}
-	switch d.Type {
-	case "authority":
-		return &DownloadAction{Fetcher: &AuthorityFetcher{Keyserver: s.Keyserver, AuthorityName: d.Name}, Path: d.Path, Refresh: refresh_period, Mode: mode}, nil
-	case "static":
-		return &DownloadAction{Fetcher: &StaticFetcher{Keyserver: s.Keyserver, StaticName: d.Name}, Path: d.Path, Refresh: refresh_period, Mode: mode}, nil
-	case "api":
-		return &DownloadAction{Fetcher: &APIFetcher{State: s, API: d.Name}, Path: d.Path, Refresh: refresh_period, Mode: mode}, nil
-	default:
-		return nil, fmt.Errorf("unrecognized download type: %s", d.Type)
-	}
 }
 
 func (da *DownloadAction) Info() string {

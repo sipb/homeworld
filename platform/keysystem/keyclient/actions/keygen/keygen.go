@@ -11,8 +11,6 @@ import (
 	"os"
 	"path"
 
-	"github.com/sipb/homeworld/platform/keysystem/keyclient/actloop"
-	"github.com/sipb/homeworld/platform/keysystem/keyclient/config"
 	"github.com/sipb/homeworld/platform/util/fileutil"
 )
 
@@ -21,20 +19,6 @@ const DefaultRSAKeyLength = 4096
 type TLSKeygenAction struct {
 	Keypath string
 	Bits    int
-}
-
-func PrepareKeygenAction(k config.ConfigKey) (actloop.Action, error) {
-	switch k.Type {
-	case "tls":
-		return TLSKeygenAction{Keypath: k.Key, Bits: DefaultRSAKeyLength}, nil
-	case "ssh":
-		// should probably include creating a .pub file as well
-		return nil, errors.New("unimplemented operation: ssh key generation")
-	case "ssh-pubkey":
-		return nil, nil // key is pregenerated
-	default:
-		return nil, fmt.Errorf("unrecognized key type: %s", k.Type)
-	}
 }
 
 func (ka TLSKeygenAction) Info() string {
