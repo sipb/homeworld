@@ -91,27 +91,27 @@ func (b *ActionBuilder) DefaultDownloads(variant string) {
 		OneDay,
 		0644,
 	)
+	b.PublicKey(
+		"serviceaccount",
+		"/etc/homeworld/keys/serviceaccount.pem",
+		OneDay,
+	)
+	b.PublicKey(
+		"etcd-client",
+		"/etc/homeworld/authorities/etcd-client.pem",
+		OneDay,
+	)
+	b.PublicKey(
+		"etcd-server",
+		"/etc/homeworld/authorities/etcd-server.pem",
+		OneDay,
+	)
 	if variant == MASTER {
-		b.PublicKey(
-			"serviceaccount",
-			"/etc/homeworld/keys/serviceaccount.pem",
-			OneDay,
-		)
 		b.FromAPI(
 			"fetch-serviceaccount-key",
 			"/etc/homeworld/keys/serviceaccount.key",
 			OneDay,
 			0600,
-		)
-		b.PublicKey(
-			"etcd-client",
-			"/etc/homeworld/authorities/etcd-client.pem",
-			OneDay,
-		)
-		b.PublicKey(
-			"etcd-server",
-			"/etc/homeworld/authorities/etcd-server.pem",
-			OneDay,
 		)
 	}
 }
