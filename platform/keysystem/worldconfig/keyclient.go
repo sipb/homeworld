@@ -2,13 +2,11 @@ package worldconfig
 
 import (
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
 
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/config"
-	"github.com/sipb/homeworld/platform/keysystem/worldconfig/paths"
 )
 
 const (
@@ -53,22 +51,8 @@ func GetVariant() (string, error) {
 	return kind, nil
 }
 
-func GenerateConfig() (config.Config, error) {
-	variant, err := GetVariant()
-	if err != nil {
-		return config.Config{}, err
-	}
-	if variant != BASE && variant != SUPERVISOR && variant != MASTER && variant != WORKER {
-		return config.Config{}, fmt.Errorf("invalid variant: %s", variant)
-	}
-	keyserver, err := paths.GetKeyserver()
-	if err != nil {
-		return config.Config{}, err
-	}
-	conf := config.Config{
-		Keyserver: keyserver,
-	}
-	conf.Downloads = []config.ConfigDownload{
+func GetDownloads(variant string) []config.ConfigDownload {
+	downloads := []config.ConfigDownload{
 		{
 			Type:    "authority",
 			Name:    "kubernetes",
@@ -106,7 +90,7 @@ func GenerateConfig() (config.Config, error) {
 		},
 	}
 	if variant == MASTER {
-		conf.Downloads = append(conf.Downloads,
+		downloads = append(downloads,
 			config.ConfigDownload{
 				Type:    "authority",
 				Name:    "serviceaccount",
@@ -137,7 +121,11 @@ func GenerateConfig() (config.Config, error) {
 			},
 		)
 	}
-	conf.Keys = []config.ConfigKey{
+	return downloads
+}
+
+func GetKeys(variant string) []config.ConfigKey {
+	keys := []config.ConfigKey{
 		{
 			Name:      "keygranting",
 			Type:      "tls",
@@ -165,7 +153,7 @@ func GenerateConfig() (config.Config, error) {
 		},
 	}
 	if variant == SUPERVISOR {
-		conf.Keys = append(conf.Keys,
+		keys = append(keys,
 			config.ConfigKey{
 				Name:      "clustertls",
 				Type:      "tls",
@@ -176,7 +164,7 @@ func GenerateConfig() (config.Config, error) {
 			},
 		)
 	} else if variant == MASTER {
-		conf.Keys = append(conf.Keys,
+		keys = append(keys,
 			config.ConfigKey{
 				Name:      "kube-master",
 				Type:      "tls",
@@ -203,11 +191,5 @@ func GenerateConfig() (config.Config, error) {
 			},
 		)
 	}
-
-	// todo: get rid of this side effect
-	err = ioutil.WriteFile("/etc/homeworld/config/keyserver.variant", []byte(variant+"\n"), 0644)
-	if err != nil {
-		return config.Config{}, err
-	}
-	return conf, nil
+	return keys
 }

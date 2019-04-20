@@ -19,41 +19,52 @@ import (
 	"github.com/sipb/homeworld/platform/keysystem/worldconfig"
 )
 
+func writeVariantNotice(variant string) error {
+	err := ioutil.WriteFile("/etc/homeworld/config/keyserver.variant", []byte(variant+"\n"), 0644)
+	if err != nil {
+		return errors.Wrap(err, "while saving variant notice")
+	}
+	return nil
+}
+
 // TODO: private key rotation, not just getting new certs
 
 func LoadDefault(logger *log.Logger) ([]actloop.Action, error) {
-	conf, err := worldconfig.GenerateConfig()
+	variant, err := worldconfig.GetVariant()
+	if err != nil {
+		return nil, errors.Wrap(err, "determining variant")
+	}
+	err = writeVariantNotice(variant)
 	if err != nil {
 		return nil, err
 	}
-	authoritydata, err := ioutil.ReadFile(paths.KeyserverTLSCert)
-	if err != nil {
-		return nil, errors.Wrap(err, "while loading authority")
-	}
-	ks, err := server.NewKeyserver(authoritydata, conf.Keyserver)
+	ks, err := server.NewKeyserverDefault()
 	if err != nil {
 		return nil, errors.Wrap(err, "while preparing setup")
 	}
-	s := &state.ClientState{Config: conf, Keyserver: ks}
-	actions := []actloop.Action{}
-	if paths.BootstrapTokenPath != "" {
-		// for generating private keys
-		act, err := keygen.PrepareKeygenAction(config.ConfigKey{Type: "tls", Key: paths.GrantingKeyPath})
-		if err != nil {
-			return nil, err
-		}
-		if act == nil {
-			return nil, errors.New("expected non-nil result from PrepareKeygenAction")
-		}
-		actions = append(actions, act)
-		// for bootstrapping
-		act, err = bootstrap.PrepareBootstrapAction(s, paths.BootstrapTokenPath, paths.BootstrapTokenAPI)
-		if err != nil {
-			return nil, err
-		}
-		actions = append(actions, act)
+
+	downloads := worldconfig.GetDownloads(variant)
+	keys := worldconfig.GetKeys(variant)
+	s := &state.ClientState{Keyserver: ks}
+
+	// bootstrap actions
+	act, err := keygen.PrepareKeygenAction(config.ConfigKey{Type: "tls", Key: paths.GrantingKeyPath})
+	if err != nil {
+		return nil, errors.Wrap(err, "while preparing keygen")
 	}
-	for _, key := range conf.Keys {
+	if act == nil {
+		return nil, errors.New("expected non-nil result from PrepareKeygenAction")
+	}
+	act2, err := bootstrap.PrepareBootstrapAction(s, paths.BootstrapTokenPath, paths.BootstrapTokenAPI)
+	if err != nil {
+		return nil, err
+	}
+	actions := []actloop.Action{
+		act,
+		act2,
+	}
+
+	for _, key := range keys {
 		// for generating private keys
 		act, err := keygen.PrepareKeygenAction(key)
 		if err != nil {
@@ -69,7 +80,7 @@ func LoadDefault(logger *log.Logger) ([]actloop.Action, error) {
 		}
 		actions = append(actions, act)
 	}
-	for _, dl := range conf.Downloads {
+	for _, dl := range downloads {
 		// for downloading files and public keys
 		act, err := download.PrepareDownloadAction(s, dl)
 		if err != nil {
