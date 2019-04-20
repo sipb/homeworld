@@ -8,14 +8,12 @@ import (
 	"path"
 
 	"github.com/sipb/homeworld/platform/keysystem/api/server"
-	"github.com/sipb/homeworld/platform/keysystem/keyclient/config"
 	"github.com/sipb/homeworld/platform/keysystem/worldconfig/paths"
 	"github.com/sipb/homeworld/platform/util/fileutil"
 )
 
 type ClientState struct {
 	Keyserver *server.Keyserver
-	Config    config.Config
 	Keygrant  *tls.Certificate
 }
 

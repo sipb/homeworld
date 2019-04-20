@@ -16,9 +16,3 @@ type ConfigKey struct {
 	API       string
 	InAdvance string `yaml:"in-advance"`
 }
-
-type Config struct {
-	Keyserver string
-	Downloads []ConfigDownload
-	Keys      []ConfigKey
-}
