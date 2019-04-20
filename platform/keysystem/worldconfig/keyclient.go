@@ -118,14 +118,12 @@ func (b *ActionBuilder) DefaultDownloads(variant string) {
 
 func (b *ActionBuilder) DefaultKeys(variant string) {
 	b.TLSKey(
-		"keygranting",
 		"/etc/homeworld/keyclient/granting.key",
 		"/etc/homeworld/keyclient/granting.pem",
 		"renew-keygrant",
 		2*OneWeek, // renew two weeks before expiration
 	)
 	b.SSHCertificate(
-		"ssh-host",
 		"/etc/ssh/ssh_host_rsa_key.pub",
 		"/etc/ssh/ssh_host_rsa_cert",
 		"grant-ssh-host",
@@ -133,7 +131,6 @@ func (b *ActionBuilder) DefaultKeys(variant string) {
 	)
 	b.TLSKey(
 		// for master nodes, worker nodes (both for kubelet), and supervisor nodes (for prometheus)
-		"kube-worker",
 		"/etc/homeworld/keys/kubernetes-worker.key",
 		"/etc/homeworld/keys/kubernetes-worker.pem",
 		"grant-kubernetes-worker",
@@ -141,7 +138,6 @@ func (b *ActionBuilder) DefaultKeys(variant string) {
 	)
 	if variant == SUPERVISOR {
 		b.TLSKey(
-			"clustertls",
 			"/etc/homeworld/ssl/homeworld.private.key",
 			"/etc/homeworld/ssl/homeworld.private.pem",
 			"grant-registry-host",
@@ -149,21 +145,18 @@ func (b *ActionBuilder) DefaultKeys(variant string) {
 		)
 	} else if variant == MASTER {
 		b.TLSKey(
-			"kube-master",
 			"/etc/homeworld/keys/kubernetes-master.key",
 			"/etc/homeworld/keys/kubernetes-master.pem",
 			"grant-kubernetes-master",
 			OneWeek, // renew one week before expiration
 		)
 		b.TLSKey(
-			"etcd-server",
 			"/etc/homeworld/keys/etcd-server.key",
 			"/etc/homeworld/keys/etcd-server.pem",
 			"grant-etcd-server",
 			OneWeek, // renew one week before expiration
 		)
 		b.TLSKey(
-			"etcd-client",
 			"/etc/homeworld/keys/etcd-client.key",
 			"/etc/homeworld/keys/etcd-client.pem",
 			"grant-etcd-client",
@@ -206,14 +199,13 @@ func (b *ActionBuilder) Bootstrap() {
 	})
 }
 
-func (b *ActionBuilder) TLSKey(name string, key string, cert string, api string, inadvance time.Duration) {
+func (b *ActionBuilder) TLSKey(key string, cert string, api string, inadvance time.Duration) {
 	b.Add(keygen.TLSKeygenAction{Keypath: key, Bits: keygen.DefaultRSAKeyLength})
 	// for generating private keys
 	b.Add(&keyreq.RequestOrRenewAction{
 		State:           b.State,
 		InAdvance:       inadvance,
 		API:             api,
-		Name:            name,
 		KeyFile:         key,
 		CertFile:        cert,
 		CheckExpiration: certutil.CheckTLSCertExpiration,
@@ -221,13 +213,12 @@ func (b *ActionBuilder) TLSKey(name string, key string, cert string, api string,
 	})
 }
 
-func (b *ActionBuilder) SSHCertificate(name string, key string, cert string, api string, inadvance time.Duration) {
+func (b *ActionBuilder) SSHCertificate(key string, cert string, api string, inadvance time.Duration) {
 	// for getting certificates for keys
 	b.Add(&keyreq.RequestOrRenewAction{
 		State:           b.State,
 		InAdvance:       inadvance,
 		API:             api,
-		Name:            name,
 		KeyFile:         key,
 		CertFile:        cert,
 		CheckExpiration: certutil.CheckSSHCertExpiration,

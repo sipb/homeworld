@@ -19,7 +19,6 @@ type RequestOrRenewAction struct {
 	State           *state.ClientState
 	InAdvance       time.Duration
 	API             string
-	Name            string
 	CheckExpiration func([]byte) (time.Time, error)
 	GenCSR          func([]byte) ([]byte, error)
 	KeyFile         string
@@ -27,7 +26,7 @@ type RequestOrRenewAction struct {
 }
 
 func (ra *RequestOrRenewAction) Info() string {
-	return fmt.Sprintf("req/renew %s from key %s into cert %s with API %s in advance by %v", ra.Name, ra.CertFile, ra.KeyFile, ra.InAdvance, ra.API)
+	return fmt.Sprintf("req/renew key %s into cert %s with API %s in advance by %v", ra.CertFile, ra.KeyFile, ra.InAdvance, ra.API)
 }
 
 func (ra *RequestOrRenewAction) Pending() (bool, error) {
