@@ -3,16 +3,18 @@ package worldconfig
 import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
+	"github.com/sipb/homeworld/platform/util/certutil"
+	"github.com/sipb/homeworld/platform/util/csrutil"
 	"io/ioutil"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/actions/bootstrap"
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/actions/download"
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/actions/keygen"
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/actions/keyreq"
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/actloop"
-	"github.com/sipb/homeworld/platform/keysystem/keyclient/config"
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/state"
 	"github.com/sipb/homeworld/platform/keysystem/worldconfig/paths"
 )
@@ -59,134 +61,114 @@ func GetVariant() (string, error) {
 	return kind, nil
 }
 
+const OneDay = 24 * time.Hour
+const OneWeek = 7 * OneDay
+
 func (b *ActionBuilder) DefaultDownloads(variant string) {
-	b.Download(config.ConfigDownload{
-		Type:    "authority",
-		Name:    "kubernetes",
-		Path:    "/etc/homeworld/authorities/kubernetes.pem",
-		Refresh: "24h",
-		Mode:    "644",
-	})
-	b.Download(config.ConfigDownload{
-		Type:    "authority",
-		Name:    "clustertls",
-		Path:    "/usr/local/share/ca-certificates/extra/cluster.tls.crt",
-		Refresh: "24h",
-		Mode:    "644",
-	})
-	b.Download(config.ConfigDownload{
-		Type:    "authority",
-		Name:    "ssh-user",
-		Path:    "/etc/ssh/ssh_user_ca.pub",
-		Refresh: "168h", // allow a week for mistakes to be noticed on this one
-		Mode:    "644",
-	})
-	b.Download(config.ConfigDownload{
-		Type:    "static",
-		Name:    "cluster.conf",
-		Path:    "/etc/homeworld/config/cluster.conf",
-		Refresh: "24h",
-		Mode:    "644",
-	})
-	b.Download(config.ConfigDownload{
-		Type:    "api",
-		Name:    "get-local-config",
-		Path:    "/etc/homeworld/config/local.conf",
-		Refresh: "24h",
-		Mode:    "644",
-	})
+	b.PublicKey(
+		"kubernetes",
+		"/etc/homeworld/authorities/kubernetes.pem",
+		OneDay,
+	)
+	b.PublicKey(
+		"clustertls",
+		"/usr/local/share/ca-certificates/extra/cluster.tls.crt",
+		OneDay,
+	)
+	b.PublicKey(
+		"ssh-user",
+		"/etc/ssh/ssh_user_ca.pub",
+		OneWeek, // allow a week for mistakes to be noticed on this one
+	)
+	b.StaticFile(
+		"cluster.conf",
+		"/etc/homeworld/config/cluster.conf",
+		OneDay,
+	)
+	b.FromAPI(
+		"get-local-config",
+		"/etc/homeworld/config/local.conf",
+		OneDay,
+		0644,
+	)
 	if variant == MASTER {
-		b.Download(config.ConfigDownload{
-			Type:    "authority",
-			Name:    "serviceaccount",
-			Path:    "/etc/homeworld/keys/serviceaccount.pem",
-			Refresh: "24h",
-			Mode:    "644",
-		})
-		b.Download(config.ConfigDownload{
-			Type:    "api",
-			Name:    "fetch-serviceaccount-key",
-			Path:    "/etc/homeworld/keys/serviceaccount.key",
-			Refresh: "24h",
-			Mode:    "600",
-		})
-		b.Download(config.ConfigDownload{
-			Type:    "authority",
-			Name:    "etcd-client",
-			Path:    "/etc/homeworld/authorities/etcd-client.pem",
-			Refresh: "24h",
-			Mode:    "644",
-		})
-		b.Download(config.ConfigDownload{
-			Type:    "authority",
-			Name:    "etcd-server",
-			Path:    "/etc/homeworld/authorities/etcd-server.pem",
-			Refresh: "24h",
-			Mode:    "644",
-		})
+		b.PublicKey(
+			"serviceaccount",
+			"/etc/homeworld/keys/serviceaccount.pem",
+			OneDay,
+		)
+		b.FromAPI(
+			"fetch-serviceaccount-key",
+			"/etc/homeworld/keys/serviceaccount.key",
+			OneDay,
+			0600,
+		)
+		b.PublicKey(
+			"etcd-client",
+			"/etc/homeworld/authorities/etcd-client.pem",
+			OneDay,
+		)
+		b.PublicKey(
+			"etcd-server",
+			"/etc/homeworld/authorities/etcd-server.pem",
+			OneDay,
+		)
 	}
 }
 
 func (b *ActionBuilder) DefaultKeys(variant string) {
-	b.Key(config.ConfigKey{
-		Name:      "keygranting",
-		Type:      "tls",
-		Key:       "/etc/homeworld/keyclient/granting.key",
-		Cert:      "/etc/homeworld/keyclient/granting.pem",
-		API:       "renew-keygrant",
-		InAdvance: "336h", // renew two weeks before expiration
-	})
-	b.Key(config.ConfigKey{
-		Name:      "ssh-host",
-		Type:      "ssh-pubkey",
-		Key:       "/etc/ssh/ssh_host_rsa_key.pub",
-		Cert:      "/etc/ssh/ssh_host_rsa_cert",
-		API:       "grant-ssh-host",
-		InAdvance: "168h", // renew one week before expiration
-	})
-	b.Key(config.ConfigKey{
+	b.TLSKey(
+		"keygranting",
+		"/etc/homeworld/keyclient/granting.key",
+		"/etc/homeworld/keyclient/granting.pem",
+		"renew-keygrant",
+		2*OneWeek, // renew two weeks before expiration
+	)
+	b.SSHCertificate(
+		"ssh-host",
+		"/etc/ssh/ssh_host_rsa_key.pub",
+		"/etc/ssh/ssh_host_rsa_cert",
+		"grant-ssh-host",
+		OneWeek, // renew one week before expiration
+	)
+	b.TLSKey(
 		// for master nodes, worker nodes (both for kubelet), and supervisor nodes (for prometheus)
-		Name:      "kube-worker",
-		Type:      "tls",
-		Key:       "/etc/homeworld/keys/kubernetes-worker.key",
-		Cert:      "/etc/homeworld/keys/kubernetes-worker.pem",
-		API:       "grant-kubernetes-worker",
-		InAdvance: "168h", // renew one week before expiration
-	})
+		"kube-worker",
+		"/etc/homeworld/keys/kubernetes-worker.key",
+		"/etc/homeworld/keys/kubernetes-worker.pem",
+		"grant-kubernetes-worker",
+		OneWeek, // renew one week before expiration
+	)
 	if variant == SUPERVISOR {
-		b.Key(config.ConfigKey{
-			Name:      "clustertls",
-			Type:      "tls",
-			Key:       "/etc/homeworld/ssl/homeworld.private.key",
-			Cert:      "/etc/homeworld/ssl/homeworld.private.pem",
-			API:       "grant-registry-host",
-			InAdvance: "168h", // renew one week before expiration
-		})
+		b.TLSKey(
+			"clustertls",
+			"/etc/homeworld/ssl/homeworld.private.key",
+			"/etc/homeworld/ssl/homeworld.private.pem",
+			"grant-registry-host",
+			OneWeek, // renew one week before expiration
+		)
 	} else if variant == MASTER {
-		b.Key(config.ConfigKey{
-			Name:      "kube-master",
-			Type:      "tls",
-			Key:       "/etc/homeworld/keys/kubernetes-master.key",
-			Cert:      "/etc/homeworld/keys/kubernetes-master.pem",
-			API:       "grant-kubernetes-master",
-			InAdvance: "168h", // renew one week before expiration
-		})
-		b.Key(config.ConfigKey{
-			Name:      "etcd-server",
-			Type:      "tls",
-			Key:       "/etc/homeworld/keys/etcd-server.key",
-			Cert:      "/etc/homeworld/keys/etcd-server.pem",
-			API:       "grant-etcd-server",
-			InAdvance: "168h", // renew one week before expiration
-		})
-		b.Key(config.ConfigKey{
-			Name:      "etcd-client",
-			Type:      "tls",
-			Key:       "/etc/homeworld/keys/etcd-client.key",
-			Cert:      "/etc/homeworld/keys/etcd-client.pem",
-			API:       "grant-etcd-client",
-			InAdvance: "168h", // renew one week before expiration
-		})
+		b.TLSKey(
+			"kube-master",
+			"/etc/homeworld/keys/kubernetes-master.key",
+			"/etc/homeworld/keys/kubernetes-master.pem",
+			"grant-kubernetes-master",
+			OneWeek, // renew one week before expiration
+		)
+		b.TLSKey(
+			"etcd-server",
+			"/etc/homeworld/keys/etcd-server.key",
+			"/etc/homeworld/keys/etcd-server.pem",
+			"grant-etcd-server",
+			OneWeek, // renew one week before expiration
+		)
+		b.TLSKey(
+			"etcd-client",
+			"/etc/homeworld/keys/etcd-client.key",
+			"/etc/homeworld/keys/etcd-client.pem",
+			"grant-etcd-client",
+			OneWeek, // renew one week before expiration
+		)
 	}
 }
 
@@ -202,34 +184,67 @@ func (b *ActionBuilder) Add(action actloop.Action) {
 	}
 }
 
+func (b *ActionBuilder) Error(err error) {
+	b.Err = multierror.Append(b.Err, err)
+}
+
 func (b *ActionBuilder) AddOrError(action actloop.Action, err error) {
 	if err != nil {
-		b.Err = multierror.Append(b.Err, err)
+		b.Error(err)
 	} else {
 		b.Add(action)
 	}
 }
 
 func (b *ActionBuilder) Bootstrap() {
-	act, err := keygen.PrepareKeygenAction(config.ConfigKey{Type: "tls", Key: paths.GrantingKeyPath})
-	b.AddOrError(act, err)
-	act, err = bootstrap.PrepareBootstrapAction(b.State, paths.BootstrapTokenPath, paths.BootstrapTokenAPI)
-	b.AddOrError(act, err)
+	b.Add(keygen.TLSKeygenAction{Keypath: paths.GrantingKeyPath, Bits: keygen.DefaultRSAKeyLength})
+
+	b.Add(&bootstrap.BootstrapAction{
+		State:         b.State,
+		TokenFilePath: paths.BootstrapTokenPath,
+		TokenAPI:      paths.BootstrapTokenAPI,
+	})
 }
 
-func (b *ActionBuilder) Key(key config.ConfigKey) {
+func (b *ActionBuilder) TLSKey(name string, key string, cert string, api string, inadvance time.Duration) {
+	b.Add(keygen.TLSKeygenAction{Keypath: key, Bits: keygen.DefaultRSAKeyLength})
 	// for generating private keys
-	act, err := keygen.PrepareKeygenAction(key)
-	b.AddOrError(act, err)
-	// for getting certificates for keys
-	act, err = keyreq.PrepareRequestOrRenewKeys(b.State, key)
-	b.AddOrError(act, err)
+	b.Add(&keyreq.RequestOrRenewAction{
+		State:           b.State,
+		InAdvance:       inadvance,
+		API:             api,
+		Name:            name,
+		KeyFile:         key,
+		CertFile:        cert,
+		CheckExpiration: certutil.CheckTLSCertExpiration,
+		GenCSR:          csrutil.BuildTLSCSR,
+	})
 }
 
-func (b *ActionBuilder) Download(dl config.ConfigDownload) {
-	// for downloading files and public keys
-	act, err := download.PrepareDownloadAction(b.State, dl)
-	b.AddOrError(act, err)
+func (b *ActionBuilder) SSHCertificate(name string, key string, cert string, api string, inadvance time.Duration) {
+	// for getting certificates for keys
+	b.Add(&keyreq.RequestOrRenewAction{
+		State:           b.State,
+		InAdvance:       inadvance,
+		API:             api,
+		Name:            name,
+		KeyFile:         key,
+		CertFile:        cert,
+		CheckExpiration: certutil.CheckSSHCertExpiration,
+		GenCSR:          csrutil.BuildSSHCSR,
+	})
+}
+
+func (b *ActionBuilder) PublicKey(name string, path string, refreshPeriod time.Duration) {
+	b.Add(&download.DownloadAction{Fetcher: &download.AuthorityFetcher{Keyserver: b.State.Keyserver, AuthorityName: name}, Path: path, Refresh: refreshPeriod, Mode: 0644})
+}
+
+func (b *ActionBuilder) StaticFile(name string, path string, refreshPeriod time.Duration) {
+	b.Add(&download.DownloadAction{Fetcher: &download.StaticFetcher{Keyserver: b.State.Keyserver, StaticName: name}, Path: path, Refresh: refreshPeriod, Mode: 0644})
+}
+
+func (b *ActionBuilder) FromAPI(name string, path string, refreshPeriod time.Duration, mode uint64) {
+	b.Add(&download.DownloadAction{Fetcher: &download.APIFetcher{State: b.State, API: name}, Path: path, Refresh: refreshPeriod, Mode: mode})
 }
 
 func BuildActions(s *state.ClientState, variant string) ([]actloop.Action, error) {

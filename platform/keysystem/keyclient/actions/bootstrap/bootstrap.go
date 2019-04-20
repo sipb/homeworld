@@ -10,7 +10,6 @@ import (
 	"unicode"
 
 	"github.com/sipb/homeworld/platform/keysystem/api/reqtarget"
-	"github.com/sipb/homeworld/platform/keysystem/keyclient/actloop"
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/state"
 	"github.com/sipb/homeworld/platform/keysystem/worldconfig/paths"
 	"github.com/sipb/homeworld/platform/util/csrutil"
@@ -21,13 +20,6 @@ type BootstrapAction struct {
 	State         *state.ClientState
 	TokenFilePath string
 	TokenAPI      string
-}
-
-func PrepareBootstrapAction(s *state.ClientState, tokenfilepath string, api string) (actloop.Action, error) {
-	if api == "" {
-		return nil, errors.New("no bootstrap api provided")
-	}
-	return &BootstrapAction{State: s, TokenFilePath: tokenfilepath, TokenAPI: api}, nil
 }
 
 func (da *BootstrapAction) Info() string {

@@ -10,12 +10,8 @@ import (
 	"time"
 
 	"github.com/sipb/homeworld/platform/keysystem/api/reqtarget"
-	"github.com/sipb/homeworld/platform/keysystem/keyclient/actloop"
-	"github.com/sipb/homeworld/platform/keysystem/keyclient/config"
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/state"
 	"github.com/sipb/homeworld/platform/keysystem/worldconfig/paths"
-	"github.com/sipb/homeworld/platform/util/certutil"
-	"github.com/sipb/homeworld/platform/util/csrutil"
 	"github.com/sipb/homeworld/platform/util/fileutil"
 )
 
@@ -28,41 +24,6 @@ type RequestOrRenewAction struct {
 	GenCSR          func([]byte) ([]byte, error)
 	KeyFile         string
 	CertFile        string
-}
-
-func PrepareRequestOrRenewKeys(s *state.ClientState, key config.ConfigKey) (actloop.Action, error) {
-	inadvance, err := time.ParseDuration(key.InAdvance)
-	if err != nil {
-		return nil, errors.Wrap(err, "invalid in-advance interval for key renewal")
-	}
-	if inadvance <= 0 {
-		return nil, errors.New("invalid in-advance interval for key renewal: nonpositive duration")
-	}
-	if key.API == "" {
-		return nil, errors.New("no renew api provided")
-	}
-	action := &RequestOrRenewAction{
-		State:     s,
-		InAdvance: inadvance,
-		API:       key.API,
-		Name:      key.Name,
-		KeyFile:   key.Key,
-		CertFile:  key.Cert,
-	}
-	switch key.Type {
-	case "tls":
-		action.CheckExpiration = certutil.CheckTLSCertExpiration
-		action.GenCSR = csrutil.BuildTLSCSR
-		return action, nil
-	case "ssh":
-		fallthrough
-	case "ssh-pubkey":
-		action.CheckExpiration = certutil.CheckSSHCertExpiration
-		action.GenCSR = csrutil.BuildSSHCSR
-		return action, nil
-	default:
-		return nil, fmt.Errorf("unrecognized key type: %s", key.Type)
-	}
 }
 
 func (ra *RequestOrRenewAction) Info() string {
