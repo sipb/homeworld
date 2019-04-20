@@ -5,5 +5,16 @@ go_library(
     srcs = ["keyclient.go"],
     importpath = "github.com/sipb/homeworld/platform/keysystem/worldconfig",
     visibility = ["//visibility:public"],
-    deps = ["//keysystem/keyclient/config:go_default_library"],
+    deps = [
+        "//keysystem/keyclient/actions/bootstrap:go_default_library",
+        "//keysystem/keyclient/actions/download:go_default_library",
+        "//keysystem/keyclient/actions/keygen:go_default_library",
+        "//keysystem/keyclient/actions/keyreq:go_default_library",
+        "//keysystem/keyclient/actloop:go_default_library",
+        "//keysystem/keyclient/config:go_default_library",
+        "//keysystem/keyclient/state:go_default_library",
+        "//keysystem/worldconfig/paths:go_default_library",
+        "@com_github_hashicorp_go_multierror//:go_default_library",
+        "@com_github_pkg_errors//:go_default_library",
+    ],
 )
