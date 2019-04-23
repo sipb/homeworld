@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/sipb/homeworld/platform/keysystem/keyserver/config"
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/operation"
 )
 
 func apiToHTTP(ks Keyserver, logger *log.Logger) http.Handler {
@@ -17,7 +18,11 @@ func apiToHTTP(ks Keyserver, logger *log.Logger) http.Handler {
 		err := ks.HandleAPIRequest(writer, request)
 		if err != nil {
 			logger.Printf("API request failed with error: %s", err)
-			http.Error(writer, "Request processing failed. See server logs for details.", http.StatusBadRequest)
+			if _, ok := err.(*operation.OperationForbiddenError); ok {
+				http.Error(writer, "Particular operation forbidden.", http.StatusForbidden)
+			} else {
+				http.Error(writer, "Request processing failed. See server logs for details.", http.StatusBadRequest)
+			}
 		}
 	})
 

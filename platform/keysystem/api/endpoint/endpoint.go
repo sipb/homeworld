@@ -74,6 +74,12 @@ func (s ServerEndpoint) WithCertificate(cert tls.Certificate) ServerEndpoint {
 	return s
 }
 
+type OperationForbidden struct{}
+
+func (o OperationForbidden) Error() string {
+	return "operation forbidden by server"
+}
+
 func (s ServerEndpoint) Request(path string, method string, reqbody []byte) ([]byte, error) {
 	if path[0] != '/' {
 		return nil, errors.New("while validating request: path must be absolute")
@@ -90,6 +96,9 @@ func (s ServerEndpoint) Request(path string, method string, reqbody []byte) ([]b
 		return nil, errors.Wrap(err, "while processing request")
 	}
 	if response.StatusCode != 200 {
+		if response.StatusCode == 403 {
+			return nil, OperationForbidden{}
+		}
 		return nil, fmt.Errorf("unexpected status code: %d", response.StatusCode)
 	}
 	body, err := ioutil.ReadAll(response.Body)
