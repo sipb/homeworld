@@ -37,7 +37,7 @@ func LoadDefault(logger *log.Logger) ([]actloop.Action, error) {
 		return nil, errors.Wrap(err, "while preparing setup")
 	}
 
-	s := &state.ClientState{Keyserver: ks}
+	s := state.NewClientState(ks)
 
 	actions, err := worldconfig.BuildActions(s, variant)
 	if err != nil {

@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/sipb/homeworld/platform/keysystem/api/endpoint"
 	"github.com/sipb/homeworld/platform/keysystem/api/reqtarget"
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/state"
 	"github.com/sipb/homeworld/platform/keysystem/worldconfig/paths"
@@ -30,6 +31,9 @@ func (ra *RequestOrRenewAction) Info() string {
 }
 
 func (ra *RequestOrRenewAction) Pending() (bool, error) {
+	if !ra.State.CanRetry(ra.API) {
+		return false, nil
+	}
 	existing, err := ioutil.ReadFile(ra.CertFile)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -78,6 +82,9 @@ func (ra *RequestOrRenewAction) Perform(_ *log.Logger) error {
 	}
 	cert, err := reqtarget.SendRequest(rt, ra.API, string(csr))
 	if err != nil {
+		if _, is := err.(endpoint.OperationForbidden); is {
+			ra.State.RetryFailed(ra.API)
+		}
 		return errors.Wrap(err, "while sending request")
 	}
 	if len(cert) == 0 {

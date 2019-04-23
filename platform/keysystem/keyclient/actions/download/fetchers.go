@@ -1,9 +1,10 @@
 package download
 
 import (
-	"errors"
 	"fmt"
+	"github.com/pkg/errors"
 
+	"github.com/sipb/homeworld/platform/keysystem/api/endpoint"
 	"github.com/sipb/homeworld/platform/keysystem/api/reqtarget"
 	"github.com/sipb/homeworld/platform/keysystem/api/server"
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/state"
@@ -11,6 +12,7 @@ import (
 
 type DownloadFetcher interface {
 	PrereqsSatisfied() error
+	CanRetry() bool
 	Fetch() ([]byte, error)
 	Info() string
 }
@@ -42,6 +44,10 @@ func (af *AuthorityFetcher) Fetch() ([]byte, error) {
 	return af.Keyserver.GetPubkey(af.AuthorityName)
 }
 
+func (af *AuthorityFetcher) CanRetry() bool {
+	return true
+}
+
 func (sf *StaticFetcher) PrereqsSatisfied() error {
 	return nil // so, yes
 }
@@ -52,6 +58,10 @@ func (sf *StaticFetcher) Info() string {
 
 func (sf *StaticFetcher) Fetch() ([]byte, error) {
 	return sf.Keyserver.GetStatic(sf.StaticName)
+}
+
+func (af *StaticFetcher) CanRetry() bool {
+	return true
 }
 
 func (af *APIFetcher) PrereqsSatisfied() error {
@@ -73,7 +83,14 @@ func (af *APIFetcher) Fetch() ([]byte, error) {
 	}
 	resp, err := reqtarget.SendRequest(rt, af.API, "")
 	if err != nil {
+		if _, is := errors.Cause(err).(endpoint.OperationForbidden); is {
+			af.State.RetryFailed(af.API)
+		}
 		return nil, err
 	}
 	return []byte(resp), nil
+}
+
+func (af *APIFetcher) CanRetry() bool {
+	return af.State.CanRetry(af.API)
 }

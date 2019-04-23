@@ -23,6 +23,9 @@ func (da *DownloadAction) Info() string {
 }
 
 func (da *DownloadAction) Pending() (bool, error) {
+	if !da.Fetcher.CanRetry() {
+		return false, nil
+	}
 	if statinfo, err := os.Stat(da.Path); err != nil {
 		if os.IsNotExist(err) {
 			// doesn't exist -- create it!

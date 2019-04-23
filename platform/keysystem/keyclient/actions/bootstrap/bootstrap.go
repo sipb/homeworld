@@ -1,14 +1,15 @@
 package bootstrap
 
 import (
-	"errors"
 	"fmt"
+	"github.com/pkg/errors"
 	"io/ioutil"
 	"log"
 	"os"
 	"strings"
 	"unicode"
 
+	"github.com/sipb/homeworld/platform/keysystem/api/endpoint"
 	"github.com/sipb/homeworld/platform/keysystem/api/reqtarget"
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/state"
 	"github.com/sipb/homeworld/platform/keysystem/worldconfig/paths"
@@ -44,7 +45,7 @@ func (da *BootstrapAction) getToken() (string, error) {
 }
 
 func (da *BootstrapAction) Pending() (bool, error) {
-	return da.State.Keygrant == nil && fileutil.Exists(da.TokenFilePath), nil
+	return da.State.CanRetry(da.TokenAPI) && da.State.Keygrant == nil && fileutil.Exists(da.TokenFilePath), nil
 }
 
 func (da *BootstrapAction) CheckBlocker() error {
@@ -77,6 +78,9 @@ func (da *BootstrapAction) sendRequest(api string, param string) (string, error)
 	}
 	result, err := reqtarget.SendRequest(rt, api, param)
 	if err != nil {
+		if _, is := errors.Cause(err).(endpoint.OperationForbidden); is {
+			da.State.RetryFailed(api)
+		}
 		return "", err
 	}
 	// remove token file, because it can't be used more than once, enforced by the server
