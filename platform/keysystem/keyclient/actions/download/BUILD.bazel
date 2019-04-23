@@ -9,9 +9,11 @@ go_library(
     importpath = "github.com/sipb/homeworld/platform/keysystem/keyclient/actions/download",
     visibility = ["//visibility:public"],
     deps = [
+        "//keysystem/api/endpoint:go_default_library",
         "//keysystem/api/reqtarget:go_default_library",
         "//keysystem/api/server:go_default_library",
         "//keysystem/keyclient/state:go_default_library",
         "//util/fileutil:go_default_library",
+        "@com_github_pkg_errors//:go_default_library",
     ],
 )
