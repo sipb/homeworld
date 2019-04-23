@@ -54,24 +54,24 @@ func (sf *StaticFetcher) Fetch() ([]byte, error) {
 	return sf.Keyserver.GetStatic(sf.StaticName)
 }
 
-func (df *APIFetcher) PrereqsSatisfied() error {
-	if df.State.Keygrant != nil {
+func (af *APIFetcher) PrereqsSatisfied() error {
+	if af.State.Keygrant != nil {
 		return nil
 	} else {
 		return errors.New("no keygranting certificate ready")
 	}
 }
 
-func (df *APIFetcher) Info() string {
-	return fmt.Sprintf("result from api %s", df.API)
+func (af *APIFetcher) Info() string {
+	return fmt.Sprintf("result from api %s", af.API)
 }
 
-func (df *APIFetcher) Fetch() ([]byte, error) {
-	rt, err := df.State.Keyserver.AuthenticateWithCert(*df.State.Keygrant)
+func (af *APIFetcher) Fetch() ([]byte, error) {
+	rt, err := af.State.Keyserver.AuthenticateWithCert(*af.State.Keygrant)
 	if err != nil {
 		return nil, err // no actual way for this part to fail
 	}
-	resp, err := reqtarget.SendRequest(rt, df.API, "")
+	resp, err := reqtarget.SendRequest(rt, af.API, "")
 	if err != nil {
 		return nil, err
 	}

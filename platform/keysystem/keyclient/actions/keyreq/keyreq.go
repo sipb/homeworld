@@ -83,8 +83,8 @@ func (ra *RequestOrRenewAction) Pending() (bool, error) {
 			// almost invariably means malformed
 			return true, errors.Wrap(err, "while trying to check expiration status of certificate")
 		}
-		renew_at := expiration.Add(-ra.InAdvance)
-		if renew_at.After(time.Now()) {
+		renewAt := expiration.Add(-ra.InAdvance)
+		if renewAt.After(time.Now()) {
 			return false, nil // not time to renew
 		} else {
 			return true, nil // time to renew

@@ -7,10 +7,10 @@ import (
 )
 
 type ActLoop struct {
-	actions     []Action
-	stoplock    sync.Mutex
-	should_stop bool
-	logger      *log.Logger
+	actions    []Action
+	stoplock   sync.Mutex
+	shouldStop bool
+	logger     *log.Logger
 }
 
 type Action interface {
@@ -25,7 +25,7 @@ func NewActLoop(actions []Action, logger *log.Logger) ActLoop {
 }
 
 func (m *ActLoop) Step() (stabilized bool, blocked bool) {
-	blocked_by := []error{}
+	var blockedBy []error
 	for _, action := range m.actions {
 		pending, err := action.Pending()
 		if err != nil {
@@ -36,7 +36,7 @@ func (m *ActLoop) Step() (stabilized bool, blocked bool) {
 		}
 		blockerr := action.CheckBlocker()
 		if blockerr != nil {
-			blocked_by = append(blocked_by, blockerr)
+			blockedBy = append(blockedBy, blockerr)
 			continue
 		}
 		err = action.Perform(m.logger)
@@ -47,11 +47,11 @@ func (m *ActLoop) Step() (stabilized bool, blocked bool) {
 			return false, false
 		}
 	}
-	if len(blocked_by) == 0 {
+	if len(blockedBy) == 0 {
 		return true, false
 	} else {
-		m.logger.Printf("ACTLOOP BLOCKED (%d)\n", len(blocked_by))
-		for _, blockerr := range blocked_by {
+		m.logger.Printf("ACTLOOP BLOCKED (%d)\n", len(blockedBy))
+		for _, blockerr := range blockedBy {
 			m.logger.Printf("actloop blocked by: %s\n", blockerr.Error())
 		}
 		// we're calling this 'stable' because the problems won't resolve themselves; if no actions were executed, we're stuck.
@@ -62,22 +62,22 @@ func (m *ActLoop) Step() (stabilized bool, blocked bool) {
 func (m *ActLoop) Cancel() {
 	m.stoplock.Lock()
 	defer m.stoplock.Unlock()
-	m.should_stop = true
+	m.shouldStop = true
 }
 
 func (m *ActLoop) IsCancelled() bool {
 	m.stoplock.Lock()
 	defer m.stoplock.Unlock()
-	return m.should_stop
+	return m.shouldStop
 }
 
 func (m *ActLoop) Run(cycletime time.Duration, pausetime time.Duration, onReady func(*log.Logger)) {
-	was_stabilized := false
+	wasStabilized := false
 	for !m.IsCancelled() {
 		// TODO: report current status somewhere -- health checker endpoint?
 		stabilized, blocked := m.Step()
 		if stabilized {
-			if !was_stabilized {
+			if !wasStabilized {
 				if blocked {
 					m.logger.Printf("ACTLOOP BLOCKED BUT STABLE\n")
 				} else {
@@ -91,6 +91,6 @@ func (m *ActLoop) Run(cycletime time.Duration, pausetime time.Duration, onReady 
 		} else {
 			time.Sleep(cycletime) // usually two seconds
 		}
-		was_stabilized = stabilized
+		wasStabilized = stabilized
 	}
 }
