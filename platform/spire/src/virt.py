@@ -1,5 +1,6 @@
 import argparse
 import atexit
+import concurrent.futures
 import contextlib
 import hashlib
 import os
@@ -484,11 +485,20 @@ def auto_supervisor(ops: setup.Operations, tc: TerminationContext, supervisor: c
     ops.add_subcommand(seq.sequence_supervisor)
 
 
-def auto_node(ops: setup.Operations, tc: TerminationContext, node: configuration.Node, install_iso: str):
-    vm = VirtualMachine(node, tc, install_iso)
-    ops.add_operation("install node @HOST (this may take several minutes)", vm.boot_install_and_admit, node)
-    vm = VirtualMachine(node, tc)
-    ops.add_operation("start up node @HOST", lambda: vm.boot_launch(), node)
+def auto_nodes_parallel(ops: setup.Operations, tc: TerminationContext, nodes: list, install_iso: str):
+    vms = [VirtualMachine(node, tc, install_iso) for node in nodes]
+
+    def boot_install_and_admit_all():
+        with concurrent.futures.ThreadPoolExecutor(len(vms)) as executor:
+            futures = [executor.submit(vm.boot_install_and_admit) for vm in vms]
+            for f in futures:
+                f.result()
+
+    ops.add_operation("install non-supervisor nodes (this may take several minutes)", boot_install_and_admit_all)
+
+    for node in nodes:
+        vm = VirtualMachine(node, tc)
+        ops.add_operation("start up node @HOST", vm.boot_launch, node)
 
 
 def auto_cluster(ops: setup.Operations, authorized_key=None, persistent=False):
@@ -505,9 +515,8 @@ def auto_cluster(ops: setup.Operations, authorized_key=None, persistent=False):
         with ops.context("termination", TerminationContext()) as tc:
             with ops.context("debug shell", DebugContext(persistent)):
                 ops.add_subcommand(lambda ops: auto_supervisor(ops, tc, config.keyserver, iso_path))
-                for node in config.nodes:
-                    if node == config.keyserver: continue
-                    ops.add_subcommand(lambda ops, n=node: auto_node(ops, tc, n, iso_path))
+                other_nodes = [n for n in config.nodes if n != config.keyserver]
+                ops.add_subcommand(lambda ops: auto_nodes_parallel(ops, tc, other_nodes, iso_path))
 
                 ops.add_subcommand(seq.sequence_cluster)
 
