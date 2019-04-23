@@ -10,6 +10,15 @@ import (
 	"github.com/sipb/homeworld/platform/keysystem/keyserver/config"
 )
 
+type OperationForbiddenError struct {
+	Principal string
+	API       string
+}
+
+func (o *OperationForbiddenError) Error() string {
+	return fmt.Sprintf("account %s does not have access to API call %s", o.Principal, o.API)
+}
+
 func InvokeAPIOperationSet(a *account.Account, context *config.Context, requestBody []byte, logger *log.Logger) ([]byte, error) {
 	var ops []map[string]string
 	err := json.Unmarshal(requestBody, &ops)
@@ -47,7 +56,10 @@ func InvokeAPIOperation(ctx *account.OperationContext, gctx *config.Context, API
 	princ := ctx.Account.Principal
 	priv, found := grant.PrivilegeByAccount[princ]
 	if !found {
-		return "", fmt.Errorf("account %s does not have access to API call %s", princ, API)
+		return "", &OperationForbiddenError{
+			Principal: princ,
+			API:       API,
+		}
 	}
 	logger.Printf("attempting to perform API operation %s for %s", API, princ)
 	response, err := priv(ctx, requestBody)
