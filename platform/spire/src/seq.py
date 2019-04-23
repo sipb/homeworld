@@ -88,16 +88,20 @@ def add_dry_run_argument(parser: argparse.ArgumentParser, dest: str):
 
 
 def wrapseq(desc: str, f):
-    def wrap_param_tx(args):
+    def wrap_param_tx(opts):
         ops = setup.Operations()
 
         def invoke():
-            if args.dry_run or args.dry_run_outer:
+            dry_run = opts.get('dry_run', False)
+            dry_run_outer = opts.get('dry_run_outer', False)
+            if dry_run or dry_run_outer:
                 ops.print_annotations()
             else:
                 ops.run_operations()
 
-        return [ops] + args.argparse_params, invoke
+        new_opts = {'ops': ops, **opts}
+
+        return new_opts, invoke
 
     desc, inner_configure = command.wrap(desc, f, wrap_param_tx)
 

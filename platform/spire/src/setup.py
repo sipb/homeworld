@@ -284,9 +284,9 @@ def setup_prometheus(ops: Operations) -> None:
 
 
 def wrapop(desc: str, f):
-    def wrap_param_tx(args):
+    def wrap_param_tx(opts):
         ops = Operations()
-        return [ops] + args.argparse_params, ops.run_operations
+        return {'ops': ops, **opts}, ops.run_operations
     return command.wrap(desc, f, wrap_param_tx)
 
 

@@ -44,47 +44,56 @@ def mux_map(desc: str, mapping: dict):
     return desc, configure
 
 
-def get_argcount(func) -> (int, int):
-    argcount = func.__code__.co_argcount
-    optionals = len(func.__defaults__) if func.__defaults__ else 0
-    lower_bound, upper_bound = argcount - optionals, argcount
-    if func.__code__.co_flags & inspect.CO_VARARGS:
-        upper_bound = None
-    return lower_bound, upper_bound
-
-
-def wrap(desc: str, func, paramtx=None):
-    minarg, maxarg = get_argcount(func)
+def wrap(desc: str, func, param_tx=None):
+    sig = inspect.signature(func)
 
     def invoke(args):
-        params = args.argparse_params
-        if paramtx:
-            prev = len(params)
-            params, on_end = paramtx(args)
-            rel = len(params) - prev
+        opts = vars(args)
+        if param_tx:
+            opts, on_end = param_tx(opts)
         else:
             on_end = None
-            rel = 0
-        if maxarg is None:
-            expect = "%d-" % (minarg - rel)
-        elif maxarg == minarg:
-            expect = "%d" % (minarg - rel)
-        else:
-            expect = "%d-%d" % (minarg - rel, maxarg - rel)
-        if len(params) < minarg:
-            fail("not enough parameters (expected %s)" % expect)
-        if maxarg is not None and len(params) > maxarg:
-            fail("too many parameters (expected %s)" % expect)
-        varnames = func.__code__.co_varnames
-        opts = vars(args)
-        opts = { k: opts[k] for k in varnames if k in opts }
-        func(*params, **opts)
-        if on_end:
+
+        kwargs = {}
+        posargs = []
+
+        for _, p in sig.parameters.items():
+            if p.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
+                if p.default == inspect.Parameter.empty:
+                    posargs += [opts[p.name]]
+                else:
+                    if p.name in opts:
+                        kwargs[p.name] = opts[p.name]
+            elif p.kind == inspect.Parameter.VAR_POSITIONAL:
+                if p.name in opts:
+                    posargs += opts[p.name]
+            else:
+                raise Exception("python argument type not recognized during invoke")
+
+        func(*posargs, **kwargs)
+        if on_end is not None:
             on_end()
 
     def configure(command: list, parser: argparse.ArgumentParser):
         parser.set_defaults(argparse_invoke=invoke, argparse_parser=parser)
-        parser.add_argument('argparse_params', nargs=argparse.REMAINDER, help=argparse.SUPPRESS)
+
+        # convert function signature into argparse configuration
+        for _, p in sig.parameters.items():
+            # TODO: make ops an optional argument in all wrapped functions
+            # instead of the first required argument
+            if p.name == "ops":
+                continue
+
+            if p.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
+                if p.default == inspect.Parameter.empty:
+                    parser.add_argument(p.name, nargs=1)
+                else:
+                    parser.add_argument(p.name, nargs='?', default=p.default)
+            elif p.kind == inspect.Parameter.VAR_POSITIONAL:
+                parser.add_argument(p.name, nargs=argparse.REMAINDER)
+            else:
+                raise Exception("python argument type not recognized during configure")
+
         provide_command_for_function(func, command)
 
     return desc, configure
