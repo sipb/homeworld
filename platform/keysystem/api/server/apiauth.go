@@ -39,7 +39,7 @@ func (k *Keyserver) AuthenticateWithKerberosTicketsInCache(ticketcache string) (
 }
 
 func (a *authenticated) SendRequests(reqs []reqtarget.Request) ([]string, error) {
-	outputs := []string{}
+	var outputs []string
 	err := a.endpoint.PostJSON("/apirequest", reqs, &outputs)
 	if err != nil {
 		return nil, err

@@ -11,7 +11,7 @@ import (
 )
 
 func InvokeAPIOperationSet(a *account.Account, context *config.Context, requestBody []byte, logger *log.Logger) ([]byte, error) {
-	ops := []map[string]string{}
+	var ops []map[string]string
 	err := json.Unmarshal(requestBody, &ops)
 	if err != nil {
 		return nil, err

@@ -16,7 +16,7 @@ import (
 	"github.com/sipb/homeworld/platform/util/fileutil"
 )
 
-const RSA_BITS = 4096
+const DefaultRSAKeyLength = 4096
 
 type TLSKeygenAction struct {
 	Keypath string
@@ -26,7 +26,7 @@ type TLSKeygenAction struct {
 func PrepareKeygenAction(k config.ConfigKey) (actloop.Action, error) {
 	switch k.Type {
 	case "tls":
-		return TLSKeygenAction{Keypath: k.Key, Bits: RSA_BITS}, nil
+		return TLSKeygenAction{Keypath: k.Key, Bits: DefaultRSAKeyLength}, nil
 	case "ssh":
 		// should probably include creating a .pub file as well
 		return nil, errors.New("unimplemented operation: ssh key generation")
@@ -57,12 +57,12 @@ func (ka TLSKeygenAction) Perform(_ *log.Logger) error {
 		return errors.Wrap(err, fmt.Sprintf("failed to prepare directory %s for generated key", dirname))
 	}
 
-	private_key, err := rsa.GenerateKey(rand.Reader, ka.Bits)
+	privateKey, err := rsa.GenerateKey(rand.Reader, ka.Bits)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("failed to generate RSA key (%d bits) for %s", RSA_BITS, ka.Keypath))
+		return errors.Wrap(err, fmt.Sprintf("failed to generate %d-bit RSA key for %s", DefaultRSAKeyLength, ka.Keypath))
 	}
 
-	keydata := x509.MarshalPKCS1PrivateKey(private_key)
+	keydata := x509.MarshalPKCS1PrivateKey(privateKey)
 
 	err = fileutil.CreateFile(ka.Keypath, pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: keydata}), os.FileMode(0600))
 	if err != nil {
