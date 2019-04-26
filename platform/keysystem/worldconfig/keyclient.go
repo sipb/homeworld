@@ -64,7 +64,7 @@ func GetVariant() (string, error) {
 const OneDay = 24 * time.Hour
 const OneWeek = 7 * OneDay
 
-func (b *ActionBuilder) DefaultDownloads(variant string) {
+func (b *ActionBuilder) DefaultDownloads() {
 	b.PublicKey(
 		"kubernetes",
 		"/etc/homeworld/authorities/kubernetes.pem",
@@ -106,17 +106,15 @@ func (b *ActionBuilder) DefaultDownloads(variant string) {
 		"/etc/homeworld/authorities/etcd-server.pem",
 		OneDay,
 	)
-	if variant == MASTER {
-		b.FromAPI(
-			"fetch-serviceaccount-key",
-			"/etc/homeworld/keys/serviceaccount.key",
-			OneDay,
-			0600,
-		)
-	}
+	b.FromAPI(
+		"fetch-serviceaccount-key",
+		"/etc/homeworld/keys/serviceaccount.key",
+		OneDay,
+		0600,
+	)
 }
 
-func (b *ActionBuilder) DefaultKeys(variant string) {
+func (b *ActionBuilder) DefaultKeys() {
 	b.TLSKey(
 		"/etc/homeworld/keyclient/granting.key",
 		"/etc/homeworld/keyclient/granting.pem",
@@ -136,33 +134,30 @@ func (b *ActionBuilder) DefaultKeys(variant string) {
 		"grant-kubernetes-worker",
 		OneWeek, // renew one week before expiration
 	)
-	if variant == SUPERVISOR {
-		b.TLSKey(
-			"/etc/homeworld/ssl/homeworld.private.key",
-			"/etc/homeworld/ssl/homeworld.private.pem",
-			"grant-registry-host",
-			OneWeek, // renew one week before expiration
-		)
-	} else if variant == MASTER {
-		b.TLSKey(
-			"/etc/homeworld/keys/kubernetes-master.key",
-			"/etc/homeworld/keys/kubernetes-master.pem",
-			"grant-kubernetes-master",
-			OneWeek, // renew one week before expiration
-		)
-		b.TLSKey(
-			"/etc/homeworld/keys/etcd-server.key",
-			"/etc/homeworld/keys/etcd-server.pem",
-			"grant-etcd-server",
-			OneWeek, // renew one week before expiration
-		)
-		b.TLSKey(
-			"/etc/homeworld/keys/etcd-client.key",
-			"/etc/homeworld/keys/etcd-client.pem",
-			"grant-etcd-client",
-			OneWeek, // renew one week before expiration
-		)
-	}
+	b.TLSKey(
+		"/etc/homeworld/ssl/homeworld.private.key",
+		"/etc/homeworld/ssl/homeworld.private.pem",
+		"grant-registry-host",
+		OneWeek, // renew one week before expiration
+	)
+	b.TLSKey(
+		"/etc/homeworld/keys/kubernetes-master.key",
+		"/etc/homeworld/keys/kubernetes-master.pem",
+		"grant-kubernetes-master",
+		OneWeek, // renew one week before expiration
+	)
+	b.TLSKey(
+		"/etc/homeworld/keys/etcd-server.key",
+		"/etc/homeworld/keys/etcd-server.pem",
+		"grant-etcd-server",
+		OneWeek, // renew one week before expiration
+	)
+	b.TLSKey(
+		"/etc/homeworld/keys/etcd-client.key",
+		"/etc/homeworld/keys/etcd-client.pem",
+		"grant-etcd-client",
+		OneWeek, // renew one week before expiration
+	)
 }
 
 type ActionBuilder struct {
@@ -238,13 +233,13 @@ func (b *ActionBuilder) FromAPI(name string, path string, refreshPeriod time.Dur
 	b.Add(&download.DownloadAction{Fetcher: &download.APIFetcher{State: b.State, API: name}, Path: path, Refresh: refreshPeriod, Mode: mode})
 }
 
-func BuildActions(s *state.ClientState, variant string) ([]actloop.Action, error) {
+func BuildActions(s *state.ClientState) ([]actloop.Action, error) {
 	b := &ActionBuilder{
 		State: s,
 	}
 	b.Bootstrap()
-	b.DefaultKeys(variant)
-	b.DefaultDownloads(variant)
+	b.DefaultKeys()
+	b.DefaultDownloads()
 	if b.Err != nil {
 		return nil, b.Err
 	}
