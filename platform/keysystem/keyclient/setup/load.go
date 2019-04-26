@@ -14,24 +14,21 @@ import (
 
 // TODO: private key rotation, not just getting new certs
 
-func LoadDefault(logger *log.Logger) (actloop.NewAction, error) {
+func LoadDefault(logger *log.Logger) (*state.ClientState, actloop.NewAction, error) {
 	ks, err := server.NewKeyserverDefault()
 	if err != nil {
-		return nil, errors.Wrap(err, "while preparing setup")
+		return nil, nil, errors.Wrap(err, "while preparing setup")
 	}
 
 	s := state.NewClientState(ks)
 
-	actions, err := worldconfig.BuildActions(s)
-	if err != nil {
-		return nil, err
-	}
+	actions := worldconfig.BuildActions(s)
 
 	err = s.ReloadKeygrantingCert()
 	if err != nil {
 		logger.Printf("keygranting cert not yet available: %s\n", err.Error())
 	}
-	return actions, nil
+	return s, actions, nil
 }
 
 func notifyReady(logger *log.Logger) {
@@ -43,16 +40,16 @@ func notifyReady(logger *log.Logger) {
 }
 
 // TODO: unit-test this launch better (i.e. the ten second part, etc)
-func Launch(actions actloop.NewAction, logger *log.Logger) (stop func()) {
+func Launch(state *state.ClientState, actions actloop.NewAction, logger *log.Logger) (stop func()) {
 	loop := actloop.NewActLoop(actions, logger)
-	go loop.Run(time.Second*2, time.Minute*5, notifyReady)
+	go loop.Run(state, time.Second*2, time.Minute*5, notifyReady)
 	return loop.Cancel
 }
 
 func LoadAndLaunchDefault(logger *log.Logger) (stop func(), errout error) {
-	actions, err := LoadDefault(logger)
+	state, actions, err := LoadDefault(logger)
 	if err != nil {
 		return nil, err
 	}
-	return Launch(actions, logger), nil
+	return Launch(state, actions, logger), nil
 }

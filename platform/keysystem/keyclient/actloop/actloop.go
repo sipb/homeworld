@@ -4,6 +4,8 @@ import (
 	"log"
 	"sync"
 	"time"
+
+	"github.com/sipb/homeworld/platform/keysystem/keyclient/state"
 )
 
 type ActLoop struct {
@@ -13,16 +15,10 @@ type ActLoop struct {
 	logger     *log.Logger
 }
 
-type Action interface {
-	Pending() (bool, error)
-	CheckBlocker() error // error means "this can't happen yet"
-	Perform(logger *log.Logger) error
-	Info() string
-}
-
 type NewAction func(nac *NewActionContext)
 
 type NewActionContext struct {
+	State     *state.ClientState
 	Logger    *log.Logger
 	BlockedBy []error
 	Performed bool
@@ -41,38 +37,6 @@ func (nac *NewActionContext) NotifyPerformed(info string) {
 	nac.Performed = true
 }
 
-func ActionToNew(action Action) NewAction {
-	return func(nac *NewActionContext) {
-		pending, err := action.Pending()
-		if err != nil {
-			nac.Errored(action.Info(), err)
-		} else if pending {
-			blockerr := action.CheckBlocker()
-			if blockerr != nil {
-				nac.Blocked(blockerr)
-			} else {
-				err = action.Perform(nac.Logger)
-				if err != nil {
-					nac.Errored(action.Info(), err)
-				} else {
-					nac.NotifyPerformed(action.Info())
-				}
-			}
-		}
-	}
-}
-
-func MergeActions(newactions []NewAction) NewAction {
-	return func(nac *NewActionContext) {
-		for _, action := range newactions {
-			action(nac)
-			if nac.Performed {
-				break
-			}
-		}
-	}
-}
-
 func NewActLoop(actions NewAction, logger *log.Logger) ActLoop {
 	return ActLoop{actions: actions, logger: logger}
 }
@@ -89,11 +53,12 @@ func (m *ActLoop) IsCancelled() bool {
 	return m.shouldStop
 }
 
-func (m *ActLoop) Run(cycletime time.Duration, pausetime time.Duration, onReady func(*log.Logger)) {
+func (m *ActLoop) Run(state *state.ClientState, cycletime time.Duration, pausetime time.Duration, onReady func(*log.Logger)) {
 	wasStabilized := false
 	for !m.IsCancelled() {
 		nac := NewActionContext{
 			Logger: m.logger,
+			State:  state,
 		}
 		m.actions(&nac)
 

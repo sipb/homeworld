@@ -13,8 +13,5 @@ go_library(
         "//keysystem/keyclient/actloop:go_default_library",
         "//keysystem/keyclient/state:go_default_library",
         "//keysystem/worldconfig/paths:go_default_library",
-        "//util/certutil:go_default_library",
-        "//util/csrutil:go_default_library",
-        "@com_github_hashicorp_go_multierror//:go_default_library",
     ],
 )

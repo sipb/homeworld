@@ -1,9 +1,6 @@
 package worldconfig
 
 import (
-	"github.com/hashicorp/go-multierror"
-	"github.com/sipb/homeworld/platform/util/certutil"
-	"github.com/sipb/homeworld/platform/util/csrutil"
 	"time"
 
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/actions/bootstrap"
@@ -116,86 +113,43 @@ func (b *ActionBuilder) DefaultKeys() {
 
 type ActionBuilder struct {
 	State   *state.ClientState
-	Actions []actloop.NewAction
-	Err     error
-}
-
-func (b *ActionBuilder) Add(action actloop.Action) {
-	if action != nil {
-		b.Actions = append(b.Actions, actloop.ActionToNew(action))
-	}
-}
-
-func (b *ActionBuilder) Error(err error) {
-	b.Err = multierror.Append(b.Err, err)
-}
-
-func (b *ActionBuilder) AddOrError(action actloop.Action, err error) {
-	if err != nil {
-		b.Error(err)
-	} else {
-		b.Add(action)
-	}
+	Context *actloop.NewActionContext
 }
 
 func (b *ActionBuilder) Bootstrap() {
-	b.Add(keygen.TLSKeygenAction{Keypath: paths.GrantingKeyPath, Bits: keygen.DefaultRSAKeyLength})
-
-	b.Add(&bootstrap.BootstrapAction{
-		State:         b.State,
-		TokenFilePath: paths.BootstrapTokenPath,
-		TokenAPI:      paths.BootstrapTokenAPI,
-	})
+	keygen.GenerateKey(paths.GrantingKeyPath, b.Context)
+	bootstrap.Bootstrap(paths.BootstrapTokenAPI, b.Context)
 }
 
 func (b *ActionBuilder) TLSKey(key string, cert string, api string, inadvance time.Duration) {
-	b.Add(keygen.TLSKeygenAction{Keypath: key, Bits: keygen.DefaultRSAKeyLength})
-	// for generating private keys
-	b.Add(&keyreq.RequestOrRenewAction{
-		State:           b.State,
-		InAdvance:       inadvance,
-		API:             api,
-		KeyFile:         key,
-		CertFile:        cert,
-		CheckExpiration: certutil.CheckTLSCertExpiration,
-		GenCSR:          csrutil.BuildTLSCSR,
-	})
+	keygen.GenerateKey(key, b.Context)
+	keyreq.RequestOrRenewTLSKey(key, cert, api, inadvance, b.Context)
 }
 
 func (b *ActionBuilder) SSHCertificate(key string, cert string, api string, inadvance time.Duration) {
-	// for getting certificates for keys
-	b.Add(&keyreq.RequestOrRenewAction{
-		State:           b.State,
-		InAdvance:       inadvance,
-		API:             api,
-		KeyFile:         key,
-		CertFile:        cert,
-		CheckExpiration: certutil.CheckSSHCertExpiration,
-		GenCSR:          csrutil.BuildSSHCSR,
-	})
+	keyreq.RequestOrRenewSSHKey(key, cert, api, inadvance, b.Context)
 }
 
 func (b *ActionBuilder) PublicKey(name string, path string, refreshPeriod time.Duration) {
-	b.Add(&download.DownloadAction{Fetcher: &download.AuthorityFetcher{Keyserver: b.State.Keyserver, AuthorityName: name}, Path: path, Refresh: refreshPeriod, Mode: 0644})
+	download.DownloadAuthority(name, path, refreshPeriod, b.Context)
 }
 
 func (b *ActionBuilder) StaticFile(name string, path string, refreshPeriod time.Duration) {
-	b.Add(&download.DownloadAction{Fetcher: &download.StaticFetcher{Keyserver: b.State.Keyserver, StaticName: name}, Path: path, Refresh: refreshPeriod, Mode: 0644})
+	download.DownloadStatic(name, path, refreshPeriod, b.Context)
 }
 
-func (b *ActionBuilder) FromAPI(name string, path string, refreshPeriod time.Duration, mode uint64) {
-	b.Add(&download.DownloadAction{Fetcher: &download.APIFetcher{State: b.State, API: name}, Path: path, Refresh: refreshPeriod, Mode: mode})
+func (b *ActionBuilder) FromAPI(api string, path string, refreshPeriod time.Duration, mode uint64) {
+	download.DownloadFromAPI(api, path, refreshPeriod, mode, b.Context)
 }
 
-func BuildActions(s *state.ClientState) (actloop.NewAction, error) {
-	b := &ActionBuilder{
-		State: s,
+func BuildActions(s *state.ClientState) actloop.NewAction {
+	return func(nac *actloop.NewActionContext) {
+		b := &ActionBuilder{
+			State:   s,
+			Context: nac,
+		}
+		b.Bootstrap()
+		b.DefaultKeys()
+		b.DefaultDownloads()
 	}
-	b.Bootstrap()
-	b.DefaultKeys()
-	b.DefaultDownloads()
-	if b.Err != nil {
-		return nil, b.Err
-	}
-	return actloop.MergeActions(b.Actions), nil
 }

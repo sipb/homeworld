@@ -5,4 +5,5 @@ go_library(
     srcs = ["actloop.go"],
     importpath = "github.com/sipb/homeworld/platform/keysystem/keyclient/actloop",
     visibility = ["//visibility:public"],
+    deps = ["//keysystem/keyclient/state:go_default_library"],
 )

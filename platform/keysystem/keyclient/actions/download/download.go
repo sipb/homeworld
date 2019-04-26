@@ -3,57 +3,84 @@ package download
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"path"
 	"time"
 
+	"github.com/sipb/homeworld/platform/keysystem/keyclient/actloop"
 	"github.com/sipb/homeworld/platform/util/fileutil"
 )
 
-type DownloadAction struct {
-	Fetcher DownloadFetcher
+type FetchFunc func(nac *actloop.NewActionContext) ([]byte, error)
+
+type config struct {
 	Path    string
 	Refresh time.Duration
 	Mode    uint64
 }
 
-func (da *DownloadAction) Info() string {
-	return fmt.Sprintf("download to file %s (mode %o) every %v: %s", da.Path, da.Mode, da.Refresh, da.Fetcher.Info())
+func DownloadAuthority(name string, path string, refreshPeriod time.Duration, nac *actloop.NewActionContext) {
+	act := &config{
+		Path:    path,
+		Refresh: refreshPeriod,
+		Mode:    0644,
+	}
+	fetch, fetchInfo := fetchAuthority(name)
+	act.Download(nac, fetch, fetchInfo)
 }
 
-func (da *DownloadAction) Pending() (bool, error) {
-	if !da.Fetcher.CanRetry() {
-		return false, nil
+func DownloadStatic(name string, path string, refreshPeriod time.Duration, nac *actloop.NewActionContext) {
+	act := &config{
+		Path:    path,
+		Refresh: refreshPeriod,
+		Mode:    0644,
 	}
+	fetch, fetchInfo := fetchStatic(name)
+	act.Download(nac, fetch, fetchInfo)
+}
+
+func DownloadFromAPI(api string, path string, refreshPeriod time.Duration, mode uint64, nac *actloop.NewActionContext) {
+	act := &config{
+		Path:    path,
+		Refresh: refreshPeriod,
+		Mode:    mode,
+	}
+	fetch, fetchInfo := fetchAPI(api)
+	act.Download(nac, fetch, fetchInfo)
+}
+
+func (da *config) Download(nac *actloop.NewActionContext, fetcher FetchFunc, fetchInfo string) {
+	info := fmt.Sprintf("download to file %s (mode %o) every %v: %s", da.Path, da.Mode, da.Refresh, fetchInfo)
+	if da.needsRefresh(nac, info) {
+		err := da.refresh(nac, fetcher, info)
+		if err != nil {
+			nac.Errored(info, err)
+		}
+	}
+}
+
+func (da *config) needsRefresh(nac *actloop.NewActionContext, info string) bool {
 	if statinfo, err := os.Stat(da.Path); err != nil {
 		if os.IsNotExist(err) {
-			// doesn't exist -- create it!
-			return true, nil
-		} else {
-			// broken -- try creating it (and probably fail!)
-			return true, err
+			return true
 		}
+		// somehow it's broken
+		nac.Errored(info, err)
+		return false
 	} else {
 		staleness := time.Now().Sub(statinfo.ModTime())
-		if staleness <= da.Refresh {
-			// still valid
-			return false, nil
-		} else {
-			// stale! we should refresh it, if possible.
-			return true, nil
-		}
+		return staleness > da.Refresh
 	}
 }
 
-func (da *DownloadAction) CheckBlocker() error {
-	return da.Fetcher.PrereqsSatisfied()
-}
-
-func (da *DownloadAction) Perform(logger *log.Logger) error {
-	data, err := da.Fetcher.Fetch()
+func (da *config) refresh(nac *actloop.NewActionContext, fetcher FetchFunc, info string) error {
+	data, err := fetcher(nac)
 	if err != nil {
 		return err
+	}
+	if len(data) == 0 {
+		// no error, but nothing to fetch.
+		return nil
 	}
 	err = fileutil.EnsureIsFolder(path.Dir(da.Path))
 	if err != nil {
@@ -63,5 +90,6 @@ func (da *DownloadAction) Perform(logger *log.Logger) error {
 	if err != nil {
 		return err
 	}
+	nac.NotifyPerformed(info)
 	return nil
 }
