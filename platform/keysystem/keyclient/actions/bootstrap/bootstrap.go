@@ -4,31 +4,41 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"io/ioutil"
-	"log"
 	"os"
 	"strings"
 	"unicode"
 
 	"github.com/sipb/homeworld/platform/keysystem/api/endpoint"
 	"github.com/sipb/homeworld/platform/keysystem/api/reqtarget"
+	"github.com/sipb/homeworld/platform/keysystem/keyclient/actloop"
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/state"
 	"github.com/sipb/homeworld/platform/keysystem/worldconfig/paths"
 	"github.com/sipb/homeworld/platform/util/csrutil"
 	"github.com/sipb/homeworld/platform/util/fileutil"
 )
 
-type BootstrapAction struct {
-	State         *state.ClientState
-	TokenFilePath string
-	TokenAPI      string
+func Bootstrap(api string, nac *actloop.NewActionContext) {
+	if !nac.State.CanRetry(api) {
+		// nothing to do
+	} else if nac.State.Keygrant != nil {
+		// nothing to do
+	} else if !fileutil.Exists(paths.BootstrapTokenPath) {
+		// nothing to do
+	} else if !fileutil.Exists(paths.GrantingKeyPath) {
+		nac.Blocked(fmt.Errorf("key does not yet exist: %s", paths.GrantingKeyPath))
+	} else {
+		info := fmt.Sprintf("bootstrap with token API %s from path %s", api, paths.BootstrapTokenPath)
+		err := bootstrap(api, nac.State)
+		if err != nil {
+			nac.Errored(info, err)
+		} else {
+			nac.NotifyPerformed(info)
+		}
+	}
 }
 
-func (da *BootstrapAction) Info() string {
-	return fmt.Sprintf("bootstrap with token API %s from path %s", da.TokenAPI, da.TokenFilePath)
-}
-
-func (da *BootstrapAction) getToken() (string, error) {
-	contents, err := ioutil.ReadFile(da.TokenFilePath)
+func getToken() (string, error) {
+	contents, err := ioutil.ReadFile(paths.BootstrapTokenPath)
 	if err != nil {
 		return "", err
 	}
@@ -44,18 +54,7 @@ func (da *BootstrapAction) getToken() (string, error) {
 	return token, nil
 }
 
-func (da *BootstrapAction) Pending() (bool, error) {
-	return da.State.CanRetry(da.TokenAPI) && da.State.Keygrant == nil && fileutil.Exists(da.TokenFilePath), nil
-}
-
-func (da *BootstrapAction) CheckBlocker() error {
-	if !fileutil.Exists(paths.GrantingKeyPath) {
-		return fmt.Errorf("key does not yet exist: %s", paths.GrantingKeyPath)
-	}
-	return nil
-}
-
-func (da *BootstrapAction) buildCSR() ([]byte, error) {
+func buildCSR() ([]byte, error) {
 	privkey, err := ioutil.ReadFile(paths.GrantingKeyPath)
 	if err != nil {
 		return nil, err
@@ -67,43 +66,43 @@ func (da *BootstrapAction) buildCSR() ([]byte, error) {
 	return csr, err
 }
 
-func (da *BootstrapAction) sendRequest(api string, param string) (string, error) {
-	token, err := da.getToken()
+func sendRequest(state *state.ClientState, api string, param string) (string, error) {
+	token, err := getToken()
 	if err != nil {
 		return "", err
 	}
-	rt, err := da.State.Keyserver.AuthenticateWithToken(token) // can't fail, because getToken never returns an empty string
+	rt, err := state.Keyserver.AuthenticateWithToken(token) // can't fail, because getToken never returns an empty string
 	if err != nil {
 		return "", err
 	}
 	result, err := reqtarget.SendRequest(rt, api, param)
 	if err != nil {
 		if _, is := errors.Cause(err).(endpoint.OperationForbidden); is {
-			da.State.RetryFailed(api)
+			state.RetryFailed(api)
 		}
 		return "", err
 	}
 	// remove token file, because it can't be used more than once, enforced by the server
-	err = os.Remove(da.TokenFilePath)
+	err = os.Remove(paths.BootstrapTokenPath)
 	if err != nil {
 		return "", err
 	}
 	return result, nil
 }
 
-func (da *BootstrapAction) Perform(logger *log.Logger) error {
-	csr, err := da.buildCSR()
+func bootstrap(api string, state *state.ClientState) error {
+	csr, err := buildCSR()
 	if err != nil {
 		return err
 	}
-	certbytes, err := da.sendRequest(da.TokenAPI, string(csr))
+	certbytes, err := sendRequest(state, api, string(csr))
 	if err != nil {
 		return err
 	}
 	if len(certbytes) == 0 {
 		return errors.New("received empty response")
 	}
-	err = da.State.ReplaceKeygrantingCert([]byte(certbytes))
+	err = state.ReplaceKeygrantingCert([]byte(certbytes))
 	if err != nil {
 		return err
 	}

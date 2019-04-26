@@ -4,20 +4,20 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/sipb/homeworld/platform/keysystem/api/endpoint"
 	"github.com/sipb/homeworld/platform/keysystem/api/reqtarget"
-	"github.com/sipb/homeworld/platform/keysystem/keyclient/state"
+	"github.com/sipb/homeworld/platform/keysystem/keyclient/actloop"
 	"github.com/sipb/homeworld/platform/keysystem/worldconfig/paths"
+	"github.com/sipb/homeworld/platform/util/certutil"
+	"github.com/sipb/homeworld/platform/util/csrutil"
 	"github.com/sipb/homeworld/platform/util/fileutil"
 )
 
 type RequestOrRenewAction struct {
-	State           *state.ClientState
 	InAdvance       time.Duration
 	API             string
 	CheckExpiration func([]byte) (time.Time, error)
@@ -26,75 +26,55 @@ type RequestOrRenewAction struct {
 	CertFile        string
 }
 
-func (ra *RequestOrRenewAction) Info() string {
-	return fmt.Sprintf("req/renew key %s into cert %s with API %s in advance by %v", ra.CertFile, ra.KeyFile, ra.InAdvance, ra.API)
+func RequestOrRenewTLSKey(key string, cert string, api string, inadvance time.Duration, nac *actloop.NewActionContext) {
+	action := &RequestOrRenewAction{
+		InAdvance:       inadvance,
+		API:             api,
+		KeyFile:         key,
+		CertFile:        cert,
+		CheckExpiration: certutil.CheckTLSCertExpiration,
+		GenCSR:          csrutil.BuildTLSCSR,
+	}
+	action.Act(nac)
 }
 
-func (ra *RequestOrRenewAction) Pending() (bool, error) {
-	if !ra.State.CanRetry(ra.API) {
-		return false, nil
+func RequestOrRenewSSHKey(key string, cert string, api string, inadvance time.Duration, nac *actloop.NewActionContext) {
+	action := &RequestOrRenewAction{
+		InAdvance:       inadvance,
+		API:             api,
+		KeyFile:         key,
+		CertFile:        cert,
+		CheckExpiration: certutil.CheckSSHCertExpiration,
+		GenCSR:          csrutil.BuildSSHCSR,
 	}
+	action.Act(nac)
+}
+
+func (ra *RequestOrRenewAction) shouldRegenerate(nac *actloop.NewActionContext, info string) bool {
 	existing, err := ioutil.ReadFile(ra.CertFile)
 	if err != nil {
-		if os.IsNotExist(err) {
-			return true, nil // population needed
-		} else {
+		if !os.IsNotExist(err) {
 			// this will probably fail to regenerate, but at least we tried? and this way, it's made clear that a problem is continuing.
-			return true, errors.Wrap(err, "while trying to check expiration status of certificate")
+			nac.Errored(info, err)
 		}
+		// fix missing or broken certificate by renewal
+		return true
+	}
+	expiration, err := ra.CheckExpiration(existing)
+	if err != nil {
+		nac.Errored(info, errors.Wrap(err, "while trying to check expiration status of certificate"))
+		return true // fix malformed certificate by renewal
+	}
+	renewAt := expiration.Add(-ra.InAdvance)
+	if renewAt.After(time.Now()) {
+		return false // not time to renew
 	} else {
-		expiration, err := ra.CheckExpiration(existing)
-		if err != nil {
-			// almost invariably means malformed
-			return true, errors.Wrap(err, "while trying to check expiration status of certificate")
-		}
-		renewAt := expiration.Add(-ra.InAdvance)
-		if renewAt.After(time.Now()) {
-			return false, nil // not time to renew
-		} else {
-			return true, nil // time to renew
-		}
+		return true // time to renew
 	}
 }
 
-func (ra *RequestOrRenewAction) CheckBlocker() error {
-	if ra.State.Keygrant == nil {
-		return errors.New("no keygranting certificate ready")
-	} else if !fileutil.Exists(ra.KeyFile) {
-		return fmt.Errorf("key does not yet exist: %s", ra.KeyFile)
-	} else {
-		return nil
-	}
-}
-
-func (ra *RequestOrRenewAction) Perform(_ *log.Logger) error {
-	keydata, err := ioutil.ReadFile(ra.KeyFile)
-	if err != nil {
-		return errors.Wrap(err, "while reading keyfile")
-	}
-	csr, err := ra.GenCSR(keydata)
-	if err != nil {
-		return errors.Wrap(err, "while generating CSR")
-	}
-	rt, err := ra.State.Keyserver.AuthenticateWithCert(*ra.State.Keygrant)
-	if err != nil {
-		return errors.Wrap(err, "while authenticating with cert") // no actual way for this to fail
-	}
-	cert, err := reqtarget.SendRequest(rt, ra.API, string(csr))
-	if err != nil {
-		if _, is := err.(endpoint.OperationForbidden); is {
-			ra.State.RetryFailed(ra.API)
-		}
-		return errors.Wrap(err, "while sending request")
-	}
-	if len(cert) == 0 {
-		return errors.New("while sending request: received empty response")
-	}
-	// TODO: confirm it's valid before saving it?
-	err = ioutil.WriteFile(ra.CertFile, []byte(cert), os.FileMode(0644))
-	if err != nil {
-		return errors.Wrap(err, "while writing result")
-	}
+// if we just renewed the keygranting certificate, reload it
+func (ra *RequestOrRenewAction) checkReload(nac *actloop.NewActionContext) error {
 	certabs, err := filepath.Abs(ra.CertFile)
 	if err != nil {
 		return err
@@ -104,10 +84,81 @@ func (ra *RequestOrRenewAction) Perform(_ *log.Logger) error {
 		return err
 	}
 	if certabs == grantabs {
-		err := ra.State.ReloadKeygrantingCert()
+		err := nac.State.ReloadKeygrantingCert()
 		if err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func (ra *RequestOrRenewAction) generateCSR() ([]byte, error) {
+	keydata, err := ioutil.ReadFile(ra.KeyFile)
+	if err != nil {
+		return nil, errors.Wrap(err, "while reading keyfile")
+	}
+	csr, err := ra.GenCSR(keydata)
+	if err != nil {
+		return nil, errors.Wrap(err, "while generating CSR")
+	}
+	return csr, err
+}
+
+func (ra *RequestOrRenewAction) requestSignature(csr []byte, nac *actloop.NewActionContext) ([]byte, error) {
+	rt, err := nac.State.Keyserver.AuthenticateWithCert(*nac.State.Keygrant)
+	if err != nil {
+		return nil, errors.Wrap(err, "while authenticating with cert") // no actual way for this to fail here
+	}
+	cert, err := reqtarget.SendRequest(rt, ra.API, string(csr))
+	if err != nil {
+		if _, is := err.(endpoint.OperationForbidden); is {
+			nac.State.RetryFailed(ra.API)
+		}
+		return nil, errors.Wrap(err, "while sending request")
+	}
+	if len(cert) == 0 {
+		return nil, errors.New("while sending request: received empty response")
+	}
+	return []byte(cert), nil
+}
+
+func (ra *RequestOrRenewAction) regenerate(nac *actloop.NewActionContext) error {
+	csr, err := ra.generateCSR()
+	if err != nil {
+		return err
+	}
+	cert, err := ra.requestSignature(csr, nac)
+	if err != nil {
+		return err
+	}
+	// TODO: confirm it's valid before saving it?
+	err = ioutil.WriteFile(ra.CertFile, cert, os.FileMode(0644))
+	if err != nil {
+		return errors.Wrap(err, "while writing result")
+	}
+	err = ra.checkReload(nac)
+	if err != nil {
+		return errors.Wrap(err, "while reloading granting cert")
+	}
+	return nil
+}
+
+func (ra *RequestOrRenewAction) Act(nac *actloop.NewActionContext) {
+	info := fmt.Sprintf("req/renew key %s into cert %s with API %s in advance by %v", ra.CertFile, ra.KeyFile, ra.InAdvance, ra.API)
+	if !nac.State.CanRetry(ra.API) {
+		// nothing to do
+	} else if !ra.shouldRegenerate(nac, info) {
+		// nothing to do
+	} else if nac.State.Keygrant == nil {
+		nac.Blocked(errors.New("no keygranting certificate ready"))
+	} else if !fileutil.Exists(ra.KeyFile) {
+		nac.Blocked(fmt.Errorf("key does not yet exist: %s", ra.KeyFile))
+	} else {
+		err := ra.regenerate(nac)
+		if err != nil {
+			nac.Errored(info, err)
+		} else {
+			nac.NotifyPerformed(info)
+		}
+	}
 }
