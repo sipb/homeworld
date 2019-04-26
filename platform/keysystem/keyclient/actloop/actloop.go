@@ -7,7 +7,7 @@ import (
 )
 
 type ActLoop struct {
-	actions    []Action
+	actions    NewAction
 	stoplock   sync.Mutex
 	shouldStop bool
 	logger     *log.Logger
@@ -20,43 +20,61 @@ type Action interface {
 	Info() string
 }
 
-func NewActLoop(actions []Action, logger *log.Logger) ActLoop {
-	return ActLoop{actions: actions, logger: logger}
+type NewAction func(nac *NewActionContext)
+
+type NewActionContext struct {
+	Logger    *log.Logger
+	BlockedBy []error
+	Performed bool
 }
 
-func (m *ActLoop) Step() (stabilized bool, blocked bool) {
-	var blockedBy []error
-	for _, action := range m.actions {
+func (nac *NewActionContext) Errored(info string, err error) {
+	nac.Logger.Printf("action stop error: %s (in %s)\n", err.Error(), info)
+}
+
+func (nac *NewActionContext) Blocked(err error) {
+	nac.BlockedBy = append(nac.BlockedBy, err)
+}
+
+func (nac *NewActionContext) NotifyPerformed(info string) {
+	nac.Logger.Printf("action performed: %s\n", info)
+	nac.Performed = true
+}
+
+func ActionToNew(action Action) NewAction {
+	return func(nac *NewActionContext) {
 		pending, err := action.Pending()
 		if err != nil {
-			m.logger.Printf("actloop check error: %s (in %s)\n", err.Error(), action.Info())
-		}
-		if !pending {
-			continue
-		}
-		blockerr := action.CheckBlocker()
-		if blockerr != nil {
-			blockedBy = append(blockedBy, blockerr)
-			continue
-		}
-		err = action.Perform(m.logger)
-		if err != nil {
-			m.logger.Printf("actloop step error: %s (in %s)\n", err.Error(), action.Info())
-		} else {
-			m.logger.Printf("action performed: %s\n", action.Info())
-			return false, false
+			nac.Errored(action.Info(), err)
+		} else if pending {
+			blockerr := action.CheckBlocker()
+			if blockerr != nil {
+				nac.Blocked(blockerr)
+			} else {
+				err = action.Perform(nac.Logger)
+				if err != nil {
+					nac.Errored(action.Info(), err)
+				} else {
+					nac.NotifyPerformed(action.Info())
+				}
+			}
 		}
 	}
-	if len(blockedBy) == 0 {
-		return true, false
-	} else {
-		m.logger.Printf("ACTLOOP BLOCKED (%d)\n", len(blockedBy))
-		for _, blockerr := range blockedBy {
-			m.logger.Printf("actloop blocked by: %s\n", blockerr.Error())
+}
+
+func MergeActions(newactions []NewAction) NewAction {
+	return func(nac *NewActionContext) {
+		for _, action := range newactions {
+			action(nac)
+			if nac.Performed {
+				break
+			}
 		}
-		// we're calling this 'stable' because the problems won't resolve themselves; if no actions were executed, we're stuck.
-		return true, true
 	}
+}
+
+func NewActLoop(actions NewAction, logger *log.Logger) ActLoop {
+	return ActLoop{actions: actions, logger: logger}
 }
 
 func (m *ActLoop) Cancel() {
@@ -74,11 +92,22 @@ func (m *ActLoop) IsCancelled() bool {
 func (m *ActLoop) Run(cycletime time.Duration, pausetime time.Duration, onReady func(*log.Logger)) {
 	wasStabilized := false
 	for !m.IsCancelled() {
+		nac := NewActionContext{
+			Logger: m.logger,
+		}
+		m.actions(&nac)
+
 		// TODO: report current status somewhere -- health checker endpoint?
-		stabilized, blocked := m.Step()
-		if stabilized {
+
+		if nac.Performed {
+			time.Sleep(cycletime) // usually two seconds
+		} else {
 			if !wasStabilized {
-				if blocked {
+				if len(nac.BlockedBy) > 0 {
+					m.logger.Printf("ACTLOOP BLOCKED (%d)\n", len(nac.BlockedBy))
+					for _, blockerr := range nac.BlockedBy {
+						m.logger.Printf("actloop blocked by: %s\n", blockerr.Error())
+					}
 					m.logger.Printf("ACTLOOP BLOCKED BUT STABLE\n")
 				} else {
 					m.logger.Printf("ACTLOOP STABLE\n")
@@ -88,9 +117,7 @@ func (m *ActLoop) Run(cycletime time.Duration, pausetime time.Duration, onReady 
 				}
 			}
 			time.Sleep(pausetime) // usually five minutes
-		} else {
-			time.Sleep(cycletime) // usually two seconds
 		}
-		wasStabilized = stabilized
+		wasStabilized = !nac.Performed
 	}
 }
