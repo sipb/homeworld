@@ -10,13 +10,13 @@ homeworld_deb(
         "//keysystem/keyinitadmit": "/usr/bin/keyinitadmit",
         "//keysystem/keylocalcert": "/usr/bin/keylocalcert",
         "//keysystem/keyreq": "/usr/bin/keyreq",
-        ":systemd/launch-keyclient-config-update.sh": "/usr/lib/hyades/launch-keyclient-config-update.sh",
+        ":systemd/update-host.sh": "/usr/lib/homeworld/update-host.sh",
     },
     data = {
         ":systemd/keyclient.service": "/usr/lib/systemd/system/keyclient.service",
         ":systemd/keyserver.service": "/usr/lib/systemd/system/keyserver.service",
         ":systemd/keygateway.service": "/usr/lib/systemd/system/keygateway.service",
-        ":systemd/update-keyclient-config.service": "/usr/lib/systemd/system/update-keyclient-config.service",
+        ":systemd/update-host.service": "/usr/lib/systemd/system/update-host.service",
     },
     package = "homeworld-keysystem",
     depends = [

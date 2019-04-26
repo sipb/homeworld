@@ -2,7 +2,6 @@ package setup
 
 import (
 	"github.com/pkg/errors"
-	"io/ioutil"
 	"log"
 	"os/exec"
 	"time"
@@ -13,25 +12,9 @@ import (
 	"github.com/sipb/homeworld/platform/keysystem/worldconfig"
 )
 
-func writeVariantNotice(variant string) error {
-	err := ioutil.WriteFile("/etc/homeworld/config/keyserver.variant", []byte(variant+"\n"), 0644)
-	if err != nil {
-		return errors.Wrap(err, "while saving variant notice")
-	}
-	return nil
-}
-
 // TODO: private key rotation, not just getting new certs
 
 func LoadDefault(logger *log.Logger) ([]actloop.Action, error) {
-	variant, err := worldconfig.GetVariant()
-	if err != nil {
-		return nil, errors.Wrap(err, "determining variant")
-	}
-	err = writeVariantNotice(variant)
-	if err != nil {
-		return nil, err
-	}
 	ks, err := server.NewKeyserverDefault()
 	if err != nil {
 		return nil, errors.Wrap(err, "while preparing setup")
