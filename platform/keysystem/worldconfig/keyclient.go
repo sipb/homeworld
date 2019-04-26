@@ -2,12 +2,8 @@ package worldconfig
 
 import (
 	"github.com/hashicorp/go-multierror"
-	"github.com/pkg/errors"
 	"github.com/sipb/homeworld/platform/util/certutil"
 	"github.com/sipb/homeworld/platform/util/csrutil"
-	"io/ioutil"
-	"os"
-	"strings"
 	"time"
 
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/actions/bootstrap"
@@ -18,48 +14,6 @@ import (
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/state"
 	"github.com/sipb/homeworld/platform/keysystem/worldconfig/paths"
 )
-
-const (
-	BASE       = "base"
-	SUPERVISOR = "supervisor"
-	MASTER     = "master"
-	WORKER     = "worker"
-)
-
-func getLocalConf() (map[string]string, error) {
-	conf, err := ioutil.ReadFile("/etc/homeworld/config/local.conf")
-	if err != nil {
-		return nil, err
-	}
-	kvs := map[string]string{}
-	for _, line := range strings.Split(string(conf), "\n") {
-		line = strings.TrimSpace(line)
-		if len(line) > 0 && line[0] != '#' {
-			kv := strings.SplitN(line, "=", 2)
-			if len(kv) != 2 {
-				return nil, errors.New("incorrectly formatted local.conf")
-			}
-			kvs[strings.TrimSpace(kv[0])] = strings.TrimSpace(kv[1])
-		}
-	}
-	return kvs, nil
-}
-
-func GetVariant() (string, error) {
-	kvs, err := getLocalConf()
-	// if no local.conf available, default to "base" mode
-	if os.IsNotExist(err) {
-		return "base", nil
-	}
-	if err != nil {
-		return "", err
-	}
-	kind, found := kvs["KIND"]
-	if !found {
-		return "", errors.New("could not find key 'KIND'")
-	}
-	return kind, nil
-}
 
 const OneDay = 24 * time.Hour
 const OneWeek = 7 * OneDay

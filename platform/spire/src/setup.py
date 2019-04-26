@@ -259,7 +259,7 @@ def update_registry(ops: Operations) -> None:
         if node.kind != "supervisor":
             continue
 
-        # this is necessary because update-keyclient-config might not have finished yet, and we
+        # this is necessary because update-host might not have finished yet, and we
         # need to wait until it regenerates ca-certificates.crt. rather than try to check the
         # validity of that file directly, we simply loop until we can access the endpoint at
         # https://homeworld.private/, because it necessarily requires the updated version of

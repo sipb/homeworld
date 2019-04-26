@@ -1,11 +1,11 @@
 [Unit]
-Description=homeworld keyclient configuration update
+Description=homeworld hostname and ca-certificates update
 Requisite=keyclient.service
 After=keyclient.service
 
 [Service]
 Type=oneshot
-ExecStart=/usr/lib/hyades/launch-keyclient-config-update.sh
+ExecStart=/usr/lib/homeworld/update-host.sh
 Restart=no
 
 [Install]
