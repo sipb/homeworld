@@ -39,7 +39,7 @@ func LoadDefault(logger *log.Logger) ([]actloop.Action, error) {
 
 	s := state.NewClientState(ks)
 
-	actions, err := worldconfig.BuildActions(s, variant)
+	actions, err := worldconfig.BuildActions(s)
 	if err != nil {
 		return nil, err
 	}
