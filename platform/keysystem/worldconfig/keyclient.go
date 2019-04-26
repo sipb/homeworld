@@ -116,13 +116,13 @@ func (b *ActionBuilder) DefaultKeys() {
 
 type ActionBuilder struct {
 	State   *state.ClientState
-	Actions []actloop.Action
+	Actions []actloop.NewAction
 	Err     error
 }
 
 func (b *ActionBuilder) Add(action actloop.Action) {
 	if action != nil {
-		b.Actions = append(b.Actions, action)
+		b.Actions = append(b.Actions, actloop.ActionToNew(action))
 	}
 }
 
@@ -187,7 +187,7 @@ func (b *ActionBuilder) FromAPI(name string, path string, refreshPeriod time.Dur
 	b.Add(&download.DownloadAction{Fetcher: &download.APIFetcher{State: b.State, API: name}, Path: path, Refresh: refreshPeriod, Mode: mode})
 }
 
-func BuildActions(s *state.ClientState) ([]actloop.Action, error) {
+func BuildActions(s *state.ClientState) (actloop.NewAction, error) {
 	b := &ActionBuilder{
 		State: s,
 	}
@@ -197,5 +197,5 @@ func BuildActions(s *state.ClientState) ([]actloop.Action, error) {
 	if b.Err != nil {
 		return nil, b.Err
 	}
-	return b.Actions, nil
+	return actloop.MergeActions(b.Actions), nil
 }

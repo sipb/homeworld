@@ -14,7 +14,7 @@ import (
 
 // TODO: private key rotation, not just getting new certs
 
-func LoadDefault(logger *log.Logger) ([]actloop.Action, error) {
+func LoadDefault(logger *log.Logger) (actloop.NewAction, error) {
 	ks, err := server.NewKeyserverDefault()
 	if err != nil {
 		return nil, errors.Wrap(err, "while preparing setup")
@@ -43,7 +43,7 @@ func notifyReady(logger *log.Logger) {
 }
 
 // TODO: unit-test this launch better (i.e. the ten second part, etc)
-func Launch(actions []actloop.Action, logger *log.Logger) (stop func()) {
+func Launch(actions actloop.NewAction, logger *log.Logger) (stop func()) {
 	loop := actloop.NewActLoop(actions, logger)
 	go loop.Run(time.Second*2, time.Minute*5, notifyReady)
 	return loop.Cancel
