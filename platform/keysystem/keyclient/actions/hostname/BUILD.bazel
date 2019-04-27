@@ -1,0 +1,9 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["hostname.go"],
+    importpath = "github.com/sipb/homeworld/platform/keysystem/keyclient/actions/hostname",
+    visibility = ["//visibility:public"],
+    deps = ["//keysystem/keyclient/actloop:go_default_library"],
+)

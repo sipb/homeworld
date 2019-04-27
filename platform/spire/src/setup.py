@@ -259,14 +259,6 @@ def update_registry(ops: Operations) -> None:
         if node.kind != "supervisor":
             continue
 
-        # this is necessary because update-host might not have finished yet, and we
-        # need to wait until it regenerates ca-certificates.crt. rather than try to check the
-        # validity of that file directly, we simply loop until we can access the endpoint at
-        # https://homeworld.private/, because it necessarily requires the updated version of
-        # ca-certificates to function properly, which means it won't succeed until we're finished
-        # updating certificate authorities.
-        ops.ssh("wait until ca-certificates.crt is functional on @HOST", node, "bash", "-c", "while ! curl https://homeworld.private/; do echo 'waiting for localhost curl to succeed...'; sleep 1; done")
-
         ops.ssh("update apt repositories on @HOST", node, "apt-get", "update")
         ops.ssh("update package of OCIs on @HOST", node, "apt-get", "install", "-y", "homeworld-oci-pack")
         ops.ssh("re-push OCIs to registry on @HOST", node, "/usr/lib/homeworld/push-ocis.sh")

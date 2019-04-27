@@ -1,7 +1,7 @@
 [Unit]
 Description=homeworld autostart script
 Requisite=keyclient.service
-After=keyclient.service update-host.service
+After=keyclient.service
 
 [Service]
 Type=oneshot

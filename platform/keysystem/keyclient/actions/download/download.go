@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path"
+	"strings"
 	"time"
 
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/actloop"
@@ -73,6 +75,8 @@ func (da *config) needsRefresh(nac *actloop.NewActionContext, info string) bool 
 	}
 }
 
+const SystemCertificatesBase = "/usr/local/share/ca-certificates/extra/"
+
 func (da *config) refresh(nac *actloop.NewActionContext, fetcher FetchFunc, info string) error {
 	data, err := fetcher(nac)
 	if err != nil {
@@ -89,6 +93,13 @@ func (da *config) refresh(nac *actloop.NewActionContext, fetcher FetchFunc, info
 	err = ioutil.WriteFile(da.Path, data, os.FileMode(da.Mode))
 	if err != nil {
 		return err
+	}
+	if strings.HasPrefix(da.Path, SystemCertificatesBase) {
+		nac.Logger.Println("reloading ca-certificates")
+		err := exec.Command("update-ca-certificates").Run()
+		if err != nil {
+			return err
+		}
 	}
 	nac.NotifyPerformed(info)
 	return nil
