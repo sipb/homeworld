@@ -8,6 +8,7 @@ go_library(
     deps = [
         "//keysystem/keyclient/actions/bootstrap:go_default_library",
         "//keysystem/keyclient/actions/download:go_default_library",
+        "//keysystem/keyclient/actions/hostname:go_default_library",
         "//keysystem/keyclient/actions/keygen:go_default_library",
         "//keysystem/keyclient/actions/keyreq:go_default_library",
         "//keysystem/keyclient/actloop:go_default_library",

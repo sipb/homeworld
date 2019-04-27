@@ -5,6 +5,7 @@ import (
 
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/actions/bootstrap"
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/actions/download"
+	"github.com/sipb/homeworld/platform/keysystem/keyclient/actions/hostname"
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/actions/keygen"
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/actions/keyreq"
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/actloop"
@@ -41,6 +42,9 @@ func (b *ActionBuilder) DefaultDownloads() {
 		"/etc/homeworld/config/local.conf",
 		OneDay,
 		0644,
+	)
+	b.ReloadHostnameFrom(
+		"/etc/homeworld/config/local.conf",
 	)
 	b.PublicKey(
 		"serviceaccount",
@@ -140,6 +144,10 @@ func (b *ActionBuilder) StaticFile(name string, path string, refreshPeriod time.
 
 func (b *ActionBuilder) FromAPI(api string, path string, refreshPeriod time.Duration, mode uint64) {
 	download.DownloadFromAPI(api, path, refreshPeriod, mode, b.Context)
+}
+
+func (b *ActionBuilder) ReloadHostnameFrom(api string) {
+	hostname.ReloadHostnameFrom(api, b.Context)
 }
 
 func BuildActions(s *state.ClientState) actloop.NewAction {
