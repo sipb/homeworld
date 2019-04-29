@@ -5,7 +5,10 @@ go_library(
     srcs = ["keyclient.go"],
     importpath = "github.com/sipb/homeworld/platform/keysystem/keyclient",
     visibility = ["//visibility:private"],
-    deps = ["//keysystem/keyclient/setup:go_default_library"],
+    deps = [
+        "//keysystem/keyclient/setup:go_default_library",
+        "//keysystem/worldconfig:go_default_library",
+    ],
 )
 
 go_binary(
