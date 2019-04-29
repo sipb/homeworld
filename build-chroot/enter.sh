@@ -11,6 +11,7 @@ fi
 
 ORIG_PWD="$(pwd)"
 cd "$(dirname "$0")"
+cd "$(git rev-parse --show-toplevel)"
 ORIG_REL="$(realpath --relative-to "$(pwd)" "${ORIG_PWD}")"
 if [[ "${ORIG_REL}" =~ \.\. ]]
 then

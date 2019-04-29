@@ -13,13 +13,13 @@ jobs:
           command: cp .circleci/branches.yaml platform/upload/branches.yaml && echo "ci" >platform/upload/BRANCH_NAME
       - run:
           name: Construct build chroot
-          command: HOMEWORLD_CHROOT="$HOME/autobuild-chroot" USER="circleci" ./create-chroot.sh
+          command: HOMEWORLD_CHROOT="$HOME/autobuild-chroot" USER="circleci" ./build-chroot/create.sh
       - run:
           name: Import gpg key
-          command: echo "gpg --batch --no-tty --yes --import /homeworld/.circleci/ci-key-private.asc" | HOMEWORLD_CHROOT="$HOME/autobuild-chroot" USER="circleci" ./enter-chroot-ci.sh
+          command: echo "gpg --batch --no-tty --yes --import /homeworld/.circleci/ci-key-private.asc" | HOMEWORLD_CHROOT="$HOME/autobuild-chroot" USER="circleci" ./build-chroot/enter-ci.sh
       - run:
           name: Check gpg key presence
-          command: echo "gpg --list-secret-keys" | HOMEWORLD_CHROOT="$HOME/autobuild-chroot" USER="circleci" ./enter-chroot-ci.sh
+          command: echo "gpg --list-secret-keys" | HOMEWORLD_CHROOT="$HOME/autobuild-chroot" USER="circleci" ./build-chroot/enter-ci.sh
       - run:
           name: Launch build with bazel
-          command: echo "bazel build //upload --verbose_failures" | HOMEWORLD_CHROOT="$HOME/autobuild-chroot" USER="circleci" ./enter-chroot-ci.sh
+          command: echo "bazel build //upload --verbose_failures" | HOMEWORLD_CHROOT="$HOME/autobuild-chroot" USER="circleci" ./build-chroot/enter-ci.sh

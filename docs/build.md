@@ -17,7 +17,7 @@ Install the following on your host system:
 Set up your build chroot:
 
     $ export HOMEWORLD_CHROOT="$HOME/homeworld-chroot"     # this can be any directory you choose
-    $ ./create-chroot.sh
+    $ ./build-chroot/create.sh
 
 You might consider adding the variable declaration to your ~/.profile.
 
@@ -69,9 +69,9 @@ To set the build branch to use:
 
 To enter the build chroot, run:
 
-    $ ./enter-chroot.sh
+    $ ./build-chroot/enter.sh
 
-(Do not use enter-chroot-ci.sh; it is unstable and only for use in continuous integration environments.)
+(Do not use enter-ci.sh; it is unstable and only for use in continuous integration environments.)
 
 Now, launch the build and upload process:
 

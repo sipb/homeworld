@@ -15,6 +15,7 @@ then
 fi
 
 cd "$(dirname "$0")"
+cd "$(git rev-parse --show-toplevel)"
 
 # only for jenkins; circleci imports the gpg key within the chroot
 if [ -e "$HOME/.gnupg/pubring.kbx" ]
