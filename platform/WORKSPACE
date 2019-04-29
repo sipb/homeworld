@@ -88,8 +88,8 @@ go_repository(
 
 http_file(
     name = "debian_iso",
-    urls = ["http://ftp.debian.org/debian/dists/stretch/main/installer-amd64/20170615+deb9u5+b2/images/netboot/mini.iso"],
-    sha256 = "256ff4122bb57d234068c21b3c78380d5960cd90922e44125ddfc2a2cb597e0a"
+    urls = ["http://ftp.debian.org/debian/dists/stretch/main/installer-amd64/20170615+deb9u6/images/netboot/mini.iso"],
+    sha256 = "53583c1bd3808aab8629faf16d57aad32ae791e77ec52b7c283f0f4efda69b24"
 )
 
 # dnsmasq
