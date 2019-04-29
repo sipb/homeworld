@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/setup"
+	"github.com/sipb/homeworld/platform/keysystem/worldconfig"
 )
 
 // the keyclient is a daemon with a few different responsibilities:
@@ -15,7 +16,8 @@ import (
 
 func main() {
 	logger := log.New(os.Stderr, "[keyclient] ", log.Ldate|log.Ltime|log.Lmicroseconds|log.Lshortfile)
-	_, err := setup.LoadAndLaunchDefault(logger)
+
+	err := setup.LoadAndLaunchDefault(worldconfig.ConvergeState, logger)
 	if err != nil {
 		logger.Fatal(err)
 	}

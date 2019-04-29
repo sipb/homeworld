@@ -22,11 +22,16 @@ type ClientState struct {
 	RetryAt map[string]time.Time
 }
 
-func NewClientState(keyserver *server.Keyserver) *ClientState {
-	return &ClientState{
+func NewClientState(keyserver *server.Keyserver) (cs *ClientState, warning error) {
+	cs = &ClientState{
 		Keyserver: keyserver,
 		RetryAt:   make(map[string]time.Time),
 	}
+	warning = cs.ReloadKeygrantingCert()
+	if warning != nil {
+		warning = errors.Wrap(warning, "keygranting cert not yet available")
+	}
+	return cs, warning
 }
 
 // how frequently to recheck whether our access is denied, in case it changes
