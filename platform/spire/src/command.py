@@ -87,6 +87,10 @@ def wrap(desc: str, func, param_tx=None):
             if p.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
                 if p.default == inspect.Parameter.empty:
                     parser.add_argument(p.name)
+                elif isinstance(p.default, bool):
+                    if p.default:
+                        raise Exception("arguments defaulting to True not supported")
+                    parser.add_argument("--%s" % (p.name), action="store_true")
                 else:
                     parser.add_argument(p.name, nargs='?', default=p.default)
             elif p.kind == inspect.Parameter.VAR_POSITIONAL:

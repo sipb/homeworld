@@ -521,22 +521,12 @@ def auto_cluster(ops: setup.Operations, authorized_key=None, persistent=False):
                 ops.add_subcommand(seq.sequence_cluster)
 
 
-def wrap_persistent(desc: str, f):
-    desc, inner_configure = seq.wrapseq(desc, f)
-
-    def configure(command: list, parser: argparse.ArgumentParser):
-        parser.add_argument("--persistent", dest="persistent", action="store_true", help="keep cluster running after it has been set up")
-        inner_configure(command, parser)
-
-    return desc, configure
-
-
 main_command = command.mux_map("commands to run local testing VMs", {
     "net": command.mux_map("commands to control the state of the local testing network", {
         "up": command.wrap("bring up local testing network", net_up),
         "down": command.wrap("bring down local testing network", net_down),
     }),
     "auto": seq.seq_mux_map("commands to perform large-scale operations automatically", {
-        "cluster": wrap_persistent("complete cluster installation", auto_cluster),
+        "cluster": seq.wrapseq("complete cluster installation", auto_cluster),
     }),
 })
