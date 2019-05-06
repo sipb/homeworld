@@ -236,7 +236,7 @@ class TerminationContext:
 
 
 class DebugContext:
-    def __init__(self, persistent):
+    def __init__(self, persistent=False):
         self.persistent = persistent
 
     def __enter__(self):
@@ -475,17 +475,18 @@ def qemu_check_nested_virt():
         command.fail("nested virtualization not enabled")
 
 
-def auto_supervisor(ops: setup.Operations, tc: TerminationContext, supervisor: configuration.Node, install_iso: str):
+def auto_install_supervisor(ops: setup.Operations, tc: TerminationContext, supervisor: configuration.Node, install_iso: str):
     vm = VirtualMachine(supervisor, tc, install_iso)
     ops.add_operation("install supervisor node (this may take several minutes)", vm.boot_install_supervisor, supervisor)
 
+
+def auto_launch_supervisor(ops: setup.Operations, tc: TerminationContext, supervisor: configuration.Node):
     # TODO: annotations, so that this can be --dry-run'd
     vm = VirtualMachine(supervisor, tc)
     ops.add_operation("start up supervisor node", lambda: vm.boot_launch(autoadd_fingerprint=True))
-    ops.add_subcommand(seq.sequence_supervisor)
 
 
-def auto_nodes_parallel(ops: setup.Operations, tc: TerminationContext, nodes: list, install_iso: str):
+def auto_install_nodes(ops: setup.Operations, tc: TerminationContext, nodes: list, install_iso: str):
     vms = [VirtualMachine(node, tc, install_iso) for node in nodes]
 
     def boot_install_and_admit_all():
@@ -496,12 +497,14 @@ def auto_nodes_parallel(ops: setup.Operations, tc: TerminationContext, nodes: li
 
     ops.add_operation("install non-supervisor nodes (this may take several minutes)", boot_install_and_admit_all)
 
+
+def auto_launch_nodes(ops: setup.Operations, tc: TerminationContext, nodes: list):
     for node in nodes:
         vm = VirtualMachine(node, tc)
         ops.add_operation("start up node @HOST", vm.boot_launch, node)
 
 
-def auto_cluster(ops: setup.Operations, authorized_key=None, persistent=False):
+def auto_install(ops: setup.Operations, authorized_key=None, persistent=False):
     if authorized_key is None:
         if "HOME" not in os.environ:
             command.fail("expected $HOME to be set for authorized_key autodetect")
@@ -514,11 +517,25 @@ def auto_cluster(ops: setup.Operations, authorized_key=None, persistent=False):
     with ops.context("networking", net_context()):
         with ops.context("termination", TerminationContext()) as tc:
             with ops.context("debug shell", DebugContext(persistent)):
-                ops.add_subcommand(lambda ops: auto_supervisor(ops, tc, config.keyserver, iso_path))
+                ops.add_subcommand(lambda ops: auto_install_supervisor(ops, tc, config.keyserver, iso_path))
+                ops.add_subcommand(lambda ops: auto_launch_supervisor(ops, tc, config.keyserver))
+                ops.add_subcommand(seq.sequence_supervisor)
+
                 other_nodes = [n for n in config.nodes if n != config.keyserver]
-                ops.add_subcommand(lambda ops: auto_nodes_parallel(ops, tc, other_nodes, iso_path))
+                ops.add_subcommand(lambda ops: auto_install_nodes(ops, tc, other_nodes, iso_path))
+                ops.add_subcommand(lambda ops: auto_launch_nodes(ops, tc, other_nodes))
 
                 ops.add_subcommand(seq.sequence_cluster)
+
+
+def auto_launch(ops: setup.Operations):
+    config = configuration.get_config()
+    with ops.context("networking", net_context()):
+        with ops.context("termination", TerminationContext()) as tc:
+            with ops.context("debug shell", DebugContext(True)):
+                ops.add_subcommand(lambda ops: auto_launch_supervisor(ops, tc, config.keyserver))
+                other_nodes = [n for n in config.nodes if n != config.keyserver]
+                ops.add_subcommand(lambda ops: auto_launch_nodes(ops, tc, other_nodes))
 
 
 main_command = command.mux_map("commands to run local testing VMs", {
@@ -527,6 +544,7 @@ main_command = command.mux_map("commands to run local testing VMs", {
         "down": command.wrap("bring down local testing network", net_down),
     }),
     "auto": seq.seq_mux_map("commands to perform large-scale operations automatically", {
-        "cluster": seq.wrapseq("complete cluster installation", auto_cluster),
+        "install": seq.wrapseq("complete cluster installation and launch", auto_install),
+        "launch": seq.wrapseq("launch installed cluster", auto_launch),
     }),
 })

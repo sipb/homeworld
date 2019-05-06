@@ -28,4 +28,4 @@ mkdir -p "$HOME/.ssh/"
 ssh-keygen -t rsa -N "" -f "$HOME/.ssh/id_rsa"
 eval "$(ssh-agent -s)"
 (cd /var/homeworld-deploy && (spire virt net down || true))
-(cd /var/homeworld-deploy && spire virt auto cluster)
+(cd /var/homeworld-deploy && spire virt auto install)
