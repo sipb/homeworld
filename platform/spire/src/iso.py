@@ -107,9 +107,10 @@ def gen_iso(iso_image, authorized_key, mode=None):
         inclusion += ["sshd_config.new", "preseed.cfg"]
 
         for package_name, (short_filename, package_bytes) in packages.verified_download_full(PACKAGES).items():
-            assert "/" not in short_filename, "invalid package name: %s for %s" % (short_filename, package_name)
-            assert short_filename.startswith(package_name + "_"), "invalid package name: %s for %s" % (short_filename, package_name)
-            assert short_filename.endswith("_amd64.deb"), "invalid package name: %s for %s" % (short_filename, package_name)
+            if ("/" in short_filename or
+                not short_filename.startswith(package_name + "_") or
+                not short_filename.endswith("_amd64.deb")):
+                raise ValueError("invalid package name: %s for %s" % (short_filename, package_name))
             util.writefile(os.path.join(d, short_filename), package_bytes)
             inclusion.append(short_filename)
 
@@ -128,7 +129,7 @@ def gen_iso(iso_image, authorized_key, mode=None):
                            input="".join("%s\n" % filename for filename in inclusion).encode(), cwd=d))
 
         files_for_md5sum = subprocess.check_output(["find", ".", "-follow", "-type", "f", "-print0"], cwd=cddir).decode().split("\0")
-        assert files_for_md5sum.pop() == ""
+        files_for_md5sum = [x for x in files_for_md5sum if x]
         md5s = subprocess.check_output(["md5sum", "--"] + files_for_md5sum, cwd=cddir)
         util.writefile(os.path.join(cddir, "md5sum.txt"), md5s)
 
