@@ -224,64 +224,6 @@ def get_config() -> Config:
     return Config.load_from_project()
 
 
-def get_keyserver_yaml() -> str:
-    config = Config.load_from_project()
-
-    nodes = [
-        {
-            "HOSTNAME": node.hostname,
-            "DOMAIN": config.external_domain,
-            "IP": node.ip,
-            "KIND": node.kind,
-            "SCHEDULE": "true" if node.kind == "worker" else "false"
-        } for node in config.nodes]
-
-    accounts = template.template_all(
-        """
-  - principal: {{HOSTNAME}}.{{DOMAIN}}
-    group: {{KIND}}-nodes
-    limit-ip: true
-    metadata:
-      ip: {{IP}}
-      hostname: {{HOSTNAME}}
-      schedule: {{SCHEDULE}}
-      kind: {{KIND}}
-        """.strip("\n"), nodes, load=False)
-
-    admins = [{"PRINCIPAL": root_admin} for root_admin in config.root_admins]
-    admins += [{"PRINCIPAL": "metrics@NONEXISTENT.REALM.INVALID"}]  # used by homeworld-ssh-checker
-
-    accounts += template.template_all(
-        """
-  - principal: {{PRINCIPAL}}
-    disable-direct-auth: true
-    group: root-admins
-        """.strip("\n"), admins, load=False)
-
-    if config.is_kerberos_enabled():
-
-        ssh_metric_nodes = [
-            {
-                "HOSTNAME": node.hostname,
-                "DOMAIN": config.external_domain,
-                "REALM": config.realm,
-            } for node in config.nodes if node.kind == "supervisor"]
-
-        accounts += template.template_all(
-            """
-  - principal: host/{{HOSTNAME}}.{{DOMAIN}}@{{REALM}}
-    disable-direct-auth: true
-    group: kerberos-accounts
-            """.strip("\n"), ssh_metric_nodes, load=False)
-
-    ksrv = {"SERVICEAPI": config.service_api,
-            "ACCOUNTS": "".join(accounts),
-            "DOMAIN": config.external_domain,
-            "INTERNAL-DOMAIN": config.internal_domain}
-
-    return template.template("keyserver.yaml", ksrv)
-
-
 def get_keyserver_domain() -> str:
     config = Config.load_from_project()
     return config.keyserver.hostname + "." + config.external_domain
@@ -375,10 +317,6 @@ def edit() -> None:
     subprocess.check_call([get_editor(), "--", setup_yaml])
 
 
-def print_keyserver_yaml() -> None:
-    print(get_keyserver_yaml())
-
-
 def print_cluster_conf() -> None:
     print(get_cluster_conf())
 
@@ -424,7 +362,6 @@ main_command = command.mux_map("commands about cluster configuration", {
     "edit": command.wrap("open $EDITOR (defaults to nano) to edit the project's setup.yaml", edit),
     "gen-kube": command.wrap("generate kubernetes spec for the base cluster", gen_kube_spec),
     "show": command.mux_map("commands about showing different aspects of the configuration", {
-        "keyserver.yaml": command.wrap("display the generated keyserver.yaml", print_keyserver_yaml),
         "cluster.conf": command.wrap("display the generated cluster.conf", print_cluster_conf),
         "machine.list": command.wrap("display the generated machine.list", print_machine_list_file),
         "kubeconfig": command.wrap("display the generated local kubeconfig", print_local_kubeconfig),

@@ -7,9 +7,8 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/sipb/homeworld/platform/keysystem/keyserver/config"
 	"github.com/sipb/homeworld/platform/keysystem/keyserver/operation"
-	"github.com/sipb/homeworld/platform/keysystem/worldconfig/paths"
+	"github.com/sipb/homeworld/platform/keysystem/worldconfig"
 )
 
 func apiToHTTP(ks Keyserver, logger *log.Logger) http.Handler {
@@ -47,7 +46,7 @@ func apiToHTTP(ks Keyserver, logger *log.Logger) http.Handler {
 }
 
 func LoadConfiguredKeyserver(logger *log.Logger) (Keyserver, error) {
-	ctx, err := config.LoadConfig(paths.KeyserverConfigPath)
+	ctx, err := worldconfig.GenerateConfig()
 	if err != nil {
 		return nil, err
 	}

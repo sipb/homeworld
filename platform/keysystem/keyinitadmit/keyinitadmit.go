@@ -13,13 +13,13 @@ import (
 
 	"github.com/sipb/homeworld/platform/keysystem/api/reqtarget"
 	"github.com/sipb/homeworld/platform/keysystem/api/server"
-	"github.com/sipb/homeworld/platform/keysystem/keyserver/config"
 	"github.com/sipb/homeworld/platform/keysystem/worldconfig"
 	"github.com/sipb/homeworld/platform/keysystem/worldconfig/paths"
 	"github.com/sipb/homeworld/platform/util/wraputil"
 )
 
 func GetKeyserverName() (string, error) {
+	// TODO: deduplicate loading this file
 	cfg, err := worldconfig.LoadSpireSetup(paths.SpireSetupPath)
 	if err != nil {
 		return "", err
@@ -50,7 +50,7 @@ func main() {
 	if err != nil {
 		logger.Fatal(err)
 	}
-	ctx, err := config.LoadConfig(paths.KeyserverConfigPath)
+	ctx, err := worldconfig.GenerateConfig()
 	if err != nil {
 		logger.Fatal(err)
 	}

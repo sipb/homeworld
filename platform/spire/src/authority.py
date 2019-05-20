@@ -54,13 +54,11 @@ def generate() -> None:
     # tempfile.TemporaryDirectory() creates the directory with 0o600, which protects the private keys
     with tempfile.TemporaryDirectory() as d:
         certdir = os.path.join(d, "certdir")
-        keyserver_yaml = os.path.join(d, "keyserver.yaml")
-        util.writefile(keyserver_yaml, configuration.get_keyserver_yaml().encode())
         os.mkdir(certdir)
         print("generating authorities...")
         try:
             # TODO: avoid having these touch disk
-            subprocess.check_call(["keygen", keyserver_yaml, certdir])
+            subprocess.check_call(["keygen", configuration.Config.get_setup_path(), certdir])
         except FileNotFoundError as e:
             if e.filename == "keygen":
                 command.fail("could not find keygen binary. is the homeworld-keyserver dependency installed?")

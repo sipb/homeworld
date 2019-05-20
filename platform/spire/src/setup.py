@@ -138,8 +138,6 @@ def setup_keyserver(ops: Operations) -> None:
                              configuration.get_cluster_conf().encode(), STATICS_DIR + "/cluster.conf")
         ops.ssh_upload_bytes("upload machine list to @HOST", node,
                              configuration.get_machine_list_file().encode(), STATICS_DIR + "/machine.list")
-        ops.ssh_upload_bytes("upload keyserver config to @HOST", node,
-                             configuration.get_keyserver_yaml().encode(), CONFIG_DIR + "/keyserver.yaml")
         ops.ssh_upload_path("upload cluster setup to @HOST", node,
                             configuration.Config.get_setup_path(), CONFIG_DIR + "/setup.yaml")
         ops.ssh("enable keyserver on @HOST", node, "systemctl", "enable", "keyserver.service")
