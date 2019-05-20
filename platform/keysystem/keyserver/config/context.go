@@ -16,16 +16,10 @@ type StaticFile struct {
 	Filepath string
 }
 
-type Grant struct {
-	API                string
-	Group              *account.Group
-	PrivilegeByAccount map[string]account.Privilege
-}
-
 type Context struct {
 	Authorities             map[string]authorities.Authority
 	Groups                  map[string]*account.Group
-	Grants                  map[string]Grant
+	Grants                  map[string]map[string]account.Privilege // indexed first by API and then by principal
 	Accounts                map[string]*account.Account
 	TokenVerifier           verifier.TokenVerifier
 	AuthenticationAuthority *authorities.TLSAuthority
@@ -57,25 +51,4 @@ func (ctx *Context) GetAccount(principal string) (*account.Account, error) {
 		return nil, errors.New("mismatched principal during lookup")
 	}
 	return ac, nil
-}
-
-func (c *Context) GetAuthority(name string) (authorities.Authority, error) {
-	authority, found := c.Authorities[name]
-	if found {
-		return authority, nil
-	} else {
-		return nil, fmt.Errorf("no such authority: '%s'", name)
-	}
-}
-
-func (c *Context) GetTLSAuthority(name string) (*authorities.TLSAuthority, error) {
-	authorityAny, err := c.GetAuthority(name)
-	if err != nil {
-		return nil, err
-	}
-	authority, ok := authorityAny.(*authorities.TLSAuthority)
-	if !ok {
-		return nil, fmt.Errorf("authority is not a TLS authority: %s", name)
-	}
-	return authority, nil
 }

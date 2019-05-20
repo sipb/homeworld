@@ -14,13 +14,13 @@ type Account struct {
 
 type Group struct {
 	Name       string
-	AllMembers []string
+	AllMembers []*Account
 	SubgroupOf *Group
 }
 
 func (g *Group) HasMember(user string) bool {
 	for _, member := range g.AllMembers {
-		if member == user {
+		if member.Principal == user {
 			return true
 		}
 	}
