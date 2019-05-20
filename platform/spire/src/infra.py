@@ -51,10 +51,10 @@ def infra_admit_all() -> None:
         if node.kind == "supervisor":
             continue
         token = admit(node.hostname)
-        tokens.append((node.hostname, node.kind, node.ip, token))
+        tokens.append((node.hostname, node.kind, str(node.ip), token))
     print('{:=^16} {:=^8} {:=^14} {:=^23}'.format('host', 'kind', 'ip', 'token'))
     for hostname, kind, ip, token in tokens:
-        print('{:>16} {:^8} {:^14} {:<23}'.format(hostname, kind, str(ip), token))
+        print('{:>16} {:^8} {:^14} {:<23}'.format(hostname, kind, ip, token))
     print('{:=^16} {:=^8} {:=^14} {:=^23}'.format('host', 'kind', 'ip', 'token'))
 
 

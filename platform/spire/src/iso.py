@@ -92,13 +92,13 @@ def gen_iso(iso_image, authorized_key, mode=None):
 
         cidr_nodes, upstream_dns_servers = configuration.get_config().cidr_nodes, configuration.get_config().dns_upstreams
 
-        node_cidr_prefix = ".".join(str(cidr_nodes.ip).split(".")[:-1]) + "."
+        node_cidr_prefix = ".".join(str(cidr_nodes.network_address).split(".")[:-1]) + "."
         preseeded = preseeded.replace(b"{{IP-PREFIX}}", node_cidr_prefix.encode())
 
-        node_cidr_gateway = cidr_nodes.gateway()
+        node_cidr_gateway = next(cidr_nodes.hosts())
         preseeded = preseeded.replace(b"{{GATEWAY}}", str(node_cidr_gateway).encode())
 
-        node_cidr_netmask = cidr_nodes.netmask()
+        node_cidr_netmask = cidr_nodes.netmask
         preseeded = preseeded.replace(b"{{NETMASK}}", str(node_cidr_netmask).encode())
 
         preseeded = preseeded.replace(b"{{NAMESERVERS}}", " ".join(str(server_ip) for server_ip in upstream_dns_servers).encode())

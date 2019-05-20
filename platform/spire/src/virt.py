@@ -19,18 +19,18 @@ import util
 
 
 def get_bridge(ip):
-    return "spirebr%s" % hex(ip.to_integer())[2:].upper()
+    return "spirebr%s" % ip.packed.hex().upper()
 
 
 def get_node_tap(node):
     # maximum length: 15 characters
-    return "spirtap%s" % hex(node.ip.to_integer())[2:].upper()
+    return "spirtap%s" % node.ip.packed.hex().upper()
 
 
 def determine_topology():
     config = configuration.get_config()
-    gateway_ip = config.cidr_nodes.gateway()
-    gateway = "%s/%d" % (gateway_ip, config.cidr_nodes.bits)
+    gateway_ip = next(config.cidr_nodes.hosts())
+    gateway = "%s/%d" % (gateway_ip, config.cidr_nodes.prefixlen)
     taps = []
     hosts = {}
     for node in config.nodes:
