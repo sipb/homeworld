@@ -4,14 +4,35 @@ import configuration
 import setup
 import ssh
 
+import os
+import traceback
 
 def admit(server_principal: str) -> str:
     config = configuration.get_config()
     principal_hostname = config.get_fqdn(server_principal)
-    if config.is_kerberos_enabled():
-        return access.call_keyreq("bootstrap-token", principal_hostname).decode().strip()
-    else:
+
+    errs = []
+
+    try:
+        if config.is_kerberos_enabled():
+            return access.call_keyreq("bootstrap-token", principal_hostname).decode().strip()
+    except Exception as e:
+        print('[keyreq failed, set SPIRE_DEBUG for traceback]')
+        if os.environ.get('SPIRE_DEBUG'):
+            traceback.print_exc()
+        errs.append(e)
+
+    try:
         return ssh.check_ssh_output(config.keyserver, "keyinitadmit", principal_hostname).decode().strip()
+    except Exception as e:
+        print('[keyinitadmit failed, set SPIRE_DEBUG for traceback]')
+        if os.environ.get('SPIRE_DEBUG'):
+            traceback.print_exc()
+        errs.append(e)
+
+    if len(errs) > 1:
+        raise command.MultipleExceptions('admit failed', errs)
+    raise Exception('admit failed') from errs[0]
 
 
 @command.wrap

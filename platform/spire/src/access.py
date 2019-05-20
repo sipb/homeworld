@@ -42,7 +42,7 @@ KNC_STDERR_END_TAG = "--- knc stderr end ---"
 
 def diagnose_keyreq_error(errcode: int, err: str) -> Tuple[str, str]:
     if errcode not in KEYREQ_ERROR_CODES:
-        return "unknown error code", None
+        return "unknown error code {}".format(errcode), None
 
     error_code_meaning = KEYREQ_ERROR_CODES[errcode]
 
@@ -60,6 +60,11 @@ def diagnose_keyreq_error(errcode: int, err: str) -> Tuple[str, str]:
 
     return error_code_meaning, None
 
+class KeyreqFailed(command.CommandFailedException):
+    def __init__(self, returncode, err):
+        error_code_meaning, fail_hint = diagnose_keyreq_error(returncode, err)
+        super().__init__("keyreq failed: {}".format(error_code_meaning), fail_hint)
+
 
 def call_keyreq(keyreq_command, *params):
     config = configuration.get_config()
@@ -72,9 +77,7 @@ def call_keyreq(keyreq_command, *params):
         output, err_bytes = keyreq_sp.communicate()
         if keyreq_sp.returncode != 0:
             err = err_bytes.decode()
-            print(err)
-            error_code_meaning, fail_hint = diagnose_keyreq_error(keyreq_sp.returncode, err)
-            command.fail("keyreq failed with error code %d: %s" % (keyreq_sp.returncode, error_code_meaning), fail_hint)
+            raise KeyreqFailed(keyreq_sp.returncode, err)
         return output
 
 
@@ -87,13 +90,23 @@ def renew_ssh_cert() -> str:
 
 
 def refresh_cert(key_path, cert_path, ca_path, variant, ca_key_name, ca_cert_name):
-    if configuration.get_config().is_kerberos_enabled():
-        print("rotating", variant, "certs via keyreq")
-        if ca_path is None:
-            call_keyreq(variant + "-cert", key_path, cert_path)
-        else:
-            call_keyreq(variant + "-cert", key_path, cert_path, ca_path)
-    else:
+    errs = []
+
+    try:
+        if configuration.get_config().is_kerberos_enabled():
+            print("rotating", variant, "certs via keyreq")
+            if ca_path is None:
+                call_keyreq(variant + "-cert", key_path, cert_path)
+            else:
+                call_keyreq(variant + "-cert", key_path, cert_path, ca_path)
+            return
+    except Exception as e:
+        print("[keyreq failed, set SPIRE_DEBUG for traceback]")
+        if os.environ.get('SPIRE_DEBUG'):
+            traceback.print_exc()
+        errs.append(e)
+
+    try:
         print("generating", variant, "cert via local bypass method")
         with tempfile.TemporaryDirectory() as dir:
             ca_key = os.path.join(dir, ca_key_name)
@@ -111,6 +124,16 @@ def refresh_cert(key_path, cert_path, ca_path, variant, ca_key_name, ca_cert_nam
                 name = "temporary-%s-bypass-grant" % variant
                 orgs = []
             subprocess.check_call(["keylocalcert", ca_key, ca_pem, name, "4h", key_path, cert_path, "", ",".join(orgs)])
+        return
+    except Exception as e:
+        print("[local bypass failed, set SPIRE_DEBUG for traceback]")
+        if os.environ.get('SPIRE_DEBUG'):
+            traceback.print_exc()
+        errs.append(e)
+
+    if len(errs) > 1:
+        raise command.MultipleExceptions('refresh_cert failed', errs)
+    raise Exception('refresh_cert failed') from errs[0]
 
 
 @command.wrap

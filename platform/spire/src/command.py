@@ -27,6 +27,12 @@ def fail(message: str, hint: str = None) -> None:
     raise CommandFailedException(message, hint)
 
 
+class MultipleExceptions(Exception):
+    def __init__(self, message, errs):
+        messages = [message] + [str(e) for e in errs]
+        super().__init__('\n'.join(messages))
+
+
 class Mux:
     def __init__(self, description, mapping):
         self.__doc__ = description

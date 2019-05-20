@@ -12,14 +12,17 @@ import verify
 
 
 @command.wrapseq
-def sequence_keysystem(ops: command.Operations) -> None:
+def sequence_keysystem(ops: command.Operations, skip_verify_keygateway: bool=False) -> None:
     "set up and verify functionality of the keyserver and keygateway"
     ops.add_subcommand(setup.setup_keyserver)
     ops.add_command(iterative_verifier(verify.check_keystatics, 60.0))
     ops.add_subcommand(setup.admit_keyserver)
     if configuration.get_config().is_kerberos_enabled():
         ops.add_subcommand(setup.setup_keygateway)
-        ops.add_command(verify.check_keygateway)
+        if not skip_verify_keygateway:
+            ops.add_command(verify.check_keygateway)
+        else:
+            ops.add_operation("skip keygateway verification", lambda: None)
     else:
         ops.add_operation("skip keygateway enablement (kerberos is disabled)", lambda: None)
 
@@ -33,10 +36,10 @@ def sequence_ssh(ops: command.Operations) -> None:
 
 
 @command.wrapseq
-def sequence_supervisor(ops: command.Operations) -> None:
+def sequence_supervisor(ops: command.Operations, skip_verify_keygateway: bool=False) -> None:
     "set up and verify functionality of entire supervisor node (keysystem + ssh)"
     config = configuration.get_config()
-    ops.add_subcommand(sequence_keysystem)
+    ops.add_subcommand(sequence_keysystem, skip_verify_keygateway=skip_verify_keygateway)
     ops.add_command(iterative_verifier(verify.check_certs_on_supervisor, 20.0))
     ops.add_subcommand(setup.setup_prometheus)
     ops.add_subcommand(sequence_ssh)
