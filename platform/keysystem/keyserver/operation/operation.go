@@ -54,7 +54,7 @@ func InvokeAPIOperation(ctx *account.OperationContext, gctx *config.Context, API
 		return "", errors.New("missing account during request")
 	}
 	princ := ctx.Account.Principal
-	priv, found := grant.PrivilegeByAccount[princ]
+	priv, found := grant[princ]
 	if !found {
 		return "", &OperationForbiddenError{
 			Principal: princ,
