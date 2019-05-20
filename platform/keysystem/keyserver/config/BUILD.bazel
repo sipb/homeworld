@@ -6,7 +6,6 @@ go_library(
         "config.go",
         "context.go",
         "privilege.go",
-        "setup.go",
     ],
     importpath = "github.com/sipb/homeworld/platform/keysystem/keyserver/config",
     visibility = ["//visibility:public"],
@@ -15,8 +14,6 @@ go_library(
         "//keysystem/keyserver/authorities:go_default_library",
         "//keysystem/keyserver/verifier:go_default_library",
         "//util/strutil:go_default_library",
-        "@com_github_pkg_errors//:go_default_library",
-        "@in_gopkg_yaml_v2//:go_default_library",
     ],
 )
 

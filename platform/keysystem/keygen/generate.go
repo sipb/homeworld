@@ -14,12 +14,11 @@ import (
 	"path"
 	"time"
 
-	"github.com/sipb/homeworld/platform/keysystem/keyserver/config"
+	"github.com/sipb/homeworld/platform/keysystem/worldconfig"
 	"github.com/sipb/homeworld/platform/util/certutil"
 )
 
 const AuthorityBits = 4096
-const PresentedGroup = "keyserver-group"
 
 func GenerateTLSSelfSignedCert(key *rsa.PrivateKey, name string, present_as []string) ([]byte, error) {
 	issueat := time.Now()
@@ -42,14 +41,16 @@ func GenerateTLSSelfSignedCert(key *rsa.PrivateKey, name string, present_as []st
 	return certutil.FinishCertificate(certTemplate, certTemplate, key.Public(), key)
 }
 
-func GenerateKeys(cfg *config.Config, dir string) error {
+func GenerateKeys(setup *worldconfig.SpireSetup, dir string) error {
 	if info, err := os.Stat(dir); err != nil {
 		return err
 	} else if !info.IsDir() {
 		return errors.New("expected authority directory, not authority file")
 	}
 
-	for name, authority := range cfg.Authorities {
+	authorities := worldconfig.GenerateAuthorities(setup)
+
+	for name, authority := range authorities {
 		// private key
 		privkey, err := rsa.GenerateKey(rand.Reader, AuthorityBits)
 		if err != nil {
@@ -61,16 +62,8 @@ func GenerateKeys(cfg *config.Config, dir string) error {
 			return err
 		}
 		if authority.Type == "TLS" || authority.Type == "static" {
-			var presentAs []string
-			if name == cfg.ServerTLS {
-				for _, account := range cfg.Accounts {
-					if account.Group == PresentedGroup {
-						presentAs = append(presentAs, account.Principal)
-					}
-				}
-			}
 			// self-signed cert
-			cert, err := GenerateTLSSelfSignedCert(privkey, name, presentAs)
+			cert, err := GenerateTLSSelfSignedCert(privkey, name, authority.PresentAs)
 			if err != nil {
 				return err
 			}

@@ -33,19 +33,6 @@ type Context struct {
 	StaticFiles             map[string]StaticFile
 }
 
-type SetupStep func(*Context, *Config) error
-
-func (config *Config) Compile() (*Context, error) {
-	context := &Context{TokenVerifier: verifier.NewTokenVerifier()}
-	for _, step := range setupSteps {
-		err := step(context, config)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return context, nil
-}
-
 func (a *ConfigAuthority) Load(dir string) (authorities.Authority, error) {
 	if dir == "" {
 		return nil, errors.New("empty directory path")
