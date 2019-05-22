@@ -8,11 +8,30 @@ import (
 	"net"
 )
 
+const Supervisor = "supervisor"
+const Master = "master"
+const Worker = "worker"
+
 type SpireNode struct {
 	Hostname string
 	IP       string
 	netIP    net.IP
+	setup    *SpireSetup
 	Kind     string
+}
+
+func (s *SpireNode) IsSupervisor() bool {
+	return s.Kind == Supervisor
+}
+func (s *SpireNode) IsMaster() bool {
+	return s.Kind == Master
+}
+func (s *SpireNode) IsWorker() bool {
+	return s.Kind == Worker
+}
+
+func (s *SpireNode) DNS() string {
+	return s.Hostname + "." + s.setup.Cluster.ExternalDomain
 }
 
 func (s *SpireNode) NetIP() net.IP {
@@ -48,13 +67,14 @@ func LoadSpireSetup(path string) (*SpireSetup, error) {
 	}
 	// validation steps
 	for _, node := range setup.Nodes {
-		if node.Kind != "worker" && node.Kind != "supervisor" && node.Kind != "master" {
+		if !(node.IsSupervisor() || node.IsMaster() || node.IsWorker()) {
 			return nil, fmt.Errorf("unrecognized kind of node: %s", node.Kind)
 		}
 		node.netIP = net.ParseIP(node.IP)
 		if node.netIP == nil {
 			return nil, fmt.Errorf("could not parse IP: %s", node.IP)
 		}
+		node.setup = setup
 	}
 	dupcheck := map[string]bool{}
 	for _, rootadmin := range setup.RootAdmins {

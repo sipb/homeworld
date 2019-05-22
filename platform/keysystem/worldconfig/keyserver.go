@@ -2,6 +2,7 @@ package worldconfig
 
 import (
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/sipb/homeworld/platform/keysystem/keyserver/account"
@@ -28,7 +29,7 @@ func GenerateAccounts(context *config.Context, conf *SpireSetup, auth Authoritie
 
 	for _, node := range conf.Nodes {
 		acc := &account.Account{
-			Principal: node.Hostname + "." + conf.Cluster.ExternalDomain,
+			Principal: node.DNS(),
 			LimitIP:   node.NetIP(),
 		}
 		accounts = append(accounts, acc)
@@ -54,8 +55,8 @@ func GenerateAccounts(context *config.Context, conf *SpireSetup, auth Authoritie
 	// if kerberos is enabled
 	if len(conf.RootAdmins) > 0 {
 		for _, node := range conf.Nodes {
-			if node.Kind == "supervisor" {
-				principal := "host/" + node.Hostname + "." + conf.Cluster.ExternalDomain + "@" + conf.Cluster.KerberosRealm
+			if node.IsSupervisor() {
+				principal := "host/" + node.DNS() + "@" + conf.Cluster.KerberosRealm
 				acc := &account.Account{
 					Principal:         principal,
 					DisableDirectAuth: true,
@@ -88,18 +89,18 @@ type Authorities struct {
 func GenerateAuthorities(conf *SpireSetup) map[string]config.ConfigAuthority {
 	var presentAs []string
 	for _, node := range conf.Nodes {
-		if node.Kind == "supervisor" {
-			presentAs = append(presentAs, node.Hostname+"."+conf.Cluster.ExternalDomain)
+		if node.IsSupervisor() {
+			presentAs = append(presentAs, node.DNS())
 		}
 	}
 
 	return map[string]config.ConfigAuthority{
-		AuthenticationAuthority: {
+		"keygranting": {
 			Type: "TLS",
 			Key:  "keygrant.key",
 			Cert: "keygrant.pem",
 		},
-		ServerTLS: {
+		"servertls": {
 			Type:      "TLS",
 			Key:       "server.key",
 			Cert:      "server.pem",
@@ -169,20 +170,13 @@ func GrantsForRootAdminAccount(c *config.Context, groups Groups, auth Authoritie
 }
 
 func GenerateLocalConf(conf *SpireSetup, node *SpireNode) string {
-	var schedule string
-	if node.Kind == "worker" {
-		schedule = "true"
-	} else if node.Kind == "master" || node.Kind == "supervisor" {
-		schedule = "false"
-	} else {
-		panic("invalid node Kind")
-	}
+	scheduleWork := node.IsWorker()
 
 	return `# generated automatically by keyserver
 HOST_NODE=` + node.Hostname + `
-HOST_DNS=` + node.Hostname + `.` + conf.Cluster.ExternalDomain + `
+HOST_DNS=` + node.DNS() + `
 HOST_IP=` + node.IP + `
-SCHEDULE_WORK=` + schedule + `
+SCHEDULE_WORK=` + strconv.FormatBool(scheduleWork) + `
 KIND=` + node.Kind
 }
 
@@ -192,7 +186,7 @@ func GrantsForNodeAccount(c *config.Context, conf *SpireSetup, groups Groups, au
 
 	// MEMBERSHIP IN THE CLUSTER
 
-	if node.Kind == "supervisor" {
+	if node.IsSupervisor() {
 		grants["bootstrap-keyinit"] = account.NewBootstrapPrivilege(groups.Nodes, time.Hour, c.TokenVerifier.Registry)
 		grants["auth-to-kerberos"] = account.NewImpersonatePrivilege(c.GetAccount, groups.KerberosAccounts)
 	}
@@ -208,17 +202,17 @@ func GrantsForNodeAccount(c *config.Context, conf *SpireSetup, groups Groups, au
 	grants["grant-ssh-host"] = account.NewSSHGrantPrivilege(
 		auth.SshHost, true, OneDay*60, "admitted-"+ac.Principal,
 		[]string{
-			node.Hostname + "." + conf.Cluster.ExternalDomain,
+			node.DNS(),
 			node.Hostname,
 			node.IP,
 		},
 	)
 
-	if node.Kind == "master" {
+	if node.IsMaster() {
 		grants["grant-kubernetes-master"] = account.NewTLSGrantPrivilege(
 			auth.Kubernetes, true, 30*OneDay, "kube-master-"+node.Hostname,
 			[]string{
-				node.Hostname + "." + conf.Cluster.ExternalDomain,
+				node.DNS(),
 				node.Hostname,
 				"kubernetes",
 				"kubernetes.default",
@@ -231,14 +225,14 @@ func GrantsForNodeAccount(c *config.Context, conf *SpireSetup, groups Groups, au
 		grants["grant-etcd-server"] = account.NewTLSGrantPrivilege(
 			auth.EtcdServer, true, 30*OneDay, "etcd-server-"+node.Hostname,
 			[]string{
-				node.Hostname + "." + conf.Cluster.ExternalDomain,
+				node.DNS(),
 				node.Hostname,
 				node.IP,
 			},
 		)
 	}
 
-	if node.Kind == "supervisor" {
+	if node.IsSupervisor() {
 		grants["grant-registry-host"] = account.NewTLSGrantPrivilege(
 			auth.ClusterTLS, true, 30*OneDay, "homeworld-supervisor-"+node.Hostname,
 			[]string{"homeworld.private"},
@@ -250,16 +244,16 @@ func GrantsForNodeAccount(c *config.Context, conf *SpireSetup, groups Groups, au
 	grants["grant-kubernetes-worker"] = account.NewTLSGrantPrivilege(
 		auth.Kubernetes, true, 30*OneDay, "kube-worker-"+node.Hostname,
 		[]string{
-			node.Hostname + "." + conf.Cluster.ExternalDomain,
+			node.DNS(),
 			node.Hostname,
 			node.IP,
 		},
 	)
 
-	if node.Kind == "master" {
+	if node.IsMaster() {
 		grants["grant-etcd-client"] = account.NewTLSGrantPrivilege(auth.EtcdClient, false, 30*OneDay, "etcd-client-"+node.Hostname,
 			[]string{
-				node.Hostname + "." + conf.Cluster.ExternalDomain,
+				node.DNS(),
 				node.Hostname,
 				node.IP,
 			},
@@ -288,8 +282,6 @@ func ValidateStaticFiles(context *config.Context) error {
 const AuthorityKeyDirectory = "/etc/homeworld/keyserver/authorities/"
 const ClusterConfigPath = "/etc/homeworld/keyserver/static/cluster.conf"
 const MachineListPath = "/etc/homeworld/keyserver/static/machine.list"
-const AuthenticationAuthority = "keygranting"
-const ServerTLS = "servertls"
 
 func GenerateConfig() (*config.Context, error) {
 	conf, err := LoadSpireSetup(paths.SpireSetupPath)
@@ -324,8 +316,8 @@ func GenerateConfig() (*config.Context, error) {
 		context.Authorities[name] = loaded
 	}
 	auth := Authorities{
-		Keygranting:    context.Authorities[AuthenticationAuthority].(*authorities.TLSAuthority),
-		ServerTLS:      context.Authorities[ServerTLS].(*authorities.TLSAuthority),
+		Keygranting:    context.Authorities["keygranting"].(*authorities.TLSAuthority),
+		ServerTLS:      context.Authorities["servertls"].(*authorities.TLSAuthority),
 		ClusterTLS:     context.Authorities["clustertls"].(*authorities.TLSAuthority),
 		EtcdClient:     context.Authorities["etcd-client"].(*authorities.TLSAuthority),
 		EtcdServer:     context.Authorities["etcd-server"].(*authorities.TLSAuthority),
