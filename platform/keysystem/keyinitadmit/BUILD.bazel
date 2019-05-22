@@ -9,7 +9,6 @@ go_library(
         "//keysystem/api/reqtarget:go_default_library",
         "//keysystem/api/server:go_default_library",
         "//keysystem/worldconfig:go_default_library",
-        "//keysystem/worldconfig/paths:go_default_library",
         "//util/wraputil:go_default_library",
     ],
 )

@@ -5,6 +5,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"github.com/sipb/homeworld/platform/keysystem/worldconfig"
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
 	"log"
@@ -91,7 +92,7 @@ func main() {
 		}
 		pubkey := ssh.MarshalAuthorizedKey(pubkey_tmp)
 
-		req, err := reqtarget.SendRequest(rt, "access-ssh", string(pubkey))
+		req, err := reqtarget.SendRequest(rt, worldconfig.AccessSSHAPI, string(pubkey))
 		if err != nil {
 			logger.Print(err)
 			os.Exit(ERR_NO_ACCESS)
@@ -131,7 +132,7 @@ func main() {
 			logger.Print(err)
 			os.Exit(ERR_UNKNOWN_FAILURE)
 		}
-		req, err := reqtarget.SendRequest(rt, "access-kubernetes", string(csr))
+		req, err := reqtarget.SendRequest(rt, worldconfig.AccessKubernetesAPI, string(csr))
 		if err != nil {
 			logger.Print(err)
 			os.Exit(ERR_NO_ACCESS)
@@ -150,7 +151,7 @@ func main() {
 			logger.Print(err)
 			os.Exit(ERR_INVALID_INVOCATION)
 		}
-		ca, err := ks.GetPubkey("kubernetes")
+		ca, err := ks.GetPubkey(worldconfig.KubernetesAuthority)
 		if err != nil {
 			logger.Print(err)
 			os.Exit(ERR_CANNOT_ESTABLISH_CONNECTION)
@@ -177,7 +178,7 @@ func main() {
 			logger.Print(err)
 			os.Exit(ERR_UNKNOWN_FAILURE)
 		}
-		req, err := reqtarget.SendRequest(rt, "access-etcd", string(csr))
+		req, err := reqtarget.SendRequest(rt, worldconfig.AccessEtcdAPI, string(csr))
 		if err != nil {
 			logger.Print(err)
 			os.Exit(ERR_NO_ACCESS)
@@ -196,7 +197,7 @@ func main() {
 			logger.Print(err)
 			os.Exit(ERR_INVALID_INVOCATION)
 		}
-		ca, err := ks.GetPubkey("etcd-server")
+		ca, err := ks.GetPubkey(worldconfig.EtcdServerAuthority)
 		if err != nil {
 			logger.Print(err)
 			os.Exit(ERR_CANNOT_ESTABLISH_CONNECTION)

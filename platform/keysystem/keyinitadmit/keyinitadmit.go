@@ -13,7 +13,6 @@ import (
 	"github.com/sipb/homeworld/platform/keysystem/api/reqtarget"
 	"github.com/sipb/homeworld/platform/keysystem/api/server"
 	"github.com/sipb/homeworld/platform/keysystem/worldconfig"
-	"github.com/sipb/homeworld/platform/keysystem/worldconfig/paths"
 	"github.com/sipb/homeworld/platform/util/wraputil"
 )
 
@@ -52,7 +51,7 @@ func main() {
 	if err != nil {
 		logger.Fatal(err)
 	}
-	token, err := reqtarget.SendRequest(rt, paths.BootstrapKeyserverTokenAPI, principal)
+	token, err := reqtarget.SendRequest(rt, worldconfig.BootstrapKeyserverTokenAPI, principal)
 	if err != nil {
 		logger.Fatal(err)
 	}

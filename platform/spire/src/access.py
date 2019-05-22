@@ -78,6 +78,7 @@ def call_keyreq(keyreq_command, *params):
 def renew_ssh_cert() -> str:
     project_dir = configuration.get_project()
     keypath = os.path.join(project_dir, "ssh-key")
+    # TODO: pull name of authority from worldconfig/apis.go
     refresh_cert(keypath, keypath + "-cert.pub", None, "ssh", "ssh-user", "ssh-user.pub")
     return keypath
 

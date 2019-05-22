@@ -21,35 +21,35 @@ func ConvergeState(nac *actloop.NewActionContext) {
 		nac,
 	)
 	bootstrap.Bootstrap(
-		paths.BootstrapTokenAPI,
+		RenewKeygrantAPI,
 		nac,
 	)
 	download.DownloadAuthority(
-		"kubernetes",
+		KubernetesAuthority,
 		"/etc/homeworld/authorities/kubernetes.pem",
 		OneDay,
 		nac,
 	)
 	download.DownloadAuthority(
-		"clusterca",
+		ClusterCAAuthority,
 		"/usr/local/share/ca-certificates/extra/cluster.tls.crt",
 		OneDay,
 		nac,
 	)
 	download.DownloadAuthority(
-		"ssh-user",
+		SSHUserAuthority,
 		"/etc/ssh/ssh_user_ca.pub",
 		OneWeek, // allow a week for mistakes to be noticed on this one
 		nac,
 	)
 	download.DownloadStatic(
-		"cluster.conf",
+		ClusterConfStatic,
 		"/etc/homeworld/config/cluster.conf",
 		OneDay,
 		nac,
 	)
 	download.DownloadFromAPI(
-		"get-local-config",
+		LocalConfAPI,
 		"/etc/homeworld/config/local.conf",
 		OneDay,
 		0644,
@@ -60,25 +60,25 @@ func ConvergeState(nac *actloop.NewActionContext) {
 		nac,
 	)
 	download.DownloadAuthority(
-		"serviceaccount",
+		ServiceAccountAuthority,
 		"/etc/homeworld/keys/serviceaccount.pem",
 		OneDay,
 		nac,
 	)
 	download.DownloadAuthority(
-		"etcd-client",
+		EtcdClientAuthority,
 		"/etc/homeworld/authorities/etcd-client.pem",
 		OneDay,
 		nac,
 	)
 	download.DownloadAuthority(
-		"etcd-server",
+		EtcdServerAuthority,
 		"/etc/homeworld/authorities/etcd-server.pem",
 		OneDay,
 		nac,
 	)
 	download.DownloadFromAPI(
-		"fetch-serviceaccount-key",
+		FetchServiceAccountKeyAPI,
 		"/etc/homeworld/keys/serviceaccount.key",
 		OneDay,
 		0600,
@@ -87,14 +87,14 @@ func ConvergeState(nac *actloop.NewActionContext) {
 	TLSKey(
 		"/etc/homeworld/keyclient/granting.key",
 		"/etc/homeworld/keyclient/granting.pem",
-		"renew-keygrant",
+		RenewKeygrantAPI,
 		2*OneWeek, // renew two weeks before expiration
 		nac,
 	)
 	keyreq.RequestOrRenewSSHKey(
 		"/etc/ssh/ssh_host_rsa_key.pub",
 		"/etc/ssh/ssh_host_rsa_cert",
-		"grant-ssh-host",
+		SignSSHHostKeyAPI,
 		OneWeek, // renew one week before expiration
 		nac,
 	)
@@ -102,35 +102,35 @@ func ConvergeState(nac *actloop.NewActionContext) {
 		// for master nodes, worker nodes (both for kubelet), and supervisor nodes (for prometheus)
 		"/etc/homeworld/keys/kubernetes-worker.key",
 		"/etc/homeworld/keys/kubernetes-worker.pem",
-		"grant-kubernetes-worker",
+		SignKubernetesWorkerAPI,
 		OneWeek, // renew one week before expiration
 		nac,
 	)
 	TLSKey(
 		"/etc/homeworld/ssl/homeworld.private.key",
 		"/etc/homeworld/ssl/homeworld.private.pem",
-		"grant-registry-host",
+		SignRegistryHostAPI,
 		OneWeek, // renew one week before expiration
 		nac,
 	)
 	TLSKey(
 		"/etc/homeworld/keys/kubernetes-master.key",
 		"/etc/homeworld/keys/kubernetes-master.pem",
-		"grant-kubernetes-master",
+		SignKubernetesMasterAPI,
 		OneWeek, // renew one week before expiration
 		nac,
 	)
 	TLSKey(
 		"/etc/homeworld/keys/etcd-server.key",
 		"/etc/homeworld/keys/etcd-server.pem",
-		"grant-etcd-server",
+		SignEtcdServerAPI,
 		OneWeek, // renew one week before expiration
 		nac,
 	)
 	TLSKey(
 		"/etc/homeworld/keys/etcd-client.key",
 		"/etc/homeworld/keys/etcd-client.pem",
-		"grant-etcd-client",
+		SignEtcdClientAPI,
 		OneWeek, // renew one week before expiration
 		nac,
 	)
