@@ -26,11 +26,11 @@ func GetKeyserverName() (string, error) {
 	}
 	var supervisor = ""
 	for _, node := range cfg.Nodes {
-		if node.Kind == "supervisor" {
+		if node.IsSupervisor() {
 			if supervisor != "" {
 				return "", errors.New("multiple supervisors not yet supported")
 			}
-			supervisor = node.Hostname + "." + cfg.Cluster.ExternalDomain
+			supervisor = node.DNS()
 		}
 	}
 	if supervisor == "" {
