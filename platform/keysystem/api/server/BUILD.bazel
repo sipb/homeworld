@@ -12,7 +12,6 @@ go_library(
         "//keysystem/api/endpoint:go_default_library",
         "//keysystem/api/knc:go_default_library",
         "//keysystem/api/reqtarget:go_default_library",
-        "//keysystem/worldconfig/paths:go_default_library",
         "//util/wraputil:go_default_library",
         "@com_github_pkg_errors//:go_default_library",
     ],

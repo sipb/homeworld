@@ -11,19 +11,15 @@ import (
 )
 
 func LoadDefaultKeyserver() (*server.Keyserver, error) {
-	keyserver, err := paths.GetKeyserver()
-	if err != nil {
-		return nil, err
-	}
 	authoritydata, err := ioutil.ReadFile(paths.KeyserverTLSCert)
 	if err != nil {
 		return nil, errors.Wrap(err, "while loading authority")
 	}
-	ks, err := server.NewKeyserver(authoritydata, keyserver)
+	keyserver, err := paths.GetKeyserver()
 	if err != nil {
-		return nil, errors.Wrap(err, "while preparing setup")
+		return nil, errors.Wrap(err, "while determining keyserver")
 	}
-	return ks, nil
+	return server.NewKeyserver(authoritydata, keyserver)
 }
 
 func LoadDefaultKeyserverWithCert() (*server.Keyserver, reqtarget.RequestTarget, error) {
