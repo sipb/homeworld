@@ -1,9 +1,26 @@
 package worldconfig
 
 import (
+	"fmt"
+	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	"net"
 )
+
+type SpireNode struct {
+	Hostname string
+	IP       string
+	netIP    net.IP
+	Kind     string
+}
+
+func (s *SpireNode) NetIP() net.IP {
+	if s.netIP == nil {
+		panic("IP state inconsistency")
+	}
+	return s.netIP
+}
 
 // format for the setup.yaml that spire uses
 type SpireSetup struct {
@@ -15,11 +32,7 @@ type SpireSetup struct {
 	Addresses struct {
 		ServiceAPI string `yaml:"service-api"`
 	}
-	Nodes []struct {
-		Hostname string
-		IP       string
-		Kind     string
-	}
+	Nodes      []*SpireNode
 	RootAdmins []string `yaml:"root-admins"`
 }
 
@@ -32,6 +45,26 @@ func LoadSpireSetup(path string) (*SpireSetup, error) {
 	err = yaml.Unmarshal(content, setup)
 	if err != nil {
 		return nil, err
+	}
+	// validation steps
+	for _, node := range setup.Nodes {
+		if node.Kind != "worker" && node.Kind != "supervisor" && node.Kind != "master" {
+			return nil, fmt.Errorf("unrecognized kind of node: %s", node.Kind)
+		}
+		node.netIP = net.ParseIP(node.IP)
+		if node.netIP == nil {
+			return nil, fmt.Errorf("could not parse IP: %s", node.IP)
+		}
+	}
+	dupcheck := map[string]struct{}{}
+	for _, rootadmin := range setup.RootAdmins {
+		if rootadmin == "" {
+			return nil, errors.New("invalid root admin name ''")
+		}
+		if _, found := dupcheck[rootadmin]; found {
+			return nil, fmt.Errorf("duplicate root admin: %s", rootadmin)
+		}
+		dupcheck[rootadmin] = struct{}{}
 	}
 	return setup, nil
 }

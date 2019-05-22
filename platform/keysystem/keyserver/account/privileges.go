@@ -36,6 +36,9 @@ func NewSSHGrantPrivilege(tauth *authorities.SSHAuthority, ishost bool, lifespan
 }
 
 func NewBootstrapPrivilege(allowed *Group, lifespan time.Duration, registry *token.TokenRegistry) Privilege {
+	if registry == nil {
+		panic("expected registry to exist")
+	}
 	return func(_ *OperationContext, encodedPrincipal string) (string, error) {
 		principal := string(encodedPrincipal)
 		if !allowed.HasMember(principal) {

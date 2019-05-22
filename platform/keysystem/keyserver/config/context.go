@@ -18,8 +18,6 @@ type StaticFile struct {
 
 type Context struct {
 	Authorities             map[string]authorities.Authority
-	Groups                  map[string]*account.Group
-	Grants                  map[string]map[string]account.Privilege // indexed first by API and then by principal
 	Accounts                map[string]*account.Account
 	TokenVerifier           verifier.TokenVerifier
 	AuthenticationAuthority *authorities.TLSAuthority
