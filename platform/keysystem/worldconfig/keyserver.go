@@ -1,9 +1,6 @@
 package worldconfig
 
 import (
-	"fmt"
-	"github.com/pkg/errors"
-	"net"
 	"os"
 	"time"
 
@@ -16,109 +13,45 @@ import (
 
 type Groups struct {
 	KerberosAccounts *account.Group
-	RootAdmins       *account.Group
 	Nodes            *account.Group
-	SupervisorNodes  *account.Group
-	WorkerNodes      *account.Group
-	MasterNodes      *account.Group
 }
 
-func GenerateGroups(context *config.Context) Groups {
-	kerberosAccountsGroup := &account.Group{
-		Name: "kerberos-accounts",
-	}
-	nodesGroup := &account.Group{
-		Name: "nodes",
-	}
-	groups := Groups{
-		KerberosAccounts: kerberosAccountsGroup,
-		Nodes:            nodesGroup,
-		RootAdmins: &account.Group{
-			Name:       "root-admins",
-			SubgroupOf: kerberosAccountsGroup,
-		},
-		SupervisorNodes: &account.Group{
-			Name:       "supervisor-nodes",
-			SubgroupOf: nodesGroup,
-		},
-		WorkerNodes: &account.Group{
-			Name:       "worker-nodes",
-			SubgroupOf: nodesGroup,
-		},
-		MasterNodes: &account.Group{
-			Name:       "master-nodes",
-			SubgroupOf: nodesGroup,
-		},
-	}
-
-	return groups
-}
-
-func GenerateAccounts(context *config.Context, conf *SpireSetup, groups Groups) error {
+func GenerateAccounts(context *config.Context, conf *SpireSetup, auth Authorities) {
 	var accounts []*account.Account
+
+	groups := Groups{
+		KerberosAccounts: &account.Group{},
+		Nodes:            &account.Group{},
+	}
 
 	// TODO: ensure that node hostnames are not duplicated
 
 	for _, node := range conf.Nodes {
-		var schedule string
-		var group *account.Group
-		if node.Kind == "worker" {
-			schedule = "true"
-			group = groups.WorkerNodes
-		} else {
-			schedule = "false"
-			if node.Kind == "supervisor" {
-				group = groups.SupervisorNodes
-			} else if node.Kind == "master" {
-				group = groups.MasterNodes
-			} else {
-				return fmt.Errorf("unrecognized kind of node: %s", node.Kind)
-			}
-		}
-
-		limitIP := net.ParseIP(node.IP)
-		if limitIP == nil {
-			return fmt.Errorf("invalid IP address: %s", node.IP)
-		}
-
-		principal := node.Hostname + "." + conf.Cluster.ExternalDomain
-
 		acc := &account.Account{
-			Principal: principal,
-			Group:     group,
-			LimitIP:   limitIP,
-			Metadata: map[string]string{
-				"ip":       node.IP,
-				"hostname": node.Hostname,
-				"schedule": schedule,
-				"kind":     node.Kind,
-			},
+			Principal: node.Hostname + "." + conf.Cluster.ExternalDomain,
+			LimitIP:   node.NetIP(),
 		}
 		accounts = append(accounts, acc)
 
 		groups.Nodes.AllMembers = append(groups.Nodes.AllMembers, acc)
-		group.AllMembers = append(group.AllMembers, acc)
+		acc.Privileges = GrantsForNodeAccount(context, conf, groups, auth, acc, node)
 	}
 
 	// metrics principal used by homeworld-ssh-checker
 	allAdmins := append([]string{"metrics@NONEXISTENT.REALM.INVALID"}, conf.RootAdmins...)
 
 	for _, rootAdmin := range allAdmins {
-		if rootAdmin == "" {
-			return errors.New("cannot have an admin with an unnamed account")
-		}
 		// TODO: ensure that root admins are unique, including against the metrics admin
 		acc := &account.Account{
 			Principal:         rootAdmin,
 			DisableDirectAuth: true,
-			Group:             groups.RootAdmins,
-			Metadata:          map[string]string{},
 		}
 		accounts = append(accounts, acc)
-		groups.RootAdmins.AllMembers = append(groups.RootAdmins.AllMembers, acc)
 		groups.KerberosAccounts.AllMembers = append(groups.KerberosAccounts.AllMembers, acc)
+		acc.Privileges = GrantsForRootAdminAccount(context, groups, auth, acc)
 	}
 
+	// if kerberos is enabled
 	if len(conf.RootAdmins) > 0 {
 		for _, node := range conf.Nodes {
 			if node.Kind == "supervisor" {
@@ -126,20 +59,18 @@ func GenerateAccounts(context *config.Context, conf *SpireSetup, groups Groups) 
 				acc := &account.Account{
 					Principal:         principal,
 					DisableDirectAuth: true,
-					Group:             groups.KerberosAccounts,
-					Metadata:          map[string]string{},
 				}
 				accounts = append(accounts, acc)
 				groups.KerberosAccounts.AllMembers = append(groups.KerberosAccounts.AllMembers, acc)
+				// no privileges needed for this. it's just used to test that kerberos auth works correctly.
+				acc.Privileges = map[string]account.Privilege{}
 			}
 		}
 	}
 
 	for _, ac := range accounts {
-		ac.Metadata["principal"] = ac.Principal
 		context.Accounts[ac.Principal] = ac
 	}
-	return nil
 }
 
 type Authorities struct {
@@ -212,208 +143,131 @@ func GenerateAuthorities(conf *SpireSetup) map[string]config.ConfigAuthority {
 	}
 }
 
-func GenerateGrants(context *config.Context, conf *SpireSetup, groups Groups, auth Authorities) error {
-	grants := map[string]config.ConfigGrant{
-		// ADMIN ACCESS TO THE RUNNING CLUSTER
+func GrantsForRootAdminAccount(c *config.Context, groups Groups, auth Authorities, ac *account.Account) map[string]account.Privilege {
+	var grants = map[string]account.Privilege{}
 
-		"access-ssh": {
-			Group: groups.RootAdmins,
-			Specialize: func(ac *account.Account, context *config.Context) account.Privilege {
-				return account.NewSSHGrantPrivilege(
-					auth.SshUser, false, 4*time.Hour,
-					"temporary-ssh-grant-"+ac.Principal, []string{"root"},
-				)
-			},
-		},
+	// ADMIN ACCESS TO THE RUNNING CLUSTER
 
-		"access-etcd": {
-			Group: groups.RootAdmins,
-			Specialize: func(ac *account.Account, context *config.Context) account.Privilege {
-				return account.NewTLSGrantPrivilege(
-					auth.EtcdClient, false, 4*time.Hour,
-					"temporary-etcd-grant-"+ac.Principal, nil,
-				)
-			},
-		},
+	grants["access-ssh"] = account.NewSSHGrantPrivilege(
+		auth.SshUser, false, 4*time.Hour,
+		"temporary-ssh-grant-"+ac.Principal, []string{"root"},
+	)
+	grants["access-etcd"] = account.NewTLSGrantPrivilege(
+		auth.EtcdClient, false, 4*time.Hour,
+		"temporary-etcd-grant-"+ac.Principal, nil,
+	)
+	grants["access-kubernetes"] = account.NewTLSGrantPrivilege(
+		auth.Kubernetes, false, 4*time.Hour,
+		"temporary-kube-grant-"+ac.Principal, nil,
+	)
 
-		"access-kubernetes": {
-			Group: groups.RootAdmins,
-			Specialize: func(ac *account.Account, context *config.Context) account.Privilege {
-				return account.NewTLSGrantPrivilege(
-					auth.Kubernetes, false, 4*time.Hour,
-					"temporary-kube-grant-"+ac.Principal, nil,
-				)
-			},
-		},
+	// MEMBERSHIP IN THE CLUSTER
 
-		// MEMBERSHIP IN THE CLUSTER
+	grants["bootstrap"] = account.NewBootstrapPrivilege(groups.Nodes, time.Hour, c.TokenVerifier.Registry)
 
-		"bootstrap": {
-			Group: groups.RootAdmins,
-			Specialize: func(ac *account.Account, context *config.Context) account.Privilege {
-				return account.NewBootstrapPrivilege(groups.Nodes, time.Hour, context.TokenVerifier.Registry)
-			},
-		},
+	return grants
+}
 
-		"bootstrap-keyinit": {
-			Group: groups.SupervisorNodes,
-			Specialize: func(ac *account.Account, context *config.Context) account.Privilege {
-				if context.TokenVerifier.Registry == nil {
-					panic("expected registry to exist")
-				}
-				return account.NewBootstrapPrivilege(groups.Nodes, time.Hour, context.TokenVerifier.Registry)
-			},
-		},
+func GenerateLocalConf(conf *SpireSetup, node *SpireNode) string {
+	var schedule string
+	if node.Kind == "worker" {
+		schedule = "true"
+	} else if node.Kind == "master" || node.Kind == "supervisor" {
+		schedule = "false"
+	} else {
+		panic("invalid node Kind")
+	}
 
-		"renew-keygrant": {
-			Group: groups.Nodes,
-			Specialize: func(ac *account.Account, context *config.Context) account.Privilege {
-				return account.NewTLSGrantPrivilege(auth.Keygranting, false, OneDay*40, ac.Principal, nil)
-			},
-		},
-
-		"auth-to-kerberos": { // integration with kerberos gateway
-			Group: groups.SupervisorNodes,
-			Specialize: func(ac *account.Account, context *config.Context) account.Privilege {
-				return account.NewImpersonatePrivilege(context.GetAccount, groups.KerberosAccounts)
-			},
-		},
-
-		// CONFIGURATION ENDPOINT
-
-		"get-local-config": {
-			Group: groups.Nodes,
-			Specialize: func(ac *account.Account, context *config.Context) account.Privilege {
-				hostname := ac.Metadata["hostname"]
-				ip := ac.Metadata["ip"]
-				schedule := ac.Metadata["schedule"]
-				kind := ac.Metadata["kind"]
-				return account.NewConfigurationPrivilege(
-					`# generated automatically by keyserver
-HOST_NODE=` + hostname + `
-HOST_DNS=` + hostname + `.` + conf.Cluster.ExternalDomain + `
-HOST_IP=` + ip + `
+	return `# generated automatically by keyserver
+HOST_NODE=` + node.Hostname + `
+HOST_DNS=` + node.Hostname + `.` + conf.Cluster.ExternalDomain + `
+HOST_IP=` + node.IP + `
 SCHEDULE_WORK=` + schedule + `
-KIND=` + kind,
-				)
-			},
-		},
+KIND=` + node.Kind
+}
 
-		// SERVER CERTIFICATES
+func GrantsForNodeAccount(c *config.Context, conf *SpireSetup, groups Groups, auth Authorities, ac *account.Account, node *SpireNode) map[string]account.Privilege {
+	// NOTE: at the point where this runs, not all accounts will necessarily be registered with the context!
+	var grants = map[string]account.Privilege{}
 
-		"grant-ssh-host": {
-			Group: groups.Nodes,
-			Specialize: func(ac *account.Account, context *config.Context) account.Privilege {
-				hostname := ac.Metadata["hostname"]
-				ip := ac.Metadata["ip"]
-				return account.NewSSHGrantPrivilege(
-					auth.SshHost, true, OneDay*60, "admitted-"+ac.Principal,
-					[]string{
-						hostname + "." + conf.Cluster.ExternalDomain,
-						hostname,
-						ip,
-					},
-				)
-			},
-		},
+	// MEMBERSHIP IN THE CLUSTER
 
-		"grant-kubernetes-master": {
-			Group: groups.MasterNodes,
-			Specialize: func(ac *account.Account, context *config.Context) account.Privilege {
-				hostname := ac.Metadata["hostname"]
-				ip := ac.Metadata["ip"]
-				return account.NewTLSGrantPrivilege(
-					auth.Kubernetes, true, 30*OneDay, "kube-master-"+hostname,
-					[]string{
-						hostname + "." + conf.Cluster.ExternalDomain,
-						hostname,
-						"kubernetes",
-						"kubernetes.default",
-						"kubernetes.default.svc",
-						"kubernetes.default.svc." + conf.Cluster.InternalDomain,
-						ip,
-						conf.Addresses.ServiceAPI,
-					},
-				)
-			},
-		},
-
-		"grant-etcd-server": {
-			Group: groups.MasterNodes,
-			Specialize: func(ac *account.Account, context *config.Context) account.Privilege {
-				hostname := ac.Metadata["hostname"]
-				ip := ac.Metadata["ip"]
-				return account.NewTLSGrantPrivilege(
-					auth.EtcdServer, true, 30*OneDay, "etcd-server-"+hostname,
-					[]string{
-						hostname + "." + conf.Cluster.ExternalDomain,
-						hostname,
-						ip,
-					},
-				)
-			},
-		},
-
-		"grant-registry-host": {
-			Group: groups.SupervisorNodes,
-			Specialize: func(ac *account.Account, context *config.Context) account.Privilege {
-				hostname := ac.Metadata["hostname"]
-				return account.NewTLSGrantPrivilege(
-					auth.ClusterTLS, true, 30*OneDay, "homeworld-supervisor-"+hostname,
-					[]string{"homeworld.private"},
-				)
-			},
-		},
-
-		// CLIENT CERTIFICATES
-
-		"grant-kubernetes-worker": {
-			Group: groups.Nodes,
-			Specialize: func(ac *account.Account, context *config.Context) account.Privilege {
-				hostname := ac.Metadata["hostname"]
-				ip := ac.Metadata["ip"]
-				return account.NewTLSGrantPrivilege(
-					auth.Kubernetes, true, 30*OneDay, "kube-worker-"+hostname,
-					[]string{
-						hostname + "." + conf.Cluster.ExternalDomain,
-						hostname,
-						ip,
-					},
-				)
-			},
-		},
-
-		"grant-etcd-client": {
-			Group: groups.MasterNodes,
-			Specialize: func(ac *account.Account, context *config.Context) account.Privilege {
-				hostname := ac.Metadata["hostname"]
-				ip := ac.Metadata["ip"]
-				return account.NewTLSGrantPrivilege(auth.EtcdClient, false, 30*OneDay, "etcd-client-"+hostname,
-					[]string{
-						hostname + "." + conf.Cluster.ExternalDomain,
-						hostname,
-						ip,
-					},
-				)
-			},
-		},
-
-		"fetch-serviceaccount-key": {
-			Group: groups.MasterNodes,
-			Specialize: func(ac *account.Account, context *config.Context) account.Privilege {
-				return account.NewFetchKeyPrivilege(auth.ServiceAccount)
-			},
-		},
+	if node.Kind == "supervisor" {
+		grants["bootstrap-keyinit"] = account.NewBootstrapPrivilege(groups.Nodes, time.Hour, c.TokenVerifier.Registry)
+		grants["auth-to-kerberos"] = account.NewImpersonatePrivilege(c.GetAccount, groups.KerberosAccounts)
 	}
 
-	for api, grant := range grants {
-		privileges := map[string]account.Privilege{}
-		for _, ac := range grant.Group.AllMembers {
-			privileges[ac.Principal] = grant.Specialize(ac, context)
-		}
-		context.Grants[api] = privileges
+	grants["renew-keygrant"] = account.NewTLSGrantPrivilege(auth.Keygranting, false, OneDay*40, ac.Principal, nil)
+
+	// CONFIGURATION ENDPOINT
+
+	grants["get-local-config"] = account.NewConfigurationPrivilege(GenerateLocalConf(conf, node))
+
+	// SERVER CERTIFICATES
+
+	grants["grant-ssh-host"] = account.NewSSHGrantPrivilege(
+		auth.SshHost, true, OneDay*60, "admitted-"+ac.Principal,
+		[]string{
+			node.Hostname + "." + conf.Cluster.ExternalDomain,
+			node.Hostname,
+			node.IP,
+		},
+	)
+
+	if node.Kind == "master" {
+		grants["grant-kubernetes-master"] = account.NewTLSGrantPrivilege(
+			auth.Kubernetes, true, 30*OneDay, "kube-master-"+node.Hostname,
+			[]string{
+				node.Hostname + "." + conf.Cluster.ExternalDomain,
+				node.Hostname,
+				"kubernetes",
+				"kubernetes.default",
+				"kubernetes.default.svc",
+				"kubernetes.default.svc." + conf.Cluster.InternalDomain,
+				node.IP,
+				conf.Addresses.ServiceAPI,
+			},
+		)
+		grants["grant-etcd-server"] = account.NewTLSGrantPrivilege(
+			auth.EtcdServer, true, 30*OneDay, "etcd-server-"+node.Hostname,
+			[]string{
+				node.Hostname + "." + conf.Cluster.ExternalDomain,
+				node.Hostname,
+				node.IP,
+			},
+		)
 	}
-	return nil
+
+	if node.Kind == "supervisor" {
+		grants["grant-registry-host"] = account.NewTLSGrantPrivilege(
+			auth.ClusterTLS, true, 30*OneDay, "homeworld-supervisor-"+node.Hostname,
+			[]string{"homeworld.private"},
+		)
+	}
+
+	// CLIENT CERTIFICATES
+
+	grants["grant-kubernetes-worker"] = account.NewTLSGrantPrivilege(
+		auth.Kubernetes, true, 30*OneDay, "kube-worker-"+node.Hostname,
+		[]string{
+			node.Hostname + "." + conf.Cluster.ExternalDomain,
+			node.Hostname,
+			node.IP,
+		},
+	)
+
+	if node.Kind == "master" {
+		grants["grant-etcd-client"] = account.NewTLSGrantPrivilege(auth.EtcdClient, false, 30*OneDay, "etcd-client-"+node.Hostname,
+			[]string{
+				node.Hostname + "." + conf.Cluster.ExternalDomain,
+				node.Hostname,
+				node.IP,
+			},
+		)
+		grants["fetch-serviceaccount-key"] = account.NewFetchKeyPrivilege(auth.ServiceAccount)
+	}
+
+	return grants
 }
 
 func ValidateStaticFiles(context *config.Context) error {
@@ -457,7 +311,6 @@ func GenerateConfig() (*config.Context, error) {
 		},
 		Authorities: map[string]authorities.Authority{},
 		Accounts:    map[string]*account.Account{},
-		Grants:      map[string]map[string]account.Privilege{},
 	}
 	err = ValidateStaticFiles(context)
 	if err != nil {
@@ -483,14 +336,6 @@ func GenerateConfig() (*config.Context, error) {
 	}
 	context.AuthenticationAuthority = auth.Keygranting
 	context.ServerTLS = auth.ServerTLS
-	groups := GenerateGroups(context)
-	err = GenerateAccounts(context, conf, groups)
-	if err != nil {
-		return nil, err
-	}
-	err = GenerateGrants(context, conf, groups, auth)
-	if err != nil {
-		return nil, err
-	}
+	GenerateAccounts(context, conf, auth)
 	return context, nil
 }

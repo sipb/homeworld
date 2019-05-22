@@ -6,16 +6,13 @@ import (
 
 type Account struct {
 	Principal         string
-	Group             *Group
 	DisableDirectAuth bool
-	Metadata          map[string]string
 	LimitIP           net.IP
+	Privileges        map[string]Privilege
 }
 
 type Group struct {
-	Name       string
 	AllMembers []*Account
-	SubgroupOf *Group
 }
 
 func (g *Group) HasMember(user string) bool {

@@ -46,27 +46,22 @@ func InvokeAPIOperationSet(a *account.Account, context *config.Context, requestB
 }
 
 func InvokeAPIOperation(ctx *account.OperationContext, gctx *config.Context, API string, requestBody string, logger *log.Logger) (string, error) {
-	grant, found := gctx.Grants[API]
-	if !found {
-		return "", fmt.Errorf("could not find API request '%s'", API)
-	}
 	if ctx.Account == nil {
 		return "", errors.New("missing account during request")
 	}
-	princ := ctx.Account.Principal
-	priv, found := grant[princ]
+	priv, found := ctx.Account.Privileges[API]
 	if !found {
 		return "", &OperationForbiddenError{
-			Principal: princ,
+			Principal: ctx.Account.Principal,
 			API:       API,
 		}
 	}
-	logger.Printf("attempting to perform API operation %s for %s", API, princ)
+	logger.Printf("attempting to perform API operation %s for %s", API, ctx.Account.Principal)
 	response, err := priv(ctx, requestBody)
 	if err != nil {
-		logger.Printf("operation %s for %s failed with error: %s", API, princ, err)
+		logger.Printf("operation %s for %s failed with error: %s", API, ctx.Account.Principal, err)
 		return "", err
 	}
-	logger.Printf("operation %s for %s succeeded", API, princ)
+	logger.Printf("operation %s for %s succeeded", API, ctx.Account.Principal)
 	return response, nil
 }
