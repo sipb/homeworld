@@ -4,10 +4,8 @@ import (
 	"crypto/x509"
 	"fmt"
 	"github.com/pkg/errors"
-	"io/ioutil"
 
 	"github.com/sipb/homeworld/platform/keysystem/api/endpoint"
-	"github.com/sipb/homeworld/platform/keysystem/worldconfig/paths"
 	"github.com/sipb/homeworld/platform/util/wraputil"
 )
 
@@ -29,18 +27,6 @@ func NewKeyserver(authority []byte, hostname string) (*Keyserver, error) {
 		return nil, err // should not happen -- the URL provided also satisfies the checked constraints
 	}
 	return &Keyserver{endpoint: ep}, nil
-}
-
-func NewKeyserverDefault() (*Keyserver, error) {
-	authoritydata, err := ioutil.ReadFile(paths.KeyserverTLSCert)
-	if err != nil {
-		return nil, fmt.Errorf("while loading authority: %s", err)
-	}
-	keyserver, err := paths.GetKeyserver()
-	if err != nil {
-		return nil, err
-	}
-	return NewKeyserver(authoritydata, keyserver)
 }
 
 func (k *Keyserver) GetStatic(staticname string) ([]byte, error) {

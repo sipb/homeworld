@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/sipb/homeworld/platform/keysystem/api/server"
+	"github.com/sipb/homeworld/platform/keysystem/api"
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/actloop"
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/state"
 )
@@ -22,7 +22,7 @@ func notifyReady(logger *log.Logger) {
 }
 
 func LoadAndLaunchDefault(actions actloop.NewAction, logger *log.Logger) error {
-	ks, err := server.NewKeyserverDefault()
+	ks, err := api.LoadDefaultKeyserver()
 	if err != nil {
 		return errors.Wrap(err, "while preparing setup")
 	}
