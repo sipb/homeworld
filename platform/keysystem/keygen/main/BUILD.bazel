@@ -5,10 +5,7 @@ go_library(
     srcs = ["keygen.go"],
     importpath = "github.com/sipb/homeworld/platform/keysystem/keygen/main",
     visibility = ["//visibility:private"],
-    deps = [
-        "//keysystem/keygen:go_default_library",
-        "//keysystem/worldconfig:go_default_library",
-    ],
+    deps = ["//keysystem/keygen:go_default_library"],
 )
 
 go_binary(

@@ -41,14 +41,14 @@ func GenerateTLSSelfSignedCert(key *rsa.PrivateKey, name string, present_as []st
 	return certutil.FinishCertificate(certTemplate, certTemplate, key.Public(), key)
 }
 
-func GenerateKeys(setup *worldconfig.SpireSetup, dir string) error {
+func GenerateKeys(dir string) error {
 	if info, err := os.Stat(dir); err != nil {
 		return err
 	} else if !info.IsDir() {
 		return errors.New("expected authority directory, not authority file")
 	}
 
-	authorities := worldconfig.GenerateAuthorities(setup)
+	authorities := worldconfig.GenerateAuthorities()
 
 	for name, authority := range authorities {
 		// private key

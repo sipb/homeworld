@@ -58,7 +58,7 @@ def generate() -> None:
         print("generating authorities...")
         try:
             # TODO: avoid having these touch disk
-            subprocess.check_call(["keygen", configuration.Config.get_setup_path(), certdir])
+            subprocess.check_call(["keygen", certdir])
         except FileNotFoundError as e:
             if e.filename == "keygen":
                 command.fail("could not find keygen binary. is the homeworld-keyserver dependency installed?")

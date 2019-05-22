@@ -88,7 +88,7 @@ type Authorities struct {
 	ServiceAccount *authorities.StaticAuthority
 }
 
-func GenerateAuthorities(conf *SpireSetup) map[string]config.ConfigAuthority {
+func GenerateAuthorities() map[string]config.ConfigAuthority {
 	return map[string]config.ConfigAuthority{
 		"keygranting": {
 			Type: "TLS",
@@ -298,7 +298,7 @@ func GenerateConfig() (*config.Context, error) {
 	if err != nil {
 		return nil, err
 	}
-	for name, authority := range GenerateAuthorities(conf) {
+	for name, authority := range GenerateAuthorities() {
 		loaded, err := authority.Load(AuthorityKeyDirectory)
 		if err != nil {
 			return nil, err
