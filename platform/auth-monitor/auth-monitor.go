@@ -119,12 +119,12 @@ func attemptSSHAcquire(keyserver *server.Keyserver) (*rsa.PrivateKey, *ssh.Certi
 		return nil, nil, err
 	}
 
-	rt, err = reqtarget.Impersonate(rt, "auth-to-kerberos", "metrics@NONEXISTENT.REALM.INVALID")
+	rt, err = reqtarget.Impersonate(rt, worldconfig.ImpersonateKerberosAPI, "metrics@NONEXISTENT.REALM.INVALID")
 	if err != nil {
 		return nil, nil, err
 	}
 
-	resp, err := reqtarget.SendRequest(rt, "access-ssh", string(ssh.MarshalAuthorizedKey(pubkey)))
+	resp, err := reqtarget.SendRequest(rt, worldconfig.AccessSSHAPI, string(ssh.MarshalAuthorizedKey(pubkey)))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -187,7 +187,7 @@ func attemptKAuth(keyserver *server.Keyserver) error {
 
 func cycle(keyserver *server.Keyserver) {
 	// basic functionality testing
-	host_ca_pub, err := keyserver.GetPubkey("ssh-host")
+	host_ca_pub, err := keyserver.GetPubkey(worldconfig.SSHHostAuthority)
 	if err != nil {
 		keyCheck.Set(0)
 		fetchCheck.Set(0)
@@ -201,7 +201,7 @@ func cycle(keyserver *server.Keyserver) {
 	}
 
 	// just checking to make sure we can fetch statics
-	clusterconf, err := keyserver.GetStatic("cluster.conf")
+	clusterconf, err := keyserver.GetStatic(worldconfig.ClusterConfStatic)
 	if err != nil {
 		fetchCheck.Set(0)
 		log.Printf("failed fetch of keyserver static: %v", err)

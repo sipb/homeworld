@@ -11,9 +11,6 @@ const GrantingCertPath = "/etc/homeworld/keyclient/granting.pem"
 const BootstrapTokenPath = "/etc/homeworld/keyclient/bootstrap.token"
 const SpireSetupPath = "/etc/homeworld/config/setup.yaml"
 
-const BootstrapKeyserverTokenAPI = "bootstrap-keyinit"
-const BootstrapTokenAPI = "renew-keygrant"
-
 func GetKeyserver() (string, error) {
 	keyserver, err := ioutil.ReadFile("/etc/homeworld/config/keyserver.domain")
 	if err != nil {

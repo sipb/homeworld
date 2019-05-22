@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"github.com/sipb/homeworld/platform/keysystem/worldconfig"
 	"io/ioutil"
 	"log"
 	"os"
@@ -23,7 +24,7 @@ func HandleRequest(principal string, request_data []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	reqt, err := reqtarget.Impersonate(rt, "auth-to-kerberos", principal)
+	reqt, err := reqtarget.Impersonate(rt, worldconfig.ImpersonateKerberosAPI, principal)
 	if err != nil {
 		return nil, err
 	}

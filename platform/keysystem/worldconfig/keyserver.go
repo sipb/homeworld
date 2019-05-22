@@ -90,14 +90,14 @@ type Authorities struct {
 
 func ListAuthorities() []config.ConfigAuthority {
 	return []config.ConfigAuthority{
-		config.TLSAuthority("keygranting"),
-		config.TLSAuthority("clusterca"),
-		config.SSHAuthority("ssh-user"),
-		config.SSHAuthority("ssh-host"),
-		config.TLSAuthority("kubernetes"),
-		config.TLSAuthority("etcd-server"),
-		config.TLSAuthority("etcd-client"),
-		config.TLSAuthority("serviceaccount"),
+		config.TLSAuthority(KeygrantingAuthority),
+		config.TLSAuthority(ClusterCAAuthority),
+		config.SSHAuthority(SSHUserAuthority),
+		config.SSHAuthority(SSHHostAuthority),
+		config.TLSAuthority(KubernetesAuthority),
+		config.TLSAuthority(EtcdServerAuthority),
+		config.TLSAuthority(EtcdClientAuthority),
+		config.TLSAuthority(ServiceAccountAuthority),
 	}
 }
 
@@ -106,15 +106,15 @@ func GrantsForRootAdminAccount(c *config.Context, groups Groups, auth Authoritie
 
 	// ADMIN ACCESS TO THE RUNNING CLUSTER
 
-	grants["access-ssh"] = account.NewSSHGrantPrivilege(
+	grants[AccessSSHAPI] = account.NewSSHGrantPrivilege(
 		auth.SshUser, false, 4*time.Hour,
 		"temporary-ssh-grant-"+ac.Principal, []string{"root"},
 	)
-	grants["access-etcd"] = account.NewTLSGrantPrivilege(
+	grants[AccessEtcdAPI] = account.NewTLSGrantPrivilege(
 		auth.EtcdClient, false, 4*time.Hour,
 		"temporary-etcd-grant-"+ac.Principal, nil,
 	)
-	grants["access-kubernetes"] = account.NewTLSGrantPrivilege(
+	grants[AccessKubernetesAPI] = account.NewTLSGrantPrivilege(
 		auth.Kubernetes, false, 4*time.Hour,
 		"temporary-kube-grant-"+ac.Principal, nil,
 	)
@@ -144,19 +144,19 @@ func GrantsForNodeAccount(c *config.Context, conf *SpireSetup, groups Groups, au
 	// MEMBERSHIP IN THE CLUSTER
 
 	if node.IsSupervisor() {
-		grants["bootstrap-keyinit"] = account.NewBootstrapPrivilege(groups.Nodes, time.Hour, c.TokenVerifier.Registry)
-		grants["auth-to-kerberos"] = account.NewImpersonatePrivilege(c.GetAccount, groups.KerberosAccounts)
+		grants[BootstrapKeyserverTokenAPI] = account.NewBootstrapPrivilege(groups.Nodes, time.Hour, c.TokenVerifier.Registry)
+		grants[ImpersonateKerberosAPI] = account.NewImpersonatePrivilege(c.GetAccount, groups.KerberosAccounts)
 	}
 
-	grants["renew-keygrant"] = account.NewTLSGrantPrivilege(auth.Keygranting, false, OneDay*40, ac.Principal, nil)
+	grants[RenewKeygrantAPI] = account.NewTLSGrantPrivilege(auth.Keygranting, false, OneDay*40, ac.Principal, nil)
 
 	// CONFIGURATION ENDPOINT
 
-	grants["get-local-config"] = account.NewConfigurationPrivilege(GenerateLocalConf(conf, node))
+	grants[LocalConfAPI] = account.NewConfigurationPrivilege(GenerateLocalConf(conf, node))
 
 	// SERVER CERTIFICATES
 
-	grants["grant-ssh-host"] = account.NewSSHGrantPrivilege(
+	grants[SignSSHHostKeyAPI] = account.NewSSHGrantPrivilege(
 		auth.SshHost, true, OneDay*60, "admitted-"+ac.Principal,
 		[]string{
 			node.DNS(),
@@ -166,7 +166,7 @@ func GrantsForNodeAccount(c *config.Context, conf *SpireSetup, groups Groups, au
 	)
 
 	if node.IsMaster() {
-		grants["grant-kubernetes-master"] = account.NewTLSGrantPrivilege(
+		grants[SignKubernetesMasterAPI] = account.NewTLSGrantPrivilege(
 			auth.Kubernetes, true, 30*OneDay, "kube-master-"+node.Hostname,
 			[]string{
 				node.DNS(),
@@ -179,7 +179,7 @@ func GrantsForNodeAccount(c *config.Context, conf *SpireSetup, groups Groups, au
 				conf.Addresses.ServiceAPI,
 			},
 		)
-		grants["grant-etcd-server"] = account.NewTLSGrantPrivilege(
+		grants[SignEtcdServerAPI] = account.NewTLSGrantPrivilege(
 			auth.EtcdServer, true, 30*OneDay, "etcd-server-"+node.Hostname,
 			[]string{
 				node.DNS(),
@@ -190,7 +190,7 @@ func GrantsForNodeAccount(c *config.Context, conf *SpireSetup, groups Groups, au
 	}
 
 	if node.IsSupervisor() {
-		grants["grant-registry-host"] = account.NewTLSGrantPrivilege(
+		grants[SignRegistryHostAPI] = account.NewTLSGrantPrivilege(
 			auth.ClusterCA, true, 30*OneDay, "homeworld-supervisor-"+node.Hostname,
 			[]string{"homeworld.private"},
 		)
@@ -198,7 +198,7 @@ func GrantsForNodeAccount(c *config.Context, conf *SpireSetup, groups Groups, au
 
 	// CLIENT CERTIFICATES
 
-	grants["grant-kubernetes-worker"] = account.NewTLSGrantPrivilege(
+	grants[SignKubernetesWorkerAPI] = account.NewTLSGrantPrivilege(
 		auth.Kubernetes, true, 30*OneDay, "kube-worker-"+node.Hostname,
 		[]string{
 			node.DNS(),
@@ -208,14 +208,14 @@ func GrantsForNodeAccount(c *config.Context, conf *SpireSetup, groups Groups, au
 	)
 
 	if node.IsMaster() {
-		grants["grant-etcd-client"] = account.NewTLSGrantPrivilege(auth.EtcdClient, false, 30*OneDay, "etcd-client-"+node.Hostname,
+		grants[SignEtcdClientAPI] = account.NewTLSGrantPrivilege(auth.EtcdClient, false, 30*OneDay, "etcd-client-"+node.Hostname,
 			[]string{
 				node.DNS(),
 				node.Hostname,
 				node.IP,
 			},
 		)
-		grants["fetch-serviceaccount-key"] = account.NewFetchKeyPrivilege(auth.ServiceAccount)
+		grants[FetchServiceAccountKeyAPI] = account.NewFetchKeyPrivilege(auth.ServiceAccount)
 	}
 
 	return grants
@@ -247,7 +247,7 @@ func GenerateConfig() (*config.Context, error) {
 	context := &config.Context{
 		TokenVerifier: verifier.NewTokenVerifier(),
 		StaticFiles: map[string]config.StaticFile{
-			"cluster.conf": {
+			ClusterConfStatic: {
 				Filepath: ClusterConfigPath,
 			},
 		},
@@ -268,14 +268,14 @@ func GenerateConfig() (*config.Context, error) {
 		context.Authorities[authority.Name] = loaded
 	}
 	auth := Authorities{
-		Keygranting:    context.Authorities["keygranting"].(*authorities.TLSAuthority),
-		ClusterCA:      context.Authorities["clusterca"].(*authorities.TLSAuthority),
-		EtcdClient:     context.Authorities["etcd-client"].(*authorities.TLSAuthority),
-		EtcdServer:     context.Authorities["etcd-server"].(*authorities.TLSAuthority),
-		Kubernetes:     context.Authorities["kubernetes"].(*authorities.TLSAuthority),
-		ServiceAccount: context.Authorities["serviceaccount"].(*authorities.TLSAuthority),
-		SshHost:        context.Authorities["ssh-host"].(*authorities.SSHAuthority),
-		SshUser:        context.Authorities["ssh-user"].(*authorities.SSHAuthority),
+		Keygranting:    context.Authorities[KeygrantingAuthority].(*authorities.TLSAuthority),
+		ClusterCA:      context.Authorities[ClusterCAAuthority].(*authorities.TLSAuthority),
+		EtcdClient:     context.Authorities[EtcdClientAuthority].(*authorities.TLSAuthority),
+		EtcdServer:     context.Authorities[EtcdServerAuthority].(*authorities.TLSAuthority),
+		Kubernetes:     context.Authorities[KubernetesAuthority].(*authorities.TLSAuthority),
+		ServiceAccount: context.Authorities[ServiceAccountAuthority].(*authorities.TLSAuthority),
+		SshHost:        context.Authorities[SSHHostAuthority].(*authorities.SSHAuthority),
+		SshUser:        context.Authorities[SSHUserAuthority].(*authorities.SSHAuthority),
 	}
 	context.AuthenticationAuthority = auth.Keygranting
 	context.ClusterCA = auth.ClusterCA

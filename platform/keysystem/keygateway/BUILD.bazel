@@ -8,6 +8,7 @@ go_library(
     deps = [
         "//keysystem/api:go_default_library",
         "//keysystem/api/reqtarget:go_default_library",
+        "//keysystem/worldconfig:go_default_library",
     ],
 )
 
