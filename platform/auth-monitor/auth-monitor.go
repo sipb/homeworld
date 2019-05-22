@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/sipb/homeworld/platform/keysystem/worldconfig"
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
 	"log"
@@ -199,16 +200,22 @@ func cycle(keyserver *server.Keyserver) {
 		keyCheck.Set(1)
 	}
 
-	machines, err := keyserver.GetStatic("machine.list")
+	// just checking to make sure we can fetch statics
+	clusterconf, err := keyserver.GetStatic("cluster.conf")
 	if err != nil {
 		fetchCheck.Set(0)
-		authCheck.Set(0)
-		grantCheck.Set(0)
-		sshCheck.Reset()
 		log.Printf("failed fetch of keyserver static: %v", err)
-		return
 	} else {
-		fetchCheck.Set(1)
+		expected, err := ioutil.ReadFile(worldconfig.ClusterConfigPath)
+		if err != nil {
+			fetchCheck.Set(0)
+			log.Printf("failed to load config for static comparison: %v", err)
+		} else if !bytes.Equal(clusterconf, expected) {
+			fetchCheck.Set(0)
+			log.Printf("mismatch between static cluster config (%d bytes) and expected cluster config (%d bytes)", len(clusterconf), len(expected))
+		} else {
+			fetchCheck.Set(1)
+		}
 	}
 
 	// checking kerberos authentication
@@ -221,14 +228,20 @@ func cycle(keyserver *server.Keyserver) {
 	}
 
 	// checking SSH authentication
-	machine_list := strings.Split(strings.TrimSpace(string(machines)), ",")
+	setupconfig, err := worldconfig.LoadSpireSetup(paths.SpireSetupPath)
+	if err != nil {
+		grantCheck.Set(0)
+		sshCheck.Reset()
+		log.Printf("failed to parse list of nodes: %v", err)
+		return
+	}
 
 	pkey, cert, err := attemptSSHAcquire(keyserver)
 	if err != nil {
 		grantCheck.Set(0)
-		for _, machine := range machine_list {
+		for _, machine := range setupconfig.Nodes {
 			sshCheck.With(prometheus.Labels{
-				"server": machine,
+				"server": machine.DNS(),
 			}).Set(0)
 		}
 		log.Printf("failed SSH grant check: %v", err)
@@ -237,20 +250,20 @@ func cycle(keyserver *server.Keyserver) {
 
 		host_ca, _, _, _, err := ssh.ParseAuthorizedKey(host_ca_pub)
 		if err != nil {
-			for _, machine := range machine_list {
+			for _, machine := range setupconfig.Nodes {
 				sshCheck.With(prometheus.Labels{
-					"server": machine,
+					"server": machine.DNS(),
 				}).Set(0)
 			}
 			log.Printf("failed to decode host_ca pubkey")
 		} else {
-			for _, machine := range machine_list {
-				err := attemptSSHAccess(pkey, cert, host_ca, machine)
+			for _, machine := range setupconfig.Nodes {
+				err := attemptSSHAccess(pkey, cert, host_ca, machine.DNS())
 				gauge := sshCheck.With(prometheus.Labels{
-					"server": machine,
+					"server": machine.DNS(),
 				})
 				if err != nil {
-					log.Printf("failed SSH access check for %s: %v", machine, err)
+					log.Printf("failed SSH access check for %s: %v", machine.DNS(), err)
 					gauge.Set(0)
 				} else {
 					gauge.Set(1)

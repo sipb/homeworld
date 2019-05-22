@@ -10,6 +10,7 @@ go_library(
         "//keysystem/api:go_default_library",
         "//keysystem/api/reqtarget:go_default_library",
         "//keysystem/api/server:go_default_library",
+        "//keysystem/worldconfig:go_default_library",
         "//keysystem/worldconfig/paths:go_default_library",
         "//util/osutil:go_default_library",
         "@com_github_prometheus_client_golang//prometheus:go_default_library",
