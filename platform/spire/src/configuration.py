@@ -269,11 +269,6 @@ def get_cluster_conf() -> str:
     return "".join(output)
 
 
-def get_machine_list_file() -> str:
-    config = Config.load_from_project()
-    return ",".join("%s.%s" % (node.hostname, config.external_domain) for node in config.nodes) + "\n"
-
-
 def get_kube_cert_paths() -> (str, str, str):
     project_dir = get_project()
     return os.path.join(project_dir, "kube-access.key"),\
@@ -321,10 +316,6 @@ def print_cluster_conf() -> None:
     print(get_cluster_conf())
 
 
-def print_machine_list_file() -> None:
-    print(get_machine_list_file())
-
-
 def print_local_kubeconfig() -> None:
     print(get_local_kubeconfig())
 
@@ -363,7 +354,6 @@ main_command = command.mux_map("commands about cluster configuration", {
     "gen-kube": command.wrap("generate kubernetes spec for the base cluster", gen_kube_spec),
     "show": command.mux_map("commands about showing different aspects of the configuration", {
         "cluster.conf": command.wrap("display the generated cluster.conf", print_cluster_conf),
-        "machine.list": command.wrap("display the generated machine.list", print_machine_list_file),
         "kubeconfig": command.wrap("display the generated local kubeconfig", print_local_kubeconfig),
         "prometheus.yaml": command.wrap("display the generated prometheus.yaml", print_prometheus_yaml),
     }),

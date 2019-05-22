@@ -235,7 +235,6 @@ func ValidateStaticFiles(context *config.Context) error {
 
 const AuthorityKeyDirectory = "/etc/homeworld/keyserver/authorities/"
 const ClusterConfigPath = "/etc/homeworld/keyserver/static/cluster.conf"
-const MachineListPath = "/etc/homeworld/keyserver/static/machine.list"
 
 func GenerateConfig() (*config.Context, error) {
 	conf, err := LoadSpireSetup(paths.SpireSetupPath)
@@ -249,10 +248,6 @@ func GenerateConfig() (*config.Context, error) {
 			"cluster.conf": {
 				Filename: "cluster.conf",
 				Filepath: ClusterConfigPath,
-			},
-			"machine.list": {
-				Filename: "machine.list",
-				Filepath: MachineListPath,
 			},
 		},
 		Authorities: map[string]authorities.Authority{},

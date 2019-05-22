@@ -55,12 +55,6 @@ def pull_prometheus_query(query):
 
 
 def check_keystatics():
-    machine_list = query.get_keyurl_data("/static/machine.list")
-    expected_machine_list = configuration.get_machine_list_file()
-
-    if not compare_multiline(machine_list, expected_machine_list):
-        command.fail("MISMATCH: machine.list")
-
     cluster_conf = query.get_keyurl_data("/static/cluster.conf")
     expected_cluster_conf = configuration.get_cluster_conf()
 
