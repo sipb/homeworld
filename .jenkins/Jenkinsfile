@@ -15,19 +15,19 @@ pipeline {
 				}
 			}
 			steps {
-				sh '''
+				timeout(60) { sh '''
 apt-get -qq update && apt-get -qq upgrade
 apt-get -qq install -y python
 python /extra/authenticate.py
 ./.jenkins/jenkins-build.sh
-				'''
+				''' }
 			}
 		}
 		stage('Test Deploy') {
 			steps {
-				sh '''
+				timeout(60) { sh '''
 ./.jenkins/jenkins-deploy.sh
-				'''
+				''' }
 			}
 		}
 	}

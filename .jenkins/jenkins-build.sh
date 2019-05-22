@@ -2,6 +2,11 @@
 
 set -eu
 
+while true
+do
+	sleep 1
+done
+
 apt-get -qq install -y git gnupg sudo psmisc
 apt-get -qq install -y build-essential cpio squashfs-tools debootstrap realpath
 # use same uid/gid as host so that the jenkins user has permissions to
