@@ -42,3 +42,7 @@ func (k *Keyserver) GetPubkey(authorityname string) ([]byte, error) {
 	}
 	return k.endpoint.Get("/pub/" + authorityname)
 }
+
+func (k *Keyserver) RequestAdmission(csr []byte) ([]byte, error) {
+	return k.endpoint.Post("/admit", csr)
+}

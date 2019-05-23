@@ -6,10 +6,7 @@ go_library(
     importpath = "github.com/sipb/homeworld/platform/keysystem/keyclient/actions/bootstrap",
     visibility = ["//visibility:public"],
     deps = [
-        "//keysystem/api/endpoint:go_default_library",
-        "//keysystem/api/reqtarget:go_default_library",
         "//keysystem/keyclient/actloop:go_default_library",
-        "//keysystem/keyclient/state:go_default_library",
         "//keysystem/worldconfig/paths:go_default_library",
         "//util/csrutil:go_default_library",
         "//util/fileutil:go_default_library",

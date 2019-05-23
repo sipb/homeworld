@@ -5,32 +5,32 @@ import setup
 import ssh
 
 
-def admit(server_principal: str) -> str:
+def approve_admit(server_principal: str, fingerprint: str) -> str:
     config = configuration.get_config()
     principal_hostname = config.get_fqdn(server_principal)
+    # TODO: unify keyreq and keyinitadmit
     if config.is_kerberos_enabled():
-        return access.call_keyreq("bootstrap-token", principal_hostname).decode().strip()
+        result = access.call_keyreq("admit", principal_hostname, fingerprint).decode().strip()
     else:
-        return ssh.check_ssh_output(config.keyserver, "keyinitadmit", principal_hostname).decode().strip()
+        result = ssh.check_ssh_output(config.keyserver, "keyinitadmit", principal_hostname, fingerprint).decode().strip()
+    if len(result) != 0:
+        raise Exception("expected empty output, not %s" % repr(result))
 
 
-def infra_admit(server_principal: str) -> None:
-    token = admit(server_principal)
-    print("Token granted for %s: '%s'" % (server_principal, token))
+def infra_admit(server_principal: str, fingerprint: str) -> None:
+    approve_admit(server_principal, fingerprint)
+    print("Approved admission for", server_principal)
 
 
-def infra_admit_all() -> None:
+def infra_list_admits() -> None:
     config = configuration.get_config()
-    tokens = []
-    for node in config.nodes:
-        if node.kind == "supervisor":
-            continue
-        token = admit(node.hostname)
-        tokens.append((node.hostname, node.kind, node.ip, token))
-    print('{:=^16} {:=^8} {:=^14} {:=^23}'.format('host', 'kind', 'ip', 'token'))
-    for hostname, kind, ip, token in tokens:
-        print('{:>16} {:^8} {:^14} {:<23}'.format(hostname, kind, str(ip), token))
-    print('{:=^16} {:=^8} {:=^14} {:=^23}'.format('host', 'kind', 'ip', 'token'))
+    print("Retrieving admission requests...")
+    if config.is_kerberos_enabled():
+        print(access.call_keyreq("list-requests").decode().strip())
+    else:
+        print(ssh.check_ssh_output(config.keyserver, "keyinitadmit").decode().strip())
+
+# TODO: interactive admission command, which goes through them and asks you to verify each one
 
 
 def infra_install_packages(ops: setup.Operations) -> None:
@@ -50,8 +50,8 @@ def infra_sync_supervisor(ops: setup.Operations) -> None:
 
 
 main_command = command.mux_map("commands about maintaining the infrastructure of a cluster", {
-    "admit": command.wrap("request a token to admit a node to the cluster", infra_admit),
-    "admit-all": command.wrap("request tokens to admit every non-supervisor node to the cluster", infra_admit_all),
+    "admit": command.wrap("approve admitting a node to the cluster", infra_admit),
+    "requests": command.wrap("list requests for joining nodes to the cluster", infra_list_admits),
     "install-packages": setup.wrapop("install and update packages on a node", infra_install_packages),
     "sync": setup.wrapop("synchronize the filesystem to disk on a node", infra_sync),
     "sync-supervisor": setup.wrapop("synchronize the filesystem to disk on the supervisor", infra_sync_supervisor),

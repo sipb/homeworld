@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["admit.go"],
+    importpath = "github.com/sipb/homeworld/platform/keysystem/keyserver/admit",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//keysystem/keyserver/authorities:go_default_library",
+        "//util/wraputil:go_default_library",
+        "@com_github_pkg_errors//:go_default_library",
+        "@org_golang_x_crypto//ssh:go_default_library",
+    ],
+)

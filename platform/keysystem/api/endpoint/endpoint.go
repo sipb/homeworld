@@ -112,6 +112,10 @@ func (s ServerEndpoint) Get(path string) ([]byte, error) {
 	return s.Request(path, "GET", nil)
 }
 
+func (s ServerEndpoint) Post(path string, body []byte) ([]byte, error) {
+	return s.Request(path, "POST", body)
+}
+
 func (s ServerEndpoint) PostJSON(path string, input interface{}, output interface{}) error {
 	reqbody, err := json.Marshal(input)
 	if err != nil {

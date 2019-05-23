@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["keyinittoken.go"],
+    importpath = "github.com/sipb/homeworld/platform/keysystem/keyinittoken",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//keysystem/keyclient/actions/keygen:go_default_library",
+        "//keysystem/keyserver/admit:go_default_library",
+        "//keysystem/worldconfig/paths:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "keyinittoken",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

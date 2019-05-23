@@ -9,7 +9,7 @@ go_library(
     importpath = "github.com/sipb/homeworld/platform/keysystem/keyserver/account",
     visibility = ["//visibility:public"],
     deps = [
+        "//keysystem/keyserver/admit:go_default_library",
         "//keysystem/keyserver/authorities:go_default_library",
-        "//keysystem/keyserver/token:go_default_library",
     ],
 )

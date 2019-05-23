@@ -8,6 +8,7 @@ go_library(
     deps = [
         "//keysystem/api/reqtarget:go_default_library",
         "//keysystem/api/server:go_default_library",
+        "//keysystem/keyserver/admit:go_default_library",
         "//keysystem/worldconfig:go_default_library",
         "//util/csrutil:go_default_library",
         "@org_golang_x_crypto//ssh:go_default_library",

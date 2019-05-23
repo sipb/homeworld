@@ -7,7 +7,9 @@ import (
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -23,6 +25,7 @@ type Keyserver interface {
 	HandleAPIRequest(writer http.ResponseWriter, request *http.Request) error
 	HandlePubRequest(writer http.ResponseWriter, authorityName string) error
 	HandleStaticRequest(writer http.ResponseWriter, staticName string) error
+	HandleAdmitRequest(writer http.ResponseWriter, request *http.Request) error
 	GetClientCAs() *x509.CertPool
 	GetValidServerCert(_ *tls.ClientHelloInfo) (*tls.Certificate, error)
 }
@@ -48,7 +51,7 @@ func verifyAccountIP(account *account.Account, request *http.Request) error {
 }
 
 func attemptAuthentication(context *config.Context, request *http.Request) (*account.Account, error) {
-	verifiers := []verifier.Verifier{context.TokenVerifier, context.AuthenticationAuthority}
+	verifiers := []verifier.Verifier{context.AuthenticationAuthority}
 
 	for _, verif := range verifiers {
 		if verif.HasAttempt(request) {
@@ -98,7 +101,7 @@ func (k *ConfiguredKeyserver) GetValidServerCert(_ *tls.ClientHelloInfo) (*tls.C
 	if err != nil {
 		return nil, errors.Wrap(err, "while signing CSR")
 	}
-	pair, err := tls.X509KeyPair([]byte(cert), k.ServerKey)
+	pair, err := tls.X509KeyPair([]byte(cert+string(k.Context.ClusterCA.GetPublicKey())), k.ServerKey)
 	if err != nil {
 		return nil, errors.Wrap(err, "while reloading certificate")
 	}
@@ -147,5 +150,22 @@ func (k *ConfiguredKeyserver) HandleStaticRequest(writer http.ResponseWriter, st
 		return err // odd; we didn't see this earlier
 	}
 	_, err = writer.Write(contents)
+	return err
+}
+
+func (k *ConfiguredKeyserver) HandleAdmitRequest(writer http.ResponseWriter, request *http.Request) error {
+	requestBody, err := ioutil.ReadAll(request.Body)
+	if err != nil {
+		return err
+	}
+	ip := net.ParseIP(strings.Split(request.RemoteAddr, ":")[0])
+	if ip == nil {
+		return fmt.Errorf("invalid IP portion in '%s'", request.RemoteAddr)
+	}
+	response, err := k.Context.AdmitChecker.HandleRequest(requestBody, ip)
+	if err != nil {
+		return err
+	}
+	_, err = writer.Write(response)
 	return err
 }

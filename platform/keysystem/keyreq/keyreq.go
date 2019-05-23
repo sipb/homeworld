@@ -4,7 +4,9 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/json"
 	"encoding/pem"
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/admit"
 	"github.com/sipb/homeworld/platform/keysystem/worldconfig"
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
@@ -207,18 +209,53 @@ func main() {
 			logger.Print(err)
 			os.Exit(ERR_INVALID_INVOCATION)
 		}
-	case "bootstrap-token":
-		if len(os.Args) < 5 {
-			logger.Print("not enough parameters to keyreq bootstrap-token <authority-path> <keyserver-domain> <principal>")
+	case "list-requests":
+		if len(os.Args) != 4 {
+			logger.Print("not enough parameters to keyreq list-requests <authority-path> <keyserver-domain>")
 			os.Exit(ERR_INVALID_INVOCATION)
 		}
 		_, rt := auth_kerberos(logger, os.Args[2], os.Args[3])
-		token, err := reqtarget.SendRequest(rt, "bootstrap", os.Args[4])
+		response, err := reqtarget.SendRequest(rt, worldconfig.ListAdmitRequestsAPI, "")
 		if err != nil {
 			logger.Print(err)
 			os.Exit(ERR_NO_ACCESS)
 		}
-		os.Stdout.WriteString(token + "\n")
+		var requests map[string]admit.AdmitState
+		err = json.Unmarshal([]byte(response), &requests)
+		if err != nil {
+			logger.Print(err)
+			os.Exit(ERR_UNKNOWN_FAILURE)
+		}
+		err = admit.PrintRequests(requests, os.Stdout)
+		if err != nil {
+			logger.Print(err)
+			os.Exit(ERR_UNKNOWN_FAILURE)
+		}
+	case "admit":
+		if len(os.Args) != 6 {
+			logger.Print("not enough parameters to keyreq admit <authority-path> <keyserver-domain> <principal> <fingerprint>")
+			os.Exit(ERR_INVALID_INVOCATION)
+		}
+		_, rt := auth_kerberos(logger, os.Args[2], os.Args[3])
+
+		approval := admit.AdmitApproval{
+			Principal:   os.Args[4],
+			Fingerprint: os.Args[5],
+		}
+		data, err := json.Marshal(approval)
+		if err != nil {
+			logger.Print(err)
+			os.Exit(ERR_UNKNOWN_FAILURE)
+		}
+		response, err := reqtarget.SendRequest(rt, worldconfig.ApproveAdmitAPI, string(data))
+		if err != nil {
+			logger.Print(err)
+			os.Exit(ERR_NO_ACCESS)
+		}
+		if response != "" {
+			logger.Print("expected no response from approval API")
+			os.Exit(ERR_UNKNOWN_FAILURE)
+		}
 	default:
 		logger.Print("keyreq should only be used by scripts that already know how to invoke it")
 		os.Exit(ERR_INVALID_INVOCATION)

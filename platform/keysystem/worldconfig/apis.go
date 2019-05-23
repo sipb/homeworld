@@ -15,7 +15,8 @@ const EtcdClientAuthority = "etcd-client"
 
 const ClusterConfStatic = "cluster.conf"
 
-const BootstrapKeyserverTokenAPI = "bootstrap-keyinit"
+const ListAdmitRequestsAPI = "list-admits"
+const ApproveAdmitAPI = "approve-admit"
 const RenewKeygrantAPI = "renew-keygrant"
 const ImpersonateKerberosAPI = "auth-to-kerberos"
 const LocalConfAPI = "get-local-config"

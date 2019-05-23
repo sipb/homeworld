@@ -22,7 +22,7 @@ func GenerateKey(keypath string, nac *actloop.NewActionContext) {
 	} else {
 		// it's acceptable for the directory to not exist, because we'll just create it later
 		info := fmt.Sprintf("generate key %s", keypath)
-		err := keygen(keypath)
+		err := PerformGenerate(keypath)
 		if err != nil {
 			nac.Errored(info, err)
 		} else {
@@ -31,7 +31,7 @@ func GenerateKey(keypath string, nac *actloop.NewActionContext) {
 	}
 }
 
-func keygen(keypath string) error {
+func PerformGenerate(keypath string) error {
 	dirname := path.Dir(keypath)
 	err := fileutil.EnsureIsFolder(dirname)
 	if err != nil {

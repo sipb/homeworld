@@ -14,13 +14,6 @@ type authenticated struct {
 	endpoint endpoint.ServerEndpoint
 }
 
-func (k *Keyserver) AuthenticateWithToken(token string) (reqtarget.RequestTarget, error) {
-	if token == "" {
-		return nil, errors.New("invalid token")
-	}
-	return &authenticated{k.endpoint.WithHeader("X-Bootstrap-Token", token)}, nil
-}
-
 func (k *Keyserver) AuthenticateWithCert(cert tls.Certificate) (reqtarget.RequestTarget, error) {
 	return &authenticated{k.endpoint.WithCertificate(cert)}, nil
 }

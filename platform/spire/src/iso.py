@@ -75,6 +75,7 @@ def gen_iso(iso_image, authorized_key, mode=None):
         preseeded = preseeded.replace(b"{{HASH}}", util.mkpasswd(generated_password))
         preseeded = preseeded.replace(b"{{BUILDDATE}}", creation_time.encode())
         preseeded = preseeded.replace(b"{{GITHASH}}", git_hash)
+        preseeded = preseeded.replace(b"{{SUPERVISORIP}}", str(configuration.get_config().keyserver.ip).encode())
 
         mirror = configuration.get_config().mirror
         if mirror.count("/") < 1 or mirror.count(".") < 1:

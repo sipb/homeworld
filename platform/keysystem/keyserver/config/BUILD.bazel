@@ -10,8 +10,8 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//keysystem/keyserver/account:go_default_library",
+        "//keysystem/keyserver/admit:go_default_library",
         "//keysystem/keyserver/authorities:go_default_library",
-        "//keysystem/keyserver/verifier:go_default_library",
     ],
 )
 

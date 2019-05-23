@@ -1,12 +1,12 @@
 package account
 
 import (
+	"encoding/json"
 	"errors"
-	"fmt"
 	"time"
 
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/admit"
 	"github.com/sipb/homeworld/platform/keysystem/keyserver/authorities"
-	"github.com/sipb/homeworld/platform/keysystem/keyserver/token"
 )
 
 type OperationContext struct {
@@ -35,17 +35,37 @@ func NewSSHGrantPrivilege(tauth *authorities.SSHAuthority, ishost bool, lifespan
 	}
 }
 
-func NewBootstrapPrivilege(allowed *Group, lifespan time.Duration, registry *token.TokenRegistry) Privilege {
-	if registry == nil {
-		panic("expected registry to exist")
+func NewListAdmitRequestsPrivilege(checker *admit.AdmitChecker) Privilege {
+	if checker == nil {
+		panic("expected checker to exist")
 	}
-	return func(_ *OperationContext, encodedPrincipal string) (string, error) {
-		principal := string(encodedPrincipal)
-		if !allowed.HasMember(principal) {
-			return "", fmt.Errorf("principal not allowed to be bootstrapped: %s", encodedPrincipal)
+	return func(_ *OperationContext, request string) (string, error) {
+		if len(request) != 0 {
+			return "", errors.New("expected empty request to request list endpoint")
 		}
-		generatedToken := registry.GrantToken(principal, lifespan)
-		return generatedToken, nil
+		encoded, err := json.Marshal(checker.ListRequests())
+		if err != nil {
+			return "", err
+		}
+		return string(encoded), nil
+	}
+}
+
+func NewApproveAdmissionPrivilege(checker *admit.AdmitChecker) Privilege {
+	if checker == nil {
+		panic("expected checker to exist")
+	}
+	return func(_ *OperationContext, selection string) (string, error) {
+		var approval admit.AdmitApproval
+		err := json.Unmarshal([]byte(selection), &approval)
+		if err != nil {
+			return "", err
+		}
+		if approval.Principal == "" || approval.Fingerprint == "" {
+			return "", errors.New("invalid principal or fingerprint")
+		}
+		checker.Approve(approval)
+		return "", nil
 	}
 }
 

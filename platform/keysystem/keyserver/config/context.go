@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/sipb/homeworld/platform/keysystem/keyserver/account"
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/admit"
 	"github.com/sipb/homeworld/platform/keysystem/keyserver/authorities"
-	"github.com/sipb/homeworld/platform/keysystem/keyserver/verifier"
 )
 
 type StaticFile struct {
@@ -15,7 +15,7 @@ type StaticFile struct {
 type Context struct {
 	Authorities             map[string]authorities.Authority
 	Accounts                map[string]*account.Account
-	TokenVerifier           verifier.TokenVerifier
+	AdmitChecker            *admit.AdmitChecker
 	AuthenticationAuthority *authorities.TLSAuthority
 	ClusterCA               *authorities.TLSAuthority
 	StaticFiles             map[string]StaticFile

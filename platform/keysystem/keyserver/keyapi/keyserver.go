@@ -50,6 +50,14 @@ func apiToHTTP(ks Keyserver, logger *log.Logger) http.Handler {
 		}
 	})
 
+	mux.HandleFunc("/admit", func(writer http.ResponseWriter, request *http.Request) {
+		err := ks.HandleAdmitRequest(writer, request)
+		if err != nil {
+			logger.Printf("Admit request failed with error: %s", err)
+			http.Error(writer, "Request processing failed. See server logs for details.", http.StatusBadRequest)
+		}
+	})
+
 	return mux
 }
 

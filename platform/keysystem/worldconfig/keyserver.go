@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/sipb/homeworld/platform/keysystem/keyserver/account"
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/admit"
 	"github.com/sipb/homeworld/platform/keysystem/keyserver/authorities"
 	"github.com/sipb/homeworld/platform/keysystem/keyserver/config"
-	"github.com/sipb/homeworld/platform/keysystem/keyserver/verifier"
 	"github.com/sipb/homeworld/platform/keysystem/worldconfig/paths"
 )
 
@@ -20,6 +20,7 @@ type Groups struct {
 
 func GenerateAccounts(context *config.Context, conf *SpireSetup, auth Authorities) {
 	var accounts []*account.Account
+	var admissions []admit.Admittable
 
 	groups := Groups{
 		KerberosAccounts: &account.Group{},
@@ -37,6 +38,11 @@ func GenerateAccounts(context *config.Context, conf *SpireSetup, auth Authoritie
 
 		groups.Nodes.AllMembers = append(groups.Nodes.AllMembers, acc)
 		acc.Privileges = GrantsForNodeAccount(context, conf, groups, auth, acc, node)
+
+		admissions = append(admissions, admit.Admittable{
+			Principal: node.DNS(),
+			Address:   node.NetIP(),
+		})
 	}
 
 	// metrics principal used by homeworld-ssh-checker
@@ -75,6 +81,8 @@ func GenerateAccounts(context *config.Context, conf *SpireSetup, auth Authoritie
 	for _, ac := range accounts {
 		context.Accounts[ac.Principal] = ac
 	}
+
+	context.AdmitChecker.Admits = admissions
 }
 
 type Authorities struct {
@@ -121,7 +129,9 @@ func GrantsForRootAdminAccount(c *config.Context, groups Groups, auth Authoritie
 
 	// MEMBERSHIP IN THE CLUSTER
 
-	grants["bootstrap"] = account.NewBootstrapPrivilege(groups.Nodes, time.Hour, c.TokenVerifier.Registry)
+	// duplicated below
+	grants[ListAdmitRequestsAPI] = account.NewListAdmitRequestsPrivilege(c.AdmitChecker)
+	grants[ApproveAdmitAPI] = account.NewApproveAdmissionPrivilege(c.AdmitChecker)
 
 	return grants
 }
@@ -144,10 +154,14 @@ func GrantsForNodeAccount(c *config.Context, conf *SpireSetup, groups Groups, au
 	// MEMBERSHIP IN THE CLUSTER
 
 	if node.IsSupervisor() {
-		grants[BootstrapKeyserverTokenAPI] = account.NewBootstrapPrivilege(groups.Nodes, time.Hour, c.TokenVerifier.Registry)
+		// duplicated above
+		grants[ListAdmitRequestsAPI] = account.NewListAdmitRequestsPrivilege(c.AdmitChecker)
+		grants[ApproveAdmitAPI] = account.NewApproveAdmissionPrivilege(c.AdmitChecker)
+
 		grants[ImpersonateKerberosAPI] = account.NewImpersonatePrivilege(c.GetAccount, groups.KerberosAccounts)
 	}
 
+	// these setting replicated in admit.go
 	grants[RenewKeygrantAPI] = account.NewTLSGrantPrivilege(auth.Keygranting, false, OneDay*40, ac.Principal, nil)
 
 	// CONFIGURATION ENDPOINT
@@ -245,7 +259,6 @@ func GenerateConfig() (*config.Context, error) {
 	}
 
 	context := &config.Context{
-		TokenVerifier: verifier.NewTokenVerifier(),
 		StaticFiles: map[string]config.StaticFile{
 			ClusterConfStatic: {
 				Filepath: ClusterConfigPath,
@@ -279,6 +292,7 @@ func GenerateConfig() (*config.Context, error) {
 	}
 	context.AuthenticationAuthority = auth.Keygranting
 	context.ClusterCA = auth.ClusterCA
+	context.AdmitChecker = admit.NewAdmitChecker(auth.Keygranting)
 	GenerateAccounts(context, conf, auth)
 	return context, nil
 }

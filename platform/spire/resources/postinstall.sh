@@ -1,12 +1,11 @@
 #!/bin/sh
 echo "launching postinstall"
 
+set -e -u
+
 BUILDDATE="$1"
 GIT_HASH="$2"
-
-. /usr/share/debconf/confmodule
-
-set -e -u
+SUPERVISOR_IP="$3"
 
 if [ "$BUILDDATE" = "" ]
 then
@@ -17,6 +16,12 @@ fi
 if [ "$GIT_HASH" = "" ]
 then
     echo "invalid git hash" 1>&2
+    exit 1
+fi
+
+if [ "$SUPERVISOR_IP" = "" ]
+then
+    echo "invalid supervisor IP" 1>&2
     exit 1
 fi
 
@@ -41,57 +46,10 @@ cp /keyserver.domain /target/etc/homeworld/config/keyserver.domain
 cp /sshd_config.new /target/etc/ssh/sshd_config
 cat /dns_bootstrap_lines >> /target/etc/hosts
 
-cat >/tmp/token.template <<EOF
-Template: homeworld/asktoken
-Type: string
-Description: Enter the bootstrap token for this server.
-
-Template: homeworld/tokeninvalid
-Type: note
-Description: Invalid token! Please check the token for typos. Press Enter to try again.
-
-Template: homeworld/title
-Type: text
-Description: Configuring keysystem...
-EOF
-
-debconf-loadtemplate homeworld /tmp/token.template
-
-is_invalid_token () {
-    TOKEN="${1%??}"
-    TOKEN_PROVIDED_HASH=$(echo -n $1 | tail -c 2)
-    TOKEN_ACTUAL_HASH=$(echo -n "$TOKEN" | /target/usr/bin/openssl dgst -sha256 -binary | /target/usr/bin/base64 | cut -c -2)
-
-    if [ "$TOKEN_PROVIDED_HASH" != "$TOKEN_ACTUAL_HASH" ]; then
-        return 0
-    fi
-
-    return 1
-}
-
-db_settitle homeworld/title
-db_input critical homeworld/asktoken || true
-db_go
-
-db_get homeworld/asktoken
-while [ "$RET" != "manual" ] && is_invalid_token $RET; do
-    db_input critical homeworld/tokeninvalid || true
-    db_go
-
-    db_input critical homeworld/asktoken || true
-    db_go
-    db_get homeworld/asktoken
-done
-
-if [ "$RET" != "" ]
+if [ "$SUPERVISOR_IP" = "$(ip -o -f inet addr show scope global up | tr -s " " " " | cut -d ' ' -f 4 | cut -d '/' -f 1)" ]
 then
-    if [ "$RET" = "manual" ]
-    then
-        mkdir -p /target/root/.ssh/
-        cp /authorized.pub /target/root/.ssh/authorized_keys
-    else
-        echo "$RET" > /target/etc/homeworld/keyclient/bootstrap.token
-    fi
+    mkdir -p /target/root/.ssh/
+    cp /authorized.pub /target/root/.ssh/authorized_keys
 fi
 
 echo "ISO used to install this node generated at: ${BUILDDATE}" >>/target/etc/issue
@@ -102,4 +60,6 @@ do
     in-target bash -c "ssh-keygen -l -f ${x#/target} >>/etc/issue"
     in-target bash -c "ssh-keygen -l -E md5 -f ${x#/target} >>/etc/issue"
 done
+echo "Keygranting key fingerprint: (as of install)" >>/target/etc/issue
+in-target bash -c "keyinittoken >>/etc/issue"
 echo >>/target/etc/issue

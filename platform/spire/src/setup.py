@@ -147,12 +147,8 @@ def admit_keyserver(ops: Operations) -> None:
     for node in config.nodes:
         if node.kind != "supervisor":
             continue
-        domain = node.hostname + "." + config.external_domain
-        ops.ssh("request bootstrap token for @HOST", node,
-                "keyinitadmit", domain,
-                redirect_to=KEYCLIENT_DIR + "/bootstrap.token")
-        # TODO: do we need to poke the keyclient to make sure it tries again?
-        # TODO: don't wait four seconds if it isn't necessary
+        ops.ssh("self-admit @HOST", node, "keyinitadmit", "--supervisor")
+        # TODO: do we really need to poke the keyclient to make sure it tries again?
         ops.ssh("kick keyclient daemon on @HOST", node, "systemctl", "restart", "keyclient")
         # if it doesn't exist, this command will fail.
         ops.ssh("confirm that @HOST was admitted", node, "test", "-e", KEYCLIENT_DIR + "/granting.pem")
