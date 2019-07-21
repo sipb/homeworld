@@ -1,4 +1,3 @@
-
 def _escape(s):
     return "'" + s.replace("$", "$$").replace("'", "'\"'\"'") + "'"
 

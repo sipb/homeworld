@@ -147,7 +147,7 @@ def collect_runfiles(targets):
     Returns:
       A list of Bazel files.
     """
-    data = depset()
+    data = []
     for target in targets:
         if hasattr(target, "runfiles"):
             data += target.runfiles.files
@@ -156,7 +156,7 @@ def collect_runfiles(targets):
             data += target.data_runfiles.files
         if hasattr(target, "default_runfiles"):
             data += target.default_runfiles.files
-    return data
+    return depset(data)
 
 def _zip_file(ctx):
     """Implementation of zip_file() rule."""
@@ -164,10 +164,8 @@ def _zip_file(ctx):
         if (s.startswith("/") or s.endswith("/") or
             d.startswith("/") or d.endswith("/")):
             fail("mappings should not begin or end with slash")
-    srcs = depset()
-    srcs += ctx.files.srcs
-    srcs += ctx.files.data
-    srcs += collect_runfiles(ctx.attr.data)
+    srcs = depset(ctx.files.srcs + ctx.files.data,
+                  transitive=[collect_runfiles(ctx.attr.data)]).to_list()
     mapped = _map_sources(ctx, srcs, ctx.attr.mappings)
     cmd = [
         "#!/bin/sh",
@@ -203,16 +201,12 @@ def _zip_file(ctx):
         'cd "${repo}"',
         'rm -rf "${tmp}"',
     ]
-    if hasattr(ctx, "bin_dir"):
-        script = ctx.new_file(ctx.bin_dir, "%s.sh" % ctx.label.name)
-    else:
-        # TODO(kchodorow): remove this once Bazel 4.0+ is required.
-        script = ctx.new_file(ctx.configuration.bin_dir, "%s.sh" % ctx.label.name)
-    ctx.file_action(output = script, content = "\n".join(cmd), executable = True)
+    script = ctx.actions.declare_file("%s.sh" % ctx.label.name)
+    ctx.actions.write(output = script, content = "\n".join(cmd), is_executable = True)
     inputs = [ctx.file._zipper]
     inputs += [dep.zip_file for dep in ctx.attr.deps]
-    inputs += srcs.to_list()
-    ctx.action(
+    inputs += srcs
+    ctx.actions.run(
         inputs = inputs,
         outputs = [ctx.outputs.out],
         executable = script,
@@ -281,6 +275,6 @@ zip_file = rule(
         "deps": attr.label_list(providers = ["zip_file"]),
         "exclude": attr.string_list(),
         "mappings": attr.string_dict(),
-        "_zipper": attr.label(default = Label(ZIPPER), single_file = True),
+        "_zipper": attr.label(default = Label(ZIPPER), allow_single_file = True),
     },
 )
