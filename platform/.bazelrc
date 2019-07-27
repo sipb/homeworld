@@ -1,2 +1,3 @@
 startup --host_jvm_args=-Xmx4G
-build --workspace_status_command bazel/workspace-status.sh --host_force_python=PY2
+build --workspace_status_command bazel/workspace-status.sh
+build --incompatible_use_python_toolchains=false
