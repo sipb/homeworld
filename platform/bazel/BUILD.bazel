@@ -1,22 +1,22 @@
-native.py_binary(
+py_binary(
     name = "substitute",
     srcs = ["substitute.py"],
     visibility = ["//visibility:public"],
 )
 
-native.py_binary(
+py_binary(
     name = "version-compute",
     srcs = ["version-compute.py"],
     visibility = ["//visibility:public"],
 )
 
-native.py_binary(
+py_binary(
     name = "hash-compute",
     srcs = ["hash-compute.py"],
     visibility = ["//visibility:public"],
 )
 
-native.py_binary(
+py_binary(
     name = "cache-compute",
     srcs = ["cache-compute.py"],
     visibility = ["//visibility:public"],
