@@ -1,8 +1,14 @@
+import subprocess
+
 import access
+import authority
 import configuration
 import command
+import os
 import setup
 import ssh
+import tempfile
+import util
 
 
 def approve_admit(server_principal: str, fingerprint: str) -> str:
@@ -17,9 +23,20 @@ def approve_admit(server_principal: str, fingerprint: str) -> str:
         raise Exception("expected empty output, not %s" % repr(result))
 
 
-def infra_admit(server_principal: str, fingerprint: str) -> None:
+def infra_admit_node(server_principal: str, fingerprint: str) -> None:
     approve_admit(server_principal, fingerprint)
     print("Approved admission for", server_principal)
+
+
+def infra_admit_tool() -> None:
+    # TODO: make this work in clusters without kerberos
+    config = configuration.get_config()
+    keyserver_domain = config.keyserver.hostname + "." + config.external_domain + ":20557"
+
+    with tempfile.TemporaryDirectory() as tdir:
+        https_cert_path = os.path.join(tdir, "clusterca.pem")
+        util.writefile(https_cert_path, authority.get_pubkey_by_filename("./clusterca.pem"))
+        subprocess.check_call(["keyadmit", https_cert_path, keyserver_domain])
 
 
 def infra_list_admits() -> None:
@@ -50,7 +67,8 @@ def infra_sync_supervisor(ops: setup.Operations) -> None:
 
 
 main_command = command.mux_map("commands about maintaining the infrastructure of a cluster", {
-    "admit": command.wrap("approve admitting a node to the cluster", infra_admit),
+    "admit": command.wrap("launch admission tool for the cluster", infra_admit_tool),
+    "admit-node": command.wrap("approve admitting a node to the cluster", infra_admit_node),
     "requests": command.wrap("list requests for joining nodes to the cluster", infra_list_admits),
     "install-packages": setup.wrapop("install and update packages on a node", infra_install_packages),
     "sync": setup.wrapop("synchronize the filesystem to disk on a node", infra_sync),

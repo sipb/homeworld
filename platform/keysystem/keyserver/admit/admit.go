@@ -3,12 +3,15 @@ package admit
 import (
 	"crypto"
 	"crypto/rsa"
+	"crypto/sha256"
 	"fmt"
 	"github.com/pkg/errors"
+	"github.com/sipb/homeworld/platform/util/pgpword"
 	"golang.org/x/crypto/ssh"
 	"io"
 	"io/ioutil"
 	"net"
+	"strings"
 	"sync"
 	"time"
 
@@ -19,6 +22,15 @@ import (
 type AdmitApproval struct {
 	Fingerprint string
 	Principal   string
+}
+
+func (approval *AdmitApproval) Normalize() error {
+	fpr, err := NormalizedFingerprint(approval.Fingerprint)
+	if err != nil {
+		return err
+	}
+	approval.Fingerprint = fpr
+	return nil
 }
 
 type AdmitState struct {
@@ -42,11 +54,35 @@ func Fingerprint(key crypto.PublicKey) (string, error) {
 	if rsakey.N.BitLen() < MinimumRSABits {
 		return "", fmt.Errorf("fingerprint expects 2048+ bits in RSA key, not %d", rsakey.N.BitLen())
 	}
+	// this isn't an SSH key, but it's convenient to reuse the hashing tools
 	pubkey, err := ssh.NewPublicKey(rsakey)
+	if err != nil {
+		// should never happen
+		return "", err
+	}
+	// based on the implementation of ssh.FingerprintSHA256
+	sha256sum := sha256.Sum256(pubkey.Marshal())
+	return pgpword.BinToWords(sha256sum[:]), nil
+}
+
+// use in addition to Fingerprint; depends on a multiple of 8 words
+func WrappedFingerprint(fpr string) string {
+	fields := strings.Fields(fpr)
+	var lines []string
+	for i := 0; i < len(fields); i += 8 {
+		line := strings.Join(fields[i:i+8], " ")
+		lines = append(lines, line)
+	}
+	return strings.Join(lines, "\n")
+}
+
+// use when comparing or using a dictionary
+func NormalizedFingerprint(fpr string) (string, error) {
+	data, err := pgpword.WordsToBin(fpr)
 	if err != nil {
 		return "", err
 	}
-	return ssh.FingerprintSHA256(pubkey), nil
+	return pgpword.BinToWords(data), nil
 }
 
 func LoadFingerprint(path string) (string, error) {
@@ -58,7 +94,6 @@ func LoadFingerprint(path string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	// note: this isn't an SSH key, but it's convenient to reuse the hashing tools
 	return Fingerprint(key.Public())
 }
 

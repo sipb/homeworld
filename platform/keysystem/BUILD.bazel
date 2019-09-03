@@ -3,14 +3,15 @@ load("//bazel:package.bzl", "homeworld_deb")
 homeworld_deb(
     name = "package",
     bin = {
-        "//keysystem/keyserver": "/usr/bin/keyserver",
-        "//keysystem/keygateway": "/usr/bin/keygateway",
+        "//keysystem/keyadmit": "/usr/bin/keyadmit",
         "//keysystem/keyclient": "/usr/bin/keyclient",
+        "//keysystem/keygateway": "/usr/bin/keygateway",
         "//keysystem/keygen/main": "/usr/bin/keygen",
         "//keysystem/keyinitadmit": "/usr/bin/keyinitadmit",
         "//keysystem/keyinittoken": "/usr/bin/keyinittoken",
         "//keysystem/keylocalcert": "/usr/bin/keylocalcert",
         "//keysystem/keyreq": "/usr/bin/keyreq",
+        "//keysystem/keyserver": "/usr/bin/keyserver",
     },
     data = {
         ":systemd/keyclient.service": "/usr/lib/systemd/system/keyclient.service",

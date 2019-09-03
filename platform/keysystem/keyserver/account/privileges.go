@@ -64,6 +64,10 @@ func NewApproveAdmissionPrivilege(checker *admit.AdmitChecker) Privilege {
 		if approval.Principal == "" || approval.Fingerprint == "" {
 			return "", errors.New("invalid principal or fingerprint")
 		}
+		err = approval.Normalize()
+		if err != nil {
+			return "", err
+		}
 		checker.Approve(approval)
 		return "", nil
 	}

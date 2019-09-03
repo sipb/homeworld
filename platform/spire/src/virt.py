@@ -1,4 +1,3 @@
-import argparse
 import atexit
 import concurrent.futures
 import contextlib
@@ -319,27 +318,27 @@ class VirtualMachine:
             log_output.close()
             raise e
 
-    def boot_launch(self, autoadd_fingerprint=False):
-        if not autoadd_fingerprint:
-            return self.boot_with_io("launch")
-        else:
+    def admit_by_fingerprint(self, fingerprint):
+        config = configuration.get_config()
+        print("auto-admitting node", self.node.hostname)
+        infra.infra_admit_node(self.node.hostname + "." + config.external_domain, fingerprint)
+
+    def boot_launch(self, autoadd_fingerprint=False, autoadmit=False):
+        if autoadd_fingerprint:
+            assert not autoadmit, "not yet necessary to use autoadd_fingerprint and autoadmit simultaneously"
             extractor = FingerprintExtractor(access.pull_supervisor_key)
             self.boot_with_io("launch", extractor.process_line)
             extractor.wait()
+        elif autoadmit:
+            extractor = TextualFingerprintExtractor(self.admit_by_fingerprint)
+            self.boot_with_io("launch", extractor.process_line)
+        else:
+            self.boot_with_io("launch")
 
-    def boot_install_supervisor(self):
-        self.boot_install("manual")
-
-    def boot_install_and_admit(self):
-        bootstrap_token = infra.admit(self.hostname)
-        if any(c.isspace() for c in bootstrap_token):
-            raise Exception("expected no spaces in bootstrap token")
-        self.boot_install(bootstrap_token)
-
-    def boot_install(self, bootstrap_token):
+    def boot_install(self):
         self.create_disk()
         # TODO: do something better than a ten-second delay to detect "boot:" prompt
-        bootline = ("install netcfg/get_ipaddress=%s homeworld/asktoken=%s\n" % (self.node.ip, bootstrap_token)).encode()
+        bootline = ("install netcfg/get_ipaddress=%s\n" % (self.node.ip,)).encode()
         if self.boot_with_io("install", text=bootline, delay=10.0).wait():
             command.fail("qemu virtual machine failed")
 
@@ -470,14 +469,30 @@ class FingerprintExtractor:
         self.event.wait()
 
 
+class TextualFingerprintExtractor:
+    def __init__(self, callback):
+        self.searching = True
+        self.scanning = False
+        self.fingerprint = ""
+        self.callback = callback
+
+    def process_line(self, line: bytes):
+        if self.searching:
+            if b"Keygranting key fingerprint" in line:
+                self.scanning = True
+                self.searching = False
+                self.fingerprint = ""
+        if self.scanning:
+            if line.strip():
+                self.fingerprint += " " + line.strip().decode()
+            else:
+                self.scanning = False
+                self.callback(self.fingerprint.lstrip())
+
+
 def qemu_check_nested_virt():
     if util.readfile("/sys/module/kvm_intel/parameters/nested").strip() != b"Y":
         command.fail("nested virtualization not enabled")
-
-
-def auto_install_supervisor(ops: setup.Operations, tc: TerminationContext, supervisor: configuration.Node, install_iso: str):
-    vm = VirtualMachine(supervisor, tc, install_iso)
-    ops.add_operation("install supervisor node (this may take several minutes)", vm.boot_install_supervisor, supervisor)
 
 
 def auto_launch_supervisor(ops: setup.Operations, tc: TerminationContext, supervisor: configuration.Node):
@@ -491,17 +506,17 @@ def auto_install_nodes(ops: setup.Operations, tc: TerminationContext, nodes: lis
 
     def boot_install_and_admit_all():
         with concurrent.futures.ThreadPoolExecutor(len(vms)) as executor:
-            futures = [executor.submit(vm.boot_install_and_admit) for vm in vms]
+            futures = [executor.submit(vm.boot_install) for vm in vms]
             for f in futures:
                 f.result()
 
-    ops.add_operation("install non-supervisor nodes (this may take several minutes)", boot_install_and_admit_all)
+    ops.add_operation("install nodes (this may take several minutes)", boot_install_and_admit_all)
 
 
-def auto_launch_nodes(ops: setup.Operations, tc: TerminationContext, nodes: list):
+def auto_launch_nodes(ops: setup.Operations, tc: TerminationContext, nodes: list, autoadmit=False):
     for node in nodes:
         vm = VirtualMachine(node, tc)
-        ops.add_operation("start up node @HOST", vm.boot_launch, node)
+        ops.add_operation("start up node @HOST", lambda: vm.boot_launch(autoadmit=autoadmit), node)
 
 
 def auto_install(ops: setup.Operations, authorized_key=None, persistent=False):
@@ -517,14 +532,11 @@ def auto_install(ops: setup.Operations, authorized_key=None, persistent=False):
     with ops.context("networking", net_context()):
         with ops.context("termination", TerminationContext()) as tc:
             with ops.context("debug shell", DebugContext(persistent)):
-                ops.add_subcommand(lambda ops: auto_install_supervisor(ops, tc, config.keyserver, iso_path))
+                ops.add_subcommand(lambda ops: auto_install_nodes(ops, tc, config.nodes, iso_path))
                 ops.add_subcommand(lambda ops: auto_launch_supervisor(ops, tc, config.keyserver))
                 ops.add_subcommand(seq.sequence_supervisor)
-
                 other_nodes = [n for n in config.nodes if n != config.keyserver]
-                ops.add_subcommand(lambda ops: auto_install_nodes(ops, tc, other_nodes, iso_path))
                 ops.add_subcommand(lambda ops: auto_launch_nodes(ops, tc, other_nodes))
-
                 ops.add_subcommand(seq.sequence_cluster)
 
 
@@ -533,9 +545,7 @@ def auto_launch(ops: setup.Operations):
     with ops.context("networking", net_context()):
         with ops.context("termination", TerminationContext()) as tc:
             with ops.context("debug shell", DebugContext(True)):
-                ops.add_subcommand(lambda ops: auto_launch_supervisor(ops, tc, config.keyserver))
-                other_nodes = [n for n in config.nodes if n != config.keyserver]
-                ops.add_subcommand(lambda ops: auto_launch_nodes(ops, tc, other_nodes))
+                ops.add_subcommand(lambda ops: auto_launch_nodes(ops, tc, config.nodes))
 
 
 main_command = command.mux_map("commands to run local testing VMs", {

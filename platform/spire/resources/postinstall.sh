@@ -63,3 +63,4 @@ done
 echo "Keygranting key fingerprint: (as of install)" >>/target/etc/issue
 in-target bash -c "keyinittoken >>/etc/issue"
 echo >>/target/etc/issue
+echo >>/target/etc/issue

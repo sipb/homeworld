@@ -18,7 +18,7 @@ func main() {
 	if err != nil {
 		logger.Fatal(err)
 	}
-	_, err = os.Stdout.WriteString(fp)
+	_, err = os.Stdout.WriteString(admit.WrappedFingerprint(fp))
 	if err != nil {
 		logger.Fatal(err)
 	}
