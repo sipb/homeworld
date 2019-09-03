@@ -38,7 +38,7 @@ python-crcmod, python-pip, python-setuptools, python-wheel, rsync, ssh
 psmisc
 
 # bazel
-openjdk-8-jdk, g++, unzip
+openjdk-8-jdk, g++, unzip, bash-completion
 
 # cri-o
 libdevmapper-dev, libglib2.0-dev, btrfs-tools, libostree-dev, libgpgme-dev, libseccomp-dev

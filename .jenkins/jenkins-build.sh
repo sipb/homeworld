@@ -2,8 +2,12 @@
 
 set -eu
 
-apt-get -qq install -y git gnupg sudo psmisc
+apt-get -qq install -y git gnupg sudo psmisc curl
 apt-get -qq install -y build-essential cpio squashfs-tools debootstrap realpath
+# it's not clear where these groups normally come from, but they need to exist.
+# if we don't have these, installing bazel trips a statoverride error from dpkg.
+sudo groupadd --force --system crontab
+sudo groupadd --force --system messagebus
 # use same uid/gid as host so that the jenkins user has permissions to
 # work in the repository
 JENKINS_UID=$(stat -c '%u' .)
