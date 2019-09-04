@@ -11,6 +11,8 @@ Checklist:
  - [ ] I have written a complete, multi-line commit message for each commit.
  - [ ] I have formatted any Go code that I have changed with gofmt.
  - [ ] I have signed each commit with my GPG key.
+ - [ ] I have written or updated appropriate documentation to cover this change.
+ - [ ] I have confirmed that this change is covered by at least one appropriate test run by CI.
  - [ ] If my change includes new or modified functionality, I have tested that the changes work as expected.
  - [ ] I have assigned this issue to an appropriate reviewer. (Choose @celskeggs if you are not otherwise certain.)
  - [ ] I consider my PR complete and ready to be merged without my further input, assuming that it passes CI and code review.
