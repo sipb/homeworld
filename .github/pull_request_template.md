@@ -11,8 +11,8 @@ Checklist:
  - [ ] I have written a complete, multi-line commit message for each commit.
  - [ ] I have formatted any Go code that I have changed with gofmt.
  - [ ] I have signed each commit with my GPG key.
- - [ ] My changes have passed CI.
- - [ ] I have built my changes locally, and tested that the changes work as expected.
- - [ ] I have deployed a cluster incorporating my changes, and checked that it deploys successfully.
+ - [ ] If my change includes new or modified functionality, I have tested that the changes work as expected.
  - [ ] I have assigned this issue to an appropriate reviewer. (Choose @celskeggs if you are not otherwise certain.)
  - [ ] I consider my PR complete and ready to be merged without my further input, assuming that it passes CI and code review.
+ - [ ] My changes have passed CI, including an automatic Jenkins deploy.
+ - [ ] My changes have passed code review.
