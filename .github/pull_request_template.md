@@ -10,7 +10,6 @@ Checklist:
  - [ ] The first line of each commit is of the form "[component]: do something"
  - [ ] I have written a complete, multi-line commit message for each commit.
  - [ ] I have formatted any Go code that I have changed with gofmt.
- - [ ] I have signed each commit with my GPG key.
  - [ ] I have written or updated appropriate documentation to cover this change.
  - [ ] I have confirmed that this change is covered by at least one appropriate test run by CI.
  - [ ] If my change includes new or modified functionality, I have tested that the changes work as expected.
