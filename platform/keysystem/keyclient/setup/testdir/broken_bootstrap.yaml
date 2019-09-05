@@ -1,8 +1,0 @@
-keyserver: localhost:20557
-authoritypath: testdir/keyservertls.pem
-
-keypath: testdir/granting.key
-certpath: testdir/granting.pem
-
-tokenpath: testdir/bootstrap.token
-tokenapi: ""

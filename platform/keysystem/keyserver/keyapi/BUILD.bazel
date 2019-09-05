@@ -19,10 +19,7 @@ go_library(
 
 go_test(
     name = "go_default_test",
-    srcs = [
-        "api_test.go",
-        "keyserver_test.go",
-    ],
+    srcs = ["api_test.go"],
     embed = [":go_default_library"],
     deps = [
         "//keysystem/keyserver/account:go_default_library",
