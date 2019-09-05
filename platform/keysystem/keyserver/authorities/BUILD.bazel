@@ -21,7 +21,6 @@ go_library(
 go_test(
     name = "go_default_test",
     srcs = [
-        "authorities_test.go",
         "ssh_test.go",
         "tls_op_test.go",
         "tls_parse_test.go",

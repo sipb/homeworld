@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",
@@ -9,17 +9,5 @@ go_library(
         "//keysystem/keyclient/actloop:go_default_library",
         "//keysystem/keyclient/config:go_default_library",
         "//util/fileutil:go_default_library",
-    ],
-)
-
-go_test(
-    name = "go_default_test",
-    srcs = ["keygen_test.go"],
-    embed = [":go_default_library"],
-    deps = [
-        "//keysystem/keyclient/config:go_default_library",
-        "//util/fileutil:go_default_library",
-        "//util/testutil:go_default_library",
-        "//util/wraputil:go_default_library",
     ],
 )

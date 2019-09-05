@@ -21,18 +21,7 @@ go_library(
 
 go_test(
     name = "go_default_test",
-    srcs = [
-        "config_test.go",
-        "context_test.go",
-        "privilege_test.go",
-        "setup_test.go",
-    ],
+    srcs = ["context_test.go"],
     embed = [":go_default_library"],
-    deps = [
-        "//keysystem/keyserver/account:go_default_library",
-        "//keysystem/keyserver/authorities:go_default_library",
-        "//keysystem/keyserver/verifier:go_default_library",
-        "//util/wraputil:go_default_library",
-        "@org_golang_x_crypto//ssh:go_default_library",
-    ],
+    deps = ["//keysystem/keyserver/account:go_default_library"],
 )

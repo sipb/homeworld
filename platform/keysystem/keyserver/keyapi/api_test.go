@@ -254,32 +254,6 @@ func TestAttemptAuthentication_CertAuth(t *testing.T) {
 	}
 }
 
-func TestAttemptAuthentication_CertAuth_Fail(t *testing.T) {
-	authority, err := (&config.ConfigAuthority{Type: "TLS", Cert: "test1.pem", Key: "test1.key"}).Load("../config/testdir")
-	if err != nil {
-		t.Fatal(err)
-	}
-	authority2, err := (&config.ConfigAuthority{Type: "TLS", Cert: "test3.pem", Key: "test3.key"}).Load("../config/testdir")
-	if err != nil {
-		t.Fatal(err)
-	}
-	gctx := config.Context{
-		TokenVerifier:           verifier.NewTokenVerifier(),
-		AuthenticationAuthority: authority.(*authorities.TLSAuthority),
-		Accounts: map[string]*account.Account{
-			"test-user": {Principal: "test-user"},
-		},
-	}
-	request := prepCertAuth(t, &gctx)
-	gctx.AuthenticationAuthority = authority2.(*authorities.TLSAuthority)
-	_, err = attemptAuthentication(&gctx, request)
-	if err == nil {
-		t.Error("Expected error.")
-	} else if !strings.Contains(err.Error(), "Certificate not valid under this authority") {
-		t.Errorf("Wrong error: %s", err.Error())
-	}
-}
-
 func TestAttemptAuthentication_MissingAccount_Cert(t *testing.T) {
 	keydata, _, certdata := testkeyutil.GenerateTLSRootPEMsForTests(t, "test-ca", nil, nil)
 	authority, err := authorities.LoadTLSAuthority(keydata, certdata)
@@ -368,7 +342,7 @@ func TestConfiguredKeyserver_GetServerCert(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	ks := &ConfiguredKeyserver{Context: &config.Context{ServerTLS: authority.(*authorities.TLSAuthority)}}
+	ks := &ConfiguredKeyserver{ServerCert: authority.(*authorities.TLSAuthority).ToHTTPSCert()}
 	if len(ks.GetServerCert().Certificate) != 1 {
 		t.Fatal("Wrong number of certs")
 	}
@@ -429,36 +403,6 @@ func TestConfiguredKeyserver_HandleStaticRequest_NonexistentFile(t *testing.T) {
 	}
 }
 
-func TestConfiguredKeyserver_HandlePubRequest(t *testing.T) {
-	authority, err := (&config.ConfigAuthority{Type: "SSH", Key: "test2", Cert: "test2.pub"}).Load("../config/testdir")
-	if err != nil {
-		t.Fatal(err)
-	}
-	ks := &ConfiguredKeyserver{Context: &config.Context{Authorities: map[string]authorities.Authority{
-		"grant": authority,
-	}}}
-	recorder := httptest.NewRecorder()
-	err = ks.HandlePubRequest(recorder, "grant")
-	if err != nil {
-		t.Error(err)
-	}
-	result := recorder.Result()
-	if result.Body == nil {
-		t.Fatal("Nil body.")
-	}
-	response, err := ioutil.ReadAll(result.Body)
-	if err != nil {
-		t.Fatal(err)
-	}
-	ref, err := ioutil.ReadFile("../config/testdir/test2.pub")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !bytes.Equal(response, ref) {
-		t.Error("Mismatched pubkey data.")
-	}
-}
-
 func TestConfiguredKeyserver_HandlePubRequest_NoAuthority(t *testing.T) {
 	ks := &ConfiguredKeyserver{Context: &config.Context{}}
 	err := ks.HandlePubRequest(nil, "grant")
@@ -466,47 +410,6 @@ func TestConfiguredKeyserver_HandlePubRequest_NoAuthority(t *testing.T) {
 		t.Error("Expected error.")
 	} else if !strings.Contains(err.Error(), "No such authority") {
 		t.Errorf("Wrong error: %s", err)
-	}
-}
-
-func TestConfiguredKeyserver_HandleAPIRequest(t *testing.T) {
-	priv, err := account.NewConfigurationPrivilege("hello world")
-	if err != nil {
-		t.Fatal(err)
-	}
-	logrecord := bytes.NewBuffer(nil)
-	logger := log.New(logrecord, "", 0)
-	ks := &ConfiguredKeyserver{
-		Context: &config.Context{
-			TokenVerifier: verifier.NewTokenVerifier(),
-			Accounts: map[string]*account.Account{
-				"test-account": {
-					Principal: "test-account",
-				},
-			},
-			Grants: map[string]config.Grant{
-				"test-api": {
-					API: "test-api",
-					PrivilegeByAccount: map[string]account.Privilege{
-						"test-account": priv,
-					},
-				},
-			},
-		},
-		Logger: logger,
-	}
-	request_data := []byte("[{\"api\": \"test-api\", \"body\": \"\"}]")
-	recorder := httptest.NewRecorder()
-	request := httptest.NewRequest("GET", "/api", bytes.NewReader(request_data))
-	request.Header.Set(verifier.TokenHeader, ks.Context.TokenVerifier.Registry.GrantToken("test-account", time.Minute))
-	err = ks.HandleAPIRequest(recorder, request)
-	if err != nil {
-		t.Error(err)
-	} else if recorder.Body.String() != "[\"hello world\"]" {
-		t.Error("Wrong body.")
-	}
-	if logrecord.String() != "attempting to perform API operation test-api for test-account\noperation test-api for test-account succeeded\n" {
-		t.Error("Wrong logs:", logrecord.String())
 	}
 }
 
