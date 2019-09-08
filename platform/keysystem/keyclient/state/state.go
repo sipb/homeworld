@@ -9,6 +9,7 @@ import (
 
 	"github.com/sipb/homeworld/platform/keysystem/api/server"
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/config"
+	"github.com/sipb/homeworld/platform/keysystem/worldconfig/paths"
 	"github.com/sipb/homeworld/platform/util/fileutil"
 )
 
@@ -19,8 +20,8 @@ type ClientState struct {
 }
 
 func (s *ClientState) ReloadKeygrantingCert() error {
-	if fileutil.Exists(s.Config.KeyPath) && fileutil.Exists(s.Config.CertPath) {
-		cert, err := tls.LoadX509KeyPair(s.Config.CertPath, s.Config.KeyPath)
+	if fileutil.Exists(paths.GrantingKeyPath) && fileutil.Exists(paths.GrantingCertPath) {
+		cert, err := tls.LoadX509KeyPair(paths.GrantingCertPath, paths.GrantingKeyPath)
 		if err != nil {
 			return errors.Wrap(err, "failed to reload keygranting certificate")
 		} else {
@@ -33,11 +34,11 @@ func (s *ClientState) ReloadKeygrantingCert() error {
 }
 
 func (s *ClientState) ReplaceKeygrantingCert(data []byte) error {
-	err := fileutil.EnsureIsFolder(path.Dir(s.Config.CertPath)) // TODO: unit test
+	err := fileutil.EnsureIsFolder(path.Dir(paths.GrantingCertPath)) // TODO: unit test
 	if err != nil {
 		return err
 	}
-	err = ioutil.WriteFile(s.Config.CertPath, data, os.FileMode(0644))
+	err = ioutil.WriteFile(paths.GrantingCertPath, data, os.FileMode(0644))
 	if err != nil {
 		return err
 	}
