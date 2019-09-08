@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/rand"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"golang.org/x/crypto/ssh"
 	"math/big"
@@ -21,7 +22,7 @@ func parseSingleSSHKey(data []byte) (ssh.PublicKey, error) {
 		return nil, err
 	}
 	if rest != nil && len(rest) > 0 {
-		return nil, fmt.Errorf("Trailing data after end of public key file")
+		return nil, errors.New("trailing data after end of public key file")
 	}
 	return pubkey, nil
 }
@@ -44,7 +45,7 @@ func LoadSSHAuthority(keydata []byte, pubkeydata []byte) (Authority, error) {
 		return nil, err
 	}
 	if !arePublicKeysEqual(pubkey, key.PublicKey()) {
-		return nil, fmt.Errorf("Public SSH key does not match private SSH key: %s versus %s", pubkey.Marshal(), key.PublicKey().Marshal())
+		return nil, fmt.Errorf("public SSH key does not match private SSH key: %s versus %s", pubkey.Marshal(), key.PublicKey().Marshal())
 	}
 	return &SSHAuthority{key: key, pubkey: pubkeydata}, nil
 }
@@ -72,11 +73,11 @@ func (d *SSHAuthority) Sign(request string, ishost bool, lifespan time.Duration,
 	}
 
 	if lifespan < time.Second {
-		return "", fmt.Errorf("Lifespan is too short (or nonpositive) for certificate signature.")
+		return "", errors.New("lifespan is too short (or nonpositive) for certificate signature")
 	}
 
 	if len(principals) == 0 {
-		return "", fmt.Errorf("Refusing to sign wildcard certificate")
+		return "", errors.New("refusing to sign wildcard certificate")
 	}
 
 	serialNumber, err := rand.Int(rand.Reader, (&big.Int{}).Exp(big.NewInt(2), big.NewInt(64), nil))

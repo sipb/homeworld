@@ -3,7 +3,6 @@ package server
 import (
 	"crypto/tls"
 	"errors"
-	"fmt"
 	"net/url"
 
 	"github.com/sipb/homeworld/platform/keysystem/api/endpoint"
@@ -17,7 +16,7 @@ type authenticated struct {
 
 func (k *Keyserver) AuthenticateWithToken(token string) (reqtarget.RequestTarget, error) {
 	if token == "" {
-		return nil, errors.New("Invalid token.")
+		return nil, errors.New("invalid token")
 	}
 	return &authenticated{k.endpoint.WithHeader("X-Bootstrap-Token", token)}, nil
 }
@@ -46,7 +45,7 @@ func (a *authenticated) SendRequests(reqs []reqtarget.Request) ([]string, error)
 		return nil, err
 	}
 	if len(outputs) != len(reqs) {
-		return nil, fmt.Errorf("while finalizing response: wrong number of responses")
+		return nil, errors.New("while finalizing response: wrong number of responses")
 	}
 	return outputs, nil
 }

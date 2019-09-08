@@ -3,6 +3,7 @@ package keyapi
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -54,7 +55,7 @@ func attemptAuthentication(context *config.Context, request *http.Request) (*acc
 				return nil, err
 			}
 			if ac.DisableDirectAuth {
-				return nil, fmt.Errorf("Account has disabled direct authentication: %s", principal)
+				return nil, fmt.Errorf("account has disabled direct authentication: %s", principal)
 			}
 			err = verifyAccountIP(ac, request)
 			if err != nil {
@@ -63,7 +64,7 @@ func attemptAuthentication(context *config.Context, request *http.Request) (*acc
 			return ac, nil
 		}
 	}
-	return nil, fmt.Errorf("No authentication method found in request.")
+	return nil, errors.New("no authentication method found in request")
 }
 
 func (k *ConfiguredKeyserver) GetClientCAs() *x509.CertPool {
@@ -94,7 +95,7 @@ func (k *ConfiguredKeyserver) HandleAPIRequest(writer http.ResponseWriter, reque
 func (k *ConfiguredKeyserver) HandlePubRequest(writer http.ResponseWriter, authorityName string) error {
 	authority := k.Context.Authorities[authorityName]
 	if authority == nil {
-		return fmt.Errorf("No such authority %s", authorityName)
+		return fmt.Errorf("no such authority %s", authorityName)
 	}
 	_, err := writer.Write(authority.GetPublicKey())
 	return err
@@ -103,7 +104,7 @@ func (k *ConfiguredKeyserver) HandlePubRequest(writer http.ResponseWriter, autho
 func (k *ConfiguredKeyserver) HandleStaticRequest(writer http.ResponseWriter, staticName string) error {
 	file, found := k.Context.StaticFiles[staticName]
 	if !found || file.Filepath == "" {
-		return fmt.Errorf("No such static file %s", staticName)
+		return fmt.Errorf("no such static file %s", staticName)
 	}
 	contents, err := ioutil.ReadFile(file.Filepath)
 	if err != nil {

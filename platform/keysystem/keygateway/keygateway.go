@@ -34,7 +34,7 @@ func HandleRequest(principal string, request_data []byte, configfile string) ([]
 	}
 
 	if len(result) != len(requests) {
-		return nil, errors.New("Wrong number of results")
+		return nil, errors.New("wrong number of results")
 	}
 
 	return json.Marshal(result)
@@ -44,7 +44,7 @@ func Process(configfile string) error {
 	kncCreds := os.Getenv("KNC_CREDS")
 
 	if kncCreds == "" {
-		return errors.New("No credentials supplied!")
+		return errors.New("no credentials supplied")
 	}
 
 	request_data, err := ioutil.ReadAll(os.Stdin)
@@ -52,7 +52,7 @@ func Process(configfile string) error {
 		return err
 	}
 	if len(request_data) == 0 {
-		return errors.New("Empty request.")
+		return errors.New("empty request")
 	}
 
 	result, err := HandleRequest(kncCreds, request_data, configfile)

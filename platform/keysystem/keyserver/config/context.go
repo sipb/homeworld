@@ -48,7 +48,7 @@ func (config *Config) Compile() (*Context, error) {
 
 func (a *ConfigAuthority) Load(dir string) (authorities.Authority, error) {
 	if dir == "" {
-		return nil, errors.New("Empty directory path.")
+		return nil, errors.New("empty directory path")
 	}
 	keydata, err := ioutil.ReadFile(path.Join(dir, a.Key))
 	if err != nil {
@@ -64,10 +64,10 @@ func (a *ConfigAuthority) Load(dir string) (authorities.Authority, error) {
 func (ctx *Context) GetAccount(principal string) (*account.Account, error) {
 	ac, found := ctx.Accounts[principal]
 	if !found {
-		return nil, fmt.Errorf("Cannot find account for principal %s.", principal)
+		return nil, fmt.Errorf("cannot find account for principal %s", principal)
 	}
 	if ac.Principal != principal {
-		return nil, fmt.Errorf("Mismatched principal during lookup")
+		return nil, errors.New("mismatched principal during lookup")
 	}
 	return ac, nil
 }
@@ -77,7 +77,7 @@ func (c *Context) GetAuthority(name string) (authorities.Authority, error) {
 	if found {
 		return authority, nil
 	} else {
-		return nil, fmt.Errorf("No such authority: '%s'", name)
+		return nil, fmt.Errorf("no such authority: '%s'", name)
 	}
 }
 
@@ -88,7 +88,7 @@ func (c *Context) GetTLSAuthority(name string) (*authorities.TLSAuthority, error
 	}
 	authority, ok := authority_any.(*authorities.TLSAuthority)
 	if !ok {
-		return nil, fmt.Errorf("Authority is not a TLS authority: %s", name)
+		return nil, fmt.Errorf("authority is not a TLS authority: %s", name)
 	}
 	return authority, nil
 }

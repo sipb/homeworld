@@ -22,12 +22,12 @@ func (t ScopedToken) HasExpired() bool {
 
 func (t ScopedToken) Claim() error {
 	if t.HasExpired() {
-		return errors.New("Cannot claim expired token")
+		return errors.New("cannot claim expired token")
 	}
 	has_claimed := false
 	t.claimed.Do(func() { has_claimed = true })
 	if !has_claimed {
-		return errors.New("Token already claimed")
+		return errors.New("token already claimed")
 	}
 	return nil
 }

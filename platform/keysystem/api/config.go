@@ -2,7 +2,7 @@ package api
 
 import (
 	"crypto/tls"
-	"fmt"
+	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 
@@ -21,19 +21,19 @@ func LoadKeyserver(configpath string) (*server.Keyserver, Config, error) {
 	config := Config{}
 	configdata, err := ioutil.ReadFile(configpath)
 	if err != nil {
-		return nil, Config{}, fmt.Errorf("While loading configuration: %s", err)
+		return nil, Config{}, errors.Wrap(err, "while loading configuration")
 	}
 	err = yaml.Unmarshal(configdata, &config)
 	if err != nil {
-		return nil, Config{}, fmt.Errorf("While decoding configuration: %s", err)
+		return nil, Config{}, errors.Wrap(err, "while decoding configuration")
 	}
 	authoritydata, err := ioutil.ReadFile(config.AuthorityPath)
 	if err != nil {
-		return nil, Config{}, fmt.Errorf("While loading authority: %s", err)
+		return nil, Config{}, errors.Wrap(err, "while loading authority")
 	}
 	ks, err := server.NewKeyserver(authoritydata, config.Keyserver)
 	if err != nil {
-		return nil, Config{}, fmt.Errorf("While preparing setup: %s", err)
+		return nil, Config{}, errors.Wrap(err, "while preparing setup")
 	}
 	return ks, config, nil
 }
@@ -44,15 +44,15 @@ func LoadKeyserverWithCert(configpath string) (*server.Keyserver, reqtarget.Requ
 		return nil, nil, err
 	}
 	if config.CertPath == "" || config.KeyPath == "" {
-		return nil, nil, fmt.Errorf("While preparing authentication: expected non-empty path.")
+		return nil, nil, errors.New("while preparing authentication: expected non-empty path")
 	}
 	keypair, err := tls.LoadX509KeyPair(config.CertPath, config.KeyPath)
 	if err != nil {
-		return nil, nil, fmt.Errorf("While loading keypair: %s", err)
+		return nil, nil, errors.Wrap(err, "while loading keypair")
 	}
 	rt, err := k.AuthenticateWithCert(keypair) // note: no actual way to make this fail in practice
 	if err != nil {
-		return nil, nil, fmt.Errorf("While preparing authentication: %s", err)
+		return nil, nil, errors.Wrap(err, "while preparing authentication")
 	}
 	return k, rt, nil
 }

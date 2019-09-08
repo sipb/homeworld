@@ -58,7 +58,7 @@ func (df *APIFetcher) PrereqsSatisfied() error {
 	if df.State.Keygrant != nil {
 		return nil
 	} else {
-		return errors.New("No keygranting certificate ready.")
+		return errors.New("no keygranting certificate ready")
 	}
 }
 

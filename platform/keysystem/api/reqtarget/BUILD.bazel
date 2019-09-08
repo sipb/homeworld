@@ -8,6 +8,7 @@ go_library(
     ],
     importpath = "github.com/sipb/homeworld/platform/keysystem/api/reqtarget",
     visibility = ["//visibility:public"],
+    deps = ["@com_github_pkg_errors//:go_default_library"],
 )
 
 go_test(

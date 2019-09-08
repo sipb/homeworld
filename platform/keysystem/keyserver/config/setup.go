@@ -1,8 +1,8 @@
 package config
 
 import (
-	"errors"
 	"fmt"
+	"github.com/pkg/errors"
 	"net"
 	"os"
 	"path"
@@ -32,7 +32,7 @@ func CompileAuthorities(context *Context, config *Config) error {
 	context.Authorities = make(map[string]authorities.Authority)
 	for name, authority := range config.Authorities {
 		if name == "" {
-			return fmt.Errorf("An authority name is required.")
+			return errors.New("an authority name is required")
 		}
 		loaded, err := authority.Load(config.AuthorityDir)
 		if err != nil {
@@ -45,7 +45,7 @@ func CompileAuthorities(context *Context, config *Config) error {
 
 func CompileGlobalAuthorities(context *Context, config *Config) error {
 	if config.AuthenticationAuthority == "" || config.ServerTLS == "" {
-		return errors.New("Expected both authentication-authority and server-tls to be populated fields.")
+		return errors.New("expected both authentication-authority and server-tls to be populated fields")
 	}
 
 	var err error
@@ -61,7 +61,7 @@ func CompileAccounts(context *Context, config *Config) error {
 	context.Accounts = make(map[string]*account.Account)
 	for _, ac := range config.Accounts {
 		if ac.Principal == "" {
-			return fmt.Errorf("an account name is required")
+			return errors.New("an account name is required")
 		}
 		_, found := context.Accounts[ac.Principal]
 		if found {
@@ -99,7 +99,7 @@ func CompileGroups(context *Context, config *Config) error {
 	context.Groups = make(map[string]*account.Group)
 	for name, _ := range config.Groups {
 		if name == "" {
-			return fmt.Errorf("A group name is required.")
+			return errors.New("a group name is required")
 		}
 		context.Groups[name] = &account.Group{Name: name}
 	}
@@ -107,7 +107,7 @@ func CompileGroups(context *Context, config *Config) error {
 		if group.SubgroupOf != "" {
 			subgroupof := context.Groups[group.SubgroupOf]
 			if subgroupof == nil {
-				return fmt.Errorf("Cannot find group %s to be a subgroup of in %s", group.SubgroupOf, name)
+				return fmt.Errorf("cannot find group %s to be a subgroup of in %s", group.SubgroupOf, name)
 			}
 			context.Groups[name].SubgroupOf = subgroupof
 		}
@@ -119,21 +119,21 @@ func CompileGrants(context *Context, config *Config) error {
 	context.Grants = make(map[string]Grant)
 	for api, grant := range config.Grants {
 		if api == "" {
-			return fmt.Errorf("An API name is required.")
+			return errors.New("an API name is required")
 		}
 		group, found := context.Groups[grant.Group]
 		if !found {
-			return fmt.Errorf("Could not find group %s for grant %s", grant.Group, api)
+			return fmt.Errorf("could not find group %s for grant %s", grant.Group, api)
 		}
 		privileges := make(map[string]account.Privilege)
 		for _, accountname := range group.AllMembers {
 			_, found := privileges[accountname]
 			if found {
-				return fmt.Errorf("Duplicate account %s", accountname)
+				return fmt.Errorf("duplicate account %s", accountname)
 			}
 			ac, found := context.Accounts[accountname]
 			if !found {
-				return fmt.Errorf("No such account %s", accountname)
+				return fmt.Errorf("no such account %s", accountname)
 			}
 			cgrant, err := grant.CompileGrant(ac.Metadata, context)
 			if err != nil {
@@ -141,7 +141,7 @@ func CompileGrants(context *Context, config *Config) error {
 			}
 			priv, err := cgrant.CompileToPrivilege(context)
 			if err != nil {
-				return fmt.Errorf("%s (in grant %s for account %s)", err, api, accountname)
+				return errors.Wrap(err, fmt.Sprintf("in grant %s for account %s", api, accountname))
 			}
 			privileges[accountname] = priv
 		}

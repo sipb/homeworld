@@ -9,5 +9,6 @@ go_library(
         "//keysystem/keyclient/actloop:go_default_library",
         "//keysystem/keyclient/config:go_default_library",
         "//util/fileutil:go_default_library",
+        "@com_github_pkg_errors//:go_default_library",
     ],
 )

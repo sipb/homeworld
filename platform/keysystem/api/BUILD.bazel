@@ -8,6 +8,7 @@ go_library(
     deps = [
         "//keysystem/api/reqtarget:go_default_library",
         "//keysystem/api/server:go_default_library",
+        "@com_github_pkg_errors//:go_default_library",
         "@in_gopkg_yaml_v2//:go_default_library",
     ],
 )

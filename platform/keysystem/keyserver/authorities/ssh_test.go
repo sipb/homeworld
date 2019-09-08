@@ -208,7 +208,7 @@ func (f *FakeSigner) Marshal() []byte {
 }
 
 func (f *FakeSigner) Verify(data []byte, sig *ssh.Signature) error {
-	return errors.New("Verify mock")
+	return errors.New("verify mock")
 }
 
 func (f *FakeSigner) PublicKey() ssh.PublicKey {
@@ -216,7 +216,7 @@ func (f *FakeSigner) PublicKey() ssh.PublicKey {
 }
 
 func (f *FakeSigner) Sign(rand io.Reader, data []byte) (*ssh.Signature, error) {
-	return nil, errors.New("Mocked failure")
+	return nil, errors.New("mocked failure")
 }
 
 func TestSSHSigningFailed(t *testing.T) {
