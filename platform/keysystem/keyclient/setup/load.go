@@ -2,6 +2,7 @@ package setup
 
 import (
 	"github.com/pkg/errors"
+	"github.com/sipb/homeworld/platform/keysystem/worldconfig/paths"
 	"io/ioutil"
 	"log"
 	"os/exec"
@@ -25,7 +26,7 @@ func LoadDefault(logger *log.Logger) ([]actloop.Action, error) {
 	if err != nil {
 		return nil, err
 	}
-	authoritydata, err := ioutil.ReadFile(conf.AuthorityPath)
+	authoritydata, err := ioutil.ReadFile(paths.KeyserverTLSCert)
 	if err != nil {
 		return nil, errors.Wrap(err, "while loading authority")
 	}
@@ -35,9 +36,9 @@ func LoadDefault(logger *log.Logger) ([]actloop.Action, error) {
 	}
 	s := &state.ClientState{Config: conf, Keyserver: ks}
 	actions := []actloop.Action{}
-	if conf.TokenPath != "" {
+	if paths.BootstrapTokenPath != "" {
 		// for generating private keys
-		act, err := keygen.PrepareKeygenAction(config.ConfigKey{Type: "tls", Key: conf.KeyPath})
+		act, err := keygen.PrepareKeygenAction(config.ConfigKey{Type: "tls", Key: paths.GrantingKeyPath})
 		if err != nil {
 			return nil, err
 		}
@@ -46,7 +47,7 @@ func LoadDefault(logger *log.Logger) ([]actloop.Action, error) {
 		}
 		actions = append(actions, act)
 		// for bootstrapping
-		act, err = bootstrap.PrepareBootstrapAction(s, conf.TokenPath, conf.TokenAPI)
+		act, err = bootstrap.PrepareBootstrapAction(s, paths.BootstrapTokenPath, paths.BootstrapTokenAPI)
 		if err != nil {
 			return nil, err
 		}

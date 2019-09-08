@@ -15,6 +15,7 @@ go_library(
         "//keysystem/keyclient/config:go_default_library",
         "//keysystem/keyclient/state:go_default_library",
         "//keysystem/worldconfig:go_default_library",
+        "//keysystem/worldconfig/paths:go_default_library",
         "@com_github_pkg_errors//:go_default_library",
     ],
 )

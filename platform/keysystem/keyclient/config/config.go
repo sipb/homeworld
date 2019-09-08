@@ -18,12 +18,7 @@ type ConfigKey struct {
 }
 
 type Config struct {
-	AuthorityPath string
-	Keyserver     string
-	KeyPath       string
-	CertPath      string
-	TokenPath     string
-	TokenAPI      string
-	Downloads     []ConfigDownload
-	Keys          []ConfigKey
+	Keyserver string
+	Downloads []ConfigDownload
+	Keys      []ConfigKey
 }

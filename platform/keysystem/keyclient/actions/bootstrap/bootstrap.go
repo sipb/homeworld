@@ -12,6 +12,7 @@ import (
 	"github.com/sipb/homeworld/platform/keysystem/api/reqtarget"
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/actloop"
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/state"
+	"github.com/sipb/homeworld/platform/keysystem/worldconfig/paths"
 	"github.com/sipb/homeworld/platform/util/csrutil"
 	"github.com/sipb/homeworld/platform/util/fileutil"
 )
@@ -55,14 +56,14 @@ func (da *BootstrapAction) Pending() (bool, error) {
 }
 
 func (da *BootstrapAction) CheckBlocker() error {
-	if !fileutil.Exists(da.State.Config.KeyPath) {
-		return fmt.Errorf("key does not yet exist: %s", da.State.Config.KeyPath)
+	if !fileutil.Exists(paths.GrantingKeyPath) {
+		return fmt.Errorf("key does not yet exist: %s", paths.GrantingKeyPath)
 	}
 	return nil
 }
 
 func (da *BootstrapAction) buildCSR() ([]byte, error) {
-	privkey, err := ioutil.ReadFile(da.State.Config.KeyPath)
+	privkey, err := ioutil.ReadFile(paths.GrantingKeyPath)
 	if err != nil {
 		return nil, err
 	}

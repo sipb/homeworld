@@ -13,6 +13,7 @@ import (
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/actloop"
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/config"
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/state"
+	"github.com/sipb/homeworld/platform/keysystem/worldconfig/paths"
 	"github.com/sipb/homeworld/platform/util/certutil"
 	"github.com/sipb/homeworld/platform/util/csrutil"
 	"github.com/sipb/homeworld/platform/util/fileutil"
@@ -131,7 +132,7 @@ func (ra *RequestOrRenewAction) Perform(_ *log.Logger) error {
 	if err != nil {
 		return err
 	}
-	grantabs, err := filepath.Abs(ra.State.Config.CertPath)
+	grantabs, err := filepath.Abs(paths.GrantingCertPath)
 	if err != nil {
 		return err
 	}

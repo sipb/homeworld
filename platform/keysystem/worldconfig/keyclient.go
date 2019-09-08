@@ -66,12 +66,7 @@ func GenerateConfig() (config.Config, error) {
 		return config.Config{}, err
 	}
 	conf := config.Config{
-		Keyserver:     keyserver,
-		AuthorityPath: paths.KeyserverTLSCert,
-		KeyPath:       paths.GrantingKeyPath,
-		CertPath:      paths.GrantingCertPath,
-		TokenPath:     paths.BootstrapTokenPath,
-		TokenAPI:      paths.BootstrapTokenAPI,
+		Keyserver: keyserver,
 	}
 	conf.Downloads = []config.ConfigDownload{
 		{
