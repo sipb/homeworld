@@ -1,7 +1,7 @@
 package config
 
 import (
-	"fmt"
+	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 )
@@ -38,11 +38,11 @@ func LoadConfig(configpath string) (Config, error) {
 	config := Config{}
 	configdata, err := ioutil.ReadFile(configpath)
 	if err != nil {
-		return Config{}, fmt.Errorf("while loading configuration: %s", err)
+		return Config{}, errors.Wrap(err, "while loading configuration")
 	}
 	err = yaml.UnmarshalStrict(configdata, &config)
 	if err != nil {
-		return Config{}, fmt.Errorf("while decoding configuration: %s", err)
+		return Config{}, errors.Wrap(err, "while decoding configuration")
 	}
 	return config, nil
 }

@@ -1,8 +1,7 @@
 package setup
 
 import (
-	"errors"
-	"fmt"
+	"github.com/pkg/errors"
 	"io/ioutil"
 	"log"
 	"os/exec"
@@ -27,11 +26,11 @@ func Load(configpath string, logger *log.Logger) ([]actloop.Action, error) {
 	}
 	authoritydata, err := ioutil.ReadFile(conf.AuthorityPath)
 	if err != nil {
-		return nil, fmt.Errorf("while loading authority: %s", err)
+		return nil, errors.Wrap(err, "while loading authority")
 	}
 	ks, err := server.NewKeyserver(authoritydata, conf.Keyserver)
 	if err != nil {
-		return nil, fmt.Errorf("while preparing setup: %s", err)
+		return nil, errors.Wrap(err, "while preparing setup")
 	}
 	s := &state.ClientState{Config: conf, Keyserver: ks}
 	actions := []actloop.Action{}

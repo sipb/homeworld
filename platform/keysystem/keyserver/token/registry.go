@@ -1,7 +1,7 @@
 package token
 
 import (
-	"fmt"
+	"errors"
 	"sync"
 	"time"
 
@@ -18,7 +18,7 @@ func (r *TokenRegistry) LookupToken(token string) (scoped.ScopedToken, error) {
 	defer r.mutex.Unlock()
 	tokdata, present := r.by_token[token]
 	if !present {
-		return scoped.ScopedToken{}, fmt.Errorf("Unrecognized token")
+		return scoped.ScopedToken{}, errors.New("unrecognized token")
 	}
 	return tokdata, nil
 }

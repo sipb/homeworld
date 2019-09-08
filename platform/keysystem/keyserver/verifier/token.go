@@ -25,7 +25,7 @@ func (v TokenVerifier) HasAttempt(request *http.Request) bool {
 func (v TokenVerifier) Verify(request *http.Request) (principal string, err error) {
 	tokens := request.Header.Get(TokenHeader)
 	if tokens == "" {
-		return "", errors.New("No token authentication header provided")
+		return "", errors.New("no token authentication header provided")
 	}
 	tok, err := v.Registry.LookupToken(tokens)
 	if err != nil {

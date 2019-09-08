@@ -5,8 +5,8 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
-	"errors"
 	"fmt"
+	"github.com/pkg/errors"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -80,21 +80,21 @@ func (s ServerEndpoint) Request(path string, method string, reqbody []byte) ([]b
 	}
 	req, err := http.NewRequest(method, s.baseURL+path[1:], bytes.NewReader(reqbody))
 	if err != nil {
-		return nil, fmt.Errorf("while preparing request: %s", err.Error())
+		return nil, errors.Wrap(err, "while preparing request")
 	}
 	for k, v := range s.extraHeaders {
 		req.Header.Set(k, v)
 	}
 	response, err := s.client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("while processing request: %s", err.Error())
+		return nil, errors.Wrap(err, "while processing request")
 	}
 	if response.StatusCode != 200 {
 		return nil, fmt.Errorf("unexpected status code: %d", response.StatusCode)
 	}
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return nil, fmt.Errorf("while receiving response: %s", err.Error())
+		return nil, errors.Wrap(err, "while receiving response")
 	}
 	return body, nil
 }
@@ -106,15 +106,15 @@ func (s ServerEndpoint) Get(path string) ([]byte, error) {
 func (s ServerEndpoint) PostJSON(path string, input interface{}, output interface{}) error {
 	reqbody, err := json.Marshal(input)
 	if err != nil {
-		return fmt.Errorf("while marshalling json for request: %s", err.Error())
+		return errors.Wrap(err, "while marshalling json for request")
 	}
 	body, err := s.Request(path, "POST", reqbody)
 	if err != nil {
-		return fmt.Errorf("while posting request: %s", err.Error())
+		return errors.Wrap(err, "while posting request")
 	}
 	err = json.Unmarshal(body, output)
 	if err != nil {
-		return fmt.Errorf("while unmarshalling json from response: %s", err.Error())
+		return errors.Wrap(err, "while unmarshalling json from response")
 	}
 	return nil
 }

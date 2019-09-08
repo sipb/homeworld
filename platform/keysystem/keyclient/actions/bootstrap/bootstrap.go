@@ -104,7 +104,7 @@ func (da *BootstrapAction) Perform(logger *log.Logger) error {
 		return err
 	}
 	if len(certbytes) == 0 {
-		return fmt.Errorf("received empty response")
+		return errors.New("received empty response")
 	}
 	err = da.State.ReplaceKeygrantingCert([]byte(certbytes))
 	if err != nil {

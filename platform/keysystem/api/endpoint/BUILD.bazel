@@ -5,6 +5,7 @@ go_library(
     srcs = ["endpoint.go"],
     importpath = "github.com/sipb/homeworld/platform/keysystem/api/endpoint",
     visibility = ["//visibility:public"],
+    deps = ["@com_github_pkg_errors//:go_default_library"],
 )
 
 go_test(

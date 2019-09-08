@@ -2,8 +2,8 @@ package knc
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
+	"github.com/pkg/errors"
 	"os/exec"
 
 	"github.com/sipb/homeworld/platform/keysystem/api/reqtarget"
@@ -46,26 +46,26 @@ func (k KncServer) kncRequest(data []byte) ([]byte, error) {
 func (k KncServer) SendRequests(reqs []reqtarget.Request) ([]string, error) {
 	raw_reqs, err := json.Marshal(reqs)
 	if err != nil {
-		return nil, fmt.Errorf("while packing json: %s", err)
+		return nil, errors.Wrap(err, "while packing json")
 	}
 
 	raw_resps, err := k.kncRequest(raw_reqs)
 	if err != nil {
-		return nil, fmt.Errorf("while performing request: %s", err)
+		return nil, errors.Wrap(err, "while performing request")
 	}
 
 	if len(raw_resps) == 0 {
-		return nil, fmt.Errorf("empty response, likely because the server does not recognize your Kerberos identity")
+		return nil, errors.New("empty response, likely because the server does not recognize your Kerberos identity")
 	}
 
 	resps := []string{}
 	err = json.Unmarshal(raw_resps, &resps)
 	if err != nil {
-		return nil, fmt.Errorf("while unpacking json: %s ('%s' -> '%s')", err, raw_reqs, raw_resps)
+		return nil, errors.Wrap(err, fmt.Sprintf("while unpacking json ('%s' -> '%s')", raw_reqs, raw_resps))
 	}
 
 	if len(resps) != len(reqs) {
-		return nil, errors.New("Wrong number of results")
+		return nil, errors.New("wrong number of results")
 	}
 
 	return resps, nil

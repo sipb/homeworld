@@ -2,8 +2,7 @@ package state
 
 import (
 	"crypto/tls"
-	"errors"
-	"fmt"
+	"github.com/pkg/errors"
 	"io/ioutil"
 	"os"
 	"path"
@@ -23,7 +22,7 @@ func (s *ClientState) ReloadKeygrantingCert() error {
 	if fileutil.Exists(s.Config.KeyPath) && fileutil.Exists(s.Config.CertPath) {
 		cert, err := tls.LoadX509KeyPair(s.Config.CertPath, s.Config.KeyPath)
 		if err != nil {
-			return fmt.Errorf("failed to reload keygranting certificate: %s", err)
+			return errors.Wrap(err, "failed to reload keygranting certificate")
 		} else {
 			s.Keygrant = &cert
 			return nil
@@ -44,7 +43,7 @@ func (s *ClientState) ReplaceKeygrantingCert(data []byte) error {
 	}
 	err = s.ReloadKeygrantingCert()
 	if err != nil {
-		return fmt.Errorf("expected properly loaded keygrant certificate, but: %s", err)
+		return errors.Wrap(err, "expected properly loaded keygrant certificate")
 	}
 	return nil
 }

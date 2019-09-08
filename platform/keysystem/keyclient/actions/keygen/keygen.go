@@ -5,8 +5,8 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
-	"errors"
 	"fmt"
+	"github.com/pkg/errors"
 	"log"
 	"os"
 	"path"
@@ -54,19 +54,19 @@ func (ka TLSKeygenAction) Perform(_ *log.Logger) error {
 	dirname := path.Dir(ka.Keypath)
 	err := fileutil.EnsureIsFolder(dirname)
 	if err != nil {
-		return fmt.Errorf("failed to prepare directory %s for generated key: %s", dirname, err)
+		return errors.Wrap(err, fmt.Sprintf("failed to prepare directory %s for generated key", dirname))
 	}
 
 	private_key, err := rsa.GenerateKey(rand.Reader, ka.Bits)
 	if err != nil {
-		return fmt.Errorf("failed to generate RSA key (%d bits) for %s: %s", RSA_BITS, ka.Keypath, err)
+		return errors.Wrap(err, fmt.Sprintf("failed to generate RSA key (%d bits) for %s", RSA_BITS, ka.Keypath))
 	}
 
 	keydata := x509.MarshalPKCS1PrivateKey(private_key)
 
 	err = fileutil.CreateFile(ka.Keypath, pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: keydata}), os.FileMode(0600))
 	if err != nil {
-		return fmt.Errorf("failed to create file for generated key: %s", err)
+		return errors.Wrap(err, "failed to create file for generated key")
 	}
 	return nil
 }

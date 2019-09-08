@@ -1,8 +1,7 @@
 package reqtarget
 
 import (
-	"errors"
-	"fmt"
+	"github.com/pkg/errors"
 )
 
 type impersonatedTarget struct {
@@ -13,15 +12,15 @@ type impersonatedTarget struct {
 
 func Impersonate(rt RequestTarget, api string, user string) (RequestTarget, error) {
 	if api == "" {
-		return nil, errors.New("Invalid API call.")
+		return nil, errors.New("invalid API call")
 	}
 	if user == "" {
-		return nil, errors.New("Invalid user.")
+		return nil, errors.New("invalid user")
 	}
 	rt2 := &impersonatedTarget{rt, api, user}
 	_, err := rt2.SendRequests(nil)
 	if err != nil {
-		return nil, fmt.Errorf("While verifying impersonation functionality: %s", err)
+		return nil, errors.Wrap(err, "while verifying impersonation functionality")
 	}
 	return rt2, nil
 }

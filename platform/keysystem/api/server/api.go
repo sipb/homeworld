@@ -3,6 +3,7 @@ package server
 import (
 	"crypto/x509"
 	"fmt"
+	"github.com/pkg/errors"
 
 	"github.com/sipb/homeworld/platform/keysystem/api/endpoint"
 	"github.com/sipb/homeworld/platform/util/wraputil"
@@ -15,7 +16,7 @@ type Keyserver struct {
 func NewKeyserver(authority []byte, hostname string) (*Keyserver, error) {
 	cert, err := wraputil.LoadX509CertFromPEM(authority)
 	if err != nil {
-		return nil, fmt.Errorf("While parsing authority certificate: %s", err)
+		return nil, errors.Wrap(err, "while parsing authority certificate")
 	}
 
 	pool := x509.NewCertPool()
@@ -30,14 +31,14 @@ func NewKeyserver(authority []byte, hostname string) (*Keyserver, error) {
 
 func (k *Keyserver) GetStatic(staticname string) ([]byte, error) {
 	if staticname == "" {
-		return nil, fmt.Errorf("Static filename is empty.")
+		return nil, errors.New("static filename is empty")
 	}
 	return k.endpoint.Get("/static/" + staticname)
 }
 
 func (k *Keyserver) GetPubkey(authorityname string) ([]byte, error) {
 	if authorityname == "" {
-		return nil, fmt.Errorf("Authority name is empty.")
+		return nil, errors.New("authority name is empty")
 	}
 	return k.endpoint.Get("/pub/" + authorityname)
 }

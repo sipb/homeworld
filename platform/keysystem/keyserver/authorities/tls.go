@@ -6,8 +6,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
-	"errors"
-	"fmt"
+	"github.com/pkg/errors"
 	"net"
 	"net/http"
 	"time"
@@ -72,7 +71,7 @@ func (t *TLSAuthority) HasAttempt(request *http.Request) bool {
 
 func (t *TLSAuthority) Verify(request *http.Request) (string, error) {
 	if !t.HasAttempt(request) {
-		return "", fmt.Errorf("Client certificate must be present")
+		return "", errors.New("client certificate must be present")
 	}
 	firstCert := request.TLS.VerifiedChains[0][0]
 	chains, err := firstCert.Verify(x509.VerifyOptions{
@@ -80,7 +79,7 @@ func (t *TLSAuthority) Verify(request *http.Request) (string, error) {
 		KeyUsages: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 	})
 	if len(chains) == 0 || err != nil {
-		return "", fmt.Errorf("Certificate not valid under this authority: %s", err)
+		return "", errors.Wrap(err, "certificate not valid under this authority")
 	}
 	principal := firstCert.Subject.CommonName
 	return principal, nil
