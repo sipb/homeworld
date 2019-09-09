@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e -u
 
-VERSION="20170615+deb9u6"
+VERSION="20170615+deb9u7+b2"
 
 WORK=$(mktemp -d)
 trap "rm -r $WORK" EXIT
