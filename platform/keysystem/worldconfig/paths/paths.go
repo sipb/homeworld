@@ -9,6 +9,9 @@ const KeyserverTLSCert = "/etc/homeworld/keyclient/keyservertls.pem"
 const GrantingKeyPath = "/etc/homeworld/keyclient/granting.key"
 const GrantingCertPath = "/etc/homeworld/keyclient/granting.pem"
 const BootstrapTokenPath = "/etc/homeworld/keyclient/bootstrap.token"
+const KeyserverConfigPath = "/etc/homeworld/config/keyserver.yaml"
+
+const BootstrapKeyserverTokenAPI = "bootstrap-keyinit"
 const BootstrapTokenAPI = "renew-keygrant"
 
 func GetKeyserver() (string, error) {

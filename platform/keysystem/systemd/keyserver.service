@@ -4,7 +4,7 @@ Requires=network-online.target
 After=network-online.target
 
 [Service]
-ExecStart=/usr/bin/keyserver /etc/homeworld/config/keyserver.yaml
+ExecStart=/usr/bin/keyserver
 Restart=always
 RestartSec=10s
 

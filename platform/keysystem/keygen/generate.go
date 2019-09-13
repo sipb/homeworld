@@ -19,6 +19,7 @@ import (
 )
 
 const AuthorityBits = 4096
+const PresentedGroup = "keyserver-group"
 
 func GenerateTLSSelfSignedCert(key *rsa.PrivateKey, name string, present_as []string) ([]byte, error) {
 	issueat := time.Now()
@@ -41,7 +42,7 @@ func GenerateTLSSelfSignedCert(key *rsa.PrivateKey, name string, present_as []st
 	return certutil.FinishCertificate(certTemplate, certTemplate, key.Public(), key)
 }
 
-func GenerateKeys(cfg *config.Config, dir string, keyserver_group string) error {
+func GenerateKeys(cfg *config.Config, dir string) error {
 	if info, err := os.Stat(dir); err != nil {
 		return err
 	} else if !info.IsDir() {
@@ -63,7 +64,7 @@ func GenerateKeys(cfg *config.Config, dir string, keyserver_group string) error 
 			var presentAs []string
 			if name == cfg.ServerTLS {
 				for _, account := range cfg.Accounts {
-					if account.Group == keyserver_group {
+					if account.Group == PresentedGroup {
 						presentAs = append(presentAs, account.Principal)
 					}
 				}

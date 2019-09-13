@@ -151,7 +151,7 @@ def admit_keyserver(ops: Operations) -> None:
             continue
         domain = node.hostname + "." + config.external_domain
         ops.ssh("request bootstrap token for @HOST", node,
-                "keyinitadmit", CONFIG_DIR + "/keyserver.yaml", domain, domain, "bootstrap-keyinit",
+                "keyinitadmit", domain, domain,
                 redirect_to=KEYCLIENT_DIR + "/bootstrap.token")
         # TODO: do we need to poke the keyclient to make sure it tries again?
         # TODO: don't wait four seconds if it isn't necessary
