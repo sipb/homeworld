@@ -18,7 +18,7 @@ import (
 	"github.com/sipb/homeworld/platform/util/certutil"
 )
 
-const AUTHORITY_BITS = 4096
+const AuthorityBits = 4096
 
 func GenerateTLSSelfSignedCert(key *rsa.PrivateKey, name string, present_as []string) ([]byte, error) {
 	issueat := time.Now()
@@ -50,7 +50,7 @@ func GenerateKeys(cfg *config.Config, dir string, keyserver_group string) error 
 
 	for name, authority := range cfg.Authorities {
 		// private key
-		privkey, err := rsa.GenerateKey(rand.Reader, AUTHORITY_BITS)
+		privkey, err := rsa.GenerateKey(rand.Reader, AuthorityBits)
 		if err != nil {
 			return err
 		}
@@ -60,16 +60,16 @@ func GenerateKeys(cfg *config.Config, dir string, keyserver_group string) error 
 			return err
 		}
 		if authority.Type == "TLS" || authority.Type == "static" {
-			present_as := []string{}
+			var presentAs []string
 			if name == cfg.ServerTLS {
 				for _, account := range cfg.Accounts {
 					if account.Group == keyserver_group {
-						present_as = append(present_as, account.Principal)
+						presentAs = append(presentAs, account.Principal)
 					}
 				}
 			}
 			// self-signed cert
-			cert, err := GenerateTLSSelfSignedCert(privkey, name, present_as)
+			cert, err := GenerateTLSSelfSignedCert(privkey, name, presentAs)
 			if err != nil {
 				return err
 			}

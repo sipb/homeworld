@@ -37,7 +37,7 @@ type SetupStep func(*Context, *Config) error
 
 func (config *Config) Compile() (*Context, error) {
 	context := &Context{TokenVerifier: verifier.NewTokenVerifier()}
-	for _, step := range setup_steps {
+	for _, step := range setupSteps {
 		err := step(context, config)
 		if err != nil {
 			return nil, err
@@ -82,11 +82,11 @@ func (c *Context) GetAuthority(name string) (authorities.Authority, error) {
 }
 
 func (c *Context) GetTLSAuthority(name string) (*authorities.TLSAuthority, error) {
-	authority_any, err := c.GetAuthority(name)
+	authorityAny, err := c.GetAuthority(name)
 	if err != nil {
 		return nil, err
 	}
-	authority, ok := authority_any.(*authorities.TLSAuthority)
+	authority, ok := authorityAny.(*authorities.TLSAuthority)
 	if !ok {
 		return nil, fmt.Errorf("authority is not a TLS authority: %s", name)
 	}

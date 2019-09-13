@@ -212,8 +212,12 @@ class Config:
         return Config.load_from_string(util.readfile(filepath))
 
     @classmethod
+    def get_setup_path(cls) -> str:
+        return os.path.join(get_project(), "setup.yaml")
+
+    @classmethod
     def load_from_project(cls) -> "Config":
-        return Config.load_from_file(os.path.join(get_project(), "setup.yaml"))
+        return Config.load_from_file(Config.get_setup_path())
 
 
 def get_config() -> Config:

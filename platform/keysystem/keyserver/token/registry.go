@@ -9,14 +9,14 @@ import (
 )
 
 type TokenRegistry struct {
-	mutex    sync.Mutex
-	by_token map[string]scoped.ScopedToken
+	mutex   sync.Mutex
+	byToken map[string]scoped.ScopedToken
 }
 
 func (r *TokenRegistry) LookupToken(token string) (scoped.ScopedToken, error) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
-	tokdata, present := r.by_token[token]
+	tokdata, present := r.byToken[token]
 	if !present {
 		return scoped.ScopedToken{}, errors.New("unrecognized token")
 	}
@@ -26,21 +26,21 @@ func (r *TokenRegistry) LookupToken(token string) (scoped.ScopedToken, error) {
 func (r *TokenRegistry) addToken(token scoped.ScopedToken) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
-	_, exists := r.by_token[token.Token]
+	_, exists := r.byToken[token.Token]
 	if exists {
 		// It's better to crash than allow cross-contamination of tokens
 		panic("Token collision (is that even possible?)")
 	}
-	r.by_token[token.Token] = token
+	r.byToken[token.Token] = token
 }
 
 func (r *TokenRegistry) expireOldEntries() {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
-	for k, v := range r.by_token {
+	for k, v := range r.byToken {
 		if v.HasExpired() {
-			delete(r.by_token, k)
+			delete(r.byToken, k)
 		}
 	}
 }
@@ -53,5 +53,5 @@ func (r *TokenRegistry) GrantToken(subject string, lifespan time.Duration) strin
 }
 
 func NewTokenRegistry() *TokenRegistry {
-	return &TokenRegistry{by_token: make(map[string]scoped.ScopedToken)}
+	return &TokenRegistry{byToken: make(map[string]scoped.ScopedToken)}
 }

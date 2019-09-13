@@ -11,7 +11,7 @@ import (
 	"github.com/sipb/homeworld/platform/keysystem/keyserver/authorities"
 )
 
-var setup_steps = []SetupStep{CompileStaticFiles, CompileAuthorities, CompileGlobalAuthorities, CompileGroups, CompileAccounts, CompileGrants}
+var setupSteps = []SetupStep{CompileStaticFiles, CompileAuthorities, CompileGlobalAuthorities, CompileGroups, CompileAccounts, CompileGrants}
 
 func CompileStaticFiles(context *Context, config *Config) error {
 	context.StaticFiles = make(map[string]StaticFile)
