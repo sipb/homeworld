@@ -11,8 +11,7 @@ def admit(server_principal: str) -> str:
     if config.is_kerberos_enabled():
         return access.call_keyreq("bootstrap-token", principal_hostname).decode().strip()
     else:
-        keyserver_hostname = config.keyserver.hostname + "." + config.external_domain
-        return ssh.check_ssh_output(config.keyserver, "keyinitadmit", keyserver_hostname, principal_hostname).decode().strip()
+        return ssh.check_ssh_output(config.keyserver, "keyinitadmit", principal_hostname).decode().strip()
 
 
 def infra_admit(server_principal: str) -> None:

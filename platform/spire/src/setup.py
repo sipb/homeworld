@@ -140,6 +140,8 @@ def setup_keyserver(ops: Operations) -> None:
                              configuration.get_machine_list_file().encode(), STATICS_DIR + "/machine.list")
         ops.ssh_upload_bytes("upload keyserver config to @HOST", node,
                              configuration.get_keyserver_yaml().encode(), CONFIG_DIR + "/keyserver.yaml")
+        ops.ssh_upload_path("upload cluster setup to @HOST", node,
+                            configuration.Config.get_setup_path(), CONFIG_DIR + "/setup.yaml")
         ops.ssh("enable keyserver on @HOST", node, "systemctl", "enable", "keyserver.service")
         ops.ssh("start keyserver on @HOST", node, "systemctl", "restart", "keyserver.service")
 
@@ -151,7 +153,7 @@ def admit_keyserver(ops: Operations) -> None:
             continue
         domain = node.hostname + "." + config.external_domain
         ops.ssh("request bootstrap token for @HOST", node,
-                "keyinitadmit", domain, domain,
+                "keyinitadmit", domain,
                 redirect_to=KEYCLIENT_DIR + "/bootstrap.token")
         # TODO: do we need to poke the keyclient to make sure it tries again?
         # TODO: don't wait four seconds if it isn't necessary

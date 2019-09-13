@@ -6,6 +6,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"log"
 	"os"
 	"time"
@@ -13,17 +14,42 @@ import (
 	"github.com/sipb/homeworld/platform/keysystem/api/reqtarget"
 	"github.com/sipb/homeworld/platform/keysystem/api/server"
 	"github.com/sipb/homeworld/platform/keysystem/keyserver/config"
+	"github.com/sipb/homeworld/platform/keysystem/worldconfig"
 	"github.com/sipb/homeworld/platform/keysystem/worldconfig/paths"
 	"github.com/sipb/homeworld/platform/util/wraputil"
 )
 
+func GetKeyserverName() (string, error) {
+	cfg, err := worldconfig.LoadSpireSetup(paths.SpireSetupPath)
+	if err != nil {
+		return "", err
+	}
+	var supervisor = ""
+	for _, node := range cfg.Nodes {
+		if node.Kind == "supervisor" {
+			if supervisor != "" {
+				return "", errors.New("multiple supervisors not yet supported")
+			}
+			supervisor = node.Hostname + "." + cfg.Cluster.ExternalDomain
+		}
+	}
+	if supervisor == "" {
+		return "", errors.New("could not find name of supervisor")
+	}
+	return supervisor, nil
+}
+
 func main() {
 	logger := log.New(os.Stderr, "[keyinitadmit] ", log.Ldate|log.Ltime|log.Lmicroseconds|log.Lshortfile)
-	if len(os.Args) != 3 {
-		logger.Fatal("usage: keyinitadmit <server> <principal>\n  runs on the keyserver; requests a bootstrap token using privileged access")
+	if len(os.Args) != 2 {
+		logger.Fatal("usage: keyinitadmit <principal>\n  runs on the keyserver; requests a bootstrap token using privileged access")
 	}
-	serverName := os.Args[1]
-	principal := os.Args[2]
+	principal := os.Args[1]
+	// since there's only one keyserver, we can figure out our own name by looking for it in the setup.yaml
+	serverName, err := GetKeyserverName()
+	if err != nil {
+		logger.Fatal(err)
+	}
 	ctx, err := config.LoadConfig(paths.KeyserverConfigPath)
 	if err != nil {
 		logger.Fatal(err)
