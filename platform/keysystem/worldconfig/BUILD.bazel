@@ -12,7 +12,6 @@ go_library(
         "//keysystem/keyclient/actions/keygen:go_default_library",
         "//keysystem/keyclient/actions/keyreq:go_default_library",
         "//keysystem/keyclient/actloop:go_default_library",
-        "//keysystem/keyclient/state:go_default_library",
         "//keysystem/worldconfig/paths:go_default_library",
     ],
 )

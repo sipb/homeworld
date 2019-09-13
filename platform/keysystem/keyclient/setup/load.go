@@ -22,7 +22,7 @@ func LoadDefault(logger *log.Logger) (*state.ClientState, actloop.NewAction, err
 
 	s := state.NewClientState(ks)
 
-	actions := worldconfig.BuildActions(s)
+	actions := worldconfig.ConvergeState
 
 	err = s.ReloadKeygrantingCert()
 	if err != nil {
