@@ -12,7 +12,7 @@ def admit(server_principal: str) -> str:
         return access.call_keyreq("bootstrap-token", principal_hostname).decode().strip()
     else:
         keyserver_hostname = config.keyserver.hostname + "." + config.external_domain
-        return ssh.check_ssh_output(config.keyserver, "keyinitadmit", setup.CONFIG_DIR + "/keyserver.yaml", keyserver_hostname, principal_hostname, "bootstrap-keyinit").decode().strip()
+        return ssh.check_ssh_output(config.keyserver, "keyinitadmit", keyserver_hostname, principal_hostname).decode().strip()
 
 
 def infra_admit(server_principal: str) -> None:

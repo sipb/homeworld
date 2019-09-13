@@ -9,6 +9,7 @@ import (
 
 	"github.com/sipb/homeworld/platform/keysystem/keyserver/config"
 	"github.com/sipb/homeworld/platform/keysystem/keyserver/operation"
+	"github.com/sipb/homeworld/platform/keysystem/worldconfig/paths"
 )
 
 func apiToHTTP(ks Keyserver, logger *log.Logger) http.Handler {
@@ -45,8 +46,8 @@ func apiToHTTP(ks Keyserver, logger *log.Logger) http.Handler {
 	return mux
 }
 
-func LoadConfiguredKeyserver(filename string, logger *log.Logger) (Keyserver, error) {
-	ctx, err := config.LoadConfig(filename)
+func LoadConfiguredKeyserver(logger *log.Logger) (Keyserver, error) {
+	ctx, err := config.LoadConfig(paths.KeyserverConfigPath)
 	if err != nil {
 		return nil, err
 	}
@@ -54,8 +55,8 @@ func LoadConfiguredKeyserver(filename string, logger *log.Logger) (Keyserver, er
 }
 
 // addr: ":20557"
-func Run(configfile string, addr string, logger *log.Logger) (func(), chan error, error) {
-	ks, err := LoadConfiguredKeyserver(configfile, logger)
+func Run(addr string, logger *log.Logger) (func(), chan error, error) {
+	ks, err := LoadConfiguredKeyserver(logger)
 	if err != nil {
 		return nil, nil, err
 	}
