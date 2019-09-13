@@ -18,8 +18,8 @@ import (
 
 type Keyserver interface {
 	HandleAPIRequest(writer http.ResponseWriter, request *http.Request) error
-	HandlePubRequest(writer http.ResponseWriter, authority_name string) error
-	HandleStaticRequest(writer http.ResponseWriter, static_name string) error
+	HandlePubRequest(writer http.ResponseWriter, authorityName string) error
+	HandleStaticRequest(writer http.ResponseWriter, staticName string) error
 	GetClientCAs() *x509.CertPool
 	GetServerCert() tls.Certificate
 }
@@ -34,9 +34,9 @@ func verifyAccountIP(account *account.Account, request *http.Request) error {
 	if err != nil {
 		return err
 	}
-	allowed_ip := account.LimitIP
-	if allowed_ip != nil && !allowed_ip.Equal(ip) {
-		return fmt.Errorf("attempt to interact with API from wrong IP address: %v instead of %v", ip, allowed_ip)
+	allowedIp := account.LimitIP
+	if allowedIp != nil && !allowedIp.Equal(ip) {
+		return fmt.Errorf("attempt to interact with API from wrong IP address: %v instead of %v", ip, allowedIp)
 	}
 	return nil
 }

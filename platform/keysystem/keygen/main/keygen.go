@@ -17,9 +17,9 @@ func main() {
 	if err != nil {
 		logger.Fatal(err)
 	}
-	authority_dir := os.Args[2]
+	authorityDir := os.Args[2]
 	supervisor_group := os.Args[3]
-	err = keygen.GenerateKeys(cfg, authority_dir, supervisor_group)
+	err = keygen.GenerateKeys(cfg, authorityDir, supervisor_group)
 	if err != nil {
 		logger.Fatal(err)
 	}

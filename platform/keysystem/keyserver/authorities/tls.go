@@ -95,9 +95,9 @@ func (t *TLSAuthority) Sign(request string, ishost bool, lifespan time.Duration,
 		return "", err
 	}
 
-	issue_at := time.Now()
+	issueAt := time.Now()
 
-	dns_names, IPs := partitionDNSNamesAndIPs(names)
+	dnsNames, IPs := partitionDNSNamesAndIPs(names)
 
 	certTemplate := &x509.Certificate{
 		KeyUsage:    x509.KeyUsageDigitalSignature,
@@ -108,11 +108,11 @@ func (t *TLSAuthority) Sign(request string, ishost bool, lifespan time.Duration,
 		MaxPathLen:     0,
 		MaxPathLenZero: true,
 
-		NotBefore: issue_at,
-		NotAfter:  issue_at.Add(lifespan),
+		NotBefore: issueAt,
+		NotAfter:  issueAt.Add(lifespan),
 
 		Subject:     pkix.Name{CommonName: commonname},
-		DNSNames:    dns_names,
+		DNSNames:    dnsNames,
 		IPAddresses: IPs,
 	}
 
@@ -120,11 +120,11 @@ func (t *TLSAuthority) Sign(request string, ishost bool, lifespan time.Duration,
 		certTemplate.ExtKeyUsage = append(certTemplate.ExtKeyUsage, x509.ExtKeyUsageServerAuth)
 	}
 
-	signed_cert, err := certutil.FinishCertificate(certTemplate, t.cert, csr.PublicKey, t.key)
+	signedCert, err := certutil.FinishCertificate(certTemplate, t.cert, csr.PublicKey, t.key)
 	if err != nil {
 		return "", err
 	}
-	return string(signed_cert), nil
+	return string(signedCert), nil
 }
 
 func partitionDNSNamesAndIPs(names []string) ([]string, []net.IP) {

@@ -31,8 +31,8 @@ func NewTLSGrantPrivilege(authority authorities.Authority, ishost bool, lifespan
 	if !ok {
 		return nil, errors.New("TLS granting privilege expects a TLS authority")
 	}
-	return func(_ *OperationContext, signing_request string) (string, error) {
-		return tauth.Sign(signing_request, ishost, lifespan, commonname, dnsnames)
+	return func(_ *OperationContext, signingRequest string) (string, error) {
+		return tauth.Sign(signingRequest, ishost, lifespan, commonname, dnsnames)
 	}, nil
 }
 
@@ -44,8 +44,8 @@ func NewSSHGrantPrivilege(authority authorities.Authority, ishost bool, lifespan
 	if !ok {
 		return nil, errors.New("SSH granting privilege expects a SSH authority")
 	}
-	return func(_ *OperationContext, signing_request string) (string, error) {
-		return tauth.Sign(signing_request, ishost, lifespan, keyid, principals)
+	return func(_ *OperationContext, signingRequest string) (string, error) {
+		return tauth.Sign(signingRequest, ishost, lifespan, keyid, principals)
 	}, nil
 }
 
@@ -58,20 +58,20 @@ func stringInList(value string, within []string) bool {
 	return false
 }
 
-func NewBootstrapPrivilege(allowed_principals []string, lifespan time.Duration, registry *token.TokenRegistry) (Privilege, error) {
-	if len(allowed_principals) == 0 {
+func NewBootstrapPrivilege(allowedPrincipals []string, lifespan time.Duration, registry *token.TokenRegistry) (Privilege, error) {
+	if len(allowedPrincipals) == 0 {
 		return nil, errors.New("expected at least one allowed principal in token granting privilege")
 	}
 	if lifespan < time.Millisecond || registry == nil {
 		return nil, errors.New("missing parameter to token granting privilege")
 	}
-	return func(_ *OperationContext, encoded_principal string) (string, error) {
-		principal := string(encoded_principal)
-		if !stringInList(principal, allowed_principals) {
-			return "", fmt.Errorf("principal not allowed to be bootstrapped: %s", encoded_principal)
+	return func(_ *OperationContext, encodedPrincipal string) (string, error) {
+		principal := string(encodedPrincipal)
+		if !stringInList(principal, allowedPrincipals) {
+			return "", fmt.Errorf("principal not allowed to be bootstrapped: %s", encodedPrincipal)
 		}
-		generated_token := registry.GrantToken(principal, lifespan)
-		return generated_token, nil
+		generatedToken := registry.GrantToken(principal, lifespan)
+		return generatedToken, nil
 	}, nil
 }
 
@@ -79,15 +79,15 @@ func NewImpersonatePrivilege(getAccount func(string) (*Account, error), scope *G
 	if getAccount == nil || scope == nil {
 		return nil, errors.New("missing parameter to impersonation privilege")
 	}
-	return func(ctx *OperationContext, new_principal string) (string, error) {
-		if !scope.HasMember(new_principal) {
+	return func(ctx *OperationContext, newPrincipal string) (string, error) {
+		if !scope.HasMember(newPrincipal) {
 			return "", errors.New("attempt to impersonate outside of allowed scope")
 		}
-		account, err := getAccount(new_principal)
+		account, err := getAccount(newPrincipal)
 		if err != nil {
 			return "", err
 		}
-		if account.Principal != new_principal {
+		if account.Principal != newPrincipal {
 			return "", errors.New("wrong account returned")
 		}
 		ctx.Account = account
