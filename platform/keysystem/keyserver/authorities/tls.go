@@ -19,6 +19,7 @@ import (
 type TLSAuthority struct {
 	// TODO: also support ECDSA or other newer algorithms
 	key         *rsa.PrivateKey
+	keyEncoded  []byte
 	cert        *x509.Certificate
 	certEncoded []byte
 }
@@ -45,7 +46,7 @@ func LoadTLSAuthority(keydata []byte, certdata []byte) (Authority, error) {
 		return nil, errors.New("mismatched RSA public and private keys")
 	}
 
-	return &TLSAuthority{key: privkey, cert: cert, certEncoded: certdata}, nil
+	return &TLSAuthority{key: privkey, keyEncoded: keydata, cert: cert, certEncoded: certdata}, nil
 }
 
 func (t *TLSAuthority) ToCertPool() *x509.CertPool {
@@ -56,6 +57,10 @@ func (t *TLSAuthority) ToCertPool() *x509.CertPool {
 
 func (t *TLSAuthority) GetPublicKey() []byte {
 	return t.certEncoded
+}
+
+func (t *TLSAuthority) GetPrivateKey() []byte {
+	return t.keyEncoded
 }
 
 func (t *TLSAuthority) ToHTTPSCert() tls.Certificate {

@@ -5,7 +5,6 @@ go_library(
     srcs = [
         "authorities.go",
         "ssh.go",
-        "static.go",
         "tls.go",
     ],
     importpath = "github.com/sipb/homeworld/platform/keysystem/keyserver/authorities",
