@@ -85,48 +85,16 @@ type Authorities struct {
 	ServiceAccount *authorities.TLSAuthority
 }
 
-func GenerateAuthorities() map[string]config.ConfigAuthority {
-	return map[string]config.ConfigAuthority{
-		"keygranting": {
-			Type: "TLS",
-			Key:  "keygranting.key",
-			Cert: "keygranting.pem",
-		},
-		"clusterca": {
-			Type: "TLS",
-			Key:  "clusterca.key",
-			Cert: "clusterca.pem",
-		},
-		"ssh-user": {
-			Type: "SSH",
-			Key:  "ssh-user",
-			Cert: "ssh-user.pub",
-		},
-		"ssh-host": {
-			Type: "SSH",
-			Key:  "ssh-host",
-			Cert: "ssh-host.pub",
-		},
-		"etcd-server": {
-			Type: "TLS",
-			Key:  "etcd-server.key",
-			Cert: "etcd-server.pem",
-		},
-		"etcd-client": {
-			Type: "TLS",
-			Key:  "etcd-client.key",
-			Cert: "etcd-client.pem",
-		},
-		"kubernetes": {
-			Type: "TLS",
-			Key:  "kubernetes.key",
-			Cert: "kubernetes.pem",
-		},
-		"serviceaccount": {
-			Type: "TLS",
-			Key:  "serviceaccount.key",
-			Cert: "serviceaccount.pem",
-		},
+func ListAuthorities() []config.ConfigAuthority {
+	return []config.ConfigAuthority{
+		config.TLSAuthority("keygranting"),
+		config.TLSAuthority("clusterca"),
+		config.SSHAuthority("ssh-user"),
+		config.SSHAuthority("ssh-host"),
+		config.TLSAuthority("kubernetes"),
+		config.TLSAuthority("etcd-server"),
+		config.TLSAuthority("etcd-client"),
+		config.TLSAuthority("serviceaccount"),
 	}
 }
 
@@ -296,12 +264,12 @@ func GenerateConfig() (*config.Context, error) {
 	if err != nil {
 		return nil, err
 	}
-	for name, authority := range GenerateAuthorities() {
+	for _, authority := range ListAuthorities() {
 		loaded, err := authority.Load(AuthorityKeyDirectory)
 		if err != nil {
 			return nil, err
 		}
-		context.Authorities[name] = loaded
+		context.Authorities[authority.Name] = loaded
 	}
 	auth := Authorities{
 		Keygranting:    context.Authorities["keygranting"].(*authorities.TLSAuthority),
