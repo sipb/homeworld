@@ -71,7 +71,7 @@ func generateServerCertificate(ctx *config.Context) (tls.Certificate, error) {
 		return tls.Certificate{}, errors.Wrap(err, "while generating CSR")
 	}
 	// TODO: figure out the right period of time for this certificate to be valid
-	cert, err := ctx.ClusterTLS.Sign(string(csr), true, time.Hour*24, "keyserver-autogen-tls", []string{ctx.KeyserverDNS})
+	cert, err := ctx.ClusterCA.Sign(string(csr), true, time.Hour*24, "keyserver-autogen-tls", []string{ctx.KeyserverDNS})
 	if err != nil {
 		return tls.Certificate{}, err
 	}

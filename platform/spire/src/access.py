@@ -63,8 +63,8 @@ def call_keyreq(keyreq_command, *params):
     keyserver_domain = config.keyserver.hostname + "." + config.external_domain + ":20557"
 
     with tempfile.TemporaryDirectory() as tdir:
-        https_cert_path = os.path.join(tdir, "cluster.cert")
-        util.writefile(https_cert_path, authority.get_pubkey_by_filename("./cluster.cert"))
+        https_cert_path = os.path.join(tdir, "clusterca.pem")
+        util.writefile(https_cert_path, authority.get_pubkey_by_filename("./clusterca.pem"))
         keyreq_sp = subprocess.Popen(["keyreq", keyreq_command, https_cert_path, keyserver_domain] + list(params), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         output, err_bytes = keyreq_sp.communicate()
         if keyreq_sp.returncode != 0:
@@ -78,7 +78,7 @@ def call_keyreq(keyreq_command, *params):
 def renew_ssh_cert() -> str:
     project_dir = configuration.get_project()
     keypath = os.path.join(project_dir, "ssh-key")
-    refresh_cert(keypath, keypath + "-cert.pub", None, "ssh", "ssh_user_ca", "ssh_user_ca.pub")
+    refresh_cert(keypath, keypath + "-cert.pub", None, "ssh", "ssh-user", "ssh-user.pub")
     return keypath
 
 
@@ -166,7 +166,7 @@ def update_known_hosts():
     # uses local copies of machine list and ssh-host pubkey
     # TODO: eliminate now-redundant machine.list download from keyserver
     machines = configuration.get_machine_list_file().strip()
-    cert_authority_pubkey = authority.get_pubkey_by_filename("./ssh_host_ca.pub")
+    cert_authority_pubkey = authority.get_pubkey_by_filename("./ssh-host.pub")
     known_hosts_path = get_known_hosts_path()
     known_hosts_old = util.readfile(known_hosts_path).decode().split("\n") if os.path.exists(known_hosts_path) else []
 
