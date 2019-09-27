@@ -8,7 +8,7 @@ import configuration
 
 
 def get_verified_keyserver_opener() -> urllib.request.OpenerDirector:
-    keyserver_cert = authority.get_pubkey_by_filename("./server.pem")
+    keyserver_cert = authority.get_pubkey_by_filename("./cluster.cert")
     context = ssl.create_default_context(cadata=keyserver_cert.decode())
     opener = urllib.request.OpenerDirector()
     opener.add_handler(urllib.request.HTTPSHandler(context=context, check_hostname=True))

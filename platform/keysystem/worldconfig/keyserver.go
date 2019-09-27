@@ -76,7 +76,6 @@ func GenerateAccounts(context *config.Context, conf *SpireSetup, auth Authoritie
 
 type Authorities struct {
 	Keygranting    *authorities.TLSAuthority
-	ServerTLS      *authorities.TLSAuthority
 	ClusterTLS     *authorities.TLSAuthority
 	SshUser        *authorities.SSHAuthority
 	SshHost        *authorities.SSHAuthority
@@ -87,24 +86,11 @@ type Authorities struct {
 }
 
 func GenerateAuthorities(conf *SpireSetup) map[string]config.ConfigAuthority {
-	var presentAs []string
-	for _, node := range conf.Nodes {
-		if node.IsSupervisor() {
-			presentAs = append(presentAs, node.DNS())
-		}
-	}
-
 	return map[string]config.ConfigAuthority{
 		"keygranting": {
 			Type: "TLS",
 			Key:  "keygrant.key",
 			Cert: "keygrant.pem",
-		},
-		"servertls": {
-			Type:      "TLS",
-			Key:       "server.key",
-			Cert:      "server.pem",
-			PresentAs: presentAs,
 		},
 		"clustertls": {
 			Type: "TLS",
@@ -319,7 +305,6 @@ func GenerateConfig() (*config.Context, error) {
 	}
 	auth := Authorities{
 		Keygranting:    context.Authorities["keygranting"].(*authorities.TLSAuthority),
-		ServerTLS:      context.Authorities["servertls"].(*authorities.TLSAuthority),
 		ClusterTLS:     context.Authorities["clustertls"].(*authorities.TLSAuthority),
 		EtcdClient:     context.Authorities["etcd-client"].(*authorities.TLSAuthority),
 		EtcdServer:     context.Authorities["etcd-server"].(*authorities.TLSAuthority),
@@ -329,7 +314,7 @@ func GenerateConfig() (*config.Context, error) {
 		SshUser:        context.Authorities["ssh-user"].(*authorities.SSHAuthority),
 	}
 	context.AuthenticationAuthority = auth.Keygranting
-	context.ServerTLS = auth.ServerTLS
+	context.ClusterTLS = auth.ClusterTLS
 	GenerateAccounts(context, conf, auth)
 	return context, nil
 }

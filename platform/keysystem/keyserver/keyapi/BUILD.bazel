@@ -9,12 +9,15 @@ go_library(
     importpath = "github.com/sipb/homeworld/platform/keysystem/keyserver/keyapi",
     visibility = ["//visibility:public"],
     deps = [
+        "//keysystem/keygen:go_default_library",
         "//keysystem/keyserver/account:go_default_library",
         "//keysystem/keyserver/config:go_default_library",
         "//keysystem/keyserver/operation:go_default_library",
         "//keysystem/keyserver/verifier:go_default_library",
         "//keysystem/worldconfig:go_default_library",
+        "//util/csrutil:go_default_library",
         "//util/netutil:go_default_library",
+        "@com_github_pkg_errors//:go_default_library",
     ],
 )
 

@@ -21,7 +21,7 @@ type Context struct {
 	Accounts                map[string]*account.Account
 	TokenVerifier           verifier.TokenVerifier
 	AuthenticationAuthority *authorities.TLSAuthority
-	ServerTLS               *authorities.TLSAuthority
+	ClusterTLS              *authorities.TLSAuthority
 	StaticFiles             map[string]StaticFile
 	KeyserverDNS            string
 }

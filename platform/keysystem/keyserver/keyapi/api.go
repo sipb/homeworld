@@ -25,8 +25,9 @@ type Keyserver interface {
 }
 
 type ConfiguredKeyserver struct {
-	Context *config.Context
-	Logger  *log.Logger
+	Context    *config.Context
+	ServerCert tls.Certificate
+	Logger     *log.Logger
 }
 
 func verifyAccountIP(account *account.Account, request *http.Request) error {
@@ -72,7 +73,7 @@ func (k *ConfiguredKeyserver) GetClientCAs() *x509.CertPool {
 }
 
 func (k *ConfiguredKeyserver) GetServerCert() tls.Certificate {
-	return k.Context.ServerTLS.ToHTTPSCert()
+	return k.ServerCert
 }
 
 func (k *ConfiguredKeyserver) HandleAPIRequest(writer http.ResponseWriter, request *http.Request) error {
