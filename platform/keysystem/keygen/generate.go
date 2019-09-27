@@ -7,20 +7,20 @@ import (
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"errors"
-	"fmt"
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
 	"os"
 	"path"
 	"time"
 
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/config"
 	"github.com/sipb/homeworld/platform/keysystem/worldconfig"
 	"github.com/sipb/homeworld/platform/util/certutil"
 )
 
 const AuthorityBits = 4096
 
-func GenerateTLSSelfSignedCert(key *rsa.PrivateKey, name string, present_as []string) ([]byte, error) {
+func GenerateTLSSelfSignedCert(key *rsa.PrivateKey, name string) ([]byte, error) {
 	issueat := time.Now()
 
 	certTemplate := &x509.Certificate{
@@ -34,8 +34,7 @@ func GenerateTLSSelfSignedCert(key *rsa.PrivateKey, name string, present_as []st
 		NotBefore: issueat,
 		NotAfter:  time.Unix(issueat.Unix()+86400*1000000, 0), // one million days in the future
 
-		Subject:  pkix.Name{CommonName: "homeworld-authority-" + name},
-		DNSNames: present_as,
+		Subject: pkix.Name{CommonName: "homeworld-authority-" + name},
 	}
 
 	return certutil.FinishCertificate(certTemplate, certTemplate, key.Public(), key)
@@ -48,42 +47,42 @@ func GenerateKeys(dir string) error {
 		return errors.New("expected authority directory, not authority file")
 	}
 
-	authorities := worldconfig.GenerateAuthorities()
-
-	for name, authority := range authorities {
+	for _, authority := range worldconfig.ListAuthorities() {
 		// private key
 		privkey, err := rsa.GenerateKey(rand.Reader, AuthorityBits)
 		if err != nil {
 			return err
 		}
+		keyfile, certfile := authority.Filenames()
 		privkeybytes := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(privkey)})
-		err = ioutil.WriteFile(path.Join(dir, authority.Key), privkeybytes, os.FileMode(0600))
+		err = ioutil.WriteFile(path.Join(dir, keyfile), privkeybytes, os.FileMode(0600))
 		if err != nil {
 			return err
 		}
-		if authority.Type == "TLS" {
+		switch authority.Type {
+		case config.TLSAuthorityType:
 			// self-signed cert
-			cert, err := GenerateTLSSelfSignedCert(privkey, name, authority.PresentAs)
+			cert, err := GenerateTLSSelfSignedCert(privkey, authority.Name)
 			if err != nil {
 				return err
 			}
-			err = ioutil.WriteFile(path.Join(dir, authority.Cert), cert, os.FileMode(0644))
+			err = ioutil.WriteFile(path.Join(dir, certfile), cert, os.FileMode(0644))
 			if err != nil {
 				return err
 			}
-		} else if authority.Type == "SSH" {
+		case config.SSHAuthorityType:
 			// SSH authorities are just pubkeys
 			pkey, err := ssh.NewPublicKey(privkey.Public())
 			if err != nil {
 				return err
 			}
 			pubkey := ssh.MarshalAuthorizedKey(pkey)
-			err = ioutil.WriteFile(path.Join(dir, authority.Cert), pubkey, os.FileMode(0644))
+			err = ioutil.WriteFile(path.Join(dir, certfile), pubkey, os.FileMode(0644))
 			if err != nil {
 				return err
 			}
-		} else {
-			return fmt.Errorf("invalid authority type: %s", authority.Type)
+		default:
+			panic("invalid authority type in GenerateKeys")
 		}
 	}
 	return nil
