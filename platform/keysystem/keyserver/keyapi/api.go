@@ -3,16 +3,19 @@ package keyapi
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"errors"
 	"fmt"
+	"github.com/pkg/errors"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"sync"
+	"time"
 
 	"github.com/sipb/homeworld/platform/keysystem/keyserver/account"
 	"github.com/sipb/homeworld/platform/keysystem/keyserver/config"
 	"github.com/sipb/homeworld/platform/keysystem/keyserver/operation"
 	"github.com/sipb/homeworld/platform/keysystem/keyserver/verifier"
+	"github.com/sipb/homeworld/platform/util/csrutil"
 	"github.com/sipb/homeworld/platform/util/netutil"
 )
 
@@ -21,12 +24,15 @@ type Keyserver interface {
 	HandlePubRequest(writer http.ResponseWriter, authorityName string) error
 	HandleStaticRequest(writer http.ResponseWriter, staticName string) error
 	GetClientCAs() *x509.CertPool
-	GetServerCert() tls.Certificate
+	GetValidServerCert(_ *tls.ClientHelloInfo) (*tls.Certificate, error)
 }
 
 type ConfiguredKeyserver struct {
-	Context *config.Context
-	Logger  *log.Logger
+	Context    *config.Context
+	ServerKey  []byte
+	ServerCert *tls.Certificate
+	CertLock   sync.Mutex
+	Logger     *log.Logger
 }
 
 func verifyAccountIP(account *account.Account, request *http.Request) error {
@@ -71,8 +77,38 @@ func (k *ConfiguredKeyserver) GetClientCAs() *x509.CertPool {
 	return k.Context.AuthenticationAuthority.ToCertPool()
 }
 
-func (k *ConfiguredKeyserver) GetServerCert() tls.Certificate {
-	return k.Context.ServerTLS.ToHTTPSCert()
+const RenewalMargin = time.Minute * 5
+const ValidityInterval = time.Hour * 24
+
+func (k *ConfiguredKeyserver) GetValidServerCert(_ *tls.ClientHelloInfo) (*tls.Certificate, error) {
+	k.CertLock.Lock()
+	defer k.CertLock.Unlock()
+
+	if k.ServerCert != nil && time.Now().Add(RenewalMargin).Before(k.ServerCert.Leaf.NotAfter) {
+		// we still have a valid certificate, so use that
+		return k.ServerCert, nil
+	}
+
+	k.Logger.Printf("Signing new certificate for serving requests...")
+	csr, err := csrutil.BuildTLSCSR(k.ServerKey)
+	if err != nil {
+		return nil, errors.Wrap(err, "while generating CSR")
+	}
+	cert, err := k.Context.ClusterTLS.Sign(string(csr), true, ValidityInterval, "keyserver-autogen-tls", []string{k.Context.KeyserverDNS})
+	if err != nil {
+		return nil, errors.Wrap(err, "while signing CSR")
+	}
+	pair, err := tls.X509KeyPair([]byte(cert), k.ServerKey)
+	if err != nil {
+		return nil, errors.Wrap(err, "while reloading certificate")
+	}
+	pair.Leaf, err = x509.ParseCertificate(pair.Certificate[0])
+	if err != nil {
+		return nil, errors.Wrap(err, "while pre-parsing certificate")
+	}
+	k.ServerCert = &pair
+	k.Logger.Printf("New certificate will be valid until %v", k.ServerCert.Leaf.NotAfter)
+	return k.ServerCert, nil
 }
 
 func (k *ConfiguredKeyserver) HandleAPIRequest(writer http.ResponseWriter, request *http.Request) error {

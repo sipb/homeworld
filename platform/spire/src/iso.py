@@ -56,7 +56,7 @@ def gen_iso(iso_image, authorized_key, mode=None):
 
         inclusion += ["dns_bootstrap_lines"]
         util.copy(authorized_key, os.path.join(d, "authorized.pub"))
-        util.writefile(os.path.join(d, "keyservertls.pem"), authority.get_pubkey_by_filename("./server.pem"))
+        util.writefile(os.path.join(d, "keyservertls.pem"), authority.get_pubkey_by_filename("./cluster.cert"))
         resource.copy_to("postinstall.sh", os.path.join(d, "postinstall.sh"))
         os.chmod(os.path.join(d, "postinstall.sh"), 0o755)
         inclusion += ["authorized.pub", "keyservertls.pem", "postinstall.sh"]

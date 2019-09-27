@@ -2,14 +2,22 @@ package keyapi
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
 	"crypto/tls"
+	"crypto/x509"
+	"encoding/pem"
 	"log"
 	"net"
 	"net/http"
 
+	"github.com/sipb/homeworld/platform/keysystem/keygen"
+	"github.com/sipb/homeworld/platform/keysystem/keyserver/config"
 	"github.com/sipb/homeworld/platform/keysystem/keyserver/operation"
 	"github.com/sipb/homeworld/platform/keysystem/worldconfig"
 )
+
+const TemporaryCertificateBits = keygen.AuthorityBits
 
 func apiToHTTP(ks Keyserver, logger *log.Logger) http.Handler {
 	mux := http.NewServeMux()
@@ -45,12 +53,30 @@ func apiToHTTP(ks Keyserver, logger *log.Logger) http.Handler {
 	return mux
 }
 
+func generateServerKey(ctx *config.Context) ([]byte, error) {
+	// TODO: refactor out the key generation pattern
+	privateKey, err := rsa.GenerateKey(rand.Reader, TemporaryCertificateBits)
+	if err != nil {
+		return nil, err
+	}
+	return pem.EncodeToMemory(&pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PrivateKey(privateKey),
+	}), nil
+}
+
 func LoadConfiguredKeyserver(logger *log.Logger) (Keyserver, error) {
 	ctx, err := worldconfig.GenerateConfig()
 	if err != nil {
 		return nil, err
 	}
-	return &ConfiguredKeyserver{Context: ctx, Logger: logger}, nil
+
+	serverKey, err := generateServerKey(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ConfiguredKeyserver{Context: ctx, ServerKey: serverKey, Logger: logger}, nil
 }
 
 // addr: ":20557"
@@ -64,11 +90,11 @@ func Run(addr string, logger *log.Logger) (func(), chan error, error) {
 		Addr:    addr,
 		Handler: apiToHTTP(ks, logger),
 		TLSConfig: &tls.Config{
-			ClientAuth:   tls.VerifyClientCertIfGiven,
-			ClientCAs:    ks.GetClientCAs(),
-			Certificates: []tls.Certificate{ks.GetServerCert()},
-			MinVersion:   tls.VersionTLS12,
-			NextProtos:   []string{"http/1.1", "h2"},
+			ClientAuth:     tls.VerifyClientCertIfGiven,
+			ClientCAs:      ks.GetClientCAs(),
+			GetCertificate: ks.GetValidServerCert,
+			MinVersion:     tls.VersionTLS12,
+			NextProtos:     []string{"http/1.1", "h2"},
 		},
 	}
 
