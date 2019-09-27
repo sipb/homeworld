@@ -31,12 +31,15 @@ func (s *SpireNode) IsWorker() bool {
 }
 
 func (s *SpireNode) DNS() string {
+	if s.setup == nil {
+		panic("uninitialized")
+	}
 	return s.Hostname + "." + s.setup.Cluster.ExternalDomain
 }
 
 func (s *SpireNode) NetIP() net.IP {
 	if s.netIP == nil {
-		panic("IP state inconsistency")
+		panic("uninitialized")
 	}
 	return s.netIP
 }
@@ -52,7 +55,15 @@ type SpireSetup struct {
 		ServiceAPI string `yaml:"service-api"`
 	}
 	Nodes      []*SpireNode
+	supervisor *SpireNode
 	RootAdmins []string `yaml:"root-admins"`
+}
+
+func (s *SpireSetup) Supervisor() *SpireNode {
+	if s.supervisor == nil {
+		panic("uninitialized")
+	}
+	return s.supervisor
 }
 
 func LoadSpireSetup(path string) (*SpireSetup, error) {
@@ -66,6 +77,7 @@ func LoadSpireSetup(path string) (*SpireSetup, error) {
 		return nil, err
 	}
 	// validation steps
+	supervisors := 0
 	for _, node := range setup.Nodes {
 		if !(node.IsSupervisor() || node.IsMaster() || node.IsWorker()) {
 			return nil, fmt.Errorf("unrecognized kind of node: %s", node.Kind)
@@ -75,6 +87,13 @@ func LoadSpireSetup(path string) (*SpireSetup, error) {
 			return nil, fmt.Errorf("could not parse IP: %s", node.IP)
 		}
 		node.setup = setup
+		if node.IsSupervisor() {
+			setup.supervisor = node
+			supervisors++
+		}
+	}
+	if supervisors != 1 {
+		return nil, fmt.Errorf("expected exactly 1 declared supervisor, not %d", supervisors)
 	}
 	dupcheck := map[string]bool{}
 	for _, rootadmin := range setup.RootAdmins {

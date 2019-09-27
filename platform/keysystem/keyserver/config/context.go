@@ -23,6 +23,7 @@ type Context struct {
 	AuthenticationAuthority *authorities.TLSAuthority
 	ServerTLS               *authorities.TLSAuthority
 	StaticFiles             map[string]StaticFile
+	KeyserverDNS            string
 }
 
 func (a *ConfigAuthority) Load(dir string) (authorities.Authority, error) {
