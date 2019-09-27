@@ -79,7 +79,7 @@ func GenerateAccounts(context *config.Context, conf *SpireSetup, auth Authoritie
 
 type Authorities struct {
 	Keygranting    *authorities.TLSAuthority
-	ClusterTLS     *authorities.TLSAuthority
+	ClusterCA      *authorities.TLSAuthority
 	SshUser        *authorities.SSHAuthority
 	SshHost        *authorities.SSHAuthority
 	EtcdServer     *authorities.TLSAuthority
@@ -92,23 +92,23 @@ func GenerateAuthorities(conf *SpireSetup) map[string]config.ConfigAuthority {
 	return map[string]config.ConfigAuthority{
 		"keygranting": {
 			Type: "TLS",
-			Key:  "keygrant.key",
-			Cert: "keygrant.pem",
+			Key:  "keygranting.key",
+			Cert: "keygranting.pem",
 		},
-		"clustertls": {
+		"clusterca": {
 			Type: "TLS",
-			Key:  "cluster.key",
-			Cert: "cluster.cert",
+			Key:  "clusterca.key",
+			Cert: "clusterca.pem",
 		},
 		"ssh-user": {
 			Type: "SSH",
-			Key:  "ssh_user_ca",
-			Cert: "ssh_user_ca.pub",
+			Key:  "ssh-user",
+			Cert: "ssh-user.pub",
 		},
 		"ssh-host": {
 			Type: "SSH",
-			Key:  "ssh_host_ca",
-			Cert: "ssh_host_ca.pub",
+			Key:  "ssh-host",
+			Cert: "ssh-host.pub",
 		},
 		"etcd-server": {
 			Type: "TLS",
@@ -223,7 +223,7 @@ func GrantsForNodeAccount(c *config.Context, conf *SpireSetup, groups Groups, au
 
 	if node.IsSupervisor() {
 		grants["grant-registry-host"] = account.NewTLSGrantPrivilege(
-			auth.ClusterTLS, true, 30*OneDay, "homeworld-supervisor-"+node.Hostname,
+			auth.ClusterCA, true, 30*OneDay, "homeworld-supervisor-"+node.Hostname,
 			[]string{"homeworld.private"},
 		)
 	}
@@ -307,7 +307,7 @@ func GenerateConfig() (*config.Context, error) {
 	}
 	auth := Authorities{
 		Keygranting:    context.Authorities["keygranting"].(*authorities.TLSAuthority),
-		ClusterTLS:     context.Authorities["clustertls"].(*authorities.TLSAuthority),
+		ClusterCA:      context.Authorities["clusterca"].(*authorities.TLSAuthority),
 		EtcdClient:     context.Authorities["etcd-client"].(*authorities.TLSAuthority),
 		EtcdServer:     context.Authorities["etcd-server"].(*authorities.TLSAuthority),
 		Kubernetes:     context.Authorities["kubernetes"].(*authorities.TLSAuthority),
@@ -316,7 +316,7 @@ func GenerateConfig() (*config.Context, error) {
 		SshUser:        context.Authorities["ssh-user"].(*authorities.SSHAuthority),
 	}
 	context.AuthenticationAuthority = auth.Keygranting
-	context.ClusterTLS = auth.ClusterTLS
+	context.ClusterCA = auth.ClusterCA
 	GenerateAccounts(context, conf, auth)
 	return context, nil
 }

@@ -31,7 +31,7 @@ func ConvergeState(nac *actloop.NewActionContext) {
 		nac,
 	)
 	download.DownloadAuthority(
-		"clustertls",
+		"clusterca",
 		"/usr/local/share/ca-certificates/extra/cluster.tls.crt",
 		OneDay,
 		nac,

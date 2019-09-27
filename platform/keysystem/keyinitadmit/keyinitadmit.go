@@ -40,7 +40,7 @@ func main() {
 	if err != nil {
 		logger.Fatal(err)
 	}
-	ks, err := server.NewKeyserver(ctx.ClusterTLS.GetPublicKey(), ctx.KeyserverDNS+":20557")
+	ks, err := server.NewKeyserver(ctx.ClusterCA.GetPublicKey(), ctx.KeyserverDNS+":20557")
 	if err != nil {
 		logger.Fatal(err)
 	}

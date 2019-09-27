@@ -94,7 +94,7 @@ func (k *ConfiguredKeyserver) GetValidServerCert(_ *tls.ClientHelloInfo) (*tls.C
 	if err != nil {
 		return nil, errors.Wrap(err, "while generating CSR")
 	}
-	cert, err := k.Context.ClusterTLS.Sign(string(csr), true, ValidityInterval, "keyserver-autogen-tls", []string{k.Context.KeyserverDNS})
+	cert, err := k.Context.ClusterCA.Sign(string(csr), true, ValidityInterval, "keyserver-autogen-tls", []string{k.Context.KeyserverDNS})
 	if err != nil {
 		return nil, errors.Wrap(err, "while signing CSR")
 	}
