@@ -61,7 +61,7 @@ func GenerateKeys(dir string) error {
 		if err != nil {
 			return err
 		}
-		if authority.Type == "TLS" || authority.Type == "static" {
+		if authority.Type == "TLS" {
 			// self-signed cert
 			cert, err := GenerateTLSSelfSignedCert(privkey, name, authority.PresentAs)
 			if err != nil {

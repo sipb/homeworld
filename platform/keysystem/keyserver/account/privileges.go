@@ -75,7 +75,7 @@ func NewConfigurationPrivilege(contents string) Privilege {
 	}
 }
 
-func NewFetchKeyPrivilege(static *authorities.StaticAuthority) Privilege {
+func NewFetchKeyPrivilege(static *authorities.TLSAuthority) Privilege {
 	return func(_ *OperationContext, request string) (string, error) {
 		if len(request) != 0 {
 			return "", errors.New("expected empty request to fetch-key endpoint")

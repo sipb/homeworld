@@ -32,8 +32,6 @@ func LoadAuthority(kind string, keydata []byte, certdata []byte) (Authority, err
 		return LoadSSHAuthority(keydata, certdata)
 	case "TLS":
 		return LoadTLSAuthority(keydata, certdata)
-	case "static":
-		return LoadStaticAuthority(keydata, certdata)
 	default:
 		return nil, fmt.Errorf("unrecognized kind of authority: %s", kind)
 	}

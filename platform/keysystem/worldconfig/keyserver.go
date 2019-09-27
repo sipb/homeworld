@@ -82,7 +82,7 @@ type Authorities struct {
 	EtcdServer     *authorities.TLSAuthority
 	EtcdClient     *authorities.TLSAuthority
 	Kubernetes     *authorities.TLSAuthority
-	ServiceAccount *authorities.StaticAuthority
+	ServiceAccount *authorities.TLSAuthority
 }
 
 func GenerateAuthorities() map[string]config.ConfigAuthority {
@@ -123,7 +123,7 @@ func GenerateAuthorities() map[string]config.ConfigAuthority {
 			Cert: "kubernetes.pem",
 		},
 		"serviceaccount": {
-			Type: "static",
+			Type: "TLS",
 			Key:  "serviceaccount.key",
 			Cert: "serviceaccount.pem",
 		},
@@ -309,7 +309,7 @@ func GenerateConfig() (*config.Context, error) {
 		EtcdClient:     context.Authorities["etcd-client"].(*authorities.TLSAuthority),
 		EtcdServer:     context.Authorities["etcd-server"].(*authorities.TLSAuthority),
 		Kubernetes:     context.Authorities["kubernetes"].(*authorities.TLSAuthority),
-		ServiceAccount: context.Authorities["serviceaccount"].(*authorities.StaticAuthority),
+		ServiceAccount: context.Authorities["serviceaccount"].(*authorities.TLSAuthority),
 		SshHost:        context.Authorities["ssh-host"].(*authorities.SSHAuthority),
 		SshUser:        context.Authorities["ssh-user"].(*authorities.SSHAuthority),
 	}
