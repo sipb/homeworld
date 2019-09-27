@@ -305,6 +305,8 @@ func GenerateConfig() (*config.Context, error) {
 		},
 		Authorities: map[string]authorities.Authority{},
 		Accounts:    map[string]*account.Account{},
+
+		KeyserverDNS: conf.Supervisor().DNS(),
 	}
 	err = ValidateStaticFiles(context)
 	if err != nil {
