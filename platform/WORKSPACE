@@ -4,14 +4,14 @@ load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 # TODO: audit all downloads, make sure they're all source code
 http_archive(
     name = "io_bazel_rules_go",
-    urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.19.3/rules_go-0.19.3.tar.gz"],
-    sha256 = "313f2c7a23fecc33023563f082f381a32b9b7254f727a7dd2d6380ccc6dfe09b",
+    urls = ["https://github.com/bazelbuild/rules_go/releases/download/v0.19.5/rules_go-v0.19.5.tar.gz"],
+    sha256 = "513c12397db1bc9aa46dd62f02dd94b49a9b5d17444d49b5a04c5a89f3053c1c",
 )
 load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
 go_rules_dependencies()
 # TODO: stop using binaries built by upstream; use our own
 go_register_toolchains(
-    go_version = "1.12.4",
+    go_version = "1.12.10",
 )
 load("//bazel:gorepo_patchfix.bzl", "go_repository_alt")
 
