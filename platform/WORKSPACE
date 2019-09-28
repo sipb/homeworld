@@ -56,9 +56,9 @@ git_repository(
 
 http_archive(
     name = "kubernetes",
-    sha256 = "ad67dd61361f019431e5c2d455c52868082412467abb167c0501a7e0d988f37c",
+    sha256 = "1d0432832482af3d9d506f6f78fbb58f675045677bd1701f1a61513ae0917133",
     type = "tar.gz",
-    urls = ["https://dl.k8s.io/v1.14.1/kubernetes-src.tar.gz"],
+    urls = ["https://dl.k8s.io/v1.15.4/kubernetes-src.tar.gz"],
 )
 
 # cni-plugins

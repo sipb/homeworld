@@ -43,7 +43,6 @@ else
 		exit 1
 	fi
 fi
-KUBEOPT+=(--allow-privileged=true)
 # turn off anonymous authentication
 KUBEOPT+=(--anonymous-auth=false)
 # add kubelet auth certs
