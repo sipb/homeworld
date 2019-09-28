@@ -248,7 +248,6 @@ func GenerateConfig() (*config.Context, error) {
 		TokenVerifier: verifier.NewTokenVerifier(),
 		StaticFiles: map[string]config.StaticFile{
 			"cluster.conf": {
-				Filename: "cluster.conf",
 				Filepath: ClusterConfigPath,
 			},
 		},
