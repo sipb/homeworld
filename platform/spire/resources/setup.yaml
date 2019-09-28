@@ -18,8 +18,7 @@ dns-upstreams:
   - 18.71.0.151
   - 18.72.0.3
 
-dns-bootstrap:
-  homeworld.private: <supervisor node>
+dns-bootstrap: {}
 
 root-admins:
   - example/root@ATHENA.MIT.EDU

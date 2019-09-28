@@ -226,7 +226,17 @@ def modify_dns_bootstrap(ops: Operations, is_install: bool) -> None:
 
 def dns_bootstrap_lines() -> str:
     config = configuration.get_config()
-    return "".join("%s\t%s # AUTO-HOMEWORLD-BOOTSTRAP\n" % (ip, hostname) for hostname, ip in config.dns_bootstrap.items())
+    dns_hosts = config.dns_bootstrap.copy()
+    dns_hosts["homeworld.private"] = config.keyserver.ip
+    for node in config.nodes:
+        full_hostname = "%s.%s" % (node.hostname, config.external_domain)
+        if node.hostname in dns_hosts:
+            command.fail("redundant /etc/hosts entry: %s", node.hostname)
+        if full_hostname in dns_hosts:
+            command.fail("redundant /etc/hosts entry: %s", full_hostname)
+        dns_hosts[node.hostname] = node.ip
+        dns_hosts[full_hostname] = node.ip
+    return "".join("%s\t%s # AUTO-HOMEWORLD-BOOTSTRAP\n" % (ip, hostname) for hostname, ip in dns_hosts.items())
 
 
 def setup_dns_bootstrap(ops: Operations) -> None:
