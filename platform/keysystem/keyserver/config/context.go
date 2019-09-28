@@ -9,7 +9,6 @@ import (
 )
 
 type StaticFile struct {
-	Filename string
 	Filepath string
 }
 
