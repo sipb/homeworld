@@ -5,7 +5,7 @@ metadata:
   name: flannel-monitor
   namespace: kube-system
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: kube-flannel-monitor-reflector-ds
@@ -14,6 +14,9 @@ metadata:
     tier: node
     app: flannel-monitor-reflector
 spec:
+  selector:
+    matchLabels:
+      app: flannel-monitor-reflector
   template:
     metadata:
       labels:
@@ -47,7 +50,7 @@ spec:
             memory: 50Mi
         command: [ "/usr/bin/flannel-monitor-reflector" ]
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: kube-flannel-monitor-ds
@@ -56,6 +59,9 @@ metadata:
     tier: node
     app: flannel-monitor
 spec:
+  selector:
+    matchLabels:
+      app: flannel-monitor
   template:
     metadata:
       labels:
