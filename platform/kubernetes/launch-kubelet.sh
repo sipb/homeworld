@@ -53,8 +53,6 @@ KUBEOPT+=(--client-ca-file=/etc/homeworld/authorities/kubernetes.pem)
 KUBEOPT+=(--cloud-provider=)
 # use CRI-O
 KUBEOPT+=(--container-runtime=remote --container-runtime-endpoint=unix:///var/run/crio/crio.sock)
-# pod manifests
-KUBEOPT+=(--pod-manifest-path=/etc/hyades/manifests/)
 # DNS
 KUBEOPT+=(--cluster-dns "${SERVICE_DNS}" --cluster-domain "${CLUSTER_DOMAIN}")
 
