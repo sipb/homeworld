@@ -9,13 +9,12 @@ load("//bazel:assert.bzl", "build_assert")
 homeworld_deb(
     name = "package",
     bin = {
-        "@com_github_kubernetes_sigs_cri_o//cmd/crio": "/usr/bin/crio",
-        "@com_github_kubernetes_sigs_cri_o//conmon": "/usr/libexec/crio/conmon",
+        "@com_github_cri_o_cri_o//cmd/crio": "/usr/bin/crio",
+        "@com_github_cri_o_cri_o//conmon": "/usr/libexec/crio/conmon",
     },
     data = {
         ":crio.conf": "/etc/crio/crio.conf",
-        "@com_github_kubernetes_sigs_cri_o//:seccomp.json": "/etc/crio/seccomp.json",
-        "@com_github_kubernetes_sigs_cri_o//:crio-umount.conf": "/usr/local/share/oci-umount/oci-umount.d/crio-umount.conf",
+        "@com_github_cri_o_cri_o//:crio-umount.conf": "/usr/local/share/oci-umount/oci-umount.d/crio-umount.conf",
         ":crictl.yaml": "/etc/crictl.yaml",
         ":crio.service": "/usr/lib/systemd/system/crio.service",
         ":crio-shutdown.service": "/usr/lib/systemd/system/crio-shutdown.service",
@@ -44,9 +43,9 @@ build_assert(
     src = ":crio.conf.substituted",
     message = "upstream's default crio.conf has changed; you must merge the changes into crio.conf, "
             + "and update crio.conf.upstream to be the new upstream version",
-    condition = "diff -u $(location @com_github_kubernetes_sigs_cri_o//:crio.conf) $(location :crio.conf.upstream)",
+    condition = "diff -u $(location @com_github_cri_o_cri_o//:crio.conf) $(location :crio.conf.upstream)",
     deps = [
-        "@com_github_kubernetes_sigs_cri_o//:crio.conf",
+        "@com_github_cri_o_cri_o//:crio.conf",
         ":crio.conf.upstream"
     ],
 )
