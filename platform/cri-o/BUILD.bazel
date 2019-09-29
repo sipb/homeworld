@@ -1,5 +1,6 @@
 load("//bazel:package.bzl", "homeworld_deb")
 load("//bazel:substitute.bzl", "substitute")
+load("//bazel:assert.bzl", "build_assert")
 
 # TODO: for crio, use flags -ldflags '-s -w -X main.gitCommit="[...]" -X main.buildInfo=[...]'
 # and -tags "exclude_graphdriver_devicemapper libdm_no_deferred_remove containers_image_ostree_stub seccomp containers_image_ostree_stub"
@@ -31,9 +32,21 @@ homeworld_deb(
 )
 
 substitute(
-    name = "crio.conf",
+    name = "crio.conf.substituted",
     template = ":crio.conf.in",
     kfs = {
         "PAUSE_DIGEST": "//cri-o/pause:oci.ocidigest",
     },
+)
+
+build_assert(
+    name = "crio.conf",
+    src = ":crio.conf.substituted",
+    message = "upstream's default crio.conf has changed; you must merge the changes into crio.conf, "
+            + "and update crio.conf.upstream to be the new upstream version",
+    condition = "diff -u $(location @com_github_kubernetes_sigs_cri_o//:crio.conf) $(location :crio.conf.upstream)",
+    deps = [
+        "@com_github_kubernetes_sigs_cri_o//:crio.conf",
+        ":crio.conf.upstream"
+    ],
 )

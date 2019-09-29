@@ -1,6 +1,4 @@
-
-def _escape_inner(s):
-    return s.replace("$", "$$").replace("'", "'\"'\"'")
+load("//bazel:util.bzl", "escape_inner")
 
 def substitute(name, template, kvs=None, kfs=None, visibility=None):
     cmdline = "./$(location //bazel:substitute) $(location " + template + ")"
@@ -8,13 +6,13 @@ def substitute(name, template, kvs=None, kfs=None, visibility=None):
         for k, v in kvs.items():
             if "=" in k or "<" in k:
                 fail("cannot have = or < signs in keys")
-            cmdline += " '" + _escape_inner(k) + "=" + _escape_inner(v) + "'"
+            cmdline += " '" + escape_inner(k) + "=" + escape_inner(v) + "'"
     srcs = [template]
     if kfs:
         for k, f in kfs.items():
             if "=" in k or "<" in k:
                 fail("cannot have = or < signs in keys")
-            cmdline += " '" + _escape_inner(k) + "<" + "$(location " + f + ")'"
+            cmdline += " '" + escape_inner(k) + "<" + "$(location " + f + ")'"
             srcs += [f]
     cmdline += " >\"$@\""
     native.genrule(
