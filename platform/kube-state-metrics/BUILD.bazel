@@ -1,18 +1,9 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_binary")
 load("//bazel:package.bzl", "homeworld_deb")
-
-go_binary(
-    name = "kube-state-metrics",
-    visibility = ["//visibility:public"],
-    embed = [
-        "@com_github_kubernetes_kube_state_metrics//:go_default_library",
-    ],
-)
 
 homeworld_deb(
     name = "package",
     bin = {
-        ":kube-state-metrics": "/usr/bin/kube-state-metrics",
+        "@com_github_kubernetes_kube_state_metrics//:kube-state-metrics": "/usr/bin/kube-state-metrics",
         ":launch-kube-state-metrics.sh": "/usr/lib/hyades/launch-kube-state-metrics.sh",
     },
     data = {
