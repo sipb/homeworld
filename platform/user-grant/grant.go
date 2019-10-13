@@ -10,10 +10,16 @@ import (
 	"encoding/asn1"
 	"encoding/base64"
 	"encoding/pem"
-	"errors"
 	"fmt"
+	"github.com/pkg/errors"
 	"html/template"
 	"io/ioutil"
+	"k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	"log"
 	"net"
 	"net/http"
@@ -35,6 +41,7 @@ type Config struct {
 	IssuerCert       *x509.Certificate
 	IssuerKey        *rsa.PrivateKey
 	ServerTLS        tls.Certificate
+	KubeAPI          kubernetes.Interface
 }
 
 const CertificateLifespan = time.Hour * 24 * 90
@@ -61,7 +68,7 @@ users:
 contexts:
 - context:
     cluster: hyades-cluster
-    namespace: "user-{{.User}}"
+    namespace: "{{.Namespace}}"
     user: kubectl-auth
   name: hyades
 `
@@ -80,7 +87,7 @@ func validateCharset(s string) error {
 }
 
 type response struct {
-	User            string
+	Namespace       string
 	KeyBase64       string
 	CertBase64      string
 	AuthorityBase64 string
@@ -88,7 +95,7 @@ type response struct {
 }
 
 func (r *response) Validate() error {
-	for _, s := range []string{r.User, r.KeyBase64, r.CertBase64, r.AuthorityBase64, r.Server} {
+	for _, s := range []string{r.Namespace, r.KeyBase64, r.CertBase64, r.AuthorityBase64, r.Server} {
 		if err := validateCharset(s); err != nil {
 			return err
 		}
@@ -166,8 +173,71 @@ func (c *Config) CertGen(key crypto.PublicKey, user string) ([]byte, error) {
 	return certutil.FinishCertificate(certTemplate, c.IssuerCert, key, c.IssuerKey)
 }
 
+func (c *Config) CreateNamespace(namespace string) error {
+	if !strings.HasPrefix(namespace, "user-") {
+		return fmt.Errorf("namespace '%s' did not start with 'user-'", namespace)
+	}
+	ns := &v1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: namespace,
+		},
+	}
+	_, err := c.KubeAPI.CoreV1().Namespaces().Create(ns)
+	if err == nil {
+		log.Printf("namespace %s created\n", namespace)
+		return nil
+	}
+	if err.(*apierrors.StatusError).Status().Reason == metav1.StatusReasonAlreadyExists {
+		log.Printf("namespace %s already existed; not creating\n", namespace)
+		return nil
+	} else {
+		// some other error besides "it already existed"
+		return errors.Wrap(err, "while creating namespace "+namespace)
+	}
+}
+
+func (c *Config) GrantAccess(namespace string, user string) error {
+	rb := &rbacv1.RoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "auto-grant-" + user,
+			Namespace: namespace,
+		},
+		RoleRef: rbacv1.RoleRef{
+			Kind: "ClusterRole",
+			Name: "admin",
+		},
+		Subjects: []rbacv1.Subject{
+			{
+				Kind: "User",
+				Name: "user:" + user,
+			},
+		},
+	}
+	_, err := c.KubeAPI.RbacV1().RoleBindings(namespace).Create(rb)
+	if err == nil {
+		log.Printf("default role binding created for user %s\n", user)
+		return nil
+	}
+	if err.(*apierrors.StatusError).Status().Reason == metav1.StatusReasonAlreadyExists {
+		log.Printf("role binding already existed for user %s; not creating\n", user)
+		return nil
+	} else {
+		// some other error besides "it already existed"
+		return errors.Wrap(err, "while checking whether rolebinding existed for user "+user)
+	}
+}
+
 func (c *Config) HandleRequest(writer http.ResponseWriter, request *http.Request) error {
 	user, err := c.Authenticate(request)
+	if err != nil {
+		return err
+	}
+	namespace := "user-" + user
+	err = c.CreateNamespace(namespace)
+	if err != nil {
+		return err
+	}
+	err = c.GrantAccess(namespace, user)
 	if err != nil {
 		return err
 	}
@@ -182,7 +252,7 @@ func (c *Config) HandleRequest(writer http.ResponseWriter, request *http.Request
 	keyx := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(key)})
 	cert, err := c.CertGen(key.Public(), user)
 	resp := response{
-		User:            user,
+		Namespace:       namespace,
 		Server:          c.ApiserverAddress,
 		AuthorityBase64: base64.StdEncoding.EncodeToString(c.KubeCA),
 		KeyBase64:       base64.StdEncoding.EncodeToString(keyx),
@@ -296,6 +366,15 @@ func LoadConfig(rawArgs []string) (*Config, error) {
 	}
 
 	c.ServerTLS, err = tls.LoadX509KeyPair(args["server-cert"], args["server-key"])
+	if err != nil {
+		return nil, err
+	}
+
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		return nil, err
+	}
+	c.KubeAPI, err = kubernetes.NewForConfig(config)
 	if err != nil {
 		return nil, err
 	}
