@@ -269,6 +269,7 @@ def update_registry(ops: Operations) -> None:
 
         ops.ssh("update apt repositories on @HOST", node, "apt-get", "update")
         ops.ssh("update package of OCIs on @HOST", node, "apt-get", "install", "-y", "homeworld-oci-pack")
+        ops.ssh("upgrade apt packages on @HOST", node, "apt-get", "upgrade", "-y")
         ops.ssh("re-push OCIs to registry on @HOST", node, "/usr/lib/homeworld/push-ocis.sh")
 
 
