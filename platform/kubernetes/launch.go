@@ -62,7 +62,7 @@ func LaunchAPIServer() error {
 	cmd := exec.Command(
 		"/usr/bin/hyperkube", "kube-apiserver",
 		// role-based access control
-		"--authorization-mode", "AlwaysAllow",
+		"--authorization-mode", "Node,RBAC",
 		// number of api servers
 		"--apiserver-count", apiserverCount,
 		// public addresses
@@ -78,7 +78,7 @@ func LaunchAPIServer() error {
 		// disallow anonymous users
 		"--anonymous-auth", "false",
 		// various plugins for limitations and protection
-		"--admission-control", "NamespaceLifecycle,LimitRanger,ServiceAccount,TaintNodesByCondition,Priority,DefaultTolerationSeconds,DefaultStorageClass,StorageObjectInUseProtection,PersistentVolumeClaimResize,MutatingAdmissionWebhook,ValidatingAdmissionWebhook,RuntimeClass,ResourceQuota,DenyEscalatingExec,SecurityContextDeny",
+		"--admission-control", "NamespaceLifecycle,LimitRanger,ServiceAccount,TaintNodesByCondition,Priority,DefaultTolerationSeconds,DefaultStorageClass,StorageObjectInUseProtection,PersistentVolumeClaimResize,MutatingAdmissionWebhook,ValidatingAdmissionWebhook,RuntimeClass,ResourceQuota,DenyEscalatingExec,SecurityContextDeny,NodeRestriction",
 		// authenticate clients properly
 		"--client-ca-file", paths.KubernetesCAPath,
 		// do HTTPS properly
