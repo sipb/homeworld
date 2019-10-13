@@ -107,7 +107,7 @@ def refresh_cert(key_path, cert_path, ca_path, variant, ca_key_name, ca_cert_nam
             else:
                 name = "temporary-%s-bypass-grant" % variant
                 orgs = []
-            subprocess.check_call(["keylocalcert", ca_key, ca_pem, name, "4h", key_path, cert_path, ",".join(orgs)])
+            subprocess.check_call(["keylocalcert", ca_key, ca_pem, name, "4h", key_path, cert_path, "", ",".join(orgs)])
 
 
 def access_ssh(add_to_agent=False):

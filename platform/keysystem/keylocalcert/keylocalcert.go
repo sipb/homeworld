@@ -19,8 +19,8 @@ import (
 
 func main() {
 	logger := log.New(os.Stderr, "[keylocalcert] ", log.Ldate|log.Ltime|log.Lmicroseconds|log.Lshortfile)
-	if len(os.Args) != 8 {
-		logger.Fatal("usage: keylocalcert <ca-key> <ca-cert> <principal> <lifespan> <out-key> <out-cert> <organizations>\n  generates a kubernetes or etcd certificate directly")
+	if len(os.Args) != 9 {
+		logger.Fatal("usage: keylocalcert <ca-key> <ca-cert> <principal> <lifespan> <out-key> <out-cert> <dnsnames> <organizations>\n  generates a kubernetes or etcd certificate directly")
 	}
 	keydata, err := ioutil.ReadFile(os.Args[1])
 	if err != nil {
@@ -45,9 +45,13 @@ func main() {
 	if err != nil {
 		logger.Fatal(err)
 	}
-	var organizations []string
+	var dnsnames []string
 	if len(os.Args[7]) > 0 {
-		organizations = strings.Split(os.Args[7], ",")
+		dnsnames = strings.Split(os.Args[7], ",")
+	}
+	var organizations []string
+	if len(os.Args[8]) > 0 {
+		organizations = strings.Split(os.Args[8], ",")
 	}
 
 	pkey, err := rsa.GenerateKey(rand.Reader, 2048) // smaller key sizes are okay, because these are limited to a short period
@@ -75,7 +79,7 @@ func main() {
 	if isSSH {
 		result, err = authority.(*authorities.SSHAuthority).Sign(string(csr), false, lifespan, commonname, []string{"root"})
 	} else {
-		result, err = authority.(*authorities.TLSAuthority).Sign(string(csr), false, lifespan, commonname, nil, organizations)
+		result, err = authority.(*authorities.TLSAuthority).Sign(string(csr), len(dnsnames) > 0, lifespan, commonname, dnsnames, organizations)
 	}
 	if err != nil {
 		logger.Fatal(err)

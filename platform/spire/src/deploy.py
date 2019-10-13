@@ -49,6 +49,8 @@ def launch_dns_monitor():
 
 def launch_user_grant():
     config = configuration.get_config()
+    if config.user_grant_domain == '':
+        command.fail("no user_grant_domain specified in setup.yaml")
     skey, scert = keys.decrypt_https(config.user_grant_domain)
     skey64, scert64 = base64.b64encode(skey), base64.b64encode(scert)
 

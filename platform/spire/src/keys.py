@@ -2,6 +2,7 @@ import os
 import subprocess
 import tempfile
 
+import authority
 import command
 import configuration
 import keycrypt
@@ -101,6 +102,24 @@ def export_https(name, keyout, certout):
     util.copy(certpath, certout)
 
 
+def gen_local_https_cert(name):
+    if "," in name:
+        command.fail("cannot create https cert with comma: would be misinterpreted by keylocalcert")
+    print("generating local-only https cert for", name, "via local bypass method")
+    with tempfile.TemporaryDirectory() as dir:
+        ca_key = os.path.join(dir, "ca.key")
+        ca_pem = os.path.join(dir, "ca.pem")
+        key_path = os.path.join(dir, "gen.key")
+        cert_path = os.path.join(dir, "gen.pem")
+        util.writefile(ca_key, authority.get_decrypted_by_filename("./clusterca.key"))
+        pem = authority.get_pubkey_by_filename("./clusterca.pem")
+        util.writefile(ca_pem, pem)
+        os.chmod(ca_key, 0o600)
+        subprocess.check_call(["keylocalcert", ca_key, ca_pem, name, "4h", key_path, cert_path, name, ""])
+        import_https(name, key_path, cert_path)
+    print("generated local-only https cert!")
+
+
 keytab_command = command.mux_map("commands about keytabs granted by external sources", {
     "import": command.wrap("import and encrypt a keytab for a particular server", import_keytab),
     "rotate": command.wrap("decrypt, rotate, and re-encrypt the keytab for a particular server", rotate_keytab),
@@ -112,4 +131,5 @@ keytab_command = command.mux_map("commands about keytabs granted by external sou
 https_command = command.mux_map("commands about HTTPS certs granted by external sources", {
     "import": command.wrap("import and encrypt a HTTPS keypair for a particular server", import_https),
     "export": command.wrap("decrypt and export the HTTPS keypair for a particular server", export_https),
+    "genlocal": command.wrap("generate and encrypt a HTTPS keypair using the cluster-internal CA", gen_local_https_cert),
 })
