@@ -64,7 +64,7 @@ func main() {
 	}
 	pod, err := clientset.CoreV1().Pods(namespace).Get(name, v1.GetOptions{})
 	if err != nil {
-		log.Fatal("cannot get info for current reflector pod")
+		log.Fatalf("cannot get info for current reflector pod: %s", err.Error())
 	}
 	podIP := net.ParseIP(pod.Status.PodIP)
 	if podIP == nil {

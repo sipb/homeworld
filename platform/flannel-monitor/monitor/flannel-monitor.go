@@ -151,7 +151,7 @@ func main() {
 	}
 	selfpod, err := clientset.CoreV1().Pods(namespace).Get(name, v1.GetOptions{})
 	if err != nil {
-		log.Fatal("cannot get info for current reflector pod")
+		log.Fatalf("cannot get info for current reflector pod: %s", err.Error())
 	}
 	source_hostip := selfpod.Status.HostIP
 
