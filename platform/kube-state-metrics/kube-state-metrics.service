@@ -4,7 +4,7 @@ Requires=network-online.target
 After=network-online.target
 
 [Service]
-ExecStart=/usr/lib/hyades/launch-kube-state-metrics.sh
+ExecStart=/usr/bin/kube-state-metrics-launch
 KillMode=mixed
 Restart=always
 RestartSec=5s

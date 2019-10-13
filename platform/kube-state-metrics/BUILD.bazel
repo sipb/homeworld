@@ -1,10 +1,28 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 load("//bazel:package.bzl", "homeworld_deb")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["launch.go"],
+    importpath = "github.com/sipb/homeworld/platform/kube-state-metrics",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//keysystem/worldconfig/paths:go_default_library",
+        "//kubernetes/wrapper:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "kube-state-metrics",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)
 
 homeworld_deb(
     name = "package",
     bin = {
         "@com_github_kubernetes_kube_state_metrics//:kube-state-metrics": "/usr/bin/kube-state-metrics",
-        ":launch-kube-state-metrics.sh": "/usr/lib/hyades/launch-kube-state-metrics.sh",
+        ":kube-state-metrics": "/usr/bin/kube-state-metrics-launch",
     },
     data = {
         ":kube-state-metrics.service": "/usr/lib/systemd/system/kube-state-metrics.service",
