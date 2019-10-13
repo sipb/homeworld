@@ -30,7 +30,7 @@ func DeployAll(dir string) error {
 		log.Println("nothing to queue")
 		return nil
 	}
-	err = wrapper.GenerateKubeConfigToFile(paths.KubernetesWorkerKey, paths.KubernetesWorkerCert, KubeConfigPath)
+	err = wrapper.GenerateKubeConfigToFile(paths.KubernetesSupervisorKey, paths.KubernetesSupervisorCert, KubeConfigPath)
 	if err != nil {
 		return err
 	}

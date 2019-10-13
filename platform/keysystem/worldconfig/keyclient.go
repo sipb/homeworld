@@ -107,6 +107,14 @@ func ConvergeState(nac *actloop.NewActionContext) {
 		nac,
 	)
 	TLSKey(
+		// for supervisor nodes; needed for kube-state-metrics and setup-queue
+		paths.KubernetesSupervisorKey,
+		paths.KubernetesSupervisorCert,
+		SignKubernetesSupervisorAPI,
+		OneWeek, // renew one week before expiration
+		nac,
+	)
+	TLSKey(
 		"/etc/homeworld/ssl/homeworld.private.key",
 		"/etc/homeworld/ssl/homeworld.private.pem",
 		SignRegistryHostAPI,

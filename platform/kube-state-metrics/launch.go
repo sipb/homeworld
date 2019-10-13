@@ -25,7 +25,7 @@ func LaunchKSM(kubeconfig string, port, metaport int) error {
 
 func ConfigureAndLaunch() error {
 	kubeconfig := KubeConfigPath
-	err := wrapper.GenerateKubeConfigToFile(paths.KubernetesWorkerKey, paths.KubernetesWorkerCert, kubeconfig)
+	err := wrapper.GenerateKubeConfigToFile(paths.KubernetesSupervisorKey, paths.KubernetesSupervisorCert, kubeconfig)
 	if err != nil {
 		return err
 	}

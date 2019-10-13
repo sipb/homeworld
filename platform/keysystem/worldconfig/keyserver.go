@@ -204,19 +204,27 @@ func GrantsForNodeAccount(c *config.Context, conf *SpireSetup, groups Groups, au
 
 	// CLIENT CERTIFICATES
 
-	grants[SignKubernetesWorkerAPI] = account.NewTLSGrantPrivilege(
-		auth.Kubernetes, true, 30*OneDay, "system:node:"+node.Hostname,
-		[]string{
-			node.DNS(),
-			node.Hostname,
-			node.IP,
-		},
-		[]string{
-			"system:nodes",
-		},
-	)
-
-	if !node.IsSupervisor() {
+	if node.IsSupervisor() {
+		grants[SignKubernetesSupervisorAPI] = account.NewTLSGrantPrivilege(
+			auth.Kubernetes, false, 30*OneDay, "supervisor:"+node.Hostname,
+			nil,
+			// TODO: reduce the permissions granted to the supervisor nodes once the cluster has been configured
+			[]string{
+				"system:masters",
+			},
+		)
+	} else {
+		grants[SignKubernetesWorkerAPI] = account.NewTLSGrantPrivilege(
+			auth.Kubernetes, true, 30*OneDay, "system:node:"+node.Hostname,
+			[]string{
+				node.DNS(),
+				node.Hostname,
+				node.IP,
+			},
+			[]string{
+				"system:nodes",
+			},
+		)
 		grants[SignKubernetesProxyAPI] = account.NewTLSGrantPrivilege(
 			auth.Kubernetes, false, 30*OneDay, "system:kube-proxy", nil, nil,
 		)

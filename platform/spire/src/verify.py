@@ -97,7 +97,7 @@ def check_certs_on_supervisor():
     for node in config.nodes:
         if node.kind == "supervisor":
             ssh.check_ssh(node, "test", "-e", "/etc/homeworld/authorities/kubernetes.pem")
-            ssh.check_ssh(node, "test", "-e", "/etc/homeworld/keys/kubernetes-worker.pem")
+            ssh.check_ssh(node, "test", "-e", "/etc/homeworld/keys/kubernetes-supervisor.pem")
             ssh.check_ssh(node, "test", "-e", "/etc/homeworld/ssl/homeworld.private.pem")
 
 
