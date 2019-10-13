@@ -1,3 +1,10 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kube-dns
+  namespace: kube-system
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -41,6 +48,7 @@ spec:
       annotations:
         scheduler.alpha.kubernetes.io/tolerations: '[{{"key":"CriticalAddonsOnly", "operator":"Exists"}}]'
     spec:
+      serviceAccountName: kube-dns
       containers:
       - name: kubedns
         image: homeworld.private/kube-dns-main@{kube_dns_main_digest}
