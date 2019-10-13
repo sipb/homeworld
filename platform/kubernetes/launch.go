@@ -78,7 +78,7 @@ func LaunchAPIServer() error {
 		// disallow anonymous users
 		"--anonymous-auth", "false",
 		// various plugins for limitations and protection
-		"--admission-control", "NamespaceLifecycle,LimitRanger,ServiceAccount,DefaultStorageClass,ResourceQuota,DenyEscalatingExec,SecurityContextDeny",
+		"--admission-control", "NamespaceLifecycle,LimitRanger,ServiceAccount,TaintNodesByCondition,Priority,DefaultTolerationSeconds,DefaultStorageClass,StorageObjectInUseProtection,PersistentVolumeClaimResize,MutatingAdmissionWebhook,ValidatingAdmissionWebhook,RuntimeClass,ResourceQuota,DenyEscalatingExec,SecurityContextDeny",
 		// authenticate clients properly
 		"--client-ca-file", paths.KubernetesCAPath,
 		// do HTTPS properly
