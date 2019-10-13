@@ -4,5 +4,5 @@ After=keyclient.service
 
 [Service]
 Type=oneshot
-ExecStart=/usr/lib/hyades/launch-setup-queue.sh
+ExecStart=/usr/bin/setup-queue-deploy
 Restart=no

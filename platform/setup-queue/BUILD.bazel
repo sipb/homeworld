@@ -1,9 +1,27 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 load("//bazel:package.bzl", "homeworld_deb")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["deploy.go"],
+    importpath = "github.com/sipb/homeworld/platform/setup-queue",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//keysystem/worldconfig/paths:go_default_library",
+        "//kubernetes/wrapper:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "setup-queue",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)
 
 homeworld_deb(
     name = "package",
     bin = {
-        ":launch-setup-queue.sh": "/usr/lib/hyades/launch-setup-queue.sh",
+        ":setup-queue": "/usr/bin/setup-queue-deploy",
     },
     data = {
         ":setup-queue.service": "/usr/lib/systemd/system/setup-queue.service",
