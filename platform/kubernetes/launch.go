@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/pkg/errors"
+	"io/ioutil"
 	"log"
 	"net"
 	"os"
@@ -13,6 +14,20 @@ import (
 	"github.com/sipb/homeworld/platform/keysystem/worldconfig/paths"
 	"github.com/sipb/homeworld/platform/kubernetes/wrapper"
 )
+
+func getVerbosityArgument() string {
+	verbosityBytes, err := ioutil.ReadFile("/etc/homeworld/config/verbosity")
+	if err != nil {
+		return "--v=0"
+	}
+	verbosity := strings.TrimSpace(string(verbosityBytes))
+	if _, err := strconv.ParseUint(verbosity, 10, 32); err != nil {
+		log.Printf("cannot parse verbosity field value: '%s'\n", verbosity)
+		return "--v=0"
+	}
+	log.Printf("using launch verbosity %s\n", verbosity)
+	return "--v=" + verbosity
+}
 
 func kubeConfigPath(suffix string) string {
 	return "/etc/homeworld/config/kubeconfig-" + suffix
@@ -84,6 +99,8 @@ func LaunchAPIServer() error {
 		"--kubelet-client-certificate", paths.KubernetesMasterCert, "--kubelet-client-key", paths.KubernetesMasterKey,
 		// let controller manager's service tokens work for us
 		"--service-account-key-file", "/etc/homeworld/keys/serviceaccount.key",
+
+		getVerbosityArgument(),
 	)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -130,6 +147,8 @@ func LaunchControllerManager() error {
 		// granting service tokens
 		"--service-account-private-key-file", "/etc/homeworld/keys/serviceaccount.key",
 		"--root-ca-file", "/etc/homeworld/authorities/kubernetes.pem",
+
+		getVerbosityArgument(),
 	)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -186,6 +205,8 @@ func LaunchKubelet() error {
 		"--container-runtime", "remote", "--container-runtime-endpoint", "unix:///var/run/crio/crio.sock",
 		// DNS
 		"--cluster-dns", serviceDNS, "--cluster-domain", clusterDomain,
+
+		getVerbosityArgument(),
 	)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -209,6 +230,8 @@ func LaunchProxy() error {
 		"--kubeconfig", kubeconfig,
 		// synchronize every minute (TODO: IS THIS A GOOD AMOUNT OF TIME?)
 		"--config-sync-period", "1m",
+
+		getVerbosityArgument(),
 	)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -231,6 +254,8 @@ func LaunchScheduler() error {
 
 		"--kubeconfig", kubeconfig,
 		"--leader-elect",
+
+		getVerbosityArgument(),
 	)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
