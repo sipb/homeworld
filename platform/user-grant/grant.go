@@ -161,7 +161,7 @@ func (c *Config) CertGen(key crypto.PublicKey, user string) ([]byte, error) {
 		NotBefore: issueAt,
 		NotAfter:  issueAt.Add(CertificateLifespan),
 
-		Subject: pkix.Name{CommonName: "user-" + user},
+		Subject: pkix.Name{CommonName: "user:" + user},
 	}
 	return certutil.FinishCertificate(certTemplate, c.IssuerCert, key, c.IssuerKey)
 }

@@ -23,9 +23,9 @@ type TLSSignPrivilege struct {
 	dnsnames   []string
 }
 
-func NewTLSGrantPrivilege(tauth *authorities.TLSAuthority, ishost bool, lifespan time.Duration, commonname string, dnsnames []string) Privilege {
+func NewTLSGrantPrivilege(tauth *authorities.TLSAuthority, ishost bool, lifespan time.Duration, commonname string, dnsnames []string, organizations []string) Privilege {
 	return func(_ *OperationContext, signingRequest string) (string, error) {
-		return tauth.Sign(signingRequest, ishost, lifespan, commonname, dnsnames)
+		return tauth.Sign(signingRequest, ishost, lifespan, commonname, dnsnames, organizations)
 	}
 }
 

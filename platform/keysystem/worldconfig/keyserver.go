@@ -112,11 +112,15 @@ func GrantsForRootAdminAccount(c *config.Context, groups Groups, auth Authoritie
 	)
 	grants[AccessEtcdAPI] = account.NewTLSGrantPrivilege(
 		auth.EtcdClient, false, 4*time.Hour,
-		"temporary-etcd-grant-"+ac.Principal, nil,
+		"temporary-etcd-grant-"+ac.Principal, nil, nil,
 	)
 	grants[AccessKubernetesAPI] = account.NewTLSGrantPrivilege(
 		auth.Kubernetes, false, 4*time.Hour,
-		"temporary-kube-grant-"+ac.Principal, nil,
+		"root:"+ac.Principal,
+		nil,
+		[]string{
+			"system:masters",
+		},
 	)
 
 	// MEMBERSHIP IN THE CLUSTER
@@ -148,7 +152,7 @@ func GrantsForNodeAccount(c *config.Context, conf *SpireSetup, groups Groups, au
 		grants[ImpersonateKerberosAPI] = account.NewImpersonatePrivilege(c.GetAccount, groups.KerberosAccounts)
 	}
 
-	grants[RenewKeygrantAPI] = account.NewTLSGrantPrivilege(auth.Keygranting, false, OneDay*40, ac.Principal, nil)
+	grants[RenewKeygrantAPI] = account.NewTLSGrantPrivilege(auth.Keygranting, false, OneDay*40, ac.Principal, nil, nil)
 
 	// CONFIGURATION ENDPOINT
 
@@ -167,7 +171,7 @@ func GrantsForNodeAccount(c *config.Context, conf *SpireSetup, groups Groups, au
 
 	if node.IsMaster() {
 		grants[SignKubernetesMasterAPI] = account.NewTLSGrantPrivilege(
-			auth.Kubernetes, true, 30*OneDay, "kube-master-"+node.Hostname,
+			auth.Kubernetes, true, 30*OneDay, "apiserver:"+node.Hostname,
 			[]string{
 				node.DNS(),
 				node.Hostname,
@@ -178,6 +182,7 @@ func GrantsForNodeAccount(c *config.Context, conf *SpireSetup, groups Groups, au
 				node.IP,
 				conf.Addresses.ServiceAPI,
 			},
+			nil,
 		)
 		grants[SignEtcdServerAPI] = account.NewTLSGrantPrivilege(
 			auth.EtcdServer, true, 30*OneDay, "etcd-server-"+node.Hostname,
@@ -186,24 +191,28 @@ func GrantsForNodeAccount(c *config.Context, conf *SpireSetup, groups Groups, au
 				node.Hostname,
 				node.IP,
 			},
+			nil,
 		)
 	}
 
 	if node.IsSupervisor() {
 		grants[SignRegistryHostAPI] = account.NewTLSGrantPrivilege(
 			auth.ClusterCA, true, 30*OneDay, "homeworld-supervisor-"+node.Hostname,
-			[]string{"homeworld.private"},
+			[]string{"homeworld.private"}, nil,
 		)
 	}
 
 	// CLIENT CERTIFICATES
 
 	grants[SignKubernetesWorkerAPI] = account.NewTLSGrantPrivilege(
-		auth.Kubernetes, true, 30*OneDay, "kube-worker-"+node.Hostname,
+		auth.Kubernetes, true, 30*OneDay, "system:node:"+node.Hostname,
 		[]string{
 			node.DNS(),
 			node.Hostname,
 			node.IP,
+		},
+		[]string{
+			"system:nodes",
 		},
 	)
 
@@ -214,6 +223,7 @@ func GrantsForNodeAccount(c *config.Context, conf *SpireSetup, groups Groups, au
 				node.Hostname,
 				node.IP,
 			},
+			nil,
 		)
 		grants[FetchServiceAccountKeyAPI] = account.NewFetchKeyPrivilege(auth.ServiceAccount)
 	}

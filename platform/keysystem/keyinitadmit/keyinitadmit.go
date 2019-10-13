@@ -35,7 +35,7 @@ func main() {
 		logger.Fatal(err)
 	}
 	csr := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE REQUEST", Bytes: csrder})
-	certdata, err := ctx.AuthenticationAuthority.Sign(string(csr), false, time.Minute*10, ctx.KeyserverDNS, nil)
+	certdata, err := ctx.AuthenticationAuthority.Sign(string(csr), false, time.Minute*10, ctx.KeyserverDNS, nil, nil)
 	if err != nil {
 		logger.Fatal(err)
 	}

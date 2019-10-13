@@ -90,7 +90,7 @@ func (t *TLSAuthority) Verify(request *http.Request) (string, error) {
 	return principal, nil
 }
 
-func (t *TLSAuthority) Sign(request string, ishost bool, lifespan time.Duration, commonname string, names []string) (string, error) {
+func (t *TLSAuthority) Sign(request string, ishost bool, lifespan time.Duration, commonname string, names []string, organizations []string) (string, error) {
 	csr, err := wraputil.LoadX509CSRFromPEM([]byte(request))
 	if err != nil {
 		return "", err
@@ -116,7 +116,10 @@ func (t *TLSAuthority) Sign(request string, ishost bool, lifespan time.Duration,
 		NotBefore: issueAt,
 		NotAfter:  issueAt.Add(lifespan),
 
-		Subject:     pkix.Name{CommonName: commonname},
+		Subject: pkix.Name{
+			CommonName:   commonname,
+			Organization: organizations,
+		},
 		DNSNames:    dnsNames,
 		IPAddresses: IPs,
 	}

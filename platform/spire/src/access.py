@@ -101,7 +101,13 @@ def refresh_cert(key_path, cert_path, ca_path, variant, ca_key_name, ca_cert_nam
                 util.writefile(ca_path, pem)
             util.writefile(ca_pem, pem)
             os.chmod(ca_key, 0o600)
-            subprocess.check_call(["keylocalcert", ca_key, ca_pem, "temporary-%s-bypass-grant" % variant, "4h", key_path, cert_path])
+            if variant == "kube":
+                name = "root:direct"
+                orgs = ["system:masters"]
+            else:
+                name = "temporary-%s-bypass-grant" % variant
+                orgs = []
+            subprocess.check_call(["keylocalcert", ca_key, ca_pem, name, "4h", key_path, cert_path, ",".join(orgs)])
 
 
 def access_ssh(add_to_agent=False):
