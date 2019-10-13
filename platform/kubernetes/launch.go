@@ -126,7 +126,7 @@ func LaunchControllerManager() error {
 	}
 
 	kubeconfig := kubeConfigPath("controller-manager")
-	err = wrapper.GenerateKubeConfigToFile(paths.KubernetesWorkerKey, paths.KubernetesWorkerCert, kubeconfig)
+	err = wrapper.GenerateKubeConfigToFile(paths.KubernetesCtrlMgrKey, paths.KubernetesCtrlMgrCert, kubeconfig)
 	if err != nil {
 		return err
 	}
@@ -220,7 +220,7 @@ func LaunchKubelet() error {
 
 func LaunchProxy() error {
 	kubeconfig := kubeConfigPath("proxy")
-	err := wrapper.GenerateKubeConfigToFile(paths.KubernetesWorkerKey, paths.KubernetesWorkerCert, kubeconfig)
+	err := wrapper.GenerateKubeConfigToFile(paths.KubernetesProxyKey, paths.KubernetesProxyCert, kubeconfig)
 	if err != nil {
 		return err
 	}
@@ -245,7 +245,7 @@ func LaunchProxy() error {
 
 func LaunchScheduler() error {
 	kubeconfig := kubeConfigPath("scheduler")
-	err := wrapper.GenerateKubeConfigToFile(paths.KubernetesWorkerKey, paths.KubernetesWorkerCert, kubeconfig)
+	err := wrapper.GenerateKubeConfigToFile(paths.KubernetesSchedulerKey, paths.KubernetesSchedulerCert, kubeconfig)
 	if err != nil {
 		return err
 	}

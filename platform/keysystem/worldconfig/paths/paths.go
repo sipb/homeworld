@@ -19,6 +19,12 @@ const KubernetesMasterKey = "/etc/homeworld/keys/kubernetes-master.key"
 const KubernetesMasterCert = "/etc/homeworld/keys/kubernetes-master.pem"
 const KubernetesWorkerKey = "/etc/homeworld/keys/kubernetes-worker.key"
 const KubernetesWorkerCert = "/etc/homeworld/keys/kubernetes-worker.pem"
+const KubernetesCtrlMgrKey = "/etc/homeworld/keys/kubernetes-ctrl-mgr.key"
+const KubernetesCtrlMgrCert = "/etc/homeworld/keys/kubernetes-ctrl-mgr.pem"
+const KubernetesProxyKey = "/etc/homeworld/keys/kubernetes-proxy.key"
+const KubernetesProxyCert = "/etc/homeworld/keys/kubernetes-proxy.pem"
+const KubernetesSchedulerKey = "/etc/homeworld/keys/kubernetes-scheduler.key"
+const KubernetesSchedulerCert = "/etc/homeworld/keys/kubernetes-scheduler.pem"
 
 func GetKeyserver() (string, error) {
 	keyserver, err := ioutil.ReadFile("/etc/homeworld/config/keyserver.domain")

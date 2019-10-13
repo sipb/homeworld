@@ -216,7 +216,19 @@ func GrantsForNodeAccount(c *config.Context, conf *SpireSetup, groups Groups, au
 		},
 	)
 
+	if !node.IsSupervisor() {
+		grants[SignKubernetesProxyAPI] = account.NewTLSGrantPrivilege(
+			auth.Kubernetes, false, 30*OneDay, "system:kube-proxy", nil, nil,
+		)
+	}
+
 	if node.IsMaster() {
+		grants[SignKubernetesCtrlMgrAPI] = account.NewTLSGrantPrivilege(
+			auth.Kubernetes, false, 30*OneDay, "system:kube-controller-manager", nil, nil,
+		)
+		grants[SignKubernetesSchedulerAPI] = account.NewTLSGrantPrivilege(
+			auth.Kubernetes, false, 30*OneDay, "system:kube-scheduler", nil, nil,
+		)
 		grants[SignEtcdClientAPI] = account.NewTLSGrantPrivilege(auth.EtcdClient, false, 30*OneDay, "etcd-client-"+node.Hostname,
 			[]string{
 				node.DNS(),

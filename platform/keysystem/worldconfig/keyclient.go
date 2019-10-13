@@ -121,6 +121,27 @@ func ConvergeState(nac *actloop.NewActionContext) {
 		nac,
 	)
 	TLSKey(
+		paths.KubernetesCtrlMgrKey,
+		paths.KubernetesCtrlMgrCert,
+		SignKubernetesCtrlMgrAPI,
+		OneWeek, // renew one week before expiration
+		nac,
+	)
+	TLSKey(
+		paths.KubernetesProxyKey,
+		paths.KubernetesProxyCert,
+		SignKubernetesProxyAPI,
+		OneWeek, // renew one week before expiration
+		nac,
+	)
+	TLSKey(
+		paths.KubernetesSchedulerKey,
+		paths.KubernetesSchedulerCert,
+		SignKubernetesSchedulerAPI,
+		OneWeek, // renew one week before expiration
+		nac,
+	)
+	TLSKey(
 		"/etc/homeworld/keys/etcd-server.key",
 		"/etc/homeworld/keys/etcd-server.pem",
 		SignEtcdServerAPI,
