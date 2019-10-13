@@ -67,8 +67,8 @@ func GenerateTLSKeypairForTests_WithTime(t *testing.T, commonname string, dns []
 		ExtKeyUsage: extKeyUsage,
 
 		BasicConstraintsValid: true,
-		IsCA:       true,
-		MaxPathLen: 1,
+		IsCA:                  true,
+		MaxPathLen:            1,
 
 		SerialNumber: serialNumber,
 

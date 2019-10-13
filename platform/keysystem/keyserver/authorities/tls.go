@@ -109,9 +109,9 @@ func (t *TLSAuthority) Sign(request string, ishost bool, lifespan time.Duration,
 		ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 
 		BasicConstraintsValid: true,
-		IsCA:           false,
-		MaxPathLen:     0,
-		MaxPathLenZero: true,
+		IsCA:                  false,
+		MaxPathLen:            0,
+		MaxPathLenZero:        true,
 
 		NotBefore: issueAt,
 		NotAfter:  issueAt.Add(lifespan),

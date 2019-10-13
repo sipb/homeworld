@@ -28,8 +28,8 @@ func GenerateTLSSelfSignedCert(key *rsa.PrivateKey, name string) ([]byte, error)
 		ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth, x509.ExtKeyUsageClientAuth},
 
 		BasicConstraintsValid: true,
-		IsCA:       true,
-		MaxPathLen: 1,
+		IsCA:                  true,
+		MaxPathLen:            1,
 
 		NotBefore: issueat,
 		NotAfter:  time.Unix(issueat.Unix()+86400*1000000, 0), // one million days in the future

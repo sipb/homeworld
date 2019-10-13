@@ -154,9 +154,9 @@ func (c *Config) CertGen(key crypto.PublicKey, user string) ([]byte, error) {
 		ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 
 		BasicConstraintsValid: true,
-		IsCA:           false,
-		MaxPathLen:     0,
-		MaxPathLenZero: true,
+		IsCA:                  false,
+		MaxPathLen:            0,
+		MaxPathLenZero:        true,
 
 		NotBefore: issueAt,
 		NotAfter:  issueAt.Add(CertificateLifespan),
