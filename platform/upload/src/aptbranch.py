@@ -49,6 +49,10 @@ class Config:
         return self.config["signing-key"]
 
     @property
+    def sequence_id(self) -> int:
+        return self.config.get("sequence-id", 0)
+
+    @property
     def download(self) -> str:
         return self.config["download"]
 

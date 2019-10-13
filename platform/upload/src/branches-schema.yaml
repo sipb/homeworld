@@ -16,6 +16,8 @@ properties:
         signing-key:
           type: string
           pattern: "^[a-fA-F0-9]{40}$"
+        sequence-id:
+          type: integer
         upload:
           type: object
           oneOf:

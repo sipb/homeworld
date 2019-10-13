@@ -76,28 +76,35 @@ genrule(
         "DOWNLOAD_URL",
         "DOWNLOAD_URL_HOST",
         "KEYID",
+        "SEQID",
     ],
     srcs = [
         "BRANCH_NAME",
         "branches.yaml",
     ] + ["//upload:" + x for x in glob(["src/*.py"])],
     tools = [":parse-branch"],
-    cmd = "$(location :parse-branch) upload/src/parse.py $(location BRANCH_NAME) $(location branches.yaml) $(location DOWNLOAD_URL) $(location DOWNLOAD_URL_HOST) $(location KEYID)",
+    cmd = "$(location :parse-branch) upload/src/parse.py $(location BRANCH_NAME) $(location branches.yaml) $(location DOWNLOAD_URL) $(location DOWNLOAD_URL_HOST) $(location KEYID) $(location SEQID)",
     visibility = ["//visibility:public"],
 )
 
 genrule(
     name = "keyexport",
     outs = ["keyring.gpg"],
-    srcs = ["KEYID"],
-    cmd = "gpg --export -- \"$$(cat '$<')\" >'$@'",
+    srcs = [
+        "KEYID",
+        "SEQID",
+    ],
+    cmd = "gpg --export -- \"$$(cat '$(location :KEYID)')\" >'$@'",
     visibility = ["//visibility:public"],
 )
 
 genrule(
     name = "keyarmor",
     outs = ["keyring.asc"],
-    srcs = ["KEYID"],
-    cmd = "gpg --export --armor -- \"$$(cat '$<')\" >'$@'",
+    srcs = [
+        "KEYID",
+        "SEQID",
+    ],
+    cmd = "gpg --export --armor -- \"$$(cat '$(location :KEYID)')\" >'$@'",
     visibility = ["//visibility:public"],
 )

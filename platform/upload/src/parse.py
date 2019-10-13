@@ -1,7 +1,7 @@
 import sys
 import aptbranch
 
-branch_name, branches_yaml, apt_branch, apt_branch_host, keyid = sys.argv[1:]
+branch_name, branches_yaml, apt_branch, apt_branch_host, keyid, seqid = sys.argv[1:]
 
 with open(branch_name, "r") as f:
     branch_name = f.read().strip()
@@ -16,3 +16,6 @@ with open(apt_branch_host, "w") as f:
 
 with open(keyid, "w") as f:
     f.write(branch.signing_key + "\n")
+
+with open(seqid, "w") as f:
+    f.write("%d\n" % branch.sequence_id)
