@@ -4,7 +4,7 @@ Requires=network-online.target
 After=network-online.target kubelet.service
 
 [Service]
-ExecStart=/usr/lib/hyades/launch-scheduler.sh
+ExecStart=/usr/bin/kube-launch scheduler
 Restart=always
 RestartSec=5s
 

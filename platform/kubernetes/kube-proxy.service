@@ -4,7 +4,7 @@ Requires=network-online.target
 After=network-online.target kubelet.service
 
 [Service]
-ExecStart=/usr/lib/hyades/launch-proxy.sh
+ExecStart=/usr/bin/kube-launch proxy
 Restart=always
 RestartSec=5s
 

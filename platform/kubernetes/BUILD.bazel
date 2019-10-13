@@ -1,4 +1,23 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 load("//bazel:package.bzl", "homeworld_deb")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["launch.go"],
+    importpath = "github.com/sipb/homeworld/platform/kubernetes",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//keysystem/worldconfig/paths:go_default_library",
+        "//kubernetes/wrapper:go_default_library",
+        "@com_github_pkg_errors//:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "launch",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)
 
 homeworld_deb(
     name = "hyperkube",
@@ -12,11 +31,7 @@ homeworld_deb(
 homeworld_deb(
     name = "kubernetes",
     bin = {
-        ":launch-apiserver.sh": "/usr/lib/hyades/launch-apiserver.sh",
-        ":launch-ctrlmgr.sh": "/usr/lib/hyades/launch-ctrlmgr.sh",
-        ":launch-proxy.sh": "/usr/lib/hyades/launch-proxy.sh",
-        ":launch-scheduler.sh": "/usr/lib/hyades/launch-scheduler.sh",
-        ":launch-kubelet.sh": "/usr/lib/hyades/launch-kubelet.sh",
+        ":launch": "/usr/bin/kube-launch",
     },
     data = {
         ":apiserver.service": "/usr/lib/systemd/system/apiserver.service",

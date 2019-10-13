@@ -26,7 +26,7 @@ func ConvergeState(nac *actloop.NewActionContext) {
 	)
 	download.DownloadAuthority(
 		KubernetesAuthority,
-		"/etc/homeworld/authorities/kubernetes.pem",
+		paths.KubernetesCAPath,
 		OneDay,
 		nac,
 	)
@@ -44,19 +44,19 @@ func ConvergeState(nac *actloop.NewActionContext) {
 	)
 	download.DownloadStatic(
 		ClusterConfStatic,
-		"/etc/homeworld/config/cluster.conf",
+		paths.ClusterConfPath,
 		OneDay,
 		nac,
 	)
 	download.DownloadFromAPI(
 		LocalConfAPI,
-		"/etc/homeworld/config/local.conf",
+		paths.LocalConfPath,
 		OneDay,
 		0644,
 		nac,
 	)
 	hostname.ReloadHostnameFrom(
-		"/etc/homeworld/config/local.conf",
+		paths.LocalConfPath,
 		nac,
 	)
 	download.DownloadAuthority(
@@ -100,8 +100,8 @@ func ConvergeState(nac *actloop.NewActionContext) {
 	)
 	TLSKey(
 		// for master nodes, worker nodes (both for kubelet), and supervisor nodes (for prometheus)
-		"/etc/homeworld/keys/kubernetes-worker.key",
-		"/etc/homeworld/keys/kubernetes-worker.pem",
+		paths.KubernetesWorkerKey,
+		paths.KubernetesWorkerCert,
 		SignKubernetesWorkerAPI,
 		OneWeek, // renew one week before expiration
 		nac,
@@ -114,8 +114,8 @@ func ConvergeState(nac *actloop.NewActionContext) {
 		nac,
 	)
 	TLSKey(
-		"/etc/homeworld/keys/kubernetes-master.key",
-		"/etc/homeworld/keys/kubernetes-master.pem",
+		paths.KubernetesMasterKey,
+		paths.KubernetesMasterCert,
 		SignKubernetesMasterAPI,
 		OneWeek, // renew one week before expiration
 		nac,

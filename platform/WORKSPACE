@@ -170,6 +170,12 @@ go_repository(
 )
 
 go_repository(
+    name = "com_github_imdario_mergo",
+    commit = "9316a62528ac99aaecb4e47eadd6dc8aa6533d58",
+    importpath = "github.com/imdario/mergo",
+)
+
+go_repository(
     name = "com_github_google_gofuzz",
     commit = "24818f796faf91cd76ec7bddd72458fbced7a6c1",
     importpath = "github.com/google/gofuzz",

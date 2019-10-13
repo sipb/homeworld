@@ -4,7 +4,7 @@ Requires=network-online.target crio.service
 After=network-online.target crio.service
 
 [Service]
-ExecStart=/usr/lib/hyades/launch-kubelet.sh
+ExecStart=/usr/bin/kube-launch kubelet
 Restart=always
 RestartSec=5s
 

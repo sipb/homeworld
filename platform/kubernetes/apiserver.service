@@ -4,7 +4,7 @@ Requires=network-online.target
 After=network-online.target
 
 [Service]
-ExecStart=/usr/lib/hyades/launch-apiserver.sh
+ExecStart=/usr/bin/kube-launch apiserver
 Restart=always
 RestartSec=5s
 
