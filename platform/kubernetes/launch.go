@@ -143,6 +143,7 @@ func LaunchControllerManager() error {
 
 		"--leader-elect",
 		"--allocate-node-cidrs",
+		"--use-service-account-credentials",
 
 		// granting service tokens
 		"--service-account-private-key-file", "/etc/homeworld/keys/serviceaccount.key",
