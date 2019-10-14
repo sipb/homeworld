@@ -340,10 +340,6 @@ def get_kube_spec_vars(extra_kvs: dict=None) -> dict:
     return kvs
 
 
-def gen_kube_spec(output_name: str) -> None:
-    util.writefile(output_name, get_single_kube_spec(os.path.basename(output_name)).encode())
-
-
 def get_single_kube_spec(name: str, extra_kvs: dict=None) -> str:
     templ = resource.get_resource("clustered/%s" % name).decode()
     return template.yaml_template(templ, get_kube_spec_vars(extra_kvs))
@@ -352,7 +348,6 @@ def get_single_kube_spec(name: str, extra_kvs: dict=None) -> str:
 main_command = command.mux_map("commands about cluster configuration", {
     "populate": command.wrap("initialize the cluster's setup.yaml with the template", populate),
     "edit": command.wrap("open $EDITOR (defaults to nano) to edit the project's setup.yaml", edit),
-    "gen-kube": command.wrap("generate kubernetes spec for the base cluster", gen_kube_spec),
     "show": command.mux_map("commands about showing different aspects of the configuration", {
         "cluster.conf": command.wrap("display the generated cluster.conf", print_cluster_conf),
         "kubeconfig": command.wrap("display the generated local kubeconfig", print_local_kubeconfig),

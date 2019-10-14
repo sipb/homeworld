@@ -14,14 +14,17 @@ import util
 DEPLOYQUEUE = "/etc/homeworld/deployqueue"
 
 
-def launch_spec(spec_name, extra_kvs: dict=None):
+def launch_spec(spec_name, extra_kvs: dict=None, export=False):
     config = configuration.get_config()
     spec = configuration.get_single_kube_spec(spec_name, extra_kvs).encode()
-    for node in config.nodes:
-        if node.kind == "supervisor":
-            ssh.check_ssh(node, "mkdir", "-p", DEPLOYQUEUE)
-            ssh.upload_bytes(node, spec, "%s/%d.%s" % (DEPLOYQUEUE, int(time.time()), spec_name))
-            print("Uploaded spec to deployqueue.")
+    if export:
+        util.writefile(spec_name, spec)
+    else:
+        for node in config.nodes:
+            if node.kind == "supervisor":
+                ssh.check_ssh(node, "mkdir", "-p", DEPLOYQUEUE)
+                ssh.upload_bytes(node, spec, "%s/%d.%s" % (DEPLOYQUEUE, int(time.time()), spec_name))
+                print("Uploaded spec to deployqueue.")
 
 
 def launch_spec_direct(spec_name): # TODO: add a flag that enables this instead of launch_spec
@@ -31,23 +34,23 @@ def launch_spec_direct(spec_name): # TODO: add a flag that enables this instead 
         access.call_kubectl(["apply", "-f", specfile], return_result=False)
 
 
-def launch_flannel():
-    launch_spec("flannel.yaml")
+def launch_flannel(export: bool=False):
+    launch_spec("flannel.yaml", export=export)
 
 
-def launch_flannel_monitor():
-    launch_spec("flannel-monitor.yaml")
+def launch_flannel_monitor(export: bool=False):
+    launch_spec("flannel-monitor.yaml", export=export)
 
 
-def launch_dns_addon():
-    launch_spec("dns-addon.yaml")
+def launch_dns_addon(export: bool=False):
+    launch_spec("dns-addon.yaml", export=export)
 
 
-def launch_dns_monitor():
-    launch_spec("dns-monitor.yaml")
+def launch_dns_monitor(export: bool=False):
+    launch_spec("dns-monitor.yaml", export=export)
 
 
-def launch_user_grant():
+def launch_user_grant(export: bool=False):
     config = configuration.get_config()
     if config.user_grant_domain == '':
         command.fail("no user_grant_domain specified in setup.yaml")
@@ -62,7 +65,7 @@ def launch_user_grant():
         "SERVER_CERT_BASE64": scert64.decode(),
         "ISSUER_KEY_BASE64": ikey64.decode(),
         "ISSUER_CERT_BASE64": icert64.decode(),
-    })
+    }, export=export)
 
 
 main_command = command.mux_map("commands to deploy systems onto the kubernetes cluster", {
