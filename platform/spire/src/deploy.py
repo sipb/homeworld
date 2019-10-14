@@ -54,17 +54,26 @@ def launch_user_grant(export: bool=False):
     config = configuration.get_config()
     if config.user_grant_domain == '':
         command.fail("no user_grant_domain specified in setup.yaml")
+    if config.user_grant_email_domain == '':
+        command.fail("no user_grant_email_domain specified in setup.yaml")
     skey, scert = keys.decrypt_https(config.user_grant_domain)
     skey64, scert64 = base64.b64encode(skey), base64.b64encode(scert)
 
     ikey = authority.get_decrypted_by_filename("./kubernetes.key")
     icert = authority.get_pubkey_by_filename("./kubernetes.pem")
     ikey64, icert64 = base64.b64encode(ikey), base64.b64encode(icert)
+
+    upstream_cert_path = os.path.join(configuration.get_project(), "user-grant-upstream.pem")
+    if not os.path.exists(upstream_cert_path):
+        command.fail("user-grant-upstream.pem not found in homeworld directory")
+    upstream_cert = util.readfile(upstream_cert_path).decode()
     launch_spec("user-grant.yaml", {
         "SERVER_KEY_BASE64": skey64.decode(),
         "SERVER_CERT_BASE64": scert64.decode(),
         "ISSUER_KEY_BASE64": ikey64.decode(),
         "ISSUER_CERT_BASE64": icert64.decode(),
+        "EMAIL_DOMAIN": config.user_grant_email_domain,
+        "UPSTREAM_CERTIFICATE": upstream_cert,
     }, export=export)
 
 

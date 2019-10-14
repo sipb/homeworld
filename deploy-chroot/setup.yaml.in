@@ -5,6 +5,7 @@ cluster:
   kerberos-realm: ATHENA.MIT.EDU
   mirror: debian.csail.mit.edu/debian
   user-grant-domain: ''
+  user-grant-email-domain: ''
 
 addresses:
   cidr-nodes: 10.{x}.0.0/24

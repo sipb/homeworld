@@ -143,9 +143,10 @@ class Config:
         v_cluster, v_addresses, v_dns_upstreams, v_dns_bootstrap, v_root_admins, v_nodes = \
             keycheck(kv, "cluster", "addresses", "dns-upstreams", "dns-bootstrap", "root-admins", "nodes")
 
-        self.external_domain, self.internal_domain, self.etcd_token, self.realm, self.mirror, self.user_grant_domain = \
+        self.external_domain, self.internal_domain, self.etcd_token, self.realm, self.mirror, self.user_grant_domain, \
+            self.user_grant_email_domain = \
             keycheck(v_cluster, "external-domain", "internal-domain", "etcd-token", "kerberos-realm", "mirror",
-                                "user-grant-domain",
+                                "user-grant-domain", "user-grant-email-domain",
                      validator=lambda _, x: type(x) == str)
 
         cidr_nodes, cidr_pods, cidr_services, service_api, service_dns = \
