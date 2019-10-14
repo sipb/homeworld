@@ -45,8 +45,8 @@ spec:
         image: homeworld.private/dns-monitor@{digest}
         command:
         - /usr/bin/dns-monitor
-        - kubernetes.default.svc.{{{{INTERNAL_DOMAIN}}}}={{{{SERVIP_API}}}}
-        - kube-dns.kube-system.svc.{{{{INTERNAL_DOMAIN}}}}={{{{SERVIP_DNS}}}}
+        - kubernetes.default.svc.{{INTERNAL_DOMAIN}}={{SERVIP_API}}
+        - kube-dns.kube-system.svc.{{INTERNAL_DOMAIN}}={{SERVIP_DNS}}
         resources:
           limits:
             memory: 150Mi

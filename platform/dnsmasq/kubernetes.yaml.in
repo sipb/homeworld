@@ -17,7 +17,7 @@ metadata:
 spec:
   selector:
     k8s-app: kube-dns
-  clusterIP: {{{{SERVIP_DNS}}}}
+  clusterIP: "{{SERVIP_DNS}}"
   ports:
   - name: dns
     port: 53
@@ -46,7 +46,7 @@ spec:
         k8s-app: kube-dns
         version: v20
       annotations:
-        scheduler.alpha.kubernetes.io/tolerations: '[{{"key":"CriticalAddonsOnly", "operator":"Exists"}}]'
+        scheduler.alpha.kubernetes.io/tolerations: '[{{{{"key":"CriticalAddonsOnly", "operator":"Exists"}}}}]'
     spec:
       serviceAccountName: kube-dns
       containers:
@@ -54,7 +54,7 @@ spec:
         image: homeworld.private/kube-dns-main@{kube_dns_main_digest}
         args:
         - /usr/bin/kube-dns
-        - --domain={{{{INTERNAL_DOMAIN}}}}.
+        - --domain={{INTERNAL_DOMAIN}}.
         - --dns-port=10053
         - -v=2
         env:
@@ -83,7 +83,7 @@ spec:
         - --cache-size=1000
         - --no-negcache
         - --log-facility=-
-        - --server=/{{{{INTERNAL_DOMAIN}}}}/127.0.0.1#10053
+        - --server=/{{INTERNAL_DOMAIN}}/127.0.0.1#10053
         - --server=/in-addr.arpa/127.0.0.1#10053
         - --server=/ip6.arpa/127.0.0.1#10053
         ports:
@@ -99,8 +99,8 @@ spec:
         - /usr/bin/sidecar
         - --v=2
         - --logtostderr
-        - --probe=kubedns,127.0.0.1:10053,kubernetes.default.svc.{{{{INTERNAL_DOMAIN}}}},5,A
-        - --probe=dnsmasq,127.0.0.1:53,kubernetes.default.svc.{{{{INTERNAL_DOMAIN}}}},5,A
+        - --probe=kubedns,127.0.0.1:10053,kubernetes.default.svc.{{INTERNAL_DOMAIN}},5,A
+        - --probe=dnsmasq,127.0.0.1:53,kubernetes.default.svc.{{INTERNAL_DOMAIN}},5,A
         ports:
         - containerPort: 10054
           name: metrics

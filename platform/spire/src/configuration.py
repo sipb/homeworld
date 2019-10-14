@@ -345,7 +345,8 @@ def gen_kube_spec(output_name: str) -> None:
 
 
 def get_single_kube_spec(name: str, extra_kvs: dict=None) -> str:
-    return template.template("clustered/%s" % name, get_kube_spec_vars(extra_kvs))
+    templ = resource.get_resource("clustered/%s" % name).decode()
+    return template.yaml_template(templ, get_kube_spec_vars(extra_kvs))
 
 
 main_command = command.mux_map("commands about cluster configuration", {

@@ -41,7 +41,7 @@ spec:
             fieldRef:
               fieldPath: metadata.namespace
         - name: FLANNEL_NETWORK
-          value: "{{{{NETWORK}}}}"
+          value: "{{NETWORK}}"
         resources:
           limits:
             memory: 150Mi

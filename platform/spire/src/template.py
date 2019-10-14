@@ -1,4 +1,5 @@
 import resource
+import yaml
 
 
 class Template:
@@ -40,3 +41,20 @@ def template(filename_or_contents, keys, load=True) -> str:
 def template_all(filename_or_contents, keys_iterable, load=True) -> list:
     templ = Template(filename_or_contents, load=load)
     return [templ.template(keys) for keys in keys_iterable]
+
+
+def recursive_replace(structure, keys: dict):
+    if type(structure) == list:
+        return [recursive_replace(elem, keys) for elem in structure]
+    elif type(structure) == dict:
+        return {key: recursive_replace(value, keys) for key, value in structure.items()}
+    elif type(structure) == str:
+        return structure.format(**keys)
+    else:
+        return structure
+
+
+def yaml_template(contents: str, keys: dict) -> str:
+    documents = list(yaml.safe_load_all(contents))
+    documents = recursive_replace(documents, keys)
+    return yaml.safe_dump_all(documents)

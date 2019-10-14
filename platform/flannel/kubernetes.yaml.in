@@ -15,9 +15,9 @@ metadata:
     app: flannel
 data:
   net-conf.json: |
-    {{
-      "Network": "{{{{NETWORK}}}}"
-    }}
+    {{{{
+      "Network": "{{NETWORK}}"
+    }}}}
 ---
 apiVersion: apps/v1
 kind: DaemonSet
