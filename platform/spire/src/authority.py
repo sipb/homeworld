@@ -116,6 +116,36 @@ def iterate_keys_decrypted():  # yields (name, contents) pairs
             yield name_for_decrypted_file(name), keycrypt.gpg_decrypt_in_memory(contents)
 
 
+def get_upstream_cert_paths():
+    # we don't encrypt user-grant-upstream.key, because it's not intended to be saved
+    return os.path.join(configuration.get_project(), "user-grant-upstream.key"), \
+           os.path.join(configuration.get_project(), "user-grant-upstream.pem")
+
+
+def get_local_grant_user_paths():
+    # we don't encrypt local-grant-user.key, because it's not intended to be saved
+    return os.path.join(configuration.get_project(), "local-grant-user.key"), \
+           os.path.join(configuration.get_project(), "local-grant-user.pem")
+
+
+def gen_local_upstream_user():
+    config = configuration.get_config()
+    if config.user_grant_email_domain == "":
+        command.fail("user-grant-email-domain not populated when trying to generate local fake upstream certificate")
+    ca_key, ca_cert = get_upstream_cert_paths()
+    user_key, user_cert = get_local_grant_user_paths()
+    if os.path.exists(ca_key) or os.path.exists(ca_cert):
+        command.fail("upstream certificate authority already exists; not generating")
+    if os.path.exists(user_key) or os.path.exists(user_cert):
+        command.fail("locally-generated user already exists; not generating")
+    print("warning: user-grant-upstream.key and local-grant-user.key will not be encrypted; you should not use these "
+          "as long-term keys or commit them into your project repository. this feature is only intended for temporary "
+          "cluster testing.")
+    subprocess.check_call(["keygenupstream", ca_key, ca_cert,
+                           "mortal@%s" % config.user_grant_email_domain, user_key, user_cert, "24h"])
+
+
 main_command = command.mux_map("commands about cluster authorities", {
     "gen": command.wrap("generate and encrypt authority keys and certs", generate),
+    "genupstream": command.wrap("generate a fake local user CA and sample user for testing", gen_local_upstream_user),
 })

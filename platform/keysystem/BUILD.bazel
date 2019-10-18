@@ -7,6 +7,7 @@ homeworld_deb(
         "//keysystem/keygateway": "/usr/bin/keygateway",
         "//keysystem/keyclient": "/usr/bin/keyclient",
         "//keysystem/keygen/main": "/usr/bin/keygen",
+        "//keysystem/keygenupstream": "/usr/bin/keygenupstream",
         "//keysystem/keyinitadmit": "/usr/bin/keyinitadmit",
         "//keysystem/keylocalcert": "/usr/bin/keylocalcert",
         "//keysystem/keyreq": "/usr/bin/keyreq",

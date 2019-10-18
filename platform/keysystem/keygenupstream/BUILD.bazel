@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["keygenupstream.go"],
+    importpath = "github.com/sipb/homeworld/platform/keysystem/keygenupstream",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//keysystem/keygen:go_default_library",
+        "//util/certutil:go_default_library",
+        "//util/wraputil:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "keygenupstream",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

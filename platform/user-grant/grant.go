@@ -6,7 +6,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
-	"encoding/asn1"
 	"encoding/base64"
 	"fmt"
 	"github.com/pkg/errors"
@@ -101,23 +100,9 @@ func (r *response) Validate() error {
 	return nil
 }
 
-var oidEmailAddress = asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 9, 1}
-
-func isOIDEqual(a asn1.ObjectIdentifier, b asn1.ObjectIdentifier) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i, av := range a {
-		if av != b[i] {
-			return false
-		}
-	}
-	return true
-}
-
 func (c *Config) ExtractEmail(name pkix.Name) (string, error) {
 	for _, attr := range name.Names {
-		if isOIDEqual(attr.Type, oidEmailAddress) {
+		if certutil.IsOIDEqual(attr.Type, certutil.OIDEmailAddress()) {
 			result, ok := attr.Value.(string)
 			if !ok {
 				return "", errors.New("value in AttributeTypeAndValue was not a string")

@@ -63,7 +63,7 @@ def launch_user_grant(export: bool=False):
     icert = authority.get_pubkey_by_filename("./kubernetes.pem")
     ikey64, icert64 = base64.b64encode(ikey), base64.b64encode(icert)
 
-    upstream_cert_path = os.path.join(configuration.get_project(), "user-grant-upstream.pem")
+    _, upstream_cert_path = authority.get_upstream_cert_paths()
     if not os.path.exists(upstream_cert_path):
         command.fail("user-grant-upstream.pem not found in homeworld directory")
     upstream_cert = util.readfile(upstream_cert_path).decode()
