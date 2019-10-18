@@ -22,6 +22,8 @@ export HOMEWORLD_DIR="/var/homeworld-deploy"
 
 pwgen -s 160 1 > "$HOMEWORLD_DISASTER"
 spire authority gen
+spire https genlocal usergrant.private
+spire authority genupstream
 
 rm -rf "$HOME/.ssh/"
 mkdir -p "$HOME/.ssh/"
