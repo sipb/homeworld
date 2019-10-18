@@ -44,6 +44,8 @@ def sequence_supervisor(ops: setup.Operations) -> None:
 
     if config.user_grant_domain != '':
         ops.add_operation("pre-deploy user-grant", deploy.launch_user_grant)
+    else:
+        ops.add_operation("skip pre-deploying user-grant (not configured)", lambda: None)
 
     # TODO: have a way to do this without a specialized just-for-supervisor method
     ops.add_subcommand(infra.infra_sync_supervisor)
@@ -81,6 +83,13 @@ def sequence_cluster(ops: setup.Operations) -> None:
     ops.add_operation("verify that containers can be pulled from the registry", iterative_verifier(verify.check_pull, 120.0))
     ops.add_operation("verify that flannel is online", iterative_verifier(verify.check_flannel, 210.0))
     ops.add_operation("verify that dns-addon is online", iterative_verifier(verify.check_dns, 120.0))
+
+    if verify.is_user_grant_verifiable():
+        ops.add_operation("verify that user-grant is working properly", iterative_verifier(verify.check_user_grant, 120.0))
+    elif configuration.get_config().user_grant_domain != '':
+        ops.add_operation("skip verifying user-grant (no client certificate)", lambda: None)
+    else:
+        ops.add_operation("skip verifying user-grant (not configured)", lambda: None)
 
 
 def add_dry_run_argument(parser: argparse.ArgumentParser, dest: str):

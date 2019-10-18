@@ -128,6 +128,9 @@ def get_local_grant_user_paths():
            os.path.join(configuration.get_project(), "local-grant-user.pem")
 
 
+UPSTREAM_USER_NAME = "mortal"
+
+
 def gen_local_upstream_user():
     config = configuration.get_config()
     if config.user_grant_email_domain == "":
@@ -142,7 +145,7 @@ def gen_local_upstream_user():
           "as long-term keys or commit them into your project repository. this feature is only intended for temporary "
           "cluster testing.")
     subprocess.check_call(["keygenupstream", ca_key, ca_cert,
-                           "mortal@%s" % config.user_grant_email_domain, user_key, user_cert, "24h"])
+                           "%s@%s" % (UPSTREAM_USER_NAME, config.user_grant_email_domain), user_key, user_cert, "24h"])
 
 
 main_command = command.mux_map("commands about cluster authorities", {

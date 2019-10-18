@@ -192,6 +192,12 @@ class Config:
                 return node
         command.fail("no such node: %s" % node_name)
 
+    def get_any_node(self, kind: str) -> Node:
+        for node in self.nodes:
+            if node.kind == kind:
+                return node
+        command.fail("cannot find any nodes of kind %s" % kind)
+
     def get_fqdn(self, name: str) -> str:
         hostname = name
         if name.endswith("." + self.external_domain):

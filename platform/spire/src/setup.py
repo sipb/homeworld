@@ -224,6 +224,13 @@ def modify_dns_bootstrap(ops: Operations, is_install: bool) -> None:
                 ops.ssh_raw("bootstrap dns on @HOST: %s" % hostname, node, strip_cmd)
 
 
+def modify_temporary_dns(node: configuration.Node, additional: dict) -> None:
+    ssh.check_ssh(node, "grep -vF AUTO-TEMP-DNS /etc/hosts >/etc/hosts.new && mv /etc/hosts.new /etc/hosts")
+    for hostname, ip in additional.items():
+        new_hosts_line = "%s\t%s # AUTO-TEMP-DNS" % (ip, hostname)
+        ssh.check_ssh(node, "echo %s >>/etc/hosts" % escape_shell(new_hosts_line))
+
+
 def dns_bootstrap_lines() -> str:
     config = configuration.get_config()
     dns_hosts = config.dns_bootstrap.copy()
