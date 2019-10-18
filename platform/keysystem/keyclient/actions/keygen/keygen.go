@@ -1,16 +1,13 @@
 package keygen
 
 import (
-	"crypto/rand"
-	"crypto/rsa"
-	"crypto/x509"
-	"encoding/pem"
 	"fmt"
 	"github.com/pkg/errors"
 	"os"
 	"path"
 
 	"github.com/sipb/homeworld/platform/keysystem/keyclient/actloop"
+	"github.com/sipb/homeworld/platform/util/certutil"
 	"github.com/sipb/homeworld/platform/util/fileutil"
 )
 
@@ -38,14 +35,11 @@ func keygen(keypath string) error {
 		return errors.Wrap(err, fmt.Sprintf("failed to prepare directory %s for generated key", dirname))
 	}
 
-	privateKey, err := rsa.GenerateKey(rand.Reader, DefaultRSAKeyLength)
+	_, privateKeyPEM, err := certutil.GenerateRSA(DefaultRSAKeyLength)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("failed to generate %d-bit RSA key for %s", DefaultRSAKeyLength, keypath))
 	}
-
-	keydata := x509.MarshalPKCS1PrivateKey(privateKey)
-
-	err = fileutil.CreateFile(keypath, pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: keydata}), os.FileMode(0600))
+	err = fileutil.CreateFile(keypath, privateKeyPEM, os.FileMode(0600))
 	if err != nil {
 		return errors.Wrap(err, "failed to create file for generated key")
 	}

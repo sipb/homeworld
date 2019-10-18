@@ -2,19 +2,15 @@ package keyapi
 
 import (
 	"context"
-	"crypto/rand"
-	"crypto/rsa"
 	"crypto/tls"
-	"crypto/x509"
-	"encoding/pem"
 	"log"
 	"net"
 	"net/http"
 
 	"github.com/sipb/homeworld/platform/keysystem/keygen"
-	"github.com/sipb/homeworld/platform/keysystem/keyserver/config"
 	"github.com/sipb/homeworld/platform/keysystem/keyserver/operation"
 	"github.com/sipb/homeworld/platform/keysystem/worldconfig"
+	"github.com/sipb/homeworld/platform/util/certutil"
 )
 
 const TemporaryCertificateBits = keygen.AuthorityBits
@@ -53,25 +49,13 @@ func apiToHTTP(ks Keyserver, logger *log.Logger) http.Handler {
 	return mux
 }
 
-func generateServerKey(ctx *config.Context) ([]byte, error) {
-	// TODO: refactor out the key generation pattern
-	privateKey, err := rsa.GenerateKey(rand.Reader, TemporaryCertificateBits)
-	if err != nil {
-		return nil, err
-	}
-	return pem.EncodeToMemory(&pem.Block{
-		Type:  "RSA PRIVATE KEY",
-		Bytes: x509.MarshalPKCS1PrivateKey(privateKey),
-	}), nil
-}
-
 func LoadConfiguredKeyserver(logger *log.Logger) (Keyserver, error) {
 	ctx, err := worldconfig.GenerateConfig()
 	if err != nil {
 		return nil, err
 	}
 
-	serverKey, err := generateServerKey(ctx)
+	_, serverKey, err := certutil.GenerateRSA(TemporaryCertificateBits)
 	if err != nil {
 		return nil, err
 	}

@@ -4,6 +4,7 @@ go_library(
     name = "go_default_library",
     srcs = [
         "expiration.go",
+        "privkey.go",
         "sign.go",
     ],
     importpath = "github.com/sipb/homeworld/platform/util/certutil",

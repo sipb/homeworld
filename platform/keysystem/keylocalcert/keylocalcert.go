@@ -1,10 +1,6 @@
 package main
 
 import (
-	"crypto/rand"
-	"crypto/rsa"
-	"crypto/x509"
-	"encoding/pem"
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
 	"log"
@@ -13,6 +9,7 @@ import (
 	"time"
 
 	"github.com/sipb/homeworld/platform/keysystem/keyserver/authorities"
+	"github.com/sipb/homeworld/platform/util/certutil"
 	"github.com/sipb/homeworld/platform/util/csrutil"
 	"github.com/sipb/homeworld/platform/util/wraputil"
 )
@@ -54,11 +51,11 @@ func main() {
 		organizations = strings.Split(os.Args[8], ",")
 	}
 
-	pkey, err := rsa.GenerateKey(rand.Reader, 2048) // smaller key sizes are okay, because these are limited to a short period
+	// smaller key sizes are okay, because these are limited to a short period
+	pkey, privkey, err := certutil.GenerateRSA(2048)
 	if err != nil {
 		logger.Fatal(err)
 	}
-	privkey := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(pkey)})
 
 	var csr []byte
 	if isSSH {

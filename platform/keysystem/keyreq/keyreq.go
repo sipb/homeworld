@@ -1,11 +1,6 @@
 package main
 
 import (
-	"crypto/rand"
-	"crypto/rsa"
-	"crypto/x509"
-	"encoding/pem"
-	"github.com/sipb/homeworld/platform/keysystem/worldconfig"
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
 	"log"
@@ -13,6 +8,8 @@ import (
 
 	"github.com/sipb/homeworld/platform/keysystem/api/reqtarget"
 	"github.com/sipb/homeworld/platform/keysystem/api/server"
+	"github.com/sipb/homeworld/platform/keysystem/worldconfig"
+	"github.com/sipb/homeworld/platform/util/certutil"
 	"github.com/sipb/homeworld/platform/util/csrutil"
 )
 
@@ -79,12 +76,11 @@ func main() {
 
 		_, rt := auth_kerberos(logger, os.Args[2], os.Args[3])
 
-		pkey, err := rsa.GenerateKey(rand.Reader, 2048)
+		pkey, privkey, err := certutil.GenerateRSA(2048)
 		if err != nil {
 			logger.Print(err)
 			os.Exit(ERR_UNKNOWN_FAILURE)
 		}
-		privkey := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(pkey)})
 		pubkey_tmp, err := ssh.NewPublicKey(pkey.Public())
 		if err != nil {
 			logger.Print(err)
@@ -121,12 +117,12 @@ func main() {
 			os.Exit(ERR_INVALID_INVOCATION)
 		}
 		ks, rt := auth_kerberos(logger, os.Args[2], os.Args[3])
-		pkey, err := rsa.GenerateKey(rand.Reader, 2048) // smaller key sizes are okay, because these are limited to a short period
+		// smaller key sizes are okay, because these are limited to a short period
+		_, privkey, err := certutil.GenerateRSA(2048)
 		if err != nil {
 			logger.Print(err)
 			os.Exit(ERR_UNKNOWN_FAILURE)
 		}
-		privkey := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(pkey)})
 		csr, err := csrutil.BuildTLSCSR(privkey)
 		if err != nil {
 			logger.Print(err)
@@ -167,12 +163,12 @@ func main() {
 			os.Exit(ERR_INVALID_INVOCATION)
 		}
 		ks, rt := auth_kerberos(logger, os.Args[2], os.Args[3])
-		pkey, err := rsa.GenerateKey(rand.Reader, 2048) // smaller key sizes are okay, because these are limited to a short period
+		// smaller key sizes are okay, because these are limited to a short period
+		_, privkey, err := certutil.GenerateRSA(2048)
 		if err != nil {
 			logger.Print(err)
 			os.Exit(ERR_UNKNOWN_FAILURE)
 		}
-		privkey := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(pkey)})
 		csr, err := csrutil.BuildTLSCSR(privkey)
 		if err != nil {
 			logger.Print(err)

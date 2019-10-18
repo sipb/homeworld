@@ -2,10 +2,9 @@ package csrutil
 
 import (
 	"bytes"
-	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
-	"encoding/pem"
+	"github.com/sipb/homeworld/platform/util/certutil"
 	"strings"
 	"testing"
 
@@ -117,11 +116,10 @@ func TestBuildTLSCSR_NoData(t *testing.T) {
 }
 
 func TestBuildTLSCSR_Invalid(t *testing.T) {
-	pkey, err := rsa.GenerateKey(rand.Reader, 12)
+	_, encoded, err := certutil.GenerateRSA(12)
 	if err != nil {
 		t.Fatal(err)
 	}
-	encoded := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(pkey)})
 	_, err = BuildTLSCSR(encoded)
 	testutil.CheckError(t, err, "message too long for RSA public key size")
 }

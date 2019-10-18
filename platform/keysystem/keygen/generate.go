@@ -1,11 +1,9 @@
 package keygen
 
 import (
-	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
-	"encoding/pem"
 	"errors"
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
@@ -48,13 +46,11 @@ func GenerateKeys(dir string) error {
 	}
 
 	for _, authority := range worldconfig.ListAuthorities() {
-		// private key
-		privkey, err := rsa.GenerateKey(rand.Reader, AuthorityBits)
+		privkey, privkeybytes, err := certutil.GenerateRSA(AuthorityBits)
 		if err != nil {
 			return err
 		}
 		keyfile, certfile := authority.Filenames()
-		privkeybytes := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(privkey)})
 		err = ioutil.WriteFile(path.Join(dir, keyfile), privkeybytes, os.FileMode(0600))
 		if err != nil {
 			return err

@@ -2,14 +2,12 @@ package main
 
 import (
 	"crypto"
-	"crypto/rand"
 	"crypto/rsa"
 	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/asn1"
 	"encoding/base64"
-	"encoding/pem"
 	"fmt"
 	"github.com/pkg/errors"
 	"html/template"
@@ -245,11 +243,10 @@ func (c *Config) HandleRequest(writer http.ResponseWriter, request *http.Request
 	if err != nil {
 		return err
 	}
-	key, err := rsa.GenerateKey(rand.Reader, 2048)
+	key, keyx, err := certutil.GenerateRSA(2048)
 	if err != nil {
 		return err
 	}
-	keyx := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(key)})
 	cert, err := c.CertGen(key.Public(), user)
 	resp := response{
 		Namespace:       namespace,
