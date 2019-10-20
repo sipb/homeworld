@@ -13,7 +13,7 @@ import verify
 def sequence_keysystem(ops: setup.Operations) -> None:
     ops.add_subcommand(setup.setup_keyserver)
     ops.add_operation("verify that keyserver static files can be fetched",
-                      iterative_verifier(verify.check_keystatics, 10.0))
+                      iterative_verifier(verify.check_keystatics, 60.0))
     ops.add_subcommand(setup.admit_keyserver)
     if configuration.get_config().is_kerberos_enabled():
         ops.add_subcommand(setup.setup_keygateway)
