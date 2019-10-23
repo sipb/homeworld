@@ -86,5 +86,4 @@ This will automatically run all of the required build steps.
 
 Bazel will automatically handle incremental changes, so if one of these commands completes successfully, you can always rerun it and have nothing change.
 
-Congratulations! You are ready to deploy your very own Homeworld cluster. Proceed to [deploy.md](deploy.md).
-
+Congratulations! You are ready to [deploy your very own Homeworld cluster](deploy.md).
