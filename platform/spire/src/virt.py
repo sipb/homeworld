@@ -261,11 +261,12 @@ class DebugContext:
 
 
 class VirtualMachine:
-    def __init__(self, node, tc: TerminationContext, cd=None, cpus=12, memory=2500):
+    def __init__(self, node, tc: TerminationContext, cd=None, cpus=12, memory=2500, cdrom_install=False):
         self.node = node
         self.cd = cd
         self.cpus = cpus
         self.memory = memory
+        self.cdrom_install = cdrom_install
         self.netif = get_node_tap(node)
         self.tc = tc
 
@@ -288,12 +289,14 @@ class VirtualMachine:
         args = ["qemu-system-x86_64"]
         args += ["-nographic", "-serial", "mon:stdio"]
         args += ["-machine", "accel=kvm", "-cpu", "host"]
-        args += ["-hda", self.hd]
         if self.cd is None:
+            args += ["-drive", "media=disk,file=" + self.hd]
             args += ["-boot", "c"]
         else:
-            args += ["-cdrom", self.cd]
-            args += ["-boot", "d"]
+            # TODO: maybe set this readonly
+            args += ["-drive", "media=%s,format=raw,file=%s" % ("cdrom" if self.cdrom_install else "disk", self.cd)]
+            args += ["-drive", "media=disk,file=" + self.hd]
+            args += ["-boot", "c"]
         args += ["-no-reboot"]
         args += ["-smp", "%d" % int(self.cpus), "-m", "%d" % int(self.memory)]
         if self.netif is None:
@@ -484,8 +487,8 @@ def qemu_check_nested_virt():
 
 
 @command.wrapseq
-def auto_install_supervisor(ops: command.Operations, tc: TerminationContext, supervisor: configuration.Node, install_iso: str):
-    vm = VirtualMachine(supervisor, tc, install_iso)
+def auto_install_supervisor(ops: command.Operations, tc: TerminationContext, supervisor: configuration.Node, install_iso: str, cdrom_install: bool=False):
+    vm = VirtualMachine(supervisor, tc, install_iso, cdrom_install=cdrom_install)
     ops.add_operation("install supervisor node (this may take several minutes)", vm.boot_install_supervisor, supervisor)
 
 
@@ -497,8 +500,8 @@ def auto_launch_supervisor(ops: command.Operations, tc: TerminationContext, supe
 
 
 @command.wrapseq
-def auto_install_nodes(ops: command.Operations, tc: TerminationContext, nodes: list, install_iso: str):
-    vms = [VirtualMachine(node, tc, install_iso) for node in nodes]
+def auto_install_nodes(ops: command.Operations, tc: TerminationContext, nodes: list, install_iso: str, cdrom_install: bool=False):
+    vms = [VirtualMachine(node, tc, install_iso, cdrom_install=cdrom_install) for node in nodes]
 
     def boot_install_and_admit_all():
         with concurrent.futures.ThreadPoolExecutor(len(vms)) as executor:
@@ -517,7 +520,7 @@ def auto_launch_nodes(ops: command.Operations, tc: TerminationContext, nodes: li
 
 
 @command.wrapseq
-def auto_install(ops: command.Operations, authorized_key=None, persistent: bool=False):
+def auto_install(ops: command.Operations, authorized_key=None, persistent: bool=False, cdrom_install: bool=False):
     "complete cluster installation and launch"
     if authorized_key is None:
         if "HOME" not in os.environ:
@@ -531,12 +534,12 @@ def auto_install(ops: command.Operations, authorized_key=None, persistent: bool=
     with ops.context("networking", net_context()):
         with ops.context("termination", TerminationContext()) as tc:
             with ops.context("debug shell", DebugContext(persistent)):
-                ops.add_subcommand(auto_install_supervisor, tc, config.keyserver, iso_path)
+                ops.add_subcommand(auto_install_supervisor, tc, config.keyserver, iso_path, cdrom_install=cdrom_install)
                 ops.add_subcommand(auto_launch_supervisor, tc, config.keyserver)
                 ops.add_subcommand(seq.sequence_supervisor)
 
                 other_nodes = [n for n in config.nodes if n != config.keyserver]
-                ops.add_subcommand(auto_install_nodes, tc, other_nodes, iso_path)
+                ops.add_subcommand(auto_install_nodes, tc, other_nodes, iso_path, cdrom_install=cdrom_install)
                 ops.add_subcommand(auto_launch_nodes, tc, other_nodes)
 
                 ops.add_subcommand(seq.sequence_cluster)
