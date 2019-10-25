@@ -61,9 +61,12 @@ def gen_iso(iso_image, authorized_key, mode=None):
         inclusion += ["dns_bootstrap_lines"]
         util.copy(authorized_key, os.path.join(d, "authorized.pub"))
         util.writefile(os.path.join(d, "keyservertls.pem"), authority.get_pubkey_by_filename("./clusterca.pem"))
-        resource.copy_to("postinstall.sh", os.path.join(d, "postinstall.sh"))
-        os.chmod(os.path.join(d, "postinstall.sh"), 0o755)
-        inclusion += ["authorized.pub", "keyservertls.pem", "postinstall.sh"]
+        inclusion += ["authorized.pub", "keyservertls.pem"]
+
+        for script in ["postinstall.sh", "prepartition.sh"]:
+            resource.copy_to(script, os.path.join(d, script))
+            os.chmod(os.path.join(d, script), 0o755)
+            inclusion.append(script)
 
         util.writefile(os.path.join(d, "keyserver.domain"), configuration.get_keyserver_domain().encode())
         inclusion.append("keyserver.domain")
