@@ -27,16 +27,27 @@ def fail(message: str, hint: str = None) -> None:
     raise CommandFailedException(message, hint)
 
 
-def mux_map(desc: str, mapping: dict):
-    def configure(command: list, parser: argparse.ArgumentParser):
+class Mux:
+    def __init__(self, description, mapping):
+        self.__doc__ = description
+        self.mapping = mapping
+
+    def configure(self, command: list, parser: argparse.ArgumentParser):
         parser.set_defaults(argparse_parser=parser)
         subparsers = parser.add_subparsers()
 
-        for component, (inner_desc, inner_configure) in mapping.items():
-            inner_parser = subparsers.add_parser(component, description=inner_desc, help=inner_desc)
-            inner_configure(command + [component], inner_parser)
-
-    return desc, configure
+        for component, subcommand in self.mapping.items():
+            doc = inspect.getdoc(subcommand)
+            short_doc = doc.split('\n')[0] if doc else None
+            subparser = subparsers.add_parser(
+                component,
+                description=doc,
+                help=short_doc,
+                formatter_class=argparse.RawDescriptionHelpFormatter)
+            try:
+                subcommand.configure(command + [component], subparser)
+            except AttributeError as e:
+                raise Exception("error configuring subcommand {!r}".format(subcommand)) from e
 
 
 class Command:
