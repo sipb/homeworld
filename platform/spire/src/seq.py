@@ -51,24 +51,35 @@ def sequence_supervisor(ops: setup.Operations) -> None:
     ops.add_subcommand(infra.infra_sync_supervisor)
 
 
-def iterative_verifier(verifier, max_time, pause=2.0):
-    def ver():
-        end_time = time.time() + max_time
+class IterativeVerifier(command.Simple):
+    def __init__(self, verifier, max_time, pause=2.0):
+        super().__init__(verifier)
+        self.verifier = verifier
+        self.max_time = max_time
+        self.pause = pause
+        self.func = self._verify_loop
+
+    def _verify_loop(self, *args, **kwargs):
+        end_time = time.time() + self.max_time
         while True:
             try:
-                verifier()
+                self.verifier(*args, **kwargs)
                 return
             except Exception as e:
                 if time.time() >= end_time:
+                    print("Timeout - no more retries.")
                     raise e
                 print("Verification failed:", e)
                 print("RETRYING...")
-            time.sleep(pause)
+            time.sleep(self.pause)
 
-    command.provide_command_for_function(ver, command.get_command_for_function(verifier))
-    ver.dispatch_get_name = lambda default: command.get_command_for_function(verifier)
+    def command(self, *args, **kwargs):
+        if self._command is None and isinstance(self.verifier, command.Command):
+            return self.verifier.command(*args, **kwargs)
+        return super().command(*args, **kwargs)
 
-    return ver
+def iterative_verifier(f, *args, **kwargs):
+    return functools.update_wrapper(IterativeVerifier(f, *args, **kwargs), f, updated=[])
 
 
 def sequence_cluster(ops: setup.Operations) -> None:
