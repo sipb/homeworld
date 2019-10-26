@@ -91,28 +91,31 @@ class Operations:
     def pause(self, name: str, duration):
         self.add_operation(name, lambda: time.sleep(duration))
 
-    def ssh_raw(self, name: str, node: configuration.Node, script: str, in_directory: str=None, redirect_to: str=None)\
-            -> None:
-        if redirect_to:
-            script = "(%s) >%s" % (script, escape_shell(redirect_to))
-        if in_directory:
-            script = "cd %s && %s" % (escape_shell(in_directory), script)
-        self.add_operation(name, lambda: ssh.check_ssh(node, script), node=node)
+def ssh_raw(ops, name: str, node: configuration.Node, script: str, in_directory: str=None, redirect_to: str=None)\
+        -> None:
+    if redirect_to:
+        script = "(%s) >%s" % (script, escape_shell(redirect_to))
+    if in_directory:
+        script = "cd %s && %s" % (escape_shell(in_directory), script)
+    ops.add_operation(name.replace('@HOST', node.hostname),
+                      lambda: ssh.check_ssh(node, script))
 
-    def ssh(self, name: str, node: configuration.Node, *argv: str, in_directory: str=None, redirect_to: str=None)\
-            -> None:
-        self.ssh_raw(name, node, " ".join(escape_shell(param) for param in argv),
-                     in_directory=in_directory, redirect_to=redirect_to)
+def ssh_cmd(ops, name: str, node: configuration.Node, *argv: str, in_directory: str=None, redirect_to: str=None)\
+        -> None:
+    ssh_raw(ops, name, node, " ".join(escape_shell(param) for param in argv),
+            in_directory=in_directory, redirect_to=redirect_to)
 
-    def ssh_mkdir(self, name: str, node: configuration.Node, *paths: str, with_parents: bool=True) -> None:
-        options = ["-p"] if with_parents else []
-        self.ssh(name, node, "mkdir", *(options + ["--"] + list(paths)))
+def ssh_mkdir(ops, name: str, node: configuration.Node, *paths: str, with_parents: bool=True) -> None:
+    options = ["-p"] if with_parents else []
+    ssh_cmd(ops, name, node, "mkdir", *(options + ["--"] + list(paths)))
 
-    def ssh_upload_path(self, name: str, node: configuration.Node, source_path: str, dest_path: str) -> None:
-        self.add_operation(name, lambda: ssh.check_scp_up(node, source_path, dest_path), node=node)
+def ssh_upload_path(ops, name: str, node: configuration.Node, source_path: str, dest_path: str) -> None:
+    ops.add_operation(name.replace('@HOST', node.hostname),
+                      lambda: ssh.check_scp_up(node, source_path, dest_path))
 
-    def ssh_upload_bytes(self, name: str, node: configuration.Node, source_bytes: bytes, dest_path: str) -> None:
-        self.add_operation(name, lambda: ssh.upload_bytes(node, source_bytes, dest_path), node=node)
+def ssh_upload_bytes(ops, name: str, node: configuration.Node, source_bytes: bytes, dest_path: str) -> None:
+    ops.add_operation(name.replace('@HOST', node.hostname),
+                      lambda: ssh.upload_bytes(node, source_bytes, dest_path))
 
 
 AUTHORITY_DIR = "/etc/homeworld/keyserver/authorities"
