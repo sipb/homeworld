@@ -176,6 +176,108 @@ def wrap(f):
     return functools.update_wrapper(Simple(f), f, updated=[])
 
 
+# Decorator for delegating a function call to self._context if it exists,
+# for use with Operations.context
+def _delegate_to_context(f):
+    @functools.wraps(f)
+    def g(self, *args, **kwargs):
+        if self._context is None:
+            return f(self, *args, **kwargs)
+        return f(self._context, *args, **kwargs)
+    return g
+
+class Operations:
+    def __init__(self):
+        self._ops = []
+        self._context = None
+
+    @_delegate_to_context
+    def add_operation(self, name: str, callback, command=None):
+        self._ops.append((name, callback, command))
+
+    def add_command(self, cmd, *args, **kwargs):
+        cmd.operate(self, *args, **kwargs)
+
+    def add_subcommand(self, cmd, *args, **kwargs):
+        op = Operations()
+        cmd.operate(op, *args, **kwargs)
+        self.add_operation(cmd.__doc__, op, cmd.command(*args, **kwargs))
+
+    @_delegate_to_context
+    @contextlib.contextmanager
+    def context(self, name, ctx):
+        """Context manager wrapper.
+
+        Any command scheduled within context(ctx) will be run within ctx.
+        For instance:
+
+        >>> with ops.context("some name", ctx) as c:
+        ...     ops.add_operation(some_function)
+
+        In this example, some_function will be run within ctx at runtime,
+        as in
+
+        >>> with ctx:
+        ...     some_function()
+
+        were written.
+
+        For convenience,
+        the original context ctx is made available to the context body as c.
+        """
+
+        # TODO: figure out annotations so that this can be processed correctly by --dry-run
+        opc = OperationsContext(ctx)
+        # delegate adding commands within the context to opc
+        self._context = opc
+        yield ctx  # send ctx back to the context body for convenience
+        self._context = None # deactivate delegation
+        self.add_operation(name, opc)
+        return ctx
+
+    def print_commands(self):
+        for name, _, command in self._ops:
+            if command is None:
+                print(">> {}".format(name))
+            else:
+                print("$ {}".format(command))
+
+    def __call__(self, depth=0, dry_run=False) -> None:
+        if depth == 0 and not dry_run:
+            print("== executing %d operations ==" % len(self._ops))
+            print()
+            startat = time.time()
+        for i, (name, operation, _) in enumerate(self._ops, 1):
+            if not name:
+                name = str(operation)
+            print('{}-- {} {}--'.format(
+                    '  ' * depth, name,
+                    '({}/{}) '.format(i, len(self._ops)) if depth == 0 else ''))
+            if isinstance(operation, Operations):
+                operation(depth=depth + 1, dry_run=dry_run)
+                continue
+            if dry_run:
+                continue
+            operation()
+
+        if depth == 0 and not dry_run:
+            print()
+            print("== all operations executed in %.2f seconds! ==" % (time.time() - startat))
+
+
+class OperationsContext(Operations):
+    def __init__(self, ctx):
+        super().__init__()
+        self.ctx = ctx
+
+    def __call__(self, depth=0, dry_run=False):
+        if dry_run:
+            super().__call__(depth=depth, dry_run=dry_run)
+        else:
+            with self.ctx:
+                super().__call__(depth=depth, dry_run=dry_run)
+
+
 def main_invoke(command):
     parser = argparse.ArgumentParser(description="Administrative toolkit for deploying and maintaining Hyades clusters")
     command.configure(["spire"], parser)
