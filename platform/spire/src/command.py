@@ -50,6 +50,13 @@ class Mux:
                 raise Exception("error configuring subcommand {!r}".format(subcommand)) from e
 
 
+def add_dry_run_argument(parser: argparse.ArgumentParser, dest: str):
+    parser.add_argument("--dry-run", dest=dest, action="store_true", help="show operations performed by command without actually running them")
+
+def add_show_commands_argument(parser: argparse.ArgumentParser, dest: str):
+    parser.add_argument("--show-commands", dest=dest, action="store_true", help="show the equivalent sequence of commands without running them")
+
+
 class Command:
     def __init__(self, func):
         self.func = func
@@ -157,6 +164,24 @@ class Command:
 
 def wrapop(f):
     return functools.update_wrapper(Command(f), f, updated=[])
+
+
+class Seq(Command):
+    def configure(self, command: list, parser: argparse.ArgumentParser):
+        super().configure(command, parser)
+        add_dry_run_argument(parser, 'dry_run')
+        add_show_commands_argument(parser, 'show_commands')
+
+    def invoke(self, aargs):
+        op = Operations()
+        args, kwargs = self.process_args(aargs)
+        self.operate(op, *args, **kwargs)
+        if aargs.show_commands or aargs.show_commands_outer:
+            return op.print_commands()
+        op(dry_run=aargs.dry_run or aargs.dry_run_outer)
+
+def wrapseq(f):
+    return functools.update_wrapper(Seq(f), f, updated=[])
 
 
 class Simple(Command):

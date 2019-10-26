@@ -92,35 +92,6 @@ def sequence_cluster(ops: setup.Operations) -> None:
         ops.add_operation("skip verifying user-grant (not configured)", lambda: None)
 
 
-def add_dry_run_argument(parser: argparse.ArgumentParser, dest: str):
-    parser.add_argument("--dry-run", dest=dest, action="store_true", help="show command sequence performed by command without actually running them")
-
-
-def wrapseq(desc: str, f):
-    def wrap_param_tx(opts):
-        ops = setup.Operations()
-
-        def invoke():
-            dry_run = opts.get('dry_run', False)
-            dry_run_outer = opts.get('dry_run_outer', False)
-            if dry_run or dry_run_outer:
-                ops.print_annotations()
-            else:
-                ops.run_operations()
-
-        new_opts = {'ops': ops, **opts}
-
-        return new_opts, invoke
-
-    desc, inner_configure = command.wrap(desc, f, wrap_param_tx)
-
-    def configure(command: list, parser: argparse.ArgumentParser):
-        add_dry_run_argument(parser, "dry_run")
-        inner_configure(command, parser)
-
-    return desc, configure
-
-
 def seq_mux_map(desc, mapping):
     desc, inner_configure = command.mux_map(desc, mapping)
 
