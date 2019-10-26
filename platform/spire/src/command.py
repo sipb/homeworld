@@ -1,5 +1,8 @@
-import inspect
 import argparse
+import contextlib
+import functools
+import inspect
+import time
 
 
 ANSI_ESCAPE_CODE_RED = "\x1b[1;31m"
@@ -12,6 +15,13 @@ class CommandFailedException(Exception):
         super().__init__(message)
         self.hint = hint
 
+    def __str__(self):
+        return '{}command failed: {}{}{}'.format(
+            ANSI_ESCAPE_CODE_RED,
+            super().__str__(),
+            '\n{}{}'.format(ANSI_ESCAPE_CODE_YELLOW, self.hint)
+            if self.hint is not None else '',
+            ANSI_ESCAPE_CODE_RESET)
 
 def fail(message: str, hint: str = None) -> None:
     raise CommandFailedException(message, hint)
@@ -107,15 +117,9 @@ def main_invoke(command):
     desc, configure_parser = command
     parser = argparse.ArgumentParser(description="Administrative toolkit for deploying and maintaining Hyades clusters")
     configure_parser(["spire"], parser)
-    try:
-        args = parser.parse_args()
-        if "argparse_invoke" in args:
-            args.argparse_invoke(args)
-        else:
-            args.argparse_parser.print_help()
-        return 0
-    except CommandFailedException as e:
-        print(ANSI_ESCAPE_CODE_RED + 'command failed: ' + str(e) + ANSI_ESCAPE_CODE_RESET)
-        if e.hint is not None:
-            print(ANSI_ESCAPE_CODE_YELLOW + e.hint + ANSI_ESCAPE_CODE_RESET)
-        return 1
+    args = parser.parse_args()
+    if "argparse_invoke" in args:
+        args.argparse_invoke(args)
+    else:
+        args.argparse_parser.print_help()
+    return 0
