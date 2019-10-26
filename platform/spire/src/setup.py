@@ -1,8 +1,6 @@
-import contextlib
 import os
 import subprocess
 import sys
-import time
 
 import authority
 import command
@@ -51,45 +49,51 @@ KEYCLIENT_DIR = "/etc/homeworld/keyclient"
 KEYTAB_PATH = "/etc/krb5.keytab"
 
 
-def setup_keyserver(ops: Operations) -> None:
+@command.wrapop
+def setup_keyserver(ops: command.Operations) -> None:
+    "deploy keys and configuration for keyserver; start keyserver"
+
     config = configuration.get_config()
     for node in config.nodes:
         if node.kind != "supervisor":
             continue
-        ops.ssh_mkdir("create directories on @HOST", node, AUTHORITY_DIR, STATICS_DIR, CONFIG_DIR)
+        ssh_mkdir(ops, "create directories on @HOST", node, AUTHORITY_DIR, STATICS_DIR, CONFIG_DIR)
         for name, data in authority.iterate_keys_decrypted():
             # TODO: keep these keys in memory
             if "/" in name:
                 command.fail("found key in upload list with invalid filename")
             # TODO: avoid keeping these keys in memory for this long
-            ops.ssh_upload_bytes("upload authority %s to @HOST" % name, node, data, os.path.join(AUTHORITY_DIR, name))
-        ops.ssh_upload_bytes("upload cluster config to @HOST", node,
-                             configuration.get_cluster_conf().encode(), STATICS_DIR + "/cluster.conf")
-        ops.ssh_upload_path("upload cluster setup to @HOST", node,
-                            configuration.Config.get_setup_path(), CONFIG_DIR + "/setup.yaml")
-        ops.ssh("enable keyserver on @HOST", node, "systemctl", "enable", "keyserver.service")
-        ops.ssh("start keyserver on @HOST", node, "systemctl", "restart", "keyserver.service")
+            ssh_upload_bytes(ops, "upload authority %s to @HOST" % name, node, data, os.path.join(AUTHORITY_DIR, name))
+        ssh_upload_bytes(ops, "upload cluster config to @HOST", node,
+                         configuration.get_cluster_conf().encode(), STATICS_DIR + "/cluster.conf")
+        ssh_upload_path(ops, "upload cluster setup to @HOST", node,
+                        configuration.Config.get_setup_path(), CONFIG_DIR + "/setup.yaml")
+        ssh_cmd(ops, "enable keyserver on @HOST", node, "systemctl", "enable", "keyserver.service")
+        ssh_cmd(ops, "start keyserver on @HOST", node, "systemctl", "restart", "keyserver.service")
 
 
-def admit_keyserver(ops: Operations) -> None:
+@command.wrapop
+def admit_keyserver(ops: command.Operations) -> None:
+    "admit the keyserver into the cluster during bootstrapping"
+
     config = configuration.get_config()
     for node in config.nodes:
         if node.kind != "supervisor":
             continue
         domain = node.hostname + "." + config.external_domain
-        ops.ssh("request bootstrap token for @HOST", node,
+        ssh_cmd(ops, "request bootstrap token for @HOST", node,
                 "keyinitadmit", domain,
                 redirect_to=KEYCLIENT_DIR + "/bootstrap.token")
         # TODO: do we need to poke the keyclient to make sure it tries again?
         # TODO: don't wait four seconds if it isn't necessary
-        ops.ssh("kick keyclient daemon on @HOST", node, "systemctl", "restart", "keyclient")
+        ssh_cmd(ops, "kick keyclient daemon on @HOST", node, "systemctl", "restart", "keyclient")
         # if it doesn't exist, this command will fail.
-        ops.ssh("confirm that @HOST was admitted", node, "test", "-e", KEYCLIENT_DIR + "/granting.pem")
-        ops.ssh("enable auth-monitor daemon on @HOST", node, "systemctl", "enable", "auth-monitor")
-        ops.ssh("start auth-monitor daemon on @HOST", node, "systemctl", "restart", "auth-monitor")
+        ssh_cmd(ops, "confirm that @HOST was admitted", node, "test", "-e", KEYCLIENT_DIR + "/granting.pem")
+        ssh_cmd(ops, "enable auth-monitor daemon on @HOST", node, "systemctl", "enable", "auth-monitor")
+        ssh_cmd(ops, "start auth-monitor daemon on @HOST", node, "systemctl", "restart", "auth-monitor")
 
 
-def modify_keygateway(ops: Operations, overwrite_keytab: bool) -> None:
+def modify_keygateway(ops: command.Operations, overwrite_keytab: bool) -> None:
     config = configuration.get_config()
     if not config.is_kerberos_enabled():
         print("keygateway disabled; skipping")
@@ -114,43 +118,50 @@ def modify_keygateway(ops: Operations, overwrite_keytab: bool) -> None:
                         command.fail("existing keytab does not match local keytab")
                     return # existing keytab matches local keytab, no action required
             ssh.upload_bytes(node, decrypted, KEYTAB_PATH)
-        ops.add_operation("upload keytab for @HOST", safe_upload_keytab, node)
-        ops.ssh("enable keygateway on @HOST", node, "systemctl", "enable", "keygateway")
-        ops.ssh("restart keygateway on @HOST", node, "systemctl", "restart", "keygateway")
+        ops.add_operation("upload keytab for {}".format(node), safe_upload_keytab)
+        ssh_cmd(ops, "enable keygateway on @HOST", node, "systemctl", "enable", "keygateway")
+        ssh_cmd(ops, "restart keygateway on @HOST", node, "systemctl", "restart", "keygateway")
 
 
-def setup_keygateway(ops: Operations) -> None:
+@command.wrapop
+def setup_keygateway(ops: command.Operations) -> None:
+    "deploy keytab and start keygateway"
     modify_keygateway(ops, False)
 
 
-def update_keygateway(ops: Operations) -> None:
+@command.wrapop
+def update_keygateway(ops: command.Operations) -> None:
+    "update keytab and restart keygateway"
     modify_keygateway(ops, True)
 
 
-def setup_supervisor_ssh(ops: Operations) -> None:
+@command.wrapop
+def setup_supervisor_ssh(ops: command.Operations) -> None:
+    "configure supervisor SSH access"
+
     config = configuration.get_config()
     for node in config.nodes:
         if node.kind != "supervisor":
             continue
         ssh_config = resource.get_resource("sshd_config")
-        ops.ssh_upload_bytes("upload new ssh configuration to @HOST", node, ssh_config, "/etc/ssh/sshd_config")
-        ops.ssh("reload ssh configuration on @HOST", node, "systemctl", "restart", "ssh")
-        ops.ssh_raw("shift aside old authorized_keys on @HOST", node,
+        ssh_upload_bytes(ops, "upload new ssh configuration to @HOST", node, ssh_config, "/etc/ssh/sshd_config")
+        ssh_cmd(ops, "reload ssh configuration on @HOST", node, "systemctl", "restart", "ssh")
+        ssh_raw(ops, "shift aside old authorized_keys on @HOST", node,
                 "if [ -f /root/.ssh/authorized_keys ]; then " +
                 "mv /root/.ssh/authorized_keys " +
                 "/root/original_authorized_keys; fi")
 
 
-def modify_dns_bootstrap(ops: Operations, is_install: bool) -> None:
+def modify_dns_bootstrap(ops: command.Operations, is_install: bool) -> None:
     config = configuration.get_config()
     for node in config.nodes:
         strip_cmd = "grep -vF AUTO-HOMEWORLD-BOOTSTRAP /etc/hosts >/etc/hosts.new && mv /etc/hosts.new /etc/hosts"
-        ops.ssh_raw("strip bootstrapped dns on @HOST", node, strip_cmd)
+        ssh_raw(ops, "strip bootstrapped dns on @HOST", node, strip_cmd)
         if is_install:
             for hostname, ip in config.dns_bootstrap.items():
                 new_hosts_line = "%s\t%s # AUTO-HOMEWORLD-BOOTSTRAP" % (ip, hostname)
                 strip_cmd = "echo %s >>/etc/hosts" % escape_shell(new_hosts_line)
-                ops.ssh_raw("bootstrap dns on @HOST: %s" % hostname, node, strip_cmd)
+                ssh_raw(ops, "bootstrap dns on @HOST: %s" % hostname, node, strip_cmd)
 
 
 def modify_temporary_dns(node: configuration.Node, additional: dict) -> None:
@@ -175,67 +186,73 @@ def dns_bootstrap_lines() -> str:
     return "".join("%s\t%s # AUTO-HOMEWORLD-BOOTSTRAP\n" % (ip, hostname) for hostname, ip in dns_hosts.items())
 
 
-def setup_dns_bootstrap(ops: Operations) -> None:
+@command.wrapop
+def setup_dns_bootstrap(ops: command.Operations) -> None:
+    "switch cluster nodes into 'bootstrapped DNS' mode"
+
     modify_dns_bootstrap(ops, True)
 
 
-def teardown_dns_bootstrap(ops: Operations) -> None:
+@command.wrapop
+def teardown_dns_bootstrap(ops: command.Operations) -> None:
+    "switch cluster nodes out of 'bootstrapped DNS' mode"
+
     modify_dns_bootstrap(ops, False)
 
 
-def setup_bootstrap_registry(ops: Operations) -> None:
+@command.wrapop
+def setup_bootstrap_registry(ops: command.Operations) -> None:
+    "bring up the bootstrap container registry on the supervisor nodes"
+
     config = configuration.get_config()
     for node in config.nodes:
         if node.kind != "supervisor":
             continue
 
-        ops.ssh("enable docker-registry on @HOST", node, "systemctl", "enable", "docker-registry")
-        ops.ssh("restart docker-registry on @HOST", node, "systemctl", "restart", "docker-registry")
+        ssh_cmd(ops, "enable docker-registry on @HOST", node, "systemctl", "enable", "docker-registry")
+        ssh_cmd(ops, "restart docker-registry on @HOST", node, "systemctl", "restart", "docker-registry")
 
-        ops.ssh("unmask nginx on @HOST", node, "systemctl", "unmask", "nginx")
-        ops.ssh("enable nginx on @HOST", node, "systemctl", "enable", "nginx")
-        ops.ssh("restart nginx on @HOST", node, "systemctl", "restart", "nginx")
+        ssh_cmd(ops, "unmask nginx on @HOST", node, "systemctl", "unmask", "nginx")
+        ssh_cmd(ops, "enable nginx on @HOST", node, "systemctl", "enable", "nginx")
+        ssh_cmd(ops, "restart nginx on @HOST", node, "systemctl", "restart", "nginx")
 
 
-def update_registry(ops: Operations) -> None:
+@command.wrapop
+def update_registry(ops: command.Operations) -> None:
+    "upload the latest container versions to the bootstrap container registry"
+
     config = configuration.get_config()
     for node in config.nodes:
         if node.kind != "supervisor":
             continue
+        ssh_cmd(ops, "update apt repositories on @HOST", node, "apt-get", "update")
+        ssh_cmd(ops, "update package of OCIs on @HOST", node, "apt-get", "install", "-y", "homeworld-oci-pack")
+        ssh_cmd(ops, "upgrade apt packages on @HOST", node, "apt-get", "upgrade", "-y")
+        ssh_cmd(ops, "re-push OCIs to registry on @HOST", node, "/usr/lib/homeworld/push-ocis.sh")
 
-        ops.ssh("update apt repositories on @HOST", node, "apt-get", "update")
-        ops.ssh("update package of OCIs on @HOST", node, "apt-get", "install", "-y", "homeworld-oci-pack")
-        ops.ssh("upgrade apt packages on @HOST", node, "apt-get", "upgrade", "-y")
-        ops.ssh("re-push OCIs to registry on @HOST", node, "/usr/lib/homeworld/push-ocis.sh")
+@command.wrapop
+def setup_prometheus(ops: command.Operations) -> None:
+    "bring up the supervisor node prometheus instance"
 
-
-def setup_prometheus(ops: Operations) -> None:
     config = configuration.get_config()
     for node in config.nodes:
         if node.kind != "supervisor":
             continue
-        ops.ssh_upload_bytes("upload prometheus config to @HOST", node, configuration.get_prometheus_yaml().encode(),
-                             "/etc/prometheus.yaml")
-        ops.ssh("enable prometheus on @HOST", node, "systemctl", "enable", "prometheus")
-        ops.ssh("restart prometheus on @HOST", node, "systemctl", "restart", "prometheus")
+        ssh_upload_bytes(ops, "upload prometheus config to @HOST", node, configuration.get_prometheus_yaml().encode(),
+                         "/etc/prometheus.yaml")
+        ssh_cmd(ops, "enable prometheus on @HOST", node, "systemctl", "enable", "prometheus")
+        ssh_cmd(ops, "restart prometheus on @HOST", node, "systemctl", "restart", "prometheus")
 
 
-def wrapop(desc: str, f):
-    def wrap_param_tx(opts):
-        ops = Operations()
-        return {'ops': ops, **opts}, ops.run_operations
-    return command.wrap(desc, f, wrap_param_tx)
-
-
-main_command = command.mux_map("commands about setting up a cluster", {
-    "keyserver": wrapop("deploy keys and configuration for keyserver; start keyserver", setup_keyserver),
-    "self-admit": wrapop("admit the keyserver into the cluster during bootstrapping", admit_keyserver),
-    "keygateway": wrapop("deploy keytab and start keygateway", setup_keygateway),
-    "update-keygateway": wrapop("update keytab and restart keygateway", update_keygateway),
-    "supervisor-ssh": wrapop("configure supervisor SSH access", setup_supervisor_ssh),
-    "dns-bootstrap": wrapop("switch cluster nodes into 'bootstrapped DNS' mode", setup_dns_bootstrap),
-    "stop-dns-bootstrap": wrapop("switch cluster nodes out of 'bootstrapped DNS' mode", teardown_dns_bootstrap),
-    "bootstrap-registry": wrapop("bring up the bootstrap container registry on the supervisor nodes", setup_bootstrap_registry),
-    "update-registry": wrapop("upload the latest container versions to the bootstrap container registry", update_registry),
-    "prometheus": wrapop("bring up the supervisor node prometheus instance", setup_prometheus),
+main_command = command.Mux("commands about setting up a cluster", {
+    "keyserver": setup_keyserver,
+    "self-admit": admit_keyserver,
+    "keygateway": setup_keygateway,
+    "update-keygateway": update_keygateway,
+    "supervisor-ssh": setup_supervisor_ssh,
+    "dns-bootstrap": setup_dns_bootstrap,
+    "stop-dns-bootstrap": teardown_dns_bootstrap,
+    "bootstrap-registry": setup_bootstrap_registry,
+    "update-registry": update_registry,
+    "prometheus": setup_prometheus,
 })

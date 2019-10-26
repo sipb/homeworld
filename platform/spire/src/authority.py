@@ -47,7 +47,9 @@ def validate_pem_file(full_file_name: str) -> bool:
         return True
 
 
+@command.wrap
 def generate() -> None:
+    "generate and encrypt authority keys and certs"
     authorities = get_targz_path(check_exists=False)
     if os.path.exists(authorities):
         command.fail("authorities.tgz already exists")
@@ -131,7 +133,9 @@ def get_local_grant_user_paths():
 UPSTREAM_USER_NAME = "mortal"
 
 
+@command.wrap
 def gen_local_upstream_user():
+    "generate a fake local user CA and sample user for testing"
     config = configuration.get_config()
     if config.user_grant_email_domain == "":
         command.fail("user-grant-email-domain not populated when trying to generate local fake upstream certificate")
@@ -148,7 +152,7 @@ def gen_local_upstream_user():
                            "%s@%s" % (UPSTREAM_USER_NAME, config.user_grant_email_domain), user_key, user_cert, "24h"])
 
 
-main_command = command.mux_map("commands about cluster authorities", {
-    "gen": command.wrap("generate and encrypt authority keys and certs", generate),
-    "genupstream": command.wrap("generate a fake local user CA and sample user for testing", gen_local_upstream_user),
+main_command = command.Mux("commands about cluster authorities", {
+    "gen": generate,
+    "genupstream": gen_local_upstream_user,
 })

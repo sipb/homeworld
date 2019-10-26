@@ -34,23 +34,33 @@ def launch_spec_direct(spec_name): # TODO: add a flag that enables this instead 
         access.call_kubectl(["apply", "-f", specfile], return_result=False)
 
 
+@command.wrap
 def launch_flannel(export: bool=False):
+    "deploy the specifications to run flannel"
     launch_spec("flannel.yaml", export=export)
 
 
+@command.wrap
 def launch_flannel_monitor(export: bool=False):
+    "deploy the specifications to run the flannel monitor"
     launch_spec("flannel-monitor.yaml", export=export)
 
 
+@command.wrap
 def launch_dns_addon(export: bool=False):
+    "deploy the specifications to run the dns-addon"
     launch_spec("dns-addon.yaml", export=export)
 
 
+@command.wrap
 def launch_dns_monitor(export: bool=False):
+    "deploy the specifications to run the dns monitor"
     launch_spec("dns-monitor.yaml", export=export)
 
 
+@command.wrap
 def launch_user_grant(export: bool=False):
+    "deploy the specifications to run the user grant website"
     config = configuration.get_config()
     if config.user_grant_domain == '':
         command.fail("no user_grant_domain specified in setup.yaml")
@@ -77,10 +87,10 @@ def launch_user_grant(export: bool=False):
     }, export=export)
 
 
-main_command = command.mux_map("commands to deploy systems onto the kubernetes cluster", {
-    "flannel": command.wrap("deploy the specifications to run flannel", launch_flannel),
-    "flannel-monitor": command.wrap("deploy the specifications to run the flannel monitor", launch_flannel_monitor),
-    "dns-addon": command.wrap("deploy the specifications to run the dns-addon", launch_dns_addon),
-    "dns-monitor": command.wrap("deploy the specifications to run the dns monitor", launch_dns_monitor),
-    "user-grant": command.wrap("deploy the specifications to run the user grant website", launch_user_grant),
+main_command = command.Mux("commands to deploy systems onto the kubernetes cluster", {
+    "flannel": launch_flannel,
+    "flannel-monitor": launch_flannel_monitor,
+    "dns-addon": launch_dns_addon,
+    "dns-monitor": launch_dns_monitor,
+    "user-grant": launch_user_grant,
 })

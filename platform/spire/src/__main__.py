@@ -15,7 +15,7 @@ import deploy
 import version
 import virt
 
-main_command = command.mux_map("invoke a top-level command", {
+main_command = command.Mux("invoke a top-level command", {
     "iso": iso.main_command,
     "config": configuration.main_command,
     "authority": authority.main_command,

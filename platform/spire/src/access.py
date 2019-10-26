@@ -1,17 +1,20 @@
-import time
-import os
-import sys
-import command
-import subprocess
-import configuration
-import tempfile
-import authority
-import util
+from typing import Tuple
 import base64
 import binascii
+import os
 import ssh
+import subprocess
+import sys
+import tempfile
+import time
+import traceback
+
+import authority
+import command
+import configuration
 import setup
-from typing import Tuple
+import util
+
 
 DEFAULT_ROTATE_INTERVAL = 60 * 60 * 2  # rotate local key every two hours (if we happen to renew)
 
@@ -110,12 +113,18 @@ def refresh_cert(key_path, cert_path, ca_path, variant, ca_key_name, ca_cert_nam
             subprocess.check_call(["keylocalcert", ca_key, ca_pem, name, "4h", key_path, cert_path, "", ",".join(orgs)])
 
 
-def access_ssh(add_to_agent=False):
+@command.wrap
+def access_ssh(no_add_to_agent: bool=False):
+    """
+    request SSH access to the cluster
+
+    no_add_to_agent: do not add the resulting ssh key to ssh-agent
+    """
     keypath = renew_ssh_cert()
     print("===== v CERTIFICATE DETAILS v =====")
     subprocess.check_call(["ssh-keygen", "-L", "-f", keypath + "-cert.pub"])
     print("===== ^ CERTIFICATE DETAILS ^ =====")
-    if add_to_agent:
+    if not no_add_to_agent:
         # TODO: clear old identities
         try:
             ssh_add_output = subprocess.check_output(["ssh-add", "--", keypath], stderr=subprocess.STDOUT)
@@ -129,10 +138,6 @@ def access_ssh(add_to_agent=False):
         except subprocess.CalledProcessError as e:
             fail_hint = "ssh-add returned non-zero exit code. do you have an ssh-agent?"
             command.fail("*** ssh-add failed! ***", fail_hint)
-
-
-def access_ssh_with_add():
-    access_ssh(add_to_agent=True)
 
 
 HOMEWORLD_KNOWN_HOSTS_MARKER = "homeworld-keydef"
@@ -168,7 +173,9 @@ def get_known_hosts_path() -> str:
     return os.path.join(homedir, ".ssh", "known_hosts")
 
 
+@command.wrap
 def update_known_hosts():
+    "update ~/.ssh/known_hosts file with @ca-certificates directive"
     config = configuration.Config.load_from_project()
     machines = ",".join("%s.%s" % (node.hostname, config.external_domain) for node in config.nodes)
     cert_authority_pubkey = authority.get_pubkey_by_filename("./ssh-host.pub")
@@ -203,7 +210,9 @@ def call_etcdctl(params: list, return_result: bool):
         subprocess.check_call(args)
 
 
+@command.wrap
 def dispatch_etcdctl(*params: str):
+    "invoke commands through the etcdctl wrapper"
     call_etcdctl(params, False)
 
 
@@ -224,18 +233,22 @@ def call_kubectl(params, return_result: bool):
             subprocess.check_call(args)
 
 
+@command.wrap
 def dispatch_kubectl(*params: str):
+    "invoke commands through the kubectl wrapper"
     call_kubectl(params, False)
 
 
-def ssh_foreach(ops: setup.Operations, node_kind: str, *params: str):
+@command.wrapop
+def ssh_foreach(ops: command.Operations, node_kind: str, *params: str):
+    "invoke commands on every node (or every node of a given kind) in the cluster"
     config = configuration.get_config()
     valid_node_kinds = configuration.Node.VALID_NODE_KINDS
     if not (node_kind == "node" or node_kind == "kube" or node_kind in valid_node_kinds):
         command.fail("usage: spire foreach {node,kube," + ",".join(valid_node_kinds) + "} command")
     for node in config.nodes:
         if node_kind == "node" or node.kind == node_kind or (node_kind == "kube" and node.kind != "supervisor"):
-            ops.ssh("run command on @HOST", node, *params)
+            setup.ssh_cmd(ops, "run command on @HOST", node, *params)
 
 
 def compute_fingerprint(key: str) -> str:
@@ -275,16 +288,18 @@ def pull_supervisor_key(fingerprints):
             f.write("%s.%s %s\n" % (node.hostname, config.external_domain, key))
 
 
+@command.wrap
 def pull_supervisor_key_from(source_file):
+    "update ~/.ssh/known_hosts file with the supervisor host keys, based on their known hashes"
     pull_supervisor_key(util.readfile(source_file).decode().strip().split("\n"))
 
 
-etcdctl_command = command.wrap("invoke commands through the etcdctl wrapper", dispatch_etcdctl)
-kubectl_command = command.wrap("invoke commands through the kubectl wrapper", dispatch_kubectl)
-foreach_command = setup.wrapop("invoke commands on every node (or every node of a given kind) in the cluster", ssh_foreach)
-main_command = command.mux_map("commands about establishing access to a cluster", {
-    "ssh": command.wrap("request SSH access to the cluster and add it to the SSH agent", access_ssh_with_add),
-    "ssh-fetch": command.wrap("request SSH access to the cluster but do not register it with the agent", access_ssh),
-    "update-known-hosts": command.wrap("update ~/.ssh/known_hosts file with @ca-certificates directive", update_known_hosts),
-    "pull-supervisor-key": command.wrap("update ~/.ssh/known_hosts file with the supervisor host keys, based on their known hashes", pull_supervisor_key_from),
+etcdctl_command = dispatch_etcdctl
+kubectl_command = dispatch_kubectl
+foreach_command = ssh_foreach
+main_command = command.Mux("commands about establishing access to a cluster", {
+    "ssh": access_ssh,
+
+    "update-known-hosts": update_known_hosts,
+    "pull-supervisor-key": pull_supervisor_key_from,
 })

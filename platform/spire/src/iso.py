@@ -1,18 +1,18 @@
+import datetime
+import os
+import subprocess
+import tempfile
+
+from version import get_git_version
 import authority
 import command
-import datetime
-
 import configuration
-import resource
-import os
-import tempfile
-import subprocess
-import util
-import packages
-import keycrypt
-import setup
 import gzip
-from version import get_git_version
+import keycrypt
+import packages
+import resource
+import setup
+import util
 
 PACKAGES = ("homeworld-apt-setup",)
 
@@ -27,7 +27,9 @@ def add_password_to_log(password, creation_time):
     util.writefile(passfile, keycrypt.gpg_encrypt_in_memory(password))
 
 
+@command.wrap
 def list_passphrases():
+    "decrypt a list of passphrases used by recently-generated ISOs"
     passwords = os.path.join(configuration.get_project(), "passwords")
     if not os.path.isdir(passwords):
         command.fail("no passwords stored")
@@ -47,7 +49,9 @@ def mode_serial(includedir, cddir, inclusion):
 MODES={"serial": mode_serial}
 
 
+@command.wrap
 def gen_iso(iso_image, authorized_key, mode=None):
+    "generate ISO"
     with tempfile.TemporaryDirectory() as d:
         inclusion = []
 
@@ -134,7 +138,7 @@ def gen_iso(iso_image, authorized_key, mode=None):
         util.copy(temp_iso, iso_image)
 
 
-main_command = command.mux_map("commands about building installation ISOs", {
-    "gen": command.wrap("generate ISO", gen_iso),
-    "passphrases": command.wrap("decrypt a list of passphrases used by recently-generated ISOs", list_passphrases),
+main_command = command.Mux("commands about building installation ISOs", {
+    "gen": gen_iso,
+    "passphrases": list_passphrases,
 })

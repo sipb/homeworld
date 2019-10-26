@@ -33,10 +33,12 @@ def get_keyurl_data(path):
             raise e
 
 
+@command.wrap
 def query_keyurl(path):
+    "request data from unprotected URLs on keyserver"
     print(get_keyurl_data(path))
 
 
-main_command = command.mux_map("commands about querying the state of a cluster", {
-    "keyurl": command.wrap("request data from unprotected URLs on keyserver", query_keyurl),
+main_command = command.Mux("commands about querying the state of a cluster", {
+    "keyurl": query_keyurl,
 })

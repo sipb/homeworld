@@ -9,7 +9,10 @@ import keycrypt
 import util
 
 
+@command.wrap
 def import_keytab(node, keytab_file):
+    "import and encrypt a keytab for a particular server"
+
     if not configuration.get_config().has_node(node):
         command.fail("no such node: %s" % node)
     keytab_target = os.path.join(configuration.get_project(), "keytab.%s.crypt" % node)
@@ -26,7 +29,9 @@ def check_pem_type(filepath, expect):
         command.fail("incorrect PEM header: expected %s, not %s" % (expect, pem_header_type))
 
 
+@command.wrap
 def import_https(name, keyfile, certfile):
+    "import and encrypt a HTTPS keypair for a particular server"
     check_pem_type(certfile, "CERTIFICATE")
     check_pem_type(keyfile, "RSA PRIVATE KEY")
 
@@ -62,15 +67,21 @@ def keytab_op(node, op):
     os.rename(keytab_target, keytab_source)
 
 
+@command.wrap
 def rotate_keytab(node):
+    "decrypt, rotate, and re-encrypt the keytab for a particular server"
     return keytab_op(node, "rotate")
 
 
+@command.wrap
 def delold_keytab(node):
+    "decrypt, delete old entries from, and re-encrypt a keytab"
     return keytab_op(node, "delold")
 
 
+@command.wrap
 def list_keytabs(keytab=None):
+    "decrypt and list one or all of the stored keytabs"
     keytabs = [".".join(kt.split(".")[1:-1]) for kt in os.listdir(configuration.get_project())
                if kt.startswith("keytab.") and kt.endswith(".crypt")]
     if keytab is not None:
@@ -87,14 +98,18 @@ def list_keytabs(keytab=None):
             os.remove(keytab_dest)
 
 
+@command.wrap
 def export_keytab(node, keytab_file):
+    "decrypt and export the keytab for a particular server"
     keytab_source = os.path.join(configuration.get_project(), "keytab.%s.crypt" % node)
     if not os.path.exists(keytab_source):
         command.fail("no keytab for node %s" % node)
     keycrypt.gpg_decrypt_file(keytab_source, keytab_file)
 
 
+@command.wrap
 def export_https(name, keyout, certout):
+    "decrypt and export the HTTPS keypair for a particular server"
     keypath = os.path.join(configuration.get_project(), "https.%s.key.crypt" % name)
     certpath = os.path.join(configuration.get_project(), "https.%s.pem" % name)
 
@@ -102,7 +117,9 @@ def export_https(name, keyout, certout):
     util.copy(certpath, certout)
 
 
+@command.wrap
 def gen_local_https_cert(name):
+    "generate and encrypt a HTTPS keypair using the cluster-internal CA"
     if "," in name:
         command.fail("cannot create https cert with comma: would be misinterpreted by keylocalcert")
     print("generating local-only https cert for", name, "via local bypass method")
@@ -120,16 +137,16 @@ def gen_local_https_cert(name):
     print("generated local-only https cert!")
 
 
-keytab_command = command.mux_map("commands about keytabs granted by external sources", {
-    "import": command.wrap("import and encrypt a keytab for a particular server", import_keytab),
-    "rotate": command.wrap("decrypt, rotate, and re-encrypt the keytab for a particular server", rotate_keytab),
-    "delold": command.wrap("decrypt, delete old entries from, and re-encrypt a keytab", delold_keytab),
-    "list": command.wrap("decrypt and list one or all of the stored keytabs", list_keytabs),
-    "export": command.wrap("decrypt and export the keytab for a particular server", export_keytab),
+keytab_command = command.Mux("commands about keytabs granted by external sources", {
+    "import": import_keytab,
+    "rotate": rotate_keytab,
+    "delold": delold_keytab,
+    "list": list_keytabs,
+    "export": export_keytab,
 })
 
-https_command = command.mux_map("commands about HTTPS certs granted by external sources", {
-    "import": command.wrap("import and encrypt a HTTPS keypair for a particular server", import_https),
-    "export": command.wrap("decrypt and export the HTTPS keypair for a particular server", export_https),
-    "genlocal": command.wrap("generate and encrypt a HTTPS keypair using the cluster-internal CA", gen_local_https_cert),
+https_command = command.Mux("commands about HTTPS certs granted by external sources", {
+    "import": import_https,
+    "export": export_https,
+    "genlocal": gen_local_https_cert,
 })

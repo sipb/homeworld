@@ -50,4 +50,3 @@ def gpg_decrypt_file(source_file: str, dest_file: str) -> None:
 
     decrypt_command = ["gpg", "--batch", "--passphrase-file", keypath, "--decrypt", "--output", dest_file, source_file]
     subprocess.check_call(decrypt_command, stderr=subprocess.DEVNULL)
-

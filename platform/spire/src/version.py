@@ -15,7 +15,9 @@ def get_apt_url():
     return get_resource("APT_URL").decode().rstrip()
 
 
+@command.wrap
 def display_version():
+    "display version info"
     git_version = get_git_version()
     print("Git commit hash:", git_version)
 
@@ -26,4 +28,4 @@ def display_version():
     print("Apt URL:", apt_url)
 
 
-main_command = command.wrap("display version info", display_version)
+main_command = display_version

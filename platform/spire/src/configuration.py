@@ -1,12 +1,12 @@
 import os
+import subprocess
+import yaml
 
-import util
 import command
 import resource
-import subprocess
 import template
+import util
 import version
-import yaml
 
 
 def get_project(create_dir_if_missing=False) -> str:
@@ -180,6 +180,7 @@ class Config:
                     command.fail("in config: multiple supervisors not yet supported")
                 self.keyserver = node
 
+    # TODO(#371): make this configuration setting more explicit
     def is_kerberos_enabled(self):
         return len(self.root_admins) > 0
 
@@ -304,7 +305,9 @@ def get_prometheus_yaml() -> str:
     return template.template("prometheus.yaml", kcli)
 
 
+@command.wrap
 def populate() -> None:
+    "initialize the cluster's setup.yaml with the template"
     setup_yaml = os.path.join(get_project(create_dir_if_missing=True), "setup.yaml")
     if os.path.exists(setup_yaml):
         command.fail("setup.yaml already exists")
@@ -312,22 +315,30 @@ def populate() -> None:
     print("filled out setup.yaml")
 
 
+@command.wrap
 def edit() -> None:
+    "open $EDITOR (defaults to nano) to edit the project's setup.yaml"
     setup_yaml = os.path.join(get_project(), "setup.yaml")
     if not os.path.exists(setup_yaml):
         command.fail("setup.yaml does not exist (run spire config populate first?)")
     subprocess.check_call([get_editor(), "--", setup_yaml])
 
 
+@command.wrap
 def print_cluster_conf() -> None:
+    "display the generated cluster.conf"
     print(get_cluster_conf())
 
 
+@command.wrap
 def print_local_kubeconfig() -> None:
+    "display the generated local kubeconfig"
     print(get_local_kubeconfig())
 
 
+@command.wrap
 def print_prometheus_yaml() -> None:
+    "display the generated prometheus.yaml"
     print(get_prometheus_yaml())
 
 
@@ -352,12 +363,12 @@ def get_single_kube_spec(name: str, extra_kvs: dict=None) -> str:
     return template.yaml_template(templ, get_kube_spec_vars(extra_kvs))
 
 
-main_command = command.mux_map("commands about cluster configuration", {
-    "populate": command.wrap("initialize the cluster's setup.yaml with the template", populate),
-    "edit": command.wrap("open $EDITOR (defaults to nano) to edit the project's setup.yaml", edit),
-    "show": command.mux_map("commands about showing different aspects of the configuration", {
-        "cluster.conf": command.wrap("display the generated cluster.conf", print_cluster_conf),
-        "kubeconfig": command.wrap("display the generated local kubeconfig", print_local_kubeconfig),
-        "prometheus.yaml": command.wrap("display the generated prometheus.yaml", print_prometheus_yaml),
+main_command = command.Mux("commands about cluster configuration", {
+    "populate": populate,
+    "edit": edit,
+    "show": command.Mux("commands about showing different aspects of the configuration", {
+        "cluster.conf": print_cluster_conf,
+        "kubeconfig": print_local_kubeconfig,
+        "prometheus.yaml": print_prometheus_yaml,
     }),
 })
