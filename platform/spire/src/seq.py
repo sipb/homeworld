@@ -92,17 +92,6 @@ def sequence_cluster(ops: setup.Operations) -> None:
         ops.add_operation("skip verifying user-grant (not configured)", lambda: None)
 
 
-def seq_mux_map(desc, mapping):
-    desc, inner_configure = command.mux_map(desc, mapping)
-
-    def configure(command: list, parser: argparse.ArgumentParser):
-        # allow --dry-run to be present before selector and also have it appear in the help message
-        add_dry_run_argument(parser, "dry_run_outer")
-        inner_configure(command, parser)
-
-    return desc, configure
-
-
 main_command = seq_mux_map("commands about running large sequences of cluster bring-up automatically", {
     "keysystem": wrapseq("set up and verify functionality of the keyserver and keygateway", sequence_keysystem),
     "ssh": wrapseq("set up and verify ssh access to the supervisor node", sequence_ssh),

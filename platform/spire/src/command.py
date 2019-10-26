@@ -56,6 +56,12 @@ def add_dry_run_argument(parser: argparse.ArgumentParser, dest: str):
 def add_show_commands_argument(parser: argparse.ArgumentParser, dest: str):
     parser.add_argument("--show-commands", dest=dest, action="store_true", help="show the equivalent sequence of commands without running them")
 
+class SeqMux(Mux):
+    def configure(self, command: list, parser: argparse.ArgumentParser):
+        super().configure(command, parser)
+        add_dry_run_argument(parser, 'dry_run_outer')
+        add_show_commands_argument(parser, 'show_commands_outer')
+
 
 class Command:
     def __init__(self, func):
