@@ -1,4 +1,3 @@
-import os
 import command
 from resources import get_resource
 

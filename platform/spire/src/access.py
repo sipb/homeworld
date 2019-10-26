@@ -2,9 +2,7 @@ from typing import Tuple
 import base64
 import binascii
 import os
-import ssh
 import subprocess
-import sys
 import tempfile
 import time
 import traceback

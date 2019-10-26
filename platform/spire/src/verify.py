@@ -1,5 +1,6 @@
 import json
 import os
+import requests
 import subprocess
 import tempfile
 import urllib
@@ -9,7 +10,6 @@ import authority
 import command
 import configuration
 import query
-import requests
 import setup
 import ssh
 import util

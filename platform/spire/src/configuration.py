@@ -7,7 +7,6 @@ import command
 import resource
 import template
 import util
-import version
 
 
 def get_project(create_dir_if_missing=False) -> str:

@@ -1,4 +1,3 @@
-import pkgutil
 import util
 from resources import get_resource
 

@@ -1,4 +1,3 @@
-import argparse
 import atexit
 import concurrent.futures
 import contextlib
