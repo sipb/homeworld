@@ -27,21 +27,6 @@ def fail(message: str, hint: str = None) -> None:
     raise CommandFailedException(message, hint)
 
 
-def provide_command_for_function(f, command):
-    if hasattr(f, "dispatch_set_name"):
-        f.dispatch_set_name(command)
-    f.dispatch_name = command
-
-
-def get_command_for_function(f):
-    default = ["<unannotated subcommand: %s>" % f]
-    if hasattr(f, "dispatch_get_name"):
-        return f.dispatch_get_name(default)
-    if hasattr(f, "dispatch_name"):
-        return f.dispatch_name
-    return default
-
-
 def mux_map(desc: str, mapping: dict):
     def configure(command: list, parser: argparse.ArgumentParser):
         parser.set_defaults(argparse_parser=parser)
@@ -54,69 +39,135 @@ def mux_map(desc: str, mapping: dict):
     return desc, configure
 
 
-def wrap(desc: str, func, param_tx=None):
-    sig = inspect.signature(func)
+class Command:
+    def __init__(self, func):
+        self.func = func
+        self.sig = inspect.signature(self.func)
+        self._remove_ops_from_sig()
+        self._command = None
 
-    def invoke(args):
-        opts = vars(args)
-        if param_tx:
-            opts, on_end = param_tx(opts)
-        else:
-            on_end = None
+    def _remove_ops_from_sig(self):
+        parameters = list(self.sig.parameters.values())
+        if parameters[0].name != 'ops':
+            raise ValueError('first argument to command must be ops')
+        parameters = parameters[1:]
+        self.sig = self.sig.replace(parameters=parameters)
 
-        kwargs = {}
+    # so that this can still be called as the original function
+    def __call__(self, *args, **kwargs):
+        return self.func(*args, **kwargs)
+
+    def operate(self, op, *args, **kwargs):
+        "Schedule this command to be run by Operations"
+        self.func(op, *args, **kwargs)
+
+    def process_args(self, argparse_args):
+        "Process command-line arguments into function arguments"
+        cli_args = vars(argparse_args)
         posargs = []
+        kwargs = {}
+        for name, param in self.sig.parameters.items():
+            if param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
+                if param.default == inspect.Parameter.empty:
+                    posargs.append(cli_args[name])
+                    continue
+                kwargs[name] = cli_args[name]
+                continue
+            if param.kind == inspect.Parameter.VAR_POSITIONAL:
+                posargs.extend(cli_args[name])
+                continue
+            raise Exception("python argument type not recognized")
 
-        for _, p in sig.parameters.items():
-            if p.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
-                if p.default == inspect.Parameter.empty:
-                    posargs += [opts[p.name]]
-                else:
-                    if p.name in opts:
-                        kwargs[p.name] = opts[p.name]
-            elif p.kind == inspect.Parameter.VAR_POSITIONAL:
-                if p.name in opts:
-                    posargs += opts[p.name]
-            else:
-                raise Exception("python argument type not recognized during invoke")
+        # fail early if arguments do not match function signature
+        self.sig.bind(*posargs, **kwargs)
 
-        func(*posargs, **kwargs)
-        if on_end is not None:
-            on_end()
+        return posargs, kwargs
 
-    def configure(command: list, parser: argparse.ArgumentParser):
-        parser.set_defaults(argparse_invoke=invoke, argparse_parser=parser)
+    def invoke(self, aargs):
+        ops = Operations()
+        args, kwargs = self.process_args(aargs)
+        self.operate(ops, *args, **kwargs)
+        ops()
+
+    def configure(self, command: list, parser: argparse.ArgumentParser):
+        parser.set_defaults(argparse_invoke=self.invoke,
+                            argparse_parser=parser)
 
         # convert function signature into argparse configuration
-        for _, p in sig.parameters.items():
-            # TODO: make ops an optional argument in all wrapped functions
-            # instead of the first required argument
-            if p.name == "ops":
+        for name, param in self.sig.parameters.items():
+            try:
+                if param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
+                    if param.annotation == bool:
+                        if param.default == inspect.Parameter.empty or param.default:
+                            raise ValueError("boolean argument must specify default value of false")
+                        parser.add_argument('--' + name, action='store_true')
+                        continue
+                    if param.default == inspect.Parameter.empty:
+                        parser.add_argument(name)
+                        continue
+                    if not (isinstance(param.default, str) or param.default is None):
+                        raise ValueError("default for string argument must be string or None")
+                    parser.add_argument('--' + name, default=param.default)
+                    continue
+                if param.kind == inspect.Parameter.VAR_POSITIONAL:
+                    parser.add_argument(name, nargs=argparse.REMAINDER)
+                    continue
+                raise ValueError("python argument kind {} not recognized".format(param.kind))
+            except Exception as e:
+                raise Exception("command {}: failed to configure argument {}".format(command, name)) from e
+
+        self._command = command
+
+    def command(self, *args, **kwargs):
+        "Produce a string representation of this command with the specified arguments"
+        if self._command is None:
+            return None
+
+        bound = self.sig.bind(*args, **kwargs)
+        cl = self._command[:]
+        for k, v in bound.arguments.items():
+            param = self.sig.parameters[k]
+            if param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
+                if param.default == inspect.Parameter.empty:
+                    cl.append(str(v))
+                    continue
+                if param.annotation == bool:
+                    if v:
+                        cl.append('--{}'.format(k))
+                    continue
+                cl.append('--{}={}'.format(k, v))
                 continue
+            if param.kind == inspect.Parameter.VAR_POSITIONAL:
+                cl.extend(str(x) for x in v)
+                continue
+            raise Exception("python argument type not recognized")
+        return ' '.join(cl)
 
-            if p.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
-                if p.default == inspect.Parameter.empty:
-                    parser.add_argument(p.name)
-                elif isinstance(p.default, bool):
-                    if p.default:
-                        raise Exception("arguments defaulting to True not supported")
-                    parser.add_argument("--%s" % (p.name), action="store_true")
-                else:
-                    parser.add_argument(p.name, nargs='?', default=p.default)
-            elif p.kind == inspect.Parameter.VAR_POSITIONAL:
-                parser.add_argument(p.name, nargs=argparse.REMAINDER)
-            else:
-                raise Exception("python argument type not recognized during configure")
 
-        provide_command_for_function(func, command)
+def wrapop(f):
+    return functools.update_wrapper(Command(f), f, updated=[])
 
-    return desc, configure
+
+class Simple(Command):
+    def _remove_ops_from_sig(self):
+        pass
+
+    def operate(self, op, *args, **kwargs):
+        op.add_operation(self.__doc__, lambda: self.func(*args, **kwargs),
+                         self.command(*args, **kwargs))
+
+    def invoke(self, aargs):
+        args, kwargs = self.process_args(aargs)
+        self.func(*args, **kwargs)
+
+
+def wrap(f):
+    return functools.update_wrapper(Simple(f), f, updated=[])
 
 
 def main_invoke(command):
-    desc, configure_parser = command
     parser = argparse.ArgumentParser(description="Administrative toolkit for deploying and maintaining Hyades clusters")
-    configure_parser(["spire"], parser)
+    command.configure(["spire"], parser)
     args = parser.parse_args()
     if "argparse_invoke" in args:
         args.argparse_invoke(args)
