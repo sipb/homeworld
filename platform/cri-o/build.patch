@@ -16,7 +16,7 @@ index 0000000..bf0a685
 +    name = "crio.conf-genrule",
 +    outs = [":crio.conf"],
 +    tools = ["//cmd/crio"],
-+    cmd = "\"$(location //cmd/crio)\" --root=\"/nonexistent\" --runroot \"/nonexistent\" --config=\"\" config >\"$@\"",
++    cmd = "\"$(location //cmd/crio)\" --root=\"/nonexistent\" --runroot \"/nonexistent\" --storage-driver=\"\" --config=\"\" config >\"$@\"",
 +    visibility = ["//visibility:public"],
 +)
 diff --git a/conmon/BUILD.bazel b/conmon/BUILD.bazel
