@@ -60,6 +60,14 @@ def sequence_supervisor(ops: command.Operations, skip_verify_keygateway: bool=Fa
         if node.kind == 'supervisor':
             ops.add_subcommand(infra.infra_sync, node.hostname)
 
+@command.wrapseq
+def sequence_redeploy_config(ops: setup.Operations) -> None:
+    "redeploy a cluster configuration to a running cluster"
+    # push new config to the keyserver
+    ops.add_subcommand(setup.redeploy_keyserver)
+    # push new config to each keyclient and restart
+    ops.add_subcommand(setup.redeploy_keyclients)
+
 
 class IterativeVerifier(command.Simple):
     def __init__(self, verifier, max_time, pause=2.0):
@@ -122,4 +130,5 @@ main_command = command.SeqMux("commands about running large sequences of cluster
     "ssh": sequence_ssh,
     "supervisor": sequence_supervisor,
     "cluster": sequence_cluster,
+    "redeploy": sequence_redeploy_config,
 })
