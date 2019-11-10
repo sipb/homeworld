@@ -4,6 +4,7 @@ Requires=network-online.target
 After=network-online.target
 
 [Service]
+Type=notify
 ExecStart=/usr/bin/keyserver
 Restart=always
 RestartSec=10s

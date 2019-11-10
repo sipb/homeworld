@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"os/exec"
 
 	"github.com/sipb/homeworld/platform/keysystem/keyserver/keyapi"
 )
@@ -16,6 +17,12 @@ func main() {
 	if err != nil {
 		logger.Fatal(err)
 	} else {
-		logger.Fatal(<-onstop)
+		err := exec.Command("systemd-notify", "--ready").Run()
+		if err != nil {
+			logger.Fatal("failed to notify systemd of readiness: %v\n", err)
+		} else {
+			// service is up, wait for kill signal
+			logger.Fatal(<-onstop)
+		}
 	}
 }

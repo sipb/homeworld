@@ -85,8 +85,6 @@ def redeploy_keyserver(ops: Operations) -> None:
                             configuration.Config.get_setup_path(), CONFIG_DIR + "/setup.yaml")
         # restart the keyserver
         ops.ssh("restart keyserver on @HOST", node, "systemctl", "restart", "keyserver.service")
-        # TODO: eliminate sleep by only finishing previous command only when service is restarted.
-        ops.ssh("waiting for keyserver to come back up on @HOST", node, "sleep", "5")
 
 def redeploy_keyclients(ops: Operations) -> None:
     config = configuration.get_config()
