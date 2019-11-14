@@ -7,7 +7,10 @@ jobs:
       - checkout
       - run:
           name: Install build tools
-          command: sudo apt-get update && sudo apt-get install build-essential cpio squashfs-tools debootstrap realpath
+          command: sudo apt-get update && sudo apt-get install build-essential cpio squashfs-tools debootstrap realpath pyflakes3
+      - run:
+          name: Run pyflakes3
+          command: pyflakes3 .
       - run:
           name: Prepare branches
           command: cp .circleci/branches.yaml platform/upload/branches.yaml && echo "ci" >platform/upload/BRANCH_NAME
