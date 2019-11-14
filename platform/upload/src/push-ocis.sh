@@ -20,14 +20,14 @@ do
     then
         ARGS+=("--manifest=${container}/manifest")
     fi
-    for digest in $(ls -v "${container}/digest."*)
+    while IFS='' read -r -d '' digest
     do
         ARGS+=("--digest=${digest}")
-    done
-    for layer in $(ls -v "${container}/layer."*)
+    done < <(find "${container}" -maxdepth 1 -type f -name 'digest.*' -print0 | sort -zV)
+    while IFS='' read -r -d '' layer
     do
         ARGS+=("--layer=${layer}")
-    done
+    done < <(find "${container}" -maxdepth 1 -type f -name 'layer.*' -print0 | sort -zV)
     # we don't reference anything by tag; simply push everything to a pointless tag that we don't care about.
     TAG="last"
     ARGS+=("--name=${REGISTRY}/$(basename "${container}"):${TAG}")

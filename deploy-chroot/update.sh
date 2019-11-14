@@ -3,4 +3,7 @@
 set -eu
 
 cd "$(dirname "$0")"
-sudo apt-get install -y $(cat packages.list | grep -vE '^#' | tr '\n,' '  ')
+
+packages=()
+mapfile -t packages < <(grep -vE '^#' packages.list | tr '[:space:]' '\n' | sed '/^$/d')
+sudo apt-get install -y "${packages[@]}"

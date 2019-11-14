@@ -6,6 +6,7 @@ set -e -u
 BASEPATH="$(realpath "$(dirname "$0")")"
 
 WORKDIR=$(mktemp -d)
+# shellcheck disable=SC2064
 trap "rm -r $WORKDIR" EXIT
 
 cd "$WORKDIR"

@@ -12,8 +12,8 @@ sudo groupadd --force --system messagebus
 # work in the repository
 JENKINS_UID=$(stat -c '%u' .)
 JENKINS_GID=$(stat -c '%g' .)
-groupadd --gid $JENKINS_GID jenkins
-adduser --uid $JENKINS_UID --gid $JENKINS_GID --disabled-password --gecos "" jenkins
+groupadd --gid "$JENKINS_GID" jenkins
+adduser --uid "$JENKINS_UID" --gid "$JENKINS_GID" --disabled-password --gecos "" jenkins
 echo 'jenkins  ALL=(ALL:ALL) NOPASSWD:ALL' >> /etc/sudoers
 # use su instead of su - to keep the pwd
 su jenkins -c 'HOMEWORLD_CHROOT="$HOME/autobuild-chroot" ./build-chroot/create.sh'

@@ -3,7 +3,7 @@ set -e -u
 
 cd "$(dirname "$0")"
 
-if [ "${HOMEWORLD_DEPLOY_CHROOT:-}" = "" -o ! -e "$(dirname HOMEWORLD_DEPLOY_CHROOT)" ]
+if [ "${HOMEWORLD_DEPLOY_CHROOT:-}" = "" ] || [ ! -e "$(dirname HOMEWORLD_DEPLOY_CHROOT)" ]
 then
     echo "invalid path to chroot: ${HOMEWORLD_DEPLOY_CHROOT:-}" 1>&2
     echo '(have you populated $HOMEWORLD_DEPLOY_CHROOT?)'
@@ -11,7 +11,7 @@ then
     exit 1
 fi
 
-if [[ "${HOMEWORLD_DEPLOY_CHROOT}" =~ " " ]]
+if [[ "${HOMEWORLD_DEPLOY_CHROOT}" = *" "* ]]
 then
     echo "chroot name cannot include a space" 1>&2
     exit 1
@@ -31,7 +31,7 @@ fi
 
 mkdir -m 'u=rwx,go=rx' "${HOMEWORLD_DEPLOY_CHROOT}"
 
-sudo debootstrap --include="$(cat packages.list | grep -vE '^#' | tr '\n ' ',,' | sed 's/,$//' | sed 's/,,/,/g')" stretch "${HOMEWORLD_DEPLOY_CHROOT}" http://debian.csail.mit.edu/debian/
+sudo debootstrap --include="$(grep -vE '^#' packages.list | tr '[:space:]' '\n' | sed '/^$/d' | tr '\n' ,)" stretch "${HOMEWORLD_DEPLOY_CHROOT}" http://debian.csail.mit.edu/debian/
 sudo chroot "${HOMEWORLD_DEPLOY_CHROOT}" apt-get update
 sudo chroot "${HOMEWORLD_DEPLOY_CHROOT}" groupadd "$(id -gn)" -g "$(id -g)"
 sudo chroot "${HOMEWORLD_DEPLOY_CHROOT}" useradd -m -u "$(id -u)" -g "$(id -g)" -G kvm "$USER" -s "/bin/bash"

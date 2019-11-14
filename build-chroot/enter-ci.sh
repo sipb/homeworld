@@ -6,7 +6,7 @@
 # creates, and is only appropriate for use in CI environments.
 set -e -u
 
-if [ "${HOMEWORLD_CHROOT:-}" = "" -o ! -e "${HOMEWORLD_CHROOT}" ]
+if [ "${HOMEWORLD_CHROOT:-}" = "" ] || [ ! -e "${HOMEWORLD_CHROOT}" ]
 then
     echo "invalid path to chroot: ${HOMEWORLD_CHROOT:-}" 1>&2
     echo '(have you populated $HOMEWORLD_CHROOT?)'

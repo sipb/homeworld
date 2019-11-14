@@ -9,7 +9,7 @@ then
     systemctl start  etcd etcd-metrics-exporter
     systemctl enable etcd etcd-metrics-exporter
 fi
-if [ "$KIND" = master -o "$KIND" = worker ]
+if [ "$KIND" = master ] || [ "$KIND" = worker ]
 then
     systemctl start  crio crio-shutdown pull-monitor kubelet kube-proxy
     systemctl enable crio crio-shutdown pull-monitor kubelet kube-proxy

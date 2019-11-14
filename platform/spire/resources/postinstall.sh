@@ -4,6 +4,7 @@ echo "launching postinstall"
 BUILDDATE="$1"
 GIT_HASH="$2"
 
+# shellcheck disable=SC1091
 . /usr/share/debconf/confmodule
 
 set -e -u
@@ -59,8 +60,8 @@ debconf-loadtemplate homeworld /tmp/token.template
 
 is_invalid_token () {
     TOKEN="${1%??}"
-    TOKEN_PROVIDED_HASH=$(echo -n $1 | tail -c 2)
-    TOKEN_ACTUAL_HASH=$(echo -n "$TOKEN" | /target/usr/bin/openssl dgst -sha256 -binary | /target/usr/bin/base64 | cut -c -2)
+    TOKEN_PROVIDED_HASH=$(printf %s "$1" | tail -c 2)
+    TOKEN_ACTUAL_HASH=$(printf %s "$TOKEN" | /target/usr/bin/openssl dgst -sha256 -binary | /target/usr/bin/base64 | cut -c -2)
 
     if [ "$TOKEN_PROVIDED_HASH" != "$TOKEN_ACTUAL_HASH" ]; then
         return 0
@@ -74,7 +75,7 @@ db_input critical homeworld/asktoken || true
 db_go
 
 db_get homeworld/asktoken
-while [ "$RET" != "manual" ] && is_invalid_token $RET; do
+while [ "$RET" != "manual" ] && is_invalid_token "$RET"; do
     db_input critical homeworld/tokeninvalid || true
     db_go
 
@@ -94,9 +95,10 @@ then
     fi
 fi
 
-echo "ISO used to install this node generated at: ${BUILDDATE}" >>/target/etc/issue
-echo "Git commit used to build the version: ${GIT_HASH}" >>/target/etc/issue
-echo "SSH host key fingerprints: (as of install)" >>/target/etc/issue
+{ echo "ISO used to install this node generated at: ${BUILDDATE}"
+  echo "Git commit used to build the version: ${GIT_HASH}"
+  echo "SSH host key fingerprints: (as of install)"
+} >>/target/etc/issue
 for x in /target/etc/ssh/ssh_host_*.pub
 do
     in-target bash -c "ssh-keygen -l -f ${x#/target} >>/etc/issue"

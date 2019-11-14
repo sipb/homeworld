@@ -3,7 +3,7 @@ set -e -u
 
 cd "$(dirname "$0")"
 
-if [ "${HOMEWORLD_CHROOT:-}" = "" -o ! -e "$(dirname HOMEWORLD_CHROOT)" ]
+if [ "${HOMEWORLD_CHROOT:-}" = "" ] || [ ! -e "$(dirname HOMEWORLD_CHROOT)" ]
 then
     echo "invalid path to chroot: ${HOMEWORLD_CHROOT:-}" 1>&2
     echo '(have you populated $HOMEWORLD_CHROOT?)'
@@ -11,7 +11,7 @@ then
     exit 1
 fi
 
-if [[ "${HOMEWORLD_CHROOT}" =~ " " ]]
+if [[ "${HOMEWORLD_CHROOT}" = *" "* ]]
 then
     echo "chroot name cannot include a space" 1>&2
     exit 1
@@ -30,7 +30,7 @@ then
 fi
 
 mkdir -m 'u=rwx,go=rx' "${HOMEWORLD_CHROOT}"
-sudo debootstrap --include="$(cat packages.list | grep -vE '^#' | tr '\n ' ',,' | sed 's/,$//' | sed 's/,,/,/g')" stretch "${HOMEWORLD_CHROOT}" http://debian.csail.mit.edu/debian/
+sudo debootstrap --include="$(grep -vE '^#' packages.list | tr '[:space:]' '\n' | sed '/^$/d' | tr '\n' ,)" stretch "${HOMEWORLD_CHROOT}" http://debian.csail.mit.edu/debian/
 # TODO: build our own Bazel, rather than grabbing it from Google's repo
 ./install-bazel.sh --root "${HOMEWORLD_CHROOT}"
 sudo chroot "${HOMEWORLD_CHROOT}" groupadd "$(id -gn)" -g "$(id -g)"

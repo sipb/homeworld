@@ -7,8 +7,18 @@ find -wholename '*/testdir/inaccessible' -type d -exec rmdir {} \; 2>/dev/null |
 find -wholename '*/testdir/nonexistent' -type d -exec rmdir {} \; 2>/dev/null || true
 find -wholename '*/testdir/brokendir' -type d -exec rmdir {} \; 2>/dev/null || true
 
-TESTDIRS="$(cd src && for x in $(find * -type d); do if [ "$(echo $x/*.go)" != $x'/*.go' ]; then echo $x; fi; done)"
+pushd src
+TESTDIRS=()
+while IFS='' read -r -d '' dir
+do
+    if compgen -G "$dir"/'*.go'
+    then
+        TESTDIRS+=("$dir")
+    fi
+done < <(find ./* -type d -print0)
+popd
 
-export GOPATH="$GOPATH:$(pwd)"
+GOPATH="$GOPATH:$(pwd)"
+export GOPATH
 
-go test -cover $TESTDIRS
+go test -cover "${TESTDIRS[@]}"
