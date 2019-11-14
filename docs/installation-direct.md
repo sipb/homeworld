@@ -5,7 +5,7 @@ note that we do not support any other environments.
 
 Start by getting the apt-setup package.  Inside your build chroot, run:
 
-    [homeworld] $ platform/extract-apt-setup.sh
+    [homeworld] $ tools/extract-apt-setup.sh
 
 This places `apt-setup.deb` in your host homeworld directory.
 Copy `apt-setup.deb` to your stretch installation and run:

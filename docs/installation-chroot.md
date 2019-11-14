@@ -6,7 +6,7 @@ Hyades project members can use the rhombi.mit.edu machine for this.
 
 From your build chroot, run:
 
-    [homeworld] $ platform/extract-apt-setup.sh
+    [homeworld] $ tools/extract-apt-setup.sh
 
 If your build and deploy environments are in different locations,
 then copy `apt-setup.deb` to the homeworld directory in your deploy environment.
