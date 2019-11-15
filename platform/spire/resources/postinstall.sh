@@ -105,3 +105,16 @@ do
     in-target bash -c "ssh-keygen -l -E md5 -f ${x#/target} >>/etc/issue"
 done
 echo >>/target/etc/issue
+
+# at this point, the debian installer hasn't processed all udev events, so the /dev/disk/by-uuid/
+# folder isn't correctly populated, which means that the grub install that already happened didn't
+# think the UUID it got from the filesystem header directly was valid, so it fell back on just
+# using the device path (i.e. /dev/sdb or whatever). if we were to reboot now, we'd fail to boot
+# because the install USB drive being removed will renumber the root drive to /dev/sda, and there'd
+# no longer be the /dev/sdb that grub expected.
+#
+# so we need to trigger events to fix the contents of /dev/disk/by-uuid/, and then regenerate the
+# grub config. this time around, it will decide that the UUID does actually exist, and use it in
+# the grub.cfg so that the next boot works correctly.
+udevadm trigger
+in-target update-grub
