@@ -18,10 +18,17 @@ import util
 
 
 def get_bridge(ip):
+    """The name to be used for the bridge interface connecting the VMs and the host."""
     return "spirebr%s" % ip.packed.hex().upper()
 
 
+def get_bridge_access(ip):
+    """The name to be used for the vlan interface providing host-side access to the VMs."""
+    return "spireac%s" % ip.packed.hex().upper()
+
+
 def get_node_tap(node):
+    """The name to be used for the tap interface providing network to a particular QEMU VM."""
     # maximum length: 15 characters
     return "spirtap%s" % node.ip.packed.hex().upper()
 
@@ -37,7 +44,12 @@ def determine_topology():
             command.fail("invalid topology: address %s is not in CIDR %s" % (node.ip, config.cidr_nodes))
         taps.append(get_node_tap(node))
         hosts["%s.%s" % (node.hostname, config.external_domain)] = node.ip
-    return gateway, taps, get_bridge(gateway_ip), hosts
+    bridge_name = get_bridge(gateway_ip)
+    if config.vlan != 0:
+        access_name = get_bridge_access(gateway_ip)
+    else:
+        access_name = bridge_name
+    return gateway, taps, bridge_name, access_name, hosts, config.vlan
 
 
 def sudo(*command):
@@ -52,14 +64,20 @@ def sysctl_set(key, value):
     sudo("sysctl", "-w", "--", "%s=%s" % (key, value))
 
 
-def bridge_up(bridge_name, address):
+def bridge_up(bridge_name, access_name, address, vlan):
     sudo("brctl", "addbr", bridge_name)
     sudo("ip", "link", "set", bridge_name, "up")
-    sudo("ip", "addr", "add", address, "dev", bridge_name)
+    if access_name != bridge_name:
+        sudo("ip", "link", "add", "link", bridge_name, "name", access_name, "type", "vlan", "id", str(vlan))
+        sudo("ip", "link", "set", access_name, "up")
+    sudo("ip", "addr", "add", address, "dev", access_name)
 
 
-def bridge_down(bridge_name, address):
-    ok = sudo_ok("ip", "addr", "del", address, "dev", bridge_name)
+def bridge_down(bridge_name, access_name, address):
+    ok = sudo_ok("ip", "addr", "del", address, "dev", access_name)
+    if access_name != bridge_name:
+        ok &= sudo_ok("ip", "link", "set", access_name, "down")
+        ok &= sudo_ok("ip", "link", "del", access_name)
     ok &= sudo_ok("ip", "link", "set", bridge_name, "down")
     ok &= sudo_ok("brctl", "delbr", bridge_name)
     return ok
@@ -94,20 +112,20 @@ def get_upstream_link():
     return link
 
 
-def routing_up(bridge_name, upstream_link):
-    sudo("iptables", "-I", "INPUT", "1", "-i", bridge_name, "-j", "ACCEPT")
-    sudo("iptables", "-I", "FORWARD", "1", "-i", bridge_name, "-o", upstream_link, "-j", "ACCEPT")
-    sudo("iptables", "-I", "FORWARD", "1", "-i", upstream_link, "-o", bridge_name, "-j", "ACCEPT")
-    sudo("iptables", "-I", "FORWARD", "1", "-i", bridge_name, "-o", bridge_name, "-j", "ACCEPT")
+def routing_up(access_name, upstream_link):
+    sudo("iptables", "-I", "INPUT", "1", "-i", access_name, "-j", "ACCEPT")
+    sudo("iptables", "-I", "FORWARD", "1", "-i", access_name, "-o", upstream_link, "-j", "ACCEPT")
+    sudo("iptables", "-I", "FORWARD", "1", "-i", upstream_link, "-o", access_name, "-j", "ACCEPT")
+    sudo("iptables", "-I", "FORWARD", "1", "-i", access_name, "-o", access_name, "-j", "ACCEPT")
     sudo("iptables", "-t", "nat", "-I", "POSTROUTING", "1", "-o", upstream_link, "-j", "MASQUERADE")
 
 
-def routing_down(bridge_name, upstream_link):
+def routing_down(access_name, upstream_link):
     ok = sudo_ok("iptables", "-t", "nat", "-D", "POSTROUTING", "-o", upstream_link, "-j", "MASQUERADE")
-    ok &= sudo_ok("iptables", "-D", "FORWARD", "-i", bridge_name, "-o", bridge_name, "-j", "ACCEPT")
-    ok &= sudo_ok("iptables", "-D", "FORWARD", "-i", upstream_link, "-o", bridge_name, "-j", "ACCEPT")
-    ok &= sudo_ok("iptables", "-D", "FORWARD", "-i", bridge_name, "-o", upstream_link, "-j", "ACCEPT")
-    ok &= sudo_ok("iptables", "-D", "INPUT", "-i", bridge_name, "-j", "ACCEPT")
+    ok &= sudo_ok("iptables", "-D", "FORWARD", "-i", access_name, "-o", access_name, "-j", "ACCEPT")
+    ok &= sudo_ok("iptables", "-D", "FORWARD", "-i", upstream_link, "-o", access_name, "-j", "ACCEPT")
+    ok &= sudo_ok("iptables", "-D", "FORWARD", "-i", access_name, "-o", upstream_link, "-j", "ACCEPT")
+    ok &= sudo_ok("iptables", "-D", "INPUT", "-i", access_name, "-j", "ACCEPT")
     return ok
 
 
@@ -144,17 +162,17 @@ def hosts_down(hosts):
     sudo_update_file_by_filter("/etc/hosts", discard_predicate=is_our_host)
 
 
-def net_up_inner(gateway_ip, taps, bridge_name, hosts):
+def net_up_inner(gateway_ip, taps, bridge_name, access_name, hosts, vlan):
     upstream_link = get_upstream_link()
 
     sysctl_set("net.ipv4.ip_forward", 1)
 
     try:
-        bridge_up(bridge_name, gateway_ip)
+        bridge_up(bridge_name, access_name, gateway_ip, vlan)
         for tap in taps:
             tap_up(bridge_name, tap)
 
-        routing_up(bridge_name, upstream_link)
+        routing_up(access_name, upstream_link)
 
         hosts_up(hosts)
     except Exception as e:
@@ -164,17 +182,17 @@ def net_up_inner(gateway_ip, taps, bridge_name, hosts):
         raise e
 
 
-def net_down_inner(gateway_ip, taps, bridge_name, hosts, fail=False):
+def net_down_inner(gateway_ip, taps, bridge_name, access_name, hosts, fail=False):
     upstream_link = get_upstream_link()
 
     hosts_down(hosts)
 
-    ok = routing_down(bridge_name, upstream_link)
+    ok = routing_down(access_name, upstream_link)
 
     for tap in taps:
         ok &= tap_down(bridge_name, tap)
 
-    ok &= bridge_down(bridge_name, gateway_ip)
+    ok &= bridge_down(bridge_name, access_name, gateway_ip)
 
     if not ok and fail:
         command.fail("tearing down network failed (maybe it was already torn down?)")
@@ -185,8 +203,8 @@ def net_down_inner(gateway_ip, taps, bridge_name, hosts, fail=False):
 def net_up():
     "bring up local testing network"
 
-    gateway_ip, taps, bridge_name, hosts = determine_topology()
-    net_up_inner(gateway_ip, taps, bridge_name, hosts)
+    gateway_ip, taps, bridge_name, access_name, hosts, vlan = determine_topology()
+    net_up_inner(gateway_ip, taps, bridge_name, access_name, hosts, vlan)
 
 
 @command.wrap
@@ -197,18 +215,18 @@ def net_down(fail: bool=False):
     fail: raise an exception if bringing down the network fails; in
     particular this occurs if it was already down.
     """
-    gateway_ip, taps, bridge_name, hosts = determine_topology()
-    return net_down_inner(gateway_ip, taps, bridge_name, hosts, fail)
+    gateway_ip, taps, bridge_name, access_name, hosts, vlan = determine_topology()
+    return net_down_inner(gateway_ip, taps, bridge_name, access_name, hosts, fail)
 
 
 @contextlib.contextmanager
 def net_context():
-    gateway_ip, taps, bridge_name, hosts = determine_topology()
-    net_up_inner(gateway_ip, taps, bridge_name, hosts)
+    gateway_ip, taps, bridge_name, access_name, hosts, vlan = determine_topology()
+    net_up_inner(gateway_ip, taps, bridge_name, access_name, hosts, vlan)
     try:
         yield
     finally:
-        net_down_inner(gateway_ip, taps, bridge_name, hosts, fail=True)
+        net_down_inner(gateway_ip, taps, bridge_name, access_name, hosts, fail=True)
 
 
 class TerminationContext:

@@ -57,6 +57,10 @@ class Config:
         self.user_grant_domain = kv["cluster"]["user-grant-domain"]
         self.user_grant_email_domain = kv["cluster"]["user-grant-email-domain"]
 
+        # the vlan on the trunk that each server needs to attach to in order to access the internet. "0" to represent
+        # that the server is either not on a vlan or that the VLAN is untrunked.
+        self.vlan = kv.get("vlan", 0)
+
         self.cidr_nodes = IPv4Network(kv["addresses"]["cidr-nodes"])
         self.cidr_pods = IPv4Network(kv["addresses"]["cidr-pods"])
         self.cidr_services = IPv4Network(kv["addresses"]["cidr-services"])

@@ -21,6 +21,10 @@ properties:
         type: string
     required: ["external-domain", "internal-domain", "etcd-token", "kerberos-realm", "mirror", "user-grant-domain", "user-grant-email-domain"]
     additionalProperties: false
+  vlan:
+    type: integer
+    minimum: 1
+    maximum: 4095
   addresses:
     type: object
     properties:
