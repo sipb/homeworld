@@ -156,7 +156,7 @@ def access_ssh(no_add_to_agent: bool=False):
                 fail_hint = "do you have an ssh-agent?\n" \
                     "(gnome-keyring does not count)"
                 command.fail("*** ssh-add failed! ***", fail_hint)
-        except subprocess.CalledProcessError as e:
+        except subprocess.CalledProcessError:
             fail_hint = "ssh-add returned non-zero exit code. do you have an ssh-agent?"
             command.fail("*** ssh-add failed! ***", fail_hint)
 
