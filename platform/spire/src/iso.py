@@ -53,6 +53,7 @@ MODES={"serial": mode_serial}
 def gen_iso(iso_image, authorized_key, mode=None):
     "generate ISO"
     with tempfile.TemporaryDirectory() as d:
+        config = configuration.get_config()
         inclusion = []
 
         with open(os.path.join(d, "dns_bootstrap_lines"), "w") as outfile:
@@ -83,17 +84,16 @@ def gen_iso(iso_image, authorized_key, mode=None):
         preseeded = preseeded.replace(b"{{BUILDDATE}}", creation_time.encode())
         preseeded = preseeded.replace(b"{{GITHASH}}", git_hash)
 
-        mirror = configuration.get_config().mirror
+        mirror = config.mirror
         if mirror.count("/") < 1 or mirror.count(".") < 1:
             command.fail("invalid mirror specification '%s'; must be of the form HOST.NAME/PATH")
         mirror_host, mirror_dir = mirror.split("/", 1)
         preseeded = preseeded.replace(b"{{MIRROR-HOST}}", mirror_host.encode())
         preseeded = preseeded.replace(b"{{MIRROR-DIR}}", ("/" + mirror_dir).encode())
 
-        realm = configuration.get_config().realm
-        preseeded = preseeded.replace(b"{{KERBEROS-REALM}}", realm.encode())
+        preseeded = preseeded.replace(b"{{KERBEROS-REALM}}", config.realm.encode())
 
-        cidr_nodes, upstream_dns_servers = configuration.get_config().cidr_nodes, configuration.get_config().dns_upstreams
+        cidr_nodes = config.cidr_nodes
 
         node_cidr_prefix = ".".join(str(cidr_nodes.network_address).split(".")[:-1]) + "."
         preseeded = preseeded.replace(b"{{IP-PREFIX}}", node_cidr_prefix.encode())
@@ -101,10 +101,9 @@ def gen_iso(iso_image, authorized_key, mode=None):
         node_cidr_gateway = next(cidr_nodes.hosts())
         preseeded = preseeded.replace(b"{{GATEWAY}}", str(node_cidr_gateway).encode())
 
-        node_cidr_netmask = cidr_nodes.netmask
-        preseeded = preseeded.replace(b"{{NETMASK}}", str(node_cidr_netmask).encode())
+        preseeded = preseeded.replace(b"{{NETMASK}}", str(cidr_nodes.netmask).encode())
 
-        preseeded = preseeded.replace(b"{{NAMESERVERS}}", " ".join(str(server_ip) for server_ip in upstream_dns_servers).encode())
+        preseeded = preseeded.replace(b"{{NAMESERVERS}}", " ".join(str(server_ip) for server_ip in config.dns_upstreams).encode())
         util.writefile(os.path.join(d, "preseed.cfg"), preseeded)
 
         inclusion += ["sshd_config.new", "preseed.cfg"]
