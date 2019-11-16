@@ -64,13 +64,17 @@ def gen_iso(iso_image, authorized_key, mode=None):
         util.writefile(os.path.join(d, "keyservertls.pem"), authority.get_pubkey_by_filename("./clusterca.pem"))
         inclusion += ["authorized.pub", "keyservertls.pem"]
 
-        for script in ["postinstall.sh", "prepartition.sh"]:
-            resource.copy_to(script, os.path.join(d, script))
+        os.makedirs(os.path.join(d, "var/lib/dpkg/info"))
+        for script in ["postinstall.sh", "prepartition.sh", "var/lib/dpkg/info/netcfg.postinst"]:
+            resource.copy_to(os.path.basename(script), os.path.join(d, script))
             os.chmod(os.path.join(d, script), 0o755)
             inclusion.append(script)
 
         util.writefile(os.path.join(d, "keyserver.domain"), configuration.get_keyserver_domain().encode())
         inclusion.append("keyserver.domain")
+
+        util.writefile(os.path.join(d, "vlan.txt"), b"%d\n" % config.vlan)
+        inclusion.append("vlan.txt")
 
         resource.copy_to("sshd_config", os.path.join(d, "sshd_config.new"))
 

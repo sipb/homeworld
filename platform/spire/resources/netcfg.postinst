@@ -1,0 +1,55 @@
+#!/bin/sh
+# this file originally just ran 'exec netcfg', but we need to do extra work to support VLANs
+set -e -u
+netcfg
+
+VLAN="$(cat /vlan.txt)"
+echo "VLAN=${VLAN}"
+
+if [ "$VLAN" -eq "0" ]
+then
+  echo "VLAN not configured"
+  exit 0
+fi
+
+echo "cfg 1: # find all non-lo interfaces that are up"
+IFACE="$(ip -o link | grep -F LOWER_UP | cut -d ':' -f 2 | sed 's/^ *//g' | grep -v "^ *lo *$")"
+echo "IFACE=${IFACE}"
+
+echo "cfg 2: # check to make sure that we've parsed ip link correctly AND that there's only interface that's up"
+test -e "/sys/class/net/$IFACE"
+
+echo "cfg 3: # get the address"
+ADDR="$(ip -o addr show dev "$IFACE" | tr -s " " " " | grep -E '[0-9]+: [a-z0-9]+ inet ' | cut -d ' ' -f 4)"
+echo "ADDR=${ADDR}"
+
+echo "cfg 4: # find gateway address"
+GATEWAY="$(ip -o route | grep -E "^default via [0-9.]+ dev $IFACE " | cut -d ' ' -f 3)"
+echo "GATEWAY=${GATEWAY}"
+
+echo "cfg 5: # eliminate the old binding for the address"
+ip addr del dev "$IFACE" "$ADDR"
+
+echo "cfg 6: # add new link for the vlan interface"
+ip link add link "$IFACE" name "${IFACE}.${VLAN}" type vlan id "${VLAN}"
+
+echo "cfg 7: # rebind the address to the new link"
+ip addr add dev "${IFACE}.${VLAN}" "$ADDR"
+
+echo "cfg 8: # set link up"
+ip link set "${IFACE}.${VLAN}" up
+
+echo "cfg 9: # re-apply the gateway route"
+ip route add default via "${GATEWAY}" dev "${IFACE}.${VLAN}"
+
+echo "cfg 10: # adjust network/interfaces"
+sed -i "s/^allow-hotplug /auto /g" /etc/network/interfaces
+sed -i "s/^auto ${IFACE}$/auto ${IFACE}.${VLAN}/g" /etc/network/interfaces
+sed -i "s/^iface ${IFACE} /iface ${IFACE}.${VLAN} /g" /etc/network/interfaces
+cat >>/etc/network/interfaces <<EOF
+
+auto ${IFACE}
+iface ${IFACE} inet manual
+EOF
+
+echo 'finished reconfiguring to vlan network!'
