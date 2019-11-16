@@ -7,6 +7,8 @@ cluster:
   user-grant-domain: usergrant.private
   user-grant-email-domain: EXAMPLE.ORG
 
+vlan: 612
+
 addresses:
   cidr-nodes: 10.1.0.0/24
   cidr-pods: 172.18.0.0/16
