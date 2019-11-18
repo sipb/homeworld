@@ -220,7 +220,7 @@ def _delegate_to_context(f):
     def g(self, *args, **kwargs):
         if self._context is None:
             return f(self, *args, **kwargs)
-        return f(self._context, *args, **kwargs)
+        return g(self._context, *args, **kwargs)
     return g
 
 class Operations:
@@ -263,7 +263,6 @@ class Operations:
         the original context ctx is made available to the context body as c.
         """
 
-        # TODO: figure out annotations so that this can be processed correctly by --dry-run
         opc = OperationsContext(ctx)
         # delegate adding commands within the context to opc
         self._context = opc
