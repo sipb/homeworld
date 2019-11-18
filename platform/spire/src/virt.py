@@ -483,20 +483,20 @@ def qemu_check_nested_virt():
         command.fail("nested virtualization not enabled")
 
 
-@command.wrapop
+@command.wrapseq
 def auto_install_supervisor(ops: command.Operations, tc: TerminationContext, supervisor: configuration.Node, install_iso: str):
     vm = VirtualMachine(supervisor, tc, install_iso)
     ops.add_operation("install supervisor node (this may take several minutes)", vm.boot_install_supervisor, supervisor)
 
 
-@command.wrapop
+@command.wrapseq
 def auto_launch_supervisor(ops: command.Operations, tc: TerminationContext, supervisor: configuration.Node):
     # TODO: annotations, so that this can be --dry-run'd
     vm = VirtualMachine(supervisor, tc)
     ops.add_operation("start up supervisor node", lambda: vm.boot_launch(autoadd_fingerprint=True))
 
 
-@command.wrapop
+@command.wrapseq
 def auto_install_nodes(ops: command.Operations, tc: TerminationContext, nodes: list, install_iso: str):
     vms = [VirtualMachine(node, tc, install_iso) for node in nodes]
 
@@ -509,14 +509,14 @@ def auto_install_nodes(ops: command.Operations, tc: TerminationContext, nodes: l
     ops.add_operation("install non-supervisor nodes (this may take several minutes)", boot_install_and_admit_all)
 
 
-@command.wrapop
+@command.wrapseq
 def auto_launch_nodes(ops: command.Operations, tc: TerminationContext, nodes: list):
     for node in nodes:
         vm = VirtualMachine(node, tc)
         ops.add_operation("start up node {}".format(node), vm.boot_launch)
 
 
-@command.wrapop
+@command.wrapseq
 def auto_install(ops: command.Operations, authorized_key=None, persistent: bool=False):
     "complete cluster installation and launch"
     if authorized_key is None:
@@ -542,7 +542,7 @@ def auto_install(ops: command.Operations, authorized_key=None, persistent: bool=
                 ops.add_subcommand(seq.sequence_cluster)
 
 
-@command.wrapop
+@command.wrapseq
 def auto_launch(ops: command.Operations):
     "launch installed cluster"
     config = configuration.get_config()
