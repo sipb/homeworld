@@ -19,7 +19,7 @@ dns-upstreams:
   - 18.71.0.151
   - 18.72.0.3
 
-dns-bootstrap: {}
+dns-bootstrap: {{}}
 
 # WARNING: empty root admins means that Kerberos authentication is
 # disabled. Make sure this is not empty in production.
