@@ -4,12 +4,14 @@ import requests
 import subprocess
 import tempfile
 import urllib
+import yaml
 
 import access
 import authority
 import command
 import configuration
 import query
+import resources
 import setup
 import ssh
 import util
@@ -30,7 +32,7 @@ def compare_multiline(a, b):
     return True
 
 
-def pull_prometheus_query(query):
+def pull_prometheus_query(query, default_value=None):
     config = configuration.get_config()
     host_options = [node.hostname for node in config.nodes if node.kind == "supervisor"]
     if len(host_options) < 1:
@@ -48,7 +50,9 @@ def pull_prometheus_query(query):
     if type(result_vec) != list or len(result_vec) > 1:
         command.fail("prometheus query returned %d results instead of 1" % len(result_vec))
     if not result_vec:
-        command.fail("no results from prometheus query '%s'" % query)
+        if default_value is None:
+            command.fail("no results from prometheus query '%s'" % query)
+        return default_value
     if type(result_vec[0]) != dict or "value" not in result_vec[0] or len(result_vec[0]["value"]) != 2:
         command.fail("unexpected format of result")
     return result_vec[0]["value"][1]
@@ -118,8 +122,8 @@ def expect_prometheus_query_exact(query, expected, description):  # description 
         command.fail("only %d/%d %s" % (count, expected, description))
 
 
-def expect_prometheus_query_bool(query, message):
-    if not int(pull_prometheus_query(query)):
+def expect_prometheus_query_bool(query, message, accept_missing=False):
+    if not int(pull_prometheus_query(query, default_value=(1 if accept_missing else None))):
         command.fail(message)
 
 
@@ -131,6 +135,33 @@ def check_online():
     expect_prometheus_query_exact('sum(up{job="node-resources"})', nodes_expected, "nodes are online")
     expect_prometheus_query_exact('sum(keysystem_ssh_access_check)', nodes_expected, "nodes are accessible")
     print("all", nodes_expected, "nodes are online and accessible")
+
+
+@command.wrap
+def check_systemd_services():
+    "verify that systemd services are healthy and working"
+    config = configuration.get_config()
+    expect_prometheus_query_exact('sum(node_systemd_system_running)', len(config.nodes), "service management is running")
+    servicemap = yaml.safe_load(resources.get_resource("servicemap.yaml"))
+    for service in servicemap["services"]:
+        name = service["name"]
+        kinds = service["kinds"]
+        if len(kinds) == 0:
+            raise Exception("must have at least one kind specified in servicemap entry for %s" % name)
+        for kind in kinds:
+            if kind not in configuration.Node.VALID_NODE_KINDS:
+                raise Exception("unknown kind: %s" % kind)
+        for node in config.nodes:
+            should_run = node.kind in kinds
+            state = "active" if should_run else "inactive"
+            instance = "%s:9100" % node.external_dns_name()
+            expect_prometheus_query_bool(
+                'node_systemd_unit_state{instance=%s,name=%s,state="%s"}' % (repr(instance), repr(name), state),
+                "node %s is %s service %s" % (node.hostname, "not running" if should_run else "running", name),
+                # in the case that the service has never ran on this host, the node exporter won't report it, so that's
+                # fine -- as long as we didn't expect it to be running anyway.
+                accept_missing=(not should_run))
+    print("validated state of %d services" % len(servicemap["services"]))
 
 
 @command.wrap
@@ -302,6 +333,7 @@ main_command = command.Mux("commands about verifying the state of a cluster", {
     "online": check_online,
     "ssh-with-certs": check_ssh_with_certs,
     "supervisor-certs": check_certs_on_supervisor,
+    "systemd": check_systemd_services,
     "etcd": check_etcd_health,
     "kubernetes-init": check_kube_init,
     "kubernetes": check_kube_health,

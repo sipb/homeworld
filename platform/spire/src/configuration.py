@@ -30,16 +30,20 @@ def get_editor() -> str:
 class Node:
     VALID_NODE_KINDS = {"master", "worker", "supervisor"}
 
-    def __init__(self, config: dict):
+    def __init__(self, config: dict, main_config: "Config"):
         self.hostname = config["hostname"]
         self.kind = config["kind"]
         self.ip = IPv4Address(config["ip"])
+        self.main_config = main_config
 
         if self.kind not in Node.VALID_NODE_KINDS:
             raise Exception("invalid node kind: %s" % self.kind)
 
     def __repr__(self):
         return "%s node %s (%s)" % (self.kind, self.hostname, self.ip)
+
+    def external_dns_name(self):
+        return "%s.%s" % (self.hostname, self.main_config.external_domain)
 
 
 SCHEMA = yaml.safe_load(resources.get_resource("setup-schema.yaml"))
@@ -73,7 +77,7 @@ class Config:
         self.dns_upstreams = [IPv4Address(server) for server in kv["dns-upstreams"]]
         self.dns_bootstrap = {hostname: IPv4Address(ip) for hostname, ip in kv["dns-bootstrap"].items()}
         self.root_admins = kv["root-admins"]
-        self.nodes = [Node(n) for n in kv["nodes"]]
+        self.nodes = [Node(n, self) for n in kv["nodes"]]
 
         self.keyserver = None
 

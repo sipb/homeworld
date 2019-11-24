@@ -1,0 +1,41 @@
+services:
+  ## general services
+  - name: keyclient.service
+    kinds: [supervisor, master, worker]
+  - name: prometheus-node-exporter.service
+    kinds: [supervisor, master, worker]
+
+  ## supervisor services
+  - name: keyserver.service
+    kinds: [supervisor]
+  - name: kube-state-metrics.service
+    kinds: [supervisor]
+  - name: docker-registry.service
+    kinds: [supervisor]
+  - name: setup-queue.timer
+    kinds: [supervisor]
+  - name: prometheus.service
+    kinds: [supervisor]
+  - name: auth-monitor.service
+    kinds: [supervisor]
+  # note: keygateway not included because it's not always deployed to the cluster
+
+  ## master node services
+  - name: kube-ctrlmgr.service
+    kinds: [master]
+  - name: apiserver.service
+    kinds: [master]
+  - name: kube-scheduler.service
+    kinds: [master]
+  - name: etcd.service
+    kinds: [master]
+  - name: etcd-metrics-exporter.service
+    kinds: [master]
+
+  ## kubernetes node services
+  - name: kubelet.service
+    kinds: [master, worker]
+  - name: kube-proxy.service
+    kinds: [master, worker]
+  - name: crio.service
+    kinds: [master, worker]

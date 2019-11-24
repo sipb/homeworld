@@ -97,6 +97,8 @@ def sequence_cluster(ops: command.Operations) -> None:
 
     ops.add_command(iterative_verifier(verify.check_online, 120.0))
 
+    ops.add_command(iterative_verifier(verify.check_systemd_services, 120.0))
+
     ops.add_command(iterative_verifier(verify.check_etcd_health, 120.0))
     ops.add_command(iterative_verifier(verify.check_kube_health, 120.0))
 
