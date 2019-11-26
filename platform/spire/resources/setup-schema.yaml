@@ -1,0 +1,65 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+
+type: object
+properties:
+  cluster:
+    type: object
+    properties:
+      external-domain:
+        type: string
+      internal-domain:
+        type: string
+      etcd-token:
+        type: string
+      kerberos-realm:
+        type: string
+      mirror:
+        type: string
+      user-grant-domain:
+        type: string
+      user-grant-email-domain:
+        type: string
+    required: ["external-domain", "internal-domain", "etcd-token", "kerberos-realm", "mirror", "user-grant-domain", "user-grant-email-domain"]
+    additionalProperties: false
+  addresses:
+    type: object
+    properties:
+      cidr-nodes:
+        type: string
+      cidr-pods:
+        type: string
+      cidr-services:
+        type: string
+      service-api:
+        type: string
+      service-dns:
+        type: string
+    required: ["cidr-nodes", "cidr-pods", "cidr-services", "service-api", "service-dns"]
+    additionalProperties: false
+  dns-upstreams:
+    type: array
+    items:
+      type: string
+  dns-bootstrap:
+    type: object
+    additionalProperties:
+      type: string
+  root-admins:
+    type: array
+    items:
+      type: string
+  nodes:
+    type: array
+    items:
+      type: object
+      properties:
+        hostname:
+          type: string
+        ip:
+          type: string
+        kind:
+          type: string
+      required: ["hostname", "ip", "kind"]
+      additionalProperties: false
+required: ["cluster", "addresses", "dns-upstreams", "dns-bootstrap", "root-admins", "nodes"]
+additionalProperties: false

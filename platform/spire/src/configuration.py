@@ -1,10 +1,12 @@
 from ipaddress import IPv4Address, IPv4Network
+import jsonschema
 import os
 import subprocess
 import yaml
 
 import command
 import resource
+import resources
 import template
 import util
 
@@ -29,8 +31,9 @@ class Node:
     VALID_NODE_KINDS = {"master", "worker", "supervisor"}
 
     def __init__(self, config: dict):
-        self.hostname, ip, self.kind = keycheck(config, "hostname", "ip", "kind")
-        self.ip = IPv4Address(ip)
+        self.hostname = config["hostname"]
+        self.kind = config["kind"]
+        self.ip = IPv4Address(config["ip"])
 
         if self.kind not in Node.VALID_NODE_KINDS:
             raise Exception("invalid node kind: %s" % self.kind)
@@ -39,52 +42,34 @@ class Node:
         return "%s node %s (%s)" % (self.kind, self.hostname, self.ip)
 
 
-def keycheck(kvs: dict, *keys: str, validator=lambda k, v: True):
-    for key in kvs.keys():
-        if key not in keys:
-            command.fail("unexpected key %s in config" % key)
-    for key in keys:
-        if key not in kvs:
-            command.fail("could not find expected key %s in config" % key)
-    for key, value in kvs.items():
-        if not validator(key, value):
-            command.fail("config failed validation: key %s had invalid value %s" % (key, value))
-    return [kvs[k] for k in keys]
+SCHEMA = yaml.safe_load(resources.get_resource("setup-schema.yaml"))
 
 
 class Config:
     def __init__(self, kv: dict):
-        v_cluster, v_addresses, v_dns_upstreams, v_dns_bootstrap, v_root_admins, v_nodes = \
-            keycheck(kv, "cluster", "addresses", "dns-upstreams", "dns-bootstrap", "root-admins", "nodes")
+        jsonschema.validate(kv, SCHEMA)
 
-        self.external_domain, self.internal_domain, self.etcd_token, self.realm, self.mirror, self.user_grant_domain, \
-            self.user_grant_email_domain = \
-            keycheck(v_cluster, "external-domain", "internal-domain", "etcd-token", "kerberos-realm", "mirror",
-                                "user-grant-domain", "user-grant-email-domain",
-                     validator=lambda _, x: type(x) == str)
+        self.external_domain = kv["cluster"]["external-domain"]
+        self.internal_domain = kv["cluster"]["internal-domain"]
+        self.etcd_token = kv["cluster"]["etcd-token"]
+        self.realm = kv["cluster"]["kerberos-realm"]
+        self.mirror = kv["cluster"]["mirror"]
+        self.user_grant_domain = kv["cluster"]["user-grant-domain"]
+        self.user_grant_email_domain = kv["cluster"]["user-grant-email-domain"]
 
-        cidr_nodes, cidr_pods, cidr_services, service_api, service_dns = \
-            keycheck(v_addresses, "cidr-nodes", "cidr-pods", "cidr-services", "service-api", "service-dns",
-                     validator=lambda _, x: type(x) == str)
-        self.cidr_nodes = IPv4Network(cidr_nodes)
-        self.cidr_pods = IPv4Network(cidr_pods)
-        self.cidr_services = IPv4Network(cidr_services)
-        self.service_api = IPv4Address(service_api)
-        self.service_dns = IPv4Address(service_dns)
-
-        if type(v_dns_upstreams) != list:
-            command.fail("in config: expected dns-upstreams to be a list of IPs")
-        self.dns_upstreams = [IPv4Address(server) for server in v_dns_upstreams]
+        self.cidr_nodes = IPv4Network(kv["addresses"]["cidr-nodes"])
+        self.cidr_pods = IPv4Network(kv["addresses"]["cidr-pods"])
+        self.cidr_services = IPv4Network(kv["addresses"]["cidr-services"])
+        self.service_api = IPv4Address(kv["addresses"]["service-api"])
+        self.service_dns = IPv4Address(kv["addresses"]["service-dns"])
 
         if self.service_api not in self.cidr_services or self.service_dns not in self.cidr_services:
             command.fail("in config: expected service IPs to be in the correct CIDR")
 
-        self.dns_bootstrap = {hostname: IPv4Address(ip) for hostname, ip in v_dns_bootstrap.items()}
-
-        self.root_admins = v_root_admins
-        assert all(type(v) == str for v in self.root_admins)  # TODO: better error handling
-
-        self.nodes = [Node(n) for n in v_nodes]
+        self.dns_upstreams = [IPv4Address(server) for server in kv["dns-upstreams"]]
+        self.dns_bootstrap = {hostname: IPv4Address(ip) for hostname, ip in kv["dns-bootstrap"].items()}
+        self.root_admins = kv["root-admins"]
+        self.nodes = [Node(n) for n in kv["nodes"]]
 
         self.keyserver = None
 
