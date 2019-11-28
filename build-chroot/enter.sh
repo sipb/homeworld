@@ -34,4 +34,5 @@ if [ ! -e platform/upload/version-cache ]
 then
 	echo "{}" >platform/upload/version-cache
 fi
-sudo systemd-nspawn -E PATH="/usr/local/bin:/usr/bin:/bin" -M "$(basename "$HOMEWORLD_CHROOT")" --bind "$(pwd)":/homeworld:norbind -u "$USER" -a -D "$HOMEWORLD_CHROOT" bash -c "cd /homeworld/${ORIG_REL} && gpg-agent --daemon --keep-tty && exec bash"
+
+sudo systemd-nspawn -E PATH="/usr/local/bin:/usr/bin:/bin" --register=no -M "$(basename "$HOMEWORLD_CHROOT")" --bind "$(pwd)":/homeworld:norbind -u "$USER" -a -D "$HOMEWORLD_CHROOT" bash -c "cd /homeworld/${ORIG_REL} && gpg-agent --daemon --keep-tty && exec bash"
