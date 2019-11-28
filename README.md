@@ -25,4 +25,3 @@ Disclaimer: Homeworld is unfinished, and not all of these features are fully imp
 # Contact
 
 Project lead: Cel Skeggs. Contact over SIPB Mattermost or via MIT email.
-

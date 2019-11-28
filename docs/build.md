@@ -11,6 +11,7 @@ Install the following on your host system:
  * sudo
  * systemd-container
  * gpg
+ * curl
 
 # Setting up
 
