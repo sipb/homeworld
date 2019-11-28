@@ -1,443 +1,66 @@
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
-load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
-
-# TODO: audit all downloads, make sure they're all source code
-http_archive(
-    name = "io_bazel_rules_go",
-    urls = ["https://github.com/bazelbuild/rules_go/releases/download/v0.19.5/rules_go-v0.19.5.tar.gz"],
-    sha256 = "513c12397db1bc9aa46dd62f02dd94b49a9b5d17444d49b5a04c5a89f3053c1c",
-)
-load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
-go_rules_dependencies()
-# TODO: stop using binaries built by upstream; use our own
-go_register_toolchains(
-    go_version = "1.12.10",
-)
-load("//bazel:gorepo_patchfix.bzl", "go_repository_alt")
-
-# gazelle
-
-http_archive(
-    name = "bazel_gazelle",
-    urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/0.17.0/bazel-gazelle-0.17.0.tar.gz"],
-    sha256 = "3c681998538231a2d24d0c07ed5a7658cb72bfb5fd4bf9911157c0e9ac6a2687",
-)
-load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
-gazelle_dependencies()
-
-# protobuf
-
-git_repository(
-    name = "com_google_protobuf",
-    commit = "6a59a2ad1f61d9696092f79b6d74368b4d7970a3", # 3.9.0
-    remote = "https://github.com/protocolbuffers/protobuf",
-    shallow_since = "1558721209 -0700",
-)
-load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
-protobuf_deps()
-
-# rules_docker
-
-git_repository(
-    name = "io_bazel_rules_docker",
-    remote = "https://github.com/bazelbuild/rules_docker",
-    commit = "968e0b7c8b3bc7e009531231ac926325cd2745bc",
-)
-load("@io_bazel_rules_docker//repositories:repositories.bzl", container_repositories = "repositories")
-container_repositories()
-
-# k8s repository infrastructure tools, k8s
-
-git_repository(
-    name = "io_k8s_repo_infra",
-    remote = "https://github.com/kubernetes/repo-infra/",
-    commit = "9f4571ad7242bf3ec4b47365062498c2528f9a5f",
-)
-
-http_archive(
-    name = "kubernetes",
-    sha256 = "3f430156abcee1930f1eb0e7bd853c0b411e33f8a43e5b52207c0a49d58eb85c",
-    type = "tar.gz",
-    urls = ["https://dl.k8s.io/v1.16.0/kubernetes-src.tar.gz"],
-)
-
-# cni-plugins
-
-go_repository(
-    name = "com_github_containernetworking_plugins",
-    commit = "a62711a5da7a2dc2eb93eac47e103738ad923fd6", # 0.7.5
-    importpath = "github.com/containernetworking/plugins",
-)
-
-# CRI-O
-
-go_repository(
-    name = "com_github_cri_o_cri_o",
-    commit = "b7316701c17ebc7901d10a716f15e66008c52525", # 1.15.2
-    importpath = "github.com/cri-o/cri-o",
-    build_external = "vendored",
-    build_file_proto_mode = "disable_global",
-    patches = [
-        # most of this is only required because the #cgo pkg-config directive is not correctly processed by Gazelle
-        "//cri-o:build.patch",
-    ],
-    patch_args = ["-p1"],
-)
-
-# cri-tools
-
-go_repository(
-    name = "com_github_kubernetes_sigs_cri_tools",
-    commit = "b7d3a78a3587c400136aac8fc5e6727cb3b3e67a", # v1.14.0
-    importpath = "github.com/kubernetes-sigs/cri-tools",
-    build_file_proto_mode = "disable_global",
-)
-
-# debian ISO
-
-http_file(
-    name = "debian_iso",
-    urls = [
-        "http://ftp.debian.org/debian/dists/stretch/main/installer-amd64/20170615+deb9u7+b2/images/netboot/mini.iso",
-        "http://debian.csail.mit.edu/debian/dists/stretch/main/installer-amd64/20170615+deb9u7+b2/images/netboot/mini.iso",
-    ],
-    sha256 = "6a1f4457430285dcd6882829eb5b96e840e06b0e792c2bdf2d91ce552da19d84",
-)
-
-# dnsmasq
-
-http_archive(
-    name = "dnsmasq",
-    urls = ["http://www.thekelleys.org.uk/dnsmasq/dnsmasq-2.78.tar.xz"],
-    sha256 = "89949f438c74b0c7543f06689c319484bd126cc4b1f8c745c742ab397681252b",
-    build_file = "//dnsmasq:BUILD.import",
-)
-
-# docker-registry
-
-go_repository(
-    name = "com_github_docker_distribution",
-    commit = "2461543d988979529609e8cb6fca9ca190dc48da", # 2.7.1
-    importpath = "github.com/docker/distribution",
-    build_external = "vendored",
-    patches = ["//docker-registry:docker-registry.patch"],
-)
-
-# etcd
-
-go_repository_alt(
-    name = "com_github_coreos_etcd",
-    commit = "d57e8b8d97adfc4a6c224fe116714bf1a1f3beb9", # 3.3.12
-    importpath = "github.com/coreos/etcd",
-    build_external = "vendored",
-    build_file_proto_mode = "disable_global",
-    prepatch_cmds = [ # to get etcd's vendoring strategy to be compatible with gazelle
-        "cp -RT cmd/vendor vendor",
-        "rm -r cmd/vendor",
-    ],
-    postpatches = ["//etcd:etcd-visibility.patch", "//etcd:etcdctl-visibility.patch"],
-)
-
-# flannel
-
-go_repository(
-    name = "com_github_coreos_flannel",
-    commit = "d3eea7f5cdb895965394eb5f34645cdc3b535d5b", # 0.11.0
-    importpath = "github.com/coreos/flannel",
-)
-
-# kubernetes client application (like flannel-monitor) dependencies
-
-go_repository_alt(
-    name = "io_k8s_apimachinery",
-    commit = "6a84e37a896db9780c75367af8d2ed2bb944022e", # 1.14.1
-    importpath = "k8s.io/apimachinery",
-    build_file_proto_mode = "disable_global",
-)
-
-go_repository(
-    name = "io_k8s_client_go",
-    commit = "1a26190bd76a9017e289958b9fba936430aa3704", # 1.14.1
-    importpath = "k8s.io/client-go",
-    build_file_proto_mode = "disable_global",
-)
-
-go_repository(
-    name = "io_k8s_api",
-    commit = "6e4e0e4f393bf5e8bbff570acd13217aa5a770cd", # 1.14.1
-    importpath = "k8s.io/api",
-    build_file_proto_mode = "disable_global",
-)
-
-go_repository(
-    name = "com_github_imdario_mergo",
-    commit = "9316a62528ac99aaecb4e47eadd6dc8aa6533d58",
-    importpath = "github.com/imdario/mergo",
-)
-
-go_repository(
-    name = "com_github_google_gofuzz",
-    commit = "24818f796faf91cd76ec7bddd72458fbced7a6c1",
-    importpath = "github.com/google/gofuzz",
-)
-
-go_repository(
-    name = "io_k8s_kube_openapi",
-    commit = "b3a7cee44a305be0a69e1b9ac03018307287e1b0",
-    importpath = "k8s.io/kube-openapi",
-)
-
-go_repository(
-    name = "com_github_googleapis_gnostic",
-    commit = "0c5108395e2debce0d731cf0287ddf7242066aba",
-    importpath = "github.com/googleapis/gnostic",
-    build_file_proto_mode = "disable_global",
-)
-
-go_repository(
-    name = "com_github_gregjones_httpcache",
-    commit = "787624de3eb7bd915c329cba748687a3b22666a6",
-    importpath = "github.com/gregjones/httpcache",
-)
-
-go_repository(
-    name = "com_github_peterbourgon_diskv",
-    commit = "5f041e8faa004a95c88a202771f4cc3e991971e6",
-    importpath = "github.com/peterbourgon/diskv",
-)
-
-go_repository(
-    name = "com_github_json_iterator_go",
-    commit = "ab8a2e0c74be9d3be70b3184d9acc634935ded82",
-    importpath = "github.com/json-iterator/go",
-)
-
-go_repository(
-    name = "com_github_google_btree",
-    commit = "7d79101e329e5a3adf994758c578dab82b90c017",
-    importpath = "github.com/google/btree",
-)
-
-go_repository(
-    name = "in_gopkg_inf_v0",
-    commit = "3887ee99ecf07df5b447e9b00d9c0b2adaa9f3e4",
-    importpath = "gopkg.in/inf.v0",
-)
-
-go_repository(
-    name = "com_github_spf13_pflag",
-    commit = "583c0c0531f06d5278b7d917446061adc344b5cd",
-    importpath = "github.com/spf13/pflag",
-)
-
-go_repository(
-    name = "org_golang_x_time",
-    commit = "f51c12702a4d776e4c1fa9b0fabab841babae631",
-    importpath = "golang.org/x/time",
-)
-
-go_repository(
-    name = "com_github_modern_go_reflect2",
-    commit = "94122c33edd36123c84d5368cfb2b69df93a0ec8",
-    importpath = "github.com/modern-go/reflect2",
-)
-
-go_repository(
-    name = "com_github_modern_go_concurrent",
-    commit = "bacd9c7ef1dd9b15be4a9909b8ac7a4e313eec94",
-    importpath = "github.com/modern-go/concurrent",
-)
-
-go_repository(
-    name = "org_golang_x_net",
-    commit = "da137c7871d730100384dbcf36e6f8fa493aef5b",
-    importpath = "golang.org/x/net",
-)
-
-go_repository(
-    name = "org_golang_x_oauth2",
-    commit = "a6bd8cefa1811bd24b86f8902872e4e8225f74c4",
-    importpath = "golang.org/x/oauth2",
-)
-
-go_repository(
-    name = "org_golang_x_text",
-    commit = "f21a4dfb5e38f5895301dc265a8def02365cc3d0", # 0.3.0
-    importpath = "golang.org/x/text",
-)
-
-go_repository(
-    name = "io_k8s_klog",
-    commit = "8e90cee79f823779174776412c13478955131846",
-    importpath = "k8s.io/klog",
-)
-
-go_repository(
-    name = "io_k8s_sigs_yaml",
-    commit = "fd68e9863619f6ec2fdd8625fe1f02e7c877e480",
-    importpath = "sigs.k8s.io/yaml",
-)
-
-go_repository(
-    name = "io_k8s_utils",
-    commit = "c2654d5206da6b7b6ace12841e8f359bb89b443c",
-    importpath = "k8s.io/utils",
-)
-
-go_repository(
-    name = "com_github_davecgh_go_spew",
-    commit = "782f4967f2dc4564575ca782fe2d04090b5faca8",
-    importpath = "github.com/davecgh/go-spew",
-)
-
-# keysystem dependencies
-
-go_repository(
-    name = "org_golang_x_sys",
-    commit = "fae7ac547cb717d141c433a2a173315e216b64c4",
-    importpath = "golang.org/x/sys",
-)
-
-go_repository(
-    name = "org_golang_x_crypto",
-    commit = "88737f569e3a9c7ab309cdc09a07fe7fc87233c3",
-    importpath = "golang.org/x/crypto",
-)
-
-go_repository(
-    name = "in_gopkg_yaml_v2",
-    commit = "51d6538a90f86fe93ac480b35f37b2be17fef232", # 2.2.2
-    importpath = "gopkg.in/yaml.v2",
-)
-
-# knc
-
-http_archive(
-    name = "knc",
-    urls = ["http://oskt.secure-endpoints.com/downloads/knc-1.7.1.tar.gz"],
-    sha256 = "0e24873f2a5228e1814749becbecd67d643bb9f63663cf85a7aeedf8e73de40f",
-    build_file = "//knc:BUILD.import",
-)
-
-# prometheus
-
-go_repository(
-    name = "com_github_prometheus_prometheus",
-    commit = "0a74f98628a0463dddc90528220c94de5032d1a0",
-    importpath = "github.com/prometheus/prometheus",
-    build_external = "vendored",
-    build_file_proto_mode = "disable_global",
-    patches = ["//prometheus:prometheus-visibility.patch"],
-)
-
-# prometheus-node-exporter
-
-go_repository(
-    name = "com_github_prometheus_node_exporter",
-    commit = "98bc64930d34878b84a0f87dfe6e1a6da61e532d",
-    importpath = "github.com/prometheus/node_exporter",
-    build_external = "vendored",
-    patches = ["//prometheus-node-exporter:visibility.patch"],
-)
-
-# prometheus client, for packages like pull-monitor
-
-go_repository(
-    name = "com_github_prometheus_client_golang",
-    commit = "967789050ba94deca04a5e84cce8ad472ce313c1",
-    importpath = "github.com/prometheus/client_golang",
-)
-
-go_repository(
-    name = "com_github_prometheus_common",
-    commit = "b36ad289a3eaecdc52470a19591146a2c0ffb532",
-    importpath = "github.com/prometheus/common",
-)
-
-go_repository(
-    name = "com_github_prometheus_procfs",
-    commit = "abf152e5f3e97f2fafac028d2cc06c1feb87ffa5",
-    importpath = "github.com/prometheus/procfs",
-)
-
-go_repository(
-    name = "com_github_prometheus_client_model",
-    commit = "5c3871d89910bfb32f5fcab2aa4b9ec68e65a99f",
-    importpath = "github.com/prometheus/client_model",
-)
-
-go_repository(
-    name = "com_github_matttproud_golang_protobuf_extensions",
-    commit = "fc2b8d3a73c4867e51861bbdd5ae3c1f0869dd6a",
-    importpath = "github.com/matttproud/golang_protobuf_extensions",
-)
-
-go_repository(
-    name = "com_github_beorn7_perks",
-    commit = "3ac7bf7a47d159a033b107610db8a1b6575507a4",
-    importpath = "github.com/beorn7/perks",
-)
-
-# pull-monitor other dependencies
-
-go_repository(
-    name = "com_github_hashicorp_errwrap",
-    commit = "8a6fb523712970c966eefc6b39ed2c5e74880354", # 1.0.0
-    importpath = "github.com/hashicorp/errwrap",
-)
-
-go_repository(
-    name = "com_github_hashicorp_go_multierror",
-    commit = "886a7fbe3eb1c874d46f623bfa70af45f425b3d1", # 1.0.0
-    importpath = "github.com/hashicorp/go-multierror",
-)
-
-go_repository(
-    name = "com_github_pkg_errors",
-    commit = "27936f6d90f9c8e1145f11ed52ffffbfdb9e0af7",
-    importpath = "github.com/pkg/errors",
-)
-
-# kubernetes-dns
-
-go_repository_alt(
-    name = "com_github_kubernetes_dns",
-    commit = "b8d50e0e7698317816e7e6b27d48f0988098e6fc", # 1.14.13
-    importpath = "k8s.io/dns",
-    build_external = "vendored",
-    prepatch_cmds = ["find vendor/k8s.io/kubernetes -name BUILD -delete"],
-    postpatches = ["//kube-dns:dns-visibility.patch"],
-)
-
-# kube-state-metrics
-
-go_repository(
-    name = "com_github_kubernetes_kube_state_metrics",
-    commit = "4c0e83b3407e489eda34c26f7794ec69856ccd76",           # v1.7.2
-    importpath = "k8s.io/kube-state-metrics",
-)
-
-# oci-tools
-
-go_repository(
-    name = "com_github_containers_skopeo",
-    commit = "404c5bd341ccb383061f4eb505f24d2801b31b94", # v0.1.35
-    importpath = "github.com/containers/skopeo",
-    patches = ["//oci-tools:skopeo.patch"],
-    patch_args = ["-p1"],
-)
-
-go_repository(
-    name = "com_github_opencontainers_image_tools",
-    commit = "7f6433100c1757a65c72f374080b6899f8152075", # v1.0.0-rc1
-    importpath = "github.com/opencontainers/image-tools",
-    patches = ["//oci-tools:image-tools.patch"],
-)
-
-# runc
-
-go_repository(
-    name = "com_github_opencontainers_runc",
-    commit = "029124da7af7360afa781a0234d1b083550f797c", # v1.0.0-rc7 plus a few patches for a regression
-    importpath = "github.com/opencontainers/runc",
-)
+load("//go:deps_early.bzl", "go_dependencies_early")
+go_dependencies_early()
+
+load("//go:deps.bzl", "go_dependencies")
+go_dependencies()
+
+load("//bazel:deps_early.bzl", "bazel_dependencies_early")
+bazel_dependencies_early()
+
+load("//bazel:deps.bzl", "bazel_dependencies")
+bazel_dependencies()
+
+load("//cni-plugins:deps.bzl", "cni_plugins_dependencies")
+cni_plugins_dependencies()
+
+load("//cri-o:deps.bzl", "cri_o_dependencies")
+cri_o_dependencies()
+
+load("//cri-tools:deps.bzl", "cri_tools_dependencies")
+cri_tools_dependencies()
+
+load("//spire/debian-iso:deps.bzl", "debian_iso_dependencies")
+debian_iso_dependencies()
+
+load("//dnsmasq:deps.bzl", "dnsmasq_dependencies")
+dnsmasq_dependencies()
+
+load("//docker-registry:deps.bzl", "docker_registry_dependencies")
+docker_registry_dependencies()
+
+load("//etcd:deps.bzl", "etcd_dependencies")
+etcd_dependencies()
+
+load("//flannel:deps.bzl", "flannel_dependencies")
+flannel_dependencies()
+
+load("//kubernetes:deps.bzl", "kubernetes_dependencies", "kubernetes_client_dependencies")
+kubernetes_dependencies()
+kubernetes_client_dependencies()
+
+load("//keysystem:deps.bzl", "keysystem_dependencies")
+keysystem_dependencies()
+
+load("//knc:deps.bzl", "knc_dependencies")
+knc_dependencies()
+
+load("//prometheus:deps.bzl", "prometheus_dependencies")
+prometheus_dependencies()
+
+load("//prometheus-node-exporter:deps.bzl", "prometheus_node_exporter_dependencies")
+prometheus_node_exporter_dependencies()
+
+load("//pull-monitor/pull-monitor:deps.bzl", "pull_monitor_dependencies")
+pull_monitor_dependencies()
+
+load("//kube-dns:deps.bzl", "kube_dns_dependencies")
+kube_dns_dependencies()
+
+load("//kube-state-metrics:deps.bzl", "kube_state_metrics_dependencies")
+kube_state_metrics_dependencies()
+
+load("//oci-tools:deps.bzl", "oci_tools_dependencies")
+oci_tools_dependencies()
+
+load("//runc:deps.bzl", "runc_dependencies")
+runc_dependencies()
