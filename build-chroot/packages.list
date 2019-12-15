@@ -14,10 +14,10 @@ libarchive-tools zip python3 python3-yaml python3-requests
 rsync
 
 # homeworld-rkt
-autoconf automake bc binutils bison cpio file flex git gnupg libacl1-dev libcap-dev libelf-dev libglib2.0-dev libpcre3-dev libpixman-1-dev libreadline-dev libssl-dev libsystemd-dev libxml2 libxml2-dev locales openssl patch pkg-config python python3 realpath squashfs-tools wget xz-utils zlib1g-dev zlibc
+autoconf automake bc binutils bison cpio file flex git gnupg libacl1-dev libcap-dev libelf-dev libglib2.0-dev libpcre3-dev libpixman-1-dev libreadline-dev libssl-dev libsystemd-dev libxml2 libxml2-dev locales openssl patch pkg-config python python3 squashfs-tools wget xz-utils zlib1g-dev zlibc
 
 # debian images
-debootstrap devscripts fakeroot fakechroot
+debootstrap devscripts fakeroot fakechroot libtinfo5
 
 # container builds
 systemd-container
@@ -38,7 +38,10 @@ python-crcmod python-pip python-setuptools python-wheel rsync ssh
 psmisc
 
 # bazel
-openjdk-8-jdk g++ unzip bash-completion
+openjdk-11-jdk g++ unzip bash-completion
+
+# needed for unknown reasons
+perl-openssl-defaults dbus-user-session
 
 # cri-o
-libdevmapper-dev libglib2.0-dev btrfs-tools libostree-dev libgpgme-dev libseccomp-dev
+libdevmapper-dev libglib2.0-dev btrfs-progs libostree-dev libgpgme-dev libseccomp-dev libbtrfs-dev
