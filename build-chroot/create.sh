@@ -30,7 +30,12 @@ then
 fi
 
 mkdir -m 'u=rwx,go=rx' "${HOMEWORLD_CHROOT}"
-sudo debootstrap --include="$(grep -vE '^#' packages.list | tr '[:space:]' '\n' | sed '/^$/d' | tr '\n' ,)" stretch "${HOMEWORLD_CHROOT}" http://debian.csail.mit.edu/debian/
+if ! sudo debootstrap --include="$(grep -vE '^#' packages.list | tr '[:space:]' '\n' | sed '/^$/d' | tr '\n' ,)" stretch "${HOMEWORLD_CHROOT}" http://debian.csail.mit.edu/debian/
+then
+    echo "debootstrap failed; printing log" 1>&2
+    cat "${HOMEWORLD_CHROOT}/debootstrap/debootstrap.log"
+    exit 1
+fi
 # TODO: build our own Bazel, rather than grabbing it from Google's repo
 ./install-bazel.sh --root "${HOMEWORLD_CHROOT}"
 sudo chroot "${HOMEWORLD_CHROOT}" groupadd "$(id -gn)" -g "$(id -g)"
