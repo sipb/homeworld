@@ -38,6 +38,8 @@ then
 fi
 # TODO: build our own Bazel, rather than grabbing it from Google's repo
 ./install-bazel.sh --root "${HOMEWORLD_CHROOT}"
+# TODO: remove version pinning once debootstrap bug #946783 is fixed
+./install-debootstrap.sh --root "${HOMEWORLD_CHROOT}"
 sudo chroot "${HOMEWORLD_CHROOT}" groupadd "$(id -gn)" -g "$(id -g)"
 sudo chroot "${HOMEWORLD_CHROOT}" useradd -m -u "$(id -u)" -g "$(id -g)" "$USER" -s "/bin/bash"
 sudo chroot "${HOMEWORLD_CHROOT}" pip install -U gsutil pyasn1
