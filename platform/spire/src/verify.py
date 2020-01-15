@@ -141,7 +141,6 @@ def check_online():
 def check_systemd_services():
     "verify that systemd services are healthy and working"
     config = configuration.get_config()
-    expect_prometheus_query_exact('sum(node_systemd_system_running)', len(config.nodes), "service management is running")
     servicemap = yaml.safe_load(resources.get_resource("servicemap.yaml"))
     for service in servicemap["services"]:
         name = service["name"]
@@ -162,6 +161,7 @@ def check_systemd_services():
                 # fine -- as long as we didn't expect it to be running anyway.
                 accept_missing=(not should_run))
     print("validated state of %d services" % len(servicemap["services"]))
+    expect_prometheus_query_exact('sum(node_systemd_system_running)', len(config.nodes), "service management is running")
 
 
 @command.wrap
