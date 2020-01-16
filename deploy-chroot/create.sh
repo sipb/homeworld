@@ -31,7 +31,7 @@ fi
 
 mkdir -m 'u=rwx,go=rx' "${HOMEWORLD_DEPLOY_CHROOT}"
 
-sudo debootstrap --include="$(grep -vE '^#' packages.list | tr '[:space:]' '\n' | sed '/^$/d' | tr '\n' ,)" stretch "${HOMEWORLD_DEPLOY_CHROOT}" http://debian.csail.mit.edu/debian/
+sudo debootstrap --include="$(grep -vE '^#' packages.list | tr '[:space:]' '\n' | sed '/^$/d' | tr '\n' ,)" buster "${HOMEWORLD_DEPLOY_CHROOT}" http://debian.csail.mit.edu/debian/
 sudo chroot "${HOMEWORLD_DEPLOY_CHROOT}" apt-get update
 sudo chroot "${HOMEWORLD_DEPLOY_CHROOT}" groupadd "$(id -gn)" -g "$(id -g)"
 sudo chroot "${HOMEWORLD_DEPLOY_CHROOT}" useradd -m -u "$(id -u)" -g "$(id -g)" -G kvm "$USER" -s "/bin/bash"
