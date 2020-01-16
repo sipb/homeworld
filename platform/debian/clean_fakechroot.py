@@ -23,3 +23,10 @@ for root, dirs, files in os.walk(rootfs):
             continue
         os.remove(path)
         os.symlink(os.path.join("/", rootrel), path)
+
+# We have a Jenkins-only bug where /proc is a symlink to itself in the flannel
+# container, which breaks a lot of things. We don't know why, exactly, this is
+# happening -- but we need to mitigate it.
+if os.path.islink(os.path.join(rootfs, "proc")):
+    os.unlink(os.path.join(rootfs, "proc"))
+    os.mkdir(os.path.join(rootfs, "proc"))
