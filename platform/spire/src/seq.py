@@ -13,6 +13,7 @@ import verify
 @command.wrapseq
 def sequence_keysystem(ops: command.Operations, skip_verify_keygateway: bool=False) -> None:
     "set up and verify functionality of the keyserver and keygateway"
+    ops.add_command(iterative_verifier(verify.check_supervisor_accessible, 30.0))
     ops.add_subcommand(setup.setup_keyserver)
     ops.add_command(iterative_verifier(verify.check_keystatics, 60.0))
     ops.add_subcommand(setup.admit_keyserver)

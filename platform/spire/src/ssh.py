@@ -10,8 +10,7 @@ SCP_BASE = ["scp", "-o", "StrictHostKeyChecking=yes", "-o", "ConnectTimeout=1"]
 
 
 def ssh_get_login(node: configuration.Node) -> str:  # returns root@<HOSTNAME>.<EXTERNAL_DOMAIN>
-    config = configuration.get_config()
-    return "root@%s.%s" % (node.hostname, config.external_domain)
+    return "root@%s" % node.external_dns_name()
 
 
 def build_ssh(node: configuration.Node, *script: str) -> list:

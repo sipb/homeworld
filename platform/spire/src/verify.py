@@ -128,8 +128,15 @@ def expect_prometheus_query_bool(query, message, accept_missing=False):
 
 
 @command.wrap
+def check_supervisor_accessible():
+    "check whether the supervisor node is accessible over ssh"
+    config = configuration.get_config()
+    ssh.check_ssh(config.keyserver, "true")
+
+
+@command.wrap
 def check_online():
-    "check whether a server (or all servers) is/are accepting SSH connections"
+    "check whether all servers are accepting SSH connections"
     config = configuration.get_config()
     nodes_expected = len(config.nodes)
     expect_prometheus_query_exact('sum(up{job="node-resources"})', nodes_expected, "nodes are online")
@@ -330,6 +337,7 @@ def check_user_grant():
 main_command = command.Mux("commands about verifying the state of a cluster", {
     "keystatics": check_keystatics,
     "keygateway": check_keygateway,
+    "supervisor-accessible": check_supervisor_accessible,
     "online": check_online,
     "ssh-with-certs": check_ssh_with_certs,
     "supervisor-certs": check_certs_on_supervisor,
