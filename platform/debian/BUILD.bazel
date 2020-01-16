@@ -110,3 +110,7 @@ homeworld_oci(
     exec = ["/bin/bash"],
     visibility = ["//visibility:public"],
 )
+
+exports_files([
+    "clean_fakechroot.py",
+])

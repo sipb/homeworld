@@ -145,6 +145,7 @@ def debinstall(name, base, packages, visibility=None):
             "tar -xzf '$<' -C \"$${BTEMP}\"",
             "fakeroot fakechroot chroot \"$${BTEMP}\" apt-get update",
             "fakeroot fakechroot chroot \"$${BTEMP}\" apt-get install -y -- " + " ".join([_escape(pkg) for pkg in packages]),
+            "$(location " + CLEAN_FAKECHROOT + ") \"$${BTEMP}\"",
             "tar -czf '$@' --hard-dereference -C \"$${BTEMP}\" $$(ls -A \"$${BTEMP}\")",
             "rm -rf \"$${BTEMP}\"",
         ]
@@ -152,6 +153,7 @@ def debinstall(name, base, packages, visibility=None):
             name = name + "-preclean.tgz-rule",
             outs = [name + "-preclean.tgz"],
             srcs = [base],
+            tools = [CLEAN_FAKECHROOT],
             cmd = "\n".join(cmds),
             local = 1,
         )
