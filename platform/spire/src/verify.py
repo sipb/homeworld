@@ -128,10 +128,10 @@ def expect_prometheus_query_bool(query, message, accept_missing=False):
 
 
 @command.wrap
-def check_supervisor_accessible():
+def check_supervisor_accessible(insecure: bool=False):
     "check whether the supervisor node is accessible over ssh"
     config = configuration.get_config()
-    ssh.check_ssh(config.keyserver, "true")
+    ssh.check_ssh(config.keyserver, "true", insecure=insecure)
 
 
 @command.wrap

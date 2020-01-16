@@ -6,6 +6,7 @@ import configuration
 import util
 
 SSH_BASE = ["ssh", "-o", "StrictHostKeyChecking=yes", "-o", "ConnectTimeout=1"]
+SSH_BASE_INSECURE = ["ssh", "-o", "StrictHostKeyChecking=no", "-o", "CheckHostIP=no", "-o", "UserKnownHostsFile=/dev/null", "-o", "ConnectTimeout=1"]
 SCP_BASE = ["scp", "-o", "StrictHostKeyChecking=yes", "-o", "ConnectTimeout=1"]
 
 
@@ -13,16 +14,16 @@ def ssh_get_login(node: configuration.Node) -> str:  # returns root@<HOSTNAME>.<
     return "root@%s" % node.external_dns_name()
 
 
-def build_ssh(node: configuration.Node, *script: str) -> list:
-    return SSH_BASE + [ssh_get_login(node), "--"] + list(script)
+def build_ssh(node: configuration.Node, *script: str, insecure=False) -> list:
+    return (SSH_BASE_INSECURE if insecure else SSH_BASE) + [ssh_get_login(node), "--"] + list(script)
 
 
 def build_scp_up(node: configuration.Node, source_path: str, dest_path: str) -> list:
     return SCP_BASE + ["--", source_path, ssh_get_login(node) + ":" + dest_path]
 
 
-def check_ssh(node: configuration.Node, *script: str) -> None:
-    subprocess.check_call(build_ssh(node, *script))
+def check_ssh(node: configuration.Node, *script: str, insecure=False) -> None:
+    subprocess.check_call(build_ssh(node, *script, insecure=insecure))
 
 
 def check_ssh_output(node: configuration.Node, *script: str) -> bytes:

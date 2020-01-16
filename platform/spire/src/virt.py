@@ -15,6 +15,7 @@ import infra
 import iso
 import seq
 import util
+import verify
 
 
 def get_bridge(ip):
@@ -348,11 +349,27 @@ class VirtualMachine:
             log_output.close()
             raise e
 
+    def wait_and_pull_supervisor_key(self, fingerprints):
+        last_error = None
+        for i in range(60):
+            time.sleep(1)
+            try:
+                # needs to be insecure because we aren't ready to validate the new hostkey yet
+                verify.check_supervisor_accessible(insecure=True)
+                break
+            except Exception as e:
+                print("[delayed supervisor key pull due to error]")
+                last_error = e
+        else:
+            print("[supervisor key pull timeout reached; key pull will likely fail]")
+            print("[last error: %s]" % last_error)
+        access.pull_supervisor_key(fingerprints)
+
     def boot_launch(self, autoadd_fingerprint=False):
         if not autoadd_fingerprint:
             return self.boot_with_io("launch")
         else:
-            extractor = FingerprintExtractor(access.pull_supervisor_key)
+            extractor = FingerprintExtractor(self.wait_and_pull_supervisor_key)
             self.boot_with_io("launch", extractor.process_line)
             extractor.wait()
 
