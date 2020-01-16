@@ -225,8 +225,28 @@ def check_pull():
     config = configuration.get_config()
     node_count = len([node for node in config.nodes if node.kind != "supervisor"])
     expect_prometheus_query_exact("sum(oci_pull_check)", node_count, "nodes are pulling ocis properly")
-    expect_prometheus_query_exact("sum(oci_exec_check)", node_count, "nodes are launching ocis properly")
     print("oci pulling seems to work!")
+
+
+@command.wrap
+def check_exec():
+    "verify that container execution on the cluster nodes is functioning"
+
+    config = configuration.get_config()
+    node_count = len([node for node in config.nodes if node.kind != "supervisor"])
+    expect_prometheus_query_exact("sum(oci_pull_check)", node_count, "nodes are pulling ocis properly")
+    expect_prometheus_query_exact("sum(oci_exec_check)", node_count, "nodes are launching ocis properly")
+    print("oci execution seems to work!")
+
+
+@command.wrap
+def check_flannel_pods():
+    "verify that the flannel pods are running"
+
+    config = configuration.get_config()
+    node_count = len([node for node in config.nodes if node.kind != "supervisor"])
+    expect_prometheus_query_exact('sum(kube_daemonset_status_number_ready{daemonset="kube-flannel-ds"})', node_count, "flannel pods are ready")
+    print("flannel's pods are ready!")
 
 
 @command.wrap

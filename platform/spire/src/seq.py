@@ -104,7 +104,9 @@ def sequence_cluster(ops: command.Operations) -> None:
     ops.add_command(iterative_verifier(verify.check_kube_health, 120.0))
 
     ops.add_command(iterative_verifier(verify.check_pull, 120.0))
-    ops.add_command(iterative_verifier(verify.check_flannel, 210.0))
+    ops.add_command(iterative_verifier(verify.check_flannel_pods, 210.0))
+    ops.add_command(iterative_verifier(verify.check_exec, 120.0))
+    ops.add_command(iterative_verifier(verify.check_flannel, 120.0))
     ops.add_command(iterative_verifier(verify.check_dns, 120.0))
 
     if verify.is_user_grant_verifiable():
