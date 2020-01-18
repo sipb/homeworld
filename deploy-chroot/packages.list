@@ -12,3 +12,6 @@ linux-image-amd64
 
 # ssh
 ssh
+
+# gpg
+gnupg
