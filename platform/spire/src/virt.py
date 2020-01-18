@@ -230,6 +230,16 @@ def net_context():
         net_down_inner(gateway_ip, taps, bridge_name, access_name, hosts, fail=True)
 
 
+def modprobe(*modules):
+    loaded = [l.split()[0] for l in subprocess.check_output(["lsmod"]).decode().split("\n") if l.strip()]
+    needed = [mod for mod in modules if mod not in loaded]
+    if needed:
+        print("loading modules", *needed)
+        sudo("modprobe", "-a", "--", *needed)
+    else:
+        print("modules already loaded:", *modules)
+
+
 class TerminationContext:
     def __init__(self):
         self._sessions_lock = threading.Lock()
@@ -326,8 +336,8 @@ class VirtualMachine:
         return args
 
     def check_module_loaded(self):
-        # TODO: don't blindly load kvm-intel; check type of system first
-        sudo("modprobe", "kvm", "kvm-intel")
+        # TODO: don't blindly load kvm_intel; check type of system first
+        modprobe("kvm", "kvm_intel")
 
     def boot_with_io(self, phase, output_callback=None, text: bytes=None, delay=None):
         self.check_module_loaded()
