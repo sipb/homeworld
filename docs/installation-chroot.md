@@ -1,6 +1,6 @@
 # Installation in a chroot
 
-You will need a Debian stretch installation or VM --
+You will need a Debian stretch (or buster) installation or VM --
 note that we do not support any other environments.
 Hyades project members can use the rhombi.mit.edu machine for this.
 

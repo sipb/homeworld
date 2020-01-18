@@ -1,3 +1,5 @@
+NOTE: this guide was written for stretch, but we should be using buster in the future
+
 === Machine setup ===
 - Download Debian netinst, check sha512sum (and signature of sha512sum), use Startup Disk Creator (preinstalled on Ubuntu) to make flash drive
 - In BIOS (F2, and then F2 again later), set flash drive mode to hard disk and put flash drive to the top of boot sequence

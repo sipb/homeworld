@@ -1,6 +1,6 @@
 # Prerequisites
 
-We only officially support builds on a Debian 9 (Stretch) host system.
+We only officially support builds on a Debian 9 (Stretch) or Debian 10 (Buster) host system.
 You can try something else, but if it breaks, you get to keep all the pieces.
 
 Install the following on your host system:

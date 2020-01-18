@@ -4,7 +4,7 @@ There are a couple of different ways to do the various deployment steps,
 so the docs are broken up into a few different files.
 The general skeleton is:
 
-- Obtain a Debian stretch environment.
+- Obtain a Debian buster environment.
   You may use rhombi.mit.edu for chroot installation.
 - Prepare a deployment environment: any of
   - [Direct installation](installation-direct.md)
