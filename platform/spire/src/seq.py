@@ -61,12 +61,12 @@ def sequence_supervisor(ops: command.Operations, skip_verify_keygateway: bool=Fa
             ops.add_subcommand(infra.infra_sync, node.hostname)
 
 @command.wrapseq
-def sequence_redeploy_config(ops: setup.Operations) -> None:
+def sequence_redeploy_config(ops: command.Operations) -> None:
     "redeploy a cluster configuration to a running cluster"
     # push new config to the keyserver
-    ops.add_subcommand(setup.redeploy_keyserver)
+    setup.redeploy_keyserver(ops)
     # push new config to each keyclient and restart
-    ops.add_subcommand(setup.redeploy_keyclients)
+    setup.redeploy_keyclients(ops)
 
 
 class IterativeVerifier(command.Simple):

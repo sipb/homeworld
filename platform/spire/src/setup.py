@@ -70,31 +70,32 @@ def setup_keyserver(ops: command.Operations) -> None:
         ssh_cmd(ops, "enable keyserver on @HOST", node, "systemctl", "enable", "keyserver.service")
         ssh_cmd(ops, "start keyserver on @HOST", node, "systemctl", "restart", "keyserver.service")
 
-def redeploy_keyserver(ops: Operations) -> None:
+def redeploy_keyserver(ops: command.Operations) -> None:
     config = configuration.get_config()
     for node in config.nodes:
         if node.kind != "supervisor":
             continue
         # delete the existing configs
-        ops.ssh_rm("delete existing cluster config from @HOST", node, STATICS_DIR + "/cluster.conf")
-        ops.ssh_rm("delete existing keyserver config from @HOST", node, CONFIG_DIR + "/setup.yaml")
+        ssh_cmd(ops, "delete existing cluster config from @HOST", node, "rm", "-f", STATICS_DIR + "/cluster.conf")
+        ssh_cmd(ops, "delete existing keyserver config from @HOST", node,"rm", "-f", CONFIG_DIR + "/setup.yaml")
         # redeploy new config
-        ops.ssh_upload_bytes("reupload cluster config to @HOST", node,
+        ssh_upload_bytes(ops, "reupload cluster config to @HOST", node,
             configuration.get_cluster_conf().encode(), STATICS_DIR + "/cluster.conf")
-        ops.ssh_upload_path("upload cluster setup to @HOST", node,
+        ssh_upload_path(ops, "upload cluster setup to @HOST", node,
                             configuration.Config.get_setup_path(), CONFIG_DIR + "/setup.yaml")
         # restart the keyserver
-        ops.ssh("restart keyserver on @HOST", node, "systemctl", "restart", "keyserver.service")
+        ssh_cmd(ops, "restart keyserver on @HOST", node, "systemctl", "restart", "keyserver.service")
 
-def redeploy_keyclients(ops: Operations) -> None:
+def redeploy_keyclients(ops: command.Operations) -> None:
     config = configuration.get_config()
     for node in config.nodes:
-        # delete existing cluster configuration from non-supervisor nodes
+        # do not delete the cluster.conf on the supervisor because the
+        # keyclient and keyserver on the supervisor use the same cluster.conf
         if node.kind != "supervisor":
-            ops.ssh_rm("delete existing cluster config from @HOST", node, CONFIG_DIR + "/cluster.conf")
-        ops.ssh_rm("delete existing local config from @HOST", node, CONFIG_DIR + "/local.conf")
+            ssh_cmd(ops, "delete existing cluster config from @HOST", node, "rm", "-f", CONFIG_DIR + "/cluster.conf")
+        ssh_cmd(ops, "delete existing local config from @HOST", node, "rm", "-f", CONFIG_DIR + "/local.conf")
         # restart local keyclient (will regenerate configs on restart)
-        ops.ssh("restart keyclient daemon on @HOST", node, "systemctl", "restart", "keyclient.service")
+        ssh_cmd(ops, "restart keyclient daemon on @HOST", node, "systemctl", "restart", "keyclient.service")
 
 @command.wrapop
 def admit_keyserver(ops: command.Operations) -> None:
