@@ -340,7 +340,7 @@ class VirtualMachine:
         # TODO: don't blindly load kvm_intel; check type of system first
         modprobe("kvm", "kvm_intel")
 
-    def boot_with_io(self, phase, output_callback=None, text: bytes=None, delay=None):
+    def boot_with_io(self, phase, output_callback=None, text: bytes=None, delay=None, chardelay=None):
         self.check_module_loaded()
 
         log_output = open("log.%s.%s" % (self.node.hostname, phase), "wb")
@@ -351,7 +351,8 @@ class VirtualMachine:
                 output = log_output
 
             if text:
-                stdin = delayed_yielder(delay, text)
+                assert delay is not None and chardelay is not None
+                stdin = delayed_yielder(delay, chardelay, text)
             else:
                 stdin = None
 
@@ -397,7 +398,7 @@ class VirtualMachine:
         self.create_disk()
         # TODO: do something better than a ten-second delay to detect "boot:" prompt
         bootline = ("install netcfg/get_ipaddress=%s homeworld/asktoken=%s\n" % (self.node.ip, bootstrap_token)).encode()
-        if self.boot_with_io("install", text=bootline, delay=10.0).wait():
+        if self.boot_with_io("install", text=bootline, delay=10.0, chardelay=0.1).wait():
             command.fail("qemu virtual machine failed")
 
     def create_disk(self, size_gb=25):
@@ -503,9 +504,15 @@ class LineCollector:
             self.buffer = b""
 
 
-def delayed_yielder(delay, value: bytes):
+def delayed_yielder(delay, chardelay, value: bytes):
     time.sleep(delay)
-    yield value
+    first = True
+    for c in value:
+        if first:
+            first = False
+        else:
+            time.sleep(chardelay)
+        yield bytes([c])
 
 
 class FingerprintExtractor:
