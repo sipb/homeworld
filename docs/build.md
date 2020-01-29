@@ -67,6 +67,14 @@ Now edit the branches.yaml to include the branch name, and to have the right upl
           method: rsync
           rsync-target: /var/www/html/homeworld-apt/cela/test1
 
+Since your rsync is connecting to RHOMBI itself, outside the build-chroot, you will need to set up a
+bind mount so that the folder is accessible. You can configure the build-chroot's enter.sh to do this
+with an environment variable:
+
+    $ export HOMEWORLD_UPLOAD_BIND=/var/www/html/homeworld-apt/$USER/
+
+(You should probably put that in your .profile.)
+
 Now, you can start your build.
 
 ## Using Google Cloud Storage
