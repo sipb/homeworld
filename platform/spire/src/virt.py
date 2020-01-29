@@ -290,7 +290,7 @@ class DebugContext:
 
 
 class VirtualMachine:
-    def __init__(self, node, tc: TerminationContext, cd=None, cpus=12, memory=2500, cdrom_install=False):
+    def __init__(self, node, tc: TerminationContext, cd=None, cpus=12, memory=2500, cdrom_install=False, debug_qemu=False):
         self.node = node
         self.cd = cd
         self.cpus = cpus
@@ -298,6 +298,7 @@ class VirtualMachine:
         self.cdrom_install = cdrom_install
         self.netif = get_node_tap(node)
         self.tc = tc
+        self.debug_qemu = debug_qemu
 
     @property
     def hostname(self):
@@ -416,8 +417,10 @@ class QEMUSession:
             stdin_mechanism = subprocess.DEVNULL
         else:
             stdin_mechanism = subprocess.PIPE
-        self.process = subprocess.Popen(vm.generate_qemu_args(),
-                                        stdin=stdin_mechanism, stdout=subprocess.PIPE, bufsize=0)
+        qemu_args = vm.generate_qemu_args()
+        if vm.debug_qemu:
+            print("QEMU: $", " ".join("'%s'" % arg for arg in qemu_args))
+        self.process = subprocess.Popen(qemu_args, stdin=stdin_mechanism, stdout=subprocess.PIPE, bufsize=0)
 
         # make sure that all launched processes will die if we do
         atexit.register(self.terminate)
@@ -532,21 +535,21 @@ def qemu_check_nested_virt():
 
 
 @command.wrapseq
-def auto_install_supervisor(ops: command.Operations, tc: TerminationContext, supervisor: configuration.Node, install_iso: str, cdrom_install: bool=False):
-    vm = VirtualMachine(supervisor, tc, install_iso, cdrom_install=cdrom_install)
+def auto_install_supervisor(ops: command.Operations, tc: TerminationContext, supervisor: configuration.Node, install_iso: str, cdrom_install: bool=False, debug_qemu=False):
+    vm = VirtualMachine(supervisor, tc, install_iso, cdrom_install=cdrom_install, debug_qemu=debug_qemu)
     ops.add_operation("install supervisor node (this may take several minutes)", vm.boot_install_supervisor, supervisor)
 
 
 @command.wrapseq
-def auto_launch_supervisor(ops: command.Operations, tc: TerminationContext, supervisor: configuration.Node):
+def auto_launch_supervisor(ops: command.Operations, tc: TerminationContext, supervisor: configuration.Node, debug_qemu=False):
     # TODO: annotations, so that this can be --dry-run'd
-    vm = VirtualMachine(supervisor, tc)
+    vm = VirtualMachine(supervisor, tc, debug_qemu=debug_qemu)
     ops.add_operation("start up supervisor node", lambda: vm.boot_launch(autoadd_fingerprint=True))
 
 
 @command.wrapseq
-def auto_install_nodes(ops: command.Operations, tc: TerminationContext, nodes: list, install_iso: str, cdrom_install: bool=False):
-    vms = [VirtualMachine(node, tc, install_iso, cdrom_install=cdrom_install) for node in nodes]
+def auto_install_nodes(ops: command.Operations, tc: TerminationContext, nodes: list, install_iso: str, cdrom_install: bool=False, debug_qemu=False):
+    vms = [VirtualMachine(node, tc, install_iso, cdrom_install=cdrom_install, debug_qemu=debug_qemu) for node in nodes]
 
     def boot_install_and_admit_all():
         with concurrent.futures.ThreadPoolExecutor(len(vms)) as executor:
@@ -558,14 +561,14 @@ def auto_install_nodes(ops: command.Operations, tc: TerminationContext, nodes: l
 
 
 @command.wrapseq
-def auto_launch_nodes(ops: command.Operations, tc: TerminationContext, nodes: list):
+def auto_launch_nodes(ops: command.Operations, tc: TerminationContext, nodes: list, debug_qemu=False):
     for node in nodes:
-        vm = VirtualMachine(node, tc)
+        vm = VirtualMachine(node, tc, debug_qemu=debug_qemu)
         ops.add_operation("start up node {}".format(node), vm.boot_launch)
 
 
 @command.wrapseq
-def auto_install(ops: command.Operations, authorized_key=None, persistent: bool=False, cdrom_install: bool=False):
+def auto_install(ops: command.Operations, authorized_key=None, persistent: bool=False, cdrom_install: bool=False, debug_qemu: bool=False):
     "complete cluster installation and launch"
     if authorized_key is None:
         if "HOME" not in os.environ:
@@ -579,27 +582,27 @@ def auto_install(ops: command.Operations, authorized_key=None, persistent: bool=
     with ops.context("networking", net_context()):
         with ops.context("termination", TerminationContext()) as tc:
             with ops.context("debug shell", DebugContext(persistent)):
-                ops.add_subcommand(auto_install_supervisor, tc, config.keyserver, iso_path, cdrom_install=cdrom_install)
-                ops.add_subcommand(auto_launch_supervisor, tc, config.keyserver)
+                ops.add_subcommand(auto_install_supervisor, tc, config.keyserver, iso_path, cdrom_install=cdrom_install, debug_qemu=debug_qemu)
+                ops.add_subcommand(auto_launch_supervisor, tc, config.keyserver, debug_qemu=debug_qemu)
                 ops.add_subcommand(seq.sequence_supervisor)
 
                 other_nodes = [n for n in config.nodes if n != config.keyserver]
-                ops.add_subcommand(auto_install_nodes, tc, other_nodes, iso_path, cdrom_install=cdrom_install)
-                ops.add_subcommand(auto_launch_nodes, tc, other_nodes)
+                ops.add_subcommand(auto_install_nodes, tc, other_nodes, iso_path, cdrom_install=cdrom_install, debug_qemu=debug_qemu)
+                ops.add_subcommand(auto_launch_nodes, tc, other_nodes, debug_qemu=debug_qemu)
 
                 ops.add_subcommand(seq.sequence_cluster)
 
 
 @command.wrapseq
-def auto_launch(ops: command.Operations):
+def auto_launch(ops: command.Operations, debug_qemu: bool=False):
     "launch installed cluster"
     config = configuration.get_config()
     with ops.context("networking", net_context()):
         with ops.context("termination", TerminationContext()) as tc:
             with ops.context("debug shell", DebugContext(True)):
-                ops.add_subcommand(auto_launch_supervisor, tc, config.keyserver)
+                ops.add_subcommand(auto_launch_supervisor, tc, config.keyserver, debug_qemu=debug_qemu)
                 other_nodes = [n for n in config.nodes if n != config.keyserver]
-                ops.add_subcommand(auto_launch_nodes, tc, other_nodes)
+                ops.add_subcommand(auto_launch_nodes, tc, other_nodes, debug_qemu=debug_qemu)
 
 
 main_command = command.Mux("commands to run local testing VMs", {
