@@ -22,12 +22,57 @@ Set up your build chroot:
 
 You might consider adding the variable declaration to your ~/.profile.
 
+If you're using RHOMBI, you should place your chroots in /opt/cluster, which is a larger disk.
+
+    $ export HOMEWORLD_CHROOT="/opt/cluster/$USER/build-chroot"
+
+(Ask for your directory to be created -- or create it yourself -- if it doesn't exist.)
+
 # Setting up a build branch
 
-A build branch will, first and foremost, require a Google Cloud Storage bucket to upload into.
-(rsync is also supported, and others are planned, but these are not documented here.)
+You can either set up a Google Cloud Storage bucket to serve your uploaded build artifacts, or you can
+set up an rsyncable directory. RHOMBI is already set up to serve artifacts, so if you have access to
+that machine, you should use that.
 
-You should set up your bucket to serve files with a public default ACL:
+## Using rsync on RHOMBI
+
+First, you'll need a directory under `/var/www/html/homeworld-apt/` to be created for your user.
+
+You'll need to come up with a branch name, like `test1`. You probably want to create a directory to
+serve the artifacts for that particular branch:
+
+    $ mkdir /var/www/html/homeworld-apt/$USER/test1
+
+Then, you should generate a PGP signing key for uploading:
+
+    $ gpg --full-gen-key
+    Expire: 0 = key does not expire
+    Real name: Homeworld Development Signing Key
+    Email address: sipb-hyades-root@mit.edu
+    Comment: (YOUR KERBEROS USERNAME)
+
+Create the branch config from the template:
+
+    $ (cd platform/upload && cp branches.yaml.example branches.yaml)
+
+Run `gpg --list-keys --keyid-format none` to find the full-length fingerprint of the key you generated.
+
+Now edit the branches.yaml to include the branch name, and to have the right upload and download links:
+
+    branches:
+      - name: test1
+        signing-key: 1ECADC3E4D93A543D39639621BBDA050BADBB86A
+        download: http://rhombi.mit.edu/homeworld-apt/cela/test1
+        upload:
+          method: rsync
+          rsync-target: /var/www/html/homeworld-apt/cela/test1
+
+Now, you can start your build.
+
+## Using Google Cloud Storage
+
+You'll need to start by creating a Google Cloud Storage bucket. You should set it up to serve files
+with a public default ACL:
 
     $ gsutil defacl ch -u AllUsers:R gs://<name of bucket>
 
@@ -67,6 +112,8 @@ Note that you will need upload access to the relevant Google Cloud Storage bucke
 To set the build branch to use:
 
     $ echo "<branch>" >platform/upload/BRANCH_NAME
+
+(Note that `BRANCH_NAME` is a literal; you should not replace it with the branch name.)
 
 To enter the build chroot, run:
 
