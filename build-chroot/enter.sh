@@ -39,4 +39,9 @@ then
 	UPLOAD_ARGS=("--bind" "${HOMEWORLD_UPLOAD_BIND}:${HOMEWORLD_UPLOAD_BIND}:norbind")
 fi
 
-sudo systemd-nspawn -E PATH="/usr/local/bin:/usr/bin:/bin" --register=no -M "$(basename "$HOMEWORLD_CHROOT")" --bind "$(pwd)":/homeworld:norbind "${UPLOAD_ARGS[@]}" -u "$USER" -a -D "$HOMEWORLD_CHROOT" bash -c "cd /homeworld/${ORIG_REL} && gpg-agent --daemon --keep-tty && exec bash"
+# gpg --list-keys is needed here for the situation where the host for the
+# chroot has an older version of GPG, and it needs to upgrade the database
+# before it can be used. if we don't do this, we experience strange issues with
+# bazel run //upload not being able to find a key that definitely exists.
+
+sudo systemd-nspawn -E PATH="/usr/local/bin:/usr/bin:/bin" --register=no -M "$(basename "$HOMEWORLD_CHROOT")" --bind "$(pwd)":/homeworld:norbind "${UPLOAD_ARGS[@]}" -u "$USER" -a -D "$HOMEWORLD_CHROOT" bash -c "cd /homeworld/${ORIG_REL} && gpg-agent --daemon --keep-tty && gpg --list-keys >/dev/null && exec bash"
