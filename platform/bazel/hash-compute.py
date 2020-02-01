@@ -25,7 +25,7 @@ def sha256_file(f):
 hashes = [sha256(b"".join(sha256(arg) for arg in args))]
 for input in files:
     if input == "--empty":
-        hashes.append("(empty)")  # not a real hash, but we're going to hash it again, so it's okay
+        hashes.append(b"(empty)")  # not a real hash, but we're going to hash it again, so it's okay
     else:
         with open(input, "rb") as f:
             hashes.append(sha256_file(f))
