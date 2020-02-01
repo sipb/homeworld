@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e -u
 
-VERSION="0.29.1"
+VERSION="1.0.1"
 
 cd "$(dirname "$0")"
 curl -L -o "bazel-${VERSION}.deb" "https://github.com/bazelbuild/bazel/releases/download/${VERSION}/bazel_${VERSION}-linux-x86_64.deb"
