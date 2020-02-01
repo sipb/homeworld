@@ -323,8 +323,9 @@ class VirtualMachine:
             args += ["-drive", "media=disk,file=" + self.hd]
             args += ["-boot", "c"]
         else:
-            # TODO: maybe set this readonly
-            args += ["-drive", "media=%s,format=raw,file=%s" % ("cdrom" if self.cdrom_install else "disk", self.cd)]
+            # snapshot means that the installer drive won't be modifiable by the VMs, which is useful in qemu 3.0.0+ to
+            # avoid locking problems when more than one VM is running at the same time.
+            args += ["-drive", "media=%s,format=raw,file=%s,snapshot=on" % ("cdrom" if self.cdrom_install else "disk", self.cd)]
             args += ["-drive", "media=disk,file=" + self.hd]
             args += ["-boot", "c"]
         args += ["-no-reboot"]
