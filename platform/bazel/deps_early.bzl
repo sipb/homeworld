@@ -4,5 +4,5 @@ def bazel_dependencies_early():
     git_repository(
         name = "io_bazel_rules_docker",
         remote = "https://github.com/bazelbuild/rules_docker",
-        commit = "968e0b7c8b3bc7e009531231ac926325cd2745bc",
+        commit = "5647f4f7a6b7c247e788675963e2e03a6e7156e1",
     )
