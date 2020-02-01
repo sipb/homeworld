@@ -109,12 +109,12 @@ def sequence_cluster(ops: command.Operations) -> None:
     ops.add_command(iterative_verifier(verify.check_flannel, 120.0))
     ops.add_command(iterative_verifier(verify.check_dns, 120.0))
 
-    if verify.is_user_grant_verifiable():
-        ops.add_operation("verify that user-grant is working properly", iterative_verifier(verify.check_user_grant, 120.0))
-    elif configuration.get_config().user_grant_domain != '':
+    if configuration.get_config().user_grant_domain == '':
+        ops.add_operation("skip verifying user-grant (not configured)", lambda: None)
+    elif not verify.is_user_grant_verifiable():
         ops.add_operation("skip verifying user-grant (no client certificate)", lambda: None)
     else:
-        ops.add_operation("skip verifying user-grant (not configured)", lambda: None)
+        ops.add_operation("verify that user-grant is working properly", iterative_verifier(verify.check_user_grant, 120.0))
 
 
 main_command = command.SeqMux("commands about running large sequences of cluster bring-up automatically", {
