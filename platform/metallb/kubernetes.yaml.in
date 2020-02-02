@@ -354,3 +354,16 @@ spec:
         # runAsUser: 65534
       serviceAccountName: controller
       terminationGracePeriodSeconds: 0
+# Above this line is adapted from metallb's manifest
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: metallb-system
+  name: config
+data:
+  config: |
+    address-pools:
+    - name: default
+      protocol: layer2
+      addresses: {{EXTERNAL_RANGES}}

@@ -13,6 +13,7 @@ addresses:
   cidr-nodes: 18.4.60.0/23
   cidr-pods: 172.18.0.0/16
   cidr-services: 172.28.0.0/16
+  external_ranges: []
   service-api: 172.28.0.1
   service-dns: 172.28.0.2
 

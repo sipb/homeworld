@@ -97,6 +97,8 @@ Sample section:
       cidr-nodes: 18.4.60.0/23
       cidr-pods: 172.18.0.0/16
       cidr-services: 172.28.0.0/16
+      external-ranges:
+        - 18.4.62.0/16
       service-api: 172.28.0.1
       service-dns: 172.28.0.2
 
@@ -120,6 +122,10 @@ Descriptions:
 
    This should be a subnet like `cidr-pods`, but can be smaller, because you will generally have many fewer services
    than pods. These are allocated to services across the cluster as needed.
+
+ * `external-ranges`: the list of publicly-addressible subnets that IP addresses for LoadBalancer services should be allocated out of.
+
+   These may overlap with `cidr-nodes`.
 
  * `service-api`: the service IP address for the Kubernetes apiserver within the cluster.
 

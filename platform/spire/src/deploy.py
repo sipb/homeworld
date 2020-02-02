@@ -63,7 +63,10 @@ def launch_dns_monitor(export: bool=False):
 @command.wrap
 def launch_metallb(export: bool=False):
     "deploy the specifications to run metallb"
-    launch_spec("metallb.yaml", export=export)
+    config = configuration.get_config()
+    launch_spec("//metallb:kubernetes.yaml", {
+        "EXTERNAL_RANGES": [str(x) for x in config.external_ranges],
+    }, export=export)
 
 
 @command.wrap

@@ -67,6 +67,7 @@ class Config:
         self.cidr_nodes = IPv4Network(kv["addresses"]["cidr-nodes"])
         self.cidr_pods = IPv4Network(kv["addresses"]["cidr-pods"])
         self.cidr_services = IPv4Network(kv["addresses"]["cidr-services"])
+        self.external_ranges = [IPv4Network(x) for x in kv["addresses"]["external-ranges"]]
         self.service_api = IPv4Address(kv["addresses"]["service-api"])
         self.service_dns = IPv4Address(kv["addresses"]["service-dns"])
 
