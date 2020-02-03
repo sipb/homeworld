@@ -22,7 +22,6 @@ sudo systemd-nspawn \
      --bind "$(pwd)":/homeworld:norbind \
      --bind "$HOMEWORLD_DIR":/cluster:norbind \
      --bind "$HOMEWORLD_DISASTER":/disaster:norbind \
-     --bind /dev/kvm:/dev/kvm:norbind \
      -u "$USER" \
      -a \
      -D "$HOMEWORLD_DEPLOY_CHROOT" \
