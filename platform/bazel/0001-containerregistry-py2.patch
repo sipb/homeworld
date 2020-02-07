@@ -1,0 +1,10 @@
+--- BUILD.bazel	2020-02-07 15:26:20.248601888 -0500
++++ BUILD.bazel	2020-02-07 15:37:28.144749987 -0500
+@@ -70,6 +70,7 @@
+     main = "tools/fast_pusher_.py",
+     visibility = ["//visibility:public"],
+     deps = [":containerregistry"],
++    python_version = "PY2",
+ )
+ 
+ par_binary(
