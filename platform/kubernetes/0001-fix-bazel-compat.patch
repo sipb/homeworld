@@ -1,0 +1,29 @@
+commit fe06de1864e72fbfcf1520ed74c290041beecea1
+Author: Sean Sullivan <seans@google.com>
+Date:   Fri Nov 1 14:35:04 2019 -0700
+
+    Fixes error in go_pkg()
+
+diff --git build/code_generation.bzl build/code_generation.bzl
+index eed223eb86b..2b13dc3f01f 100644
+--- build/code_generation.bzl
++++ build/code_generation.bzl
+@@ -41,7 +41,8 @@ def go_pkg(pkg):
+         ...
+     )
+     """
+-    return go_prefix + "/" + pkg.replace("staging/src/", "vendor/", maxsplit = 1)
++    count = 1
++    return go_prefix + "/" + pkg.replace("staging/src/", "vendor/", count)
+ 
+ def openapi_deps():
+     deps = [
+@@ -59,7 +60,7 @@ def applies(pkg, prefixes, default):
+             return True
+     return False
+ 
+-def gen_openapi(outs, output_pkg, include_pkgs=[], exclude_pkgs=[]):
++def gen_openapi(outs, output_pkg, include_pkgs = [], exclude_pkgs = []):
+     """Calls openapi-gen to produce the zz_generated.openapi.go file,
+     which should be provided in outs.
+     output_pkg should be set to the full go package name for this generated file.

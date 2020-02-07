@@ -159,4 +159,5 @@ def kubernetes_dependencies():
         sha256 = "3f430156abcee1930f1eb0e7bd853c0b411e33f8a43e5b52207c0a49d58eb85c",
         type = "tar.gz",
         urls = ["https://dl.k8s.io/v1.16.0/kubernetes-src.tar.gz"],
+        patches = ["//kubernetes:0001-fix-bazel-compat.patch"],
     )
