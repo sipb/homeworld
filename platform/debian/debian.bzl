@@ -11,9 +11,9 @@ def debootstrap_fetch(name, release, mirror, variant = None, extra = None, visib
 
     debootstrap_cmd = ["/usr/sbin/debootstrap", "--make-tarball=\"$@\"", "--components=main"]
     if variant:
-        debootstrap_cmd += [_escape("--variant=" + variant)]
+        debootstrap_cmd.append(_escape("--variant=" + variant))
     if extra:
-        debootstrap_cmd += [_escape("--include=" + ",".join(extra))]
+        debootstrap_cmd.append(_escape("--include=" + ",".join(extra)))
     debootstrap_cmd += [_escape(release), "$${BTEMP}", _escape(mirror)]
 
     cmds = [
@@ -33,9 +33,9 @@ def debootstrap_unpack(name, tarball, release, mirror, variant = None, extra = N
 
     debootstrap_cmd = ["fakeroot", "/usr/sbin/debootstrap", "--unpack-tarball=\"$$(realpath \"$<\")\"", "--components=main"]
     if variant:
-        debootstrap_cmd += [_escape("--variant=" + variant)]
+        debootstrap_cmd.append(_escape("--variant=" + variant))
     if extra:
-        debootstrap_cmd += [_escape("--include=" + ",".join(extra))]
+        debootstrap_cmd.append(_escape("--include=" + ",".join(extra)))
     debootstrap_cmd += ["--foreign", _escape(release), "$${BTEMP}", _escape(mirror)]
 
     cmds = [
@@ -61,7 +61,7 @@ def _debremove(root, packages, force_depends = None):
     cmd = ["PATH=$$PATH:/usr/local/sbin:/usr/sbin:/sbin", "fakeroot", "fakechroot", "dpkg", "--purge", "--root=" + root]
     cmd += ["--force-remove-essential", "--no-triggers"]
     if force_depends:
-        cmd += ["--force-depends"]
+        cmd.append("--force-depends")
     cmd += [_escape(package) for package in packages]
     return " ".join(cmd)
 
@@ -75,9 +75,9 @@ def debootstrap_configure(name, partial, remove = None, remove_dpkg = None, visi
         "DEBOOTSTRAP_DIR=\"$${BTEMP}/debootstrap\" fakeroot fakechroot /usr/sbin/debootstrap --second-stage --second-stage-target \"$${BTEMP}\"",
     ]
     if remove:
-        cmds += [
+        cmds.append(
             _debremove("\"$${BTEMP}\"", remove),
-        ]
+        )
     if remove_dpkg:
         cmds += [
             _debremove("\"$${BTEMP}\"", ["perl-base", "debconf"], force_depends = True),

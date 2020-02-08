@@ -13,7 +13,7 @@ def substitute(name, template, kvs = None, kfs = None, visibility = None):
             if "=" in k or "<" in k:
                 fail("cannot have = or < signs in keys")
             cmdline += " '" + escape_inner(k) + "<" + "$(location " + f + ")'"
-            srcs += [f]
+            srcs.append(f)
     cmdline += " >\"$@\""
     native.genrule(
         name = name + "-rule",

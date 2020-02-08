@@ -4,7 +4,7 @@ def _escape(s):
 def clean_paths(*paths):
     cmds = []
     for path in paths:
-        cmds += ["rm -rf " + _escape(path.lstrip("/"))]
+        cmds.append("rm -rf " + _escape(path.lstrip("/")))
     return cmds
 
 _OPTIONS = {

@@ -1,5 +1,3 @@
-load("@bazel_skylib//lib:paths.bzl", "paths")
-
 def sign(name, data, visibility = None):
     native.genrule(
         name = name,
@@ -30,7 +28,7 @@ def upload(name, new_version_cache, debs, visibility = None):
         data += debs
     else:
         args += ["--", "--"]
-    data += ["//upload:src/doupload.py"]
+    data.append("//upload:src/doupload.py")
 
     # this shouldn't be required, but there's apparently some sort of runfiles collection bug...?
     # this is the hint from https://github.com/bazelbuild/bazel/issues/1147#issuecomment-428698802 -- but I'm not sure

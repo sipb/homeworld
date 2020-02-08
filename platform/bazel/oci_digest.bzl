@@ -40,8 +40,8 @@ def _impl(ctx):
     tools += blobsums
 
     if image.get("legacy"):
-        arguments += ["--tarball=%s" % image["legacy"].path]
-        tools += [image["legacy"]]
+        arguments.append("--tarball=%s" % image["legacy"].path)
+        tools.append(image["legacy"])
 
     ctx.actions.run(
         outputs = [output],

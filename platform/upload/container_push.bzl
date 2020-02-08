@@ -24,8 +24,8 @@ def oci_pusher(name, packagebase, images, visibility = None):
             deps = [tar],
             visibility = visibility,
         )
-        depends += [subpackage]
-        packages += [deb]
+        depends.append(subpackage)
+        packages.append(deb)
 
     homeworld_deb(
         name = name,

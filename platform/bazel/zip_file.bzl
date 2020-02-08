@@ -261,7 +261,7 @@ def _map_sources(ctx, srcs, mappings):
             break
         if not zip_path:
             fail("no mapping matched: " + run_path)
-        mapped += [(file_.path, zip_path)]
+        mapped.append((file_.path, zip_path))
     for i in mappings_indexes:
         if not used[i]:
             fail('superfluous mapping: "%s" -> "%s"' % mappings[i])

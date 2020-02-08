@@ -64,7 +64,7 @@ def _impl(ctx):
         if len(target_files) != 1:
             fail("Each input must describe exactly one file.", attr = "files")
         file_inputs += target_files
-        args += ["--file=%s=%s" % (_quote(target_files[0].path), f_dest_path)]
+        args.append("--file=%s=%s" % (_quote(target_files[0].path), f_dest_path))
 
     arg_file = ctx.actions.declare_file(ctx.label.name + ".args")
     ctx.actions.write(arg_file, "\n".join(args))
