@@ -27,5 +27,8 @@ jobs:
           name: Check gpg key presence
           command: echo "gpg --list-secret-keys" | HOMEWORLD_CHROOT="$HOME/autobuild-chroot" USER="circleci" ./build-chroot/enter-ci.sh
       - run:
+          name: Run buildifier-check for bazel
+          command: echo "bazel run //:buildifier-check" | HOMEWORLD_CHROOT="$HOME/autobuild-chroot" USER="circleci" ./build-chroot/enter-ci.sh
+      - run:
           name: Launch build with bazel
           command: echo "bazel build //upload --verbose_failures" | HOMEWORLD_CHROOT="$HOME/autobuild-chroot" USER="circleci" ./build-chroot/enter-ci.sh
