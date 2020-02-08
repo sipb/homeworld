@@ -6,6 +6,15 @@ gazelle(name = "gazelle")
 
 buildifier(
     name = "buildifier-check",
+    lint_mode = "warn",
+    lint_warnings = [
+        "-function-docstring",
+        "-function-docstring-args",
+        "-function-docstring-header",
+        "-module-docstring",
+        "-print",
+        "-rule-impl-return",
+    ],
     mode = "check",
 )
 
