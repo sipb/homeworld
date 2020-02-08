@@ -11,6 +11,7 @@ buildifier(
 
 buildifier(
     name = "buildifier-fix",
+    lint_mode = "fix",
     mode = "fix",
 )
 
