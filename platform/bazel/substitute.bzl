@@ -1,6 +1,6 @@
 load("//bazel:util.bzl", "escape_inner")
 
-def substitute(name, template, kvs=None, kfs=None, visibility=None):
+def substitute(name, template, kvs = None, kfs = None, visibility = None):
     cmdline = "./$(location //bazel:substitute) $(location " + template + ")"
     if kvs:
         for k, v in kvs.items():

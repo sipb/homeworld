@@ -14,18 +14,18 @@ homeworld_oci(
         "@com_github_coreos_flannel//:flannel": "/usr/bin/flanneld",
         # TODO: ldflags: "-X github.com/coreos/flannel/version.Version=${FLANNEL_VER}"
     },
+    exec = ["/usr/bin/flanneld"],
+    visibility = ["//visibility:public"],
     deps = [
         ":debian-mini-with-iptables.tgz",
     ],
-    exec = ["/usr/bin/flanneld"],
-    visibility = ["//visibility:public"],
 )
 
 substitute(
     name = "kubernetes.yaml",
-    template = ":kubernetes.yaml.in",
     kfs = {
         "digest": ":oci.ocidigest",
     },
+    template = ":kubernetes.yaml.in",
     visibility = ["//visibility:public"],
 )

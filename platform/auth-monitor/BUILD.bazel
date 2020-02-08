@@ -33,9 +33,9 @@ homeworld_deb(
     data = {
         ":auth-monitor.service": "/usr/lib/systemd/system/auth-monitor.service",
     },
-    package = "homeworld-auth-monitor",
     depends = [
         "homeworld-keysystem",
     ],
+    package = "homeworld-auth-monitor",
     visibility = ["//visibility:public"],
 )

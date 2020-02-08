@@ -3,10 +3,10 @@ load("//bazel:package.bzl", "homeworld_deb")
 
 go_binary(
     name = "prometheus",
-    visibility = ["//visibility:public"],
     embed = [
         "@com_github_prometheus_prometheus//cmd/prometheus:go_default_library",
     ],
+    visibility = ["//visibility:public"],
     # TODO: include -tags netgo
 )
 

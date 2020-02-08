@@ -3,10 +3,10 @@ load("//bazel:package.bzl", "homeworld_deb")
 
 go_binary(
     name = "node_exporter",
-    visibility = ["//visibility:public"],
     embed = [
         "@com_github_prometheus_node_exporter//:go_default_library",
     ],
+    visibility = ["//visibility:public"],
     # TODO: include -tags 'netgo static_build'
 )
 

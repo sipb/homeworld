@@ -11,22 +11,22 @@ load("//bazel:package.bzl", "homeworld_deb")
 
 go_binary(
     name = "etcd",
-    visibility = ["//visibility:public"],
     embed = [
         "@com_github_coreos_etcd//:go_default_library",
     ],
     #    gc_linkopts = "${GO_LDFLAGS}",
     pure = "on",
+    visibility = ["//visibility:public"],
 )
 
 go_binary(
     name = "etcdctl",
-    visibility = ["//visibility:public"],
     embed = [
         "@com_github_coreos_etcd//etcdctl:go_default_library",
     ],
     #    gc_linkopts = "${GO_LDFLAGS}",
     pure = "on",
+    visibility = ["//visibility:public"],
 )
 
 homeworld_deb(

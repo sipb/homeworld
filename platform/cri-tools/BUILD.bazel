@@ -5,9 +5,9 @@ homeworld_deb(
     bin = {
         "@com_github_kubernetes_sigs_cri_tools//cmd/crictl": "/usr/bin/crictl",
     },
-    package = "homeworld-cri-tools",
     depends = [
         "homeworld-cri-o",
     ],
+    package = "homeworld-cri-tools",
     visibility = ["//visibility:public"],
 )

@@ -1,66 +1,89 @@
 load("//go:deps_early.bzl", "go_dependencies_early")
+
 go_dependencies_early()
 
 load("//go:deps.bzl", "go_dependencies")
+
 go_dependencies()
 
 load("//bazel:deps_early.bzl", "bazel_dependencies_early")
+
 bazel_dependencies_early()
 
 load("//bazel:deps.bzl", "bazel_dependencies")
+
 bazel_dependencies()
 
 load("//cni-plugins:deps.bzl", "cni_plugins_dependencies")
+
 cni_plugins_dependencies()
 
 load("//cri-o:deps.bzl", "cri_o_dependencies")
+
 cri_o_dependencies()
 
 load("//cri-tools:deps.bzl", "cri_tools_dependencies")
+
 cri_tools_dependencies()
 
 load("//spire/debian-iso:deps.bzl", "debian_iso_dependencies")
+
 debian_iso_dependencies()
 
 load("//dnsmasq:deps.bzl", "dnsmasq_dependencies")
+
 dnsmasq_dependencies()
 
 load("//docker-registry:deps.bzl", "docker_registry_dependencies")
+
 docker_registry_dependencies()
 
 load("//etcd:deps.bzl", "etcd_dependencies")
+
 etcd_dependencies()
 
 load("//flannel:deps.bzl", "flannel_dependencies")
+
 flannel_dependencies()
 
-load("//kubernetes:deps.bzl", "kubernetes_dependencies", "kubernetes_client_dependencies")
+load("//kubernetes:deps.bzl", "kubernetes_client_dependencies", "kubernetes_dependencies")
+
 kubernetes_dependencies()
+
 kubernetes_client_dependencies()
 
 load("//keysystem:deps.bzl", "keysystem_dependencies")
+
 keysystem_dependencies()
 
 load("//knc:deps.bzl", "knc_dependencies")
+
 knc_dependencies()
 
 load("//prometheus:deps.bzl", "prometheus_dependencies")
+
 prometheus_dependencies()
 
 load("//prometheus-node-exporter:deps.bzl", "prometheus_node_exporter_dependencies")
+
 prometheus_node_exporter_dependencies()
 
 load("//pull-monitor/pull-monitor:deps.bzl", "pull_monitor_dependencies")
+
 pull_monitor_dependencies()
 
 load("//kube-dns:deps.bzl", "kube_dns_dependencies")
+
 kube_dns_dependencies()
 
 load("//kube-state-metrics:deps.bzl", "kube_state_metrics_dependencies")
+
 kube_state_metrics_dependencies()
 
 load("//oci-tools:deps.bzl", "oci_tools_dependencies")
+
 oci_tools_dependencies()
 
 load("//runc:deps.bzl", "runc_dependencies")
+
 runc_dependencies()

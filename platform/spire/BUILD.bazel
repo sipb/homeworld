@@ -27,7 +27,6 @@ mappings.update({
 
 zip_file(
     name = "spirezip",
-    out = "spire.zip",
     srcs = [
         "//:GIT_VERSION",
         "//upload:BRANCH_NAME",
@@ -37,6 +36,7 @@ zip_file(
         "src/*.py",
         "resources/**/*",
     ]) + clustered.values(),
+    out = "spire.zip",
     mappings = mappings,
 )
 
@@ -50,7 +50,6 @@ homeworld_deb(
     bin = {
         ":spire": "/usr/bin/spire",
     },
-    package = "homeworld-spire",
     depends = [
         "homeworld-keysystem",
         "homeworld-hyperkube",
@@ -67,5 +66,6 @@ homeworld_deb(
         "whois",
         "cpio",
     ],
+    package = "homeworld-spire",
     visibility = ["//visibility:public"],
 )

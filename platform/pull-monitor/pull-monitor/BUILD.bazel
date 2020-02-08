@@ -26,10 +26,10 @@ go_binary(
 
 substitute(
     name = "pull-monitor.service",
-    template = ":pull-monitor.service.in",
     kfs = {
         "PULLCHECK_DIGEST": "//pull-monitor/pullcheck:oci.ocidigest",
     },
+    template = ":pull-monitor.service.in",
 )
 
 homeworld_deb(
@@ -40,9 +40,9 @@ homeworld_deb(
     data = {
         ":pull-monitor.service": "/usr/lib/systemd/system/pull-monitor.service",
     },
-    package = "homeworld-pull-monitor",
     depends = [
         "homeworld-cri-tools",
     ],
+    package = "homeworld-pull-monitor",
     visibility = ["//visibility:public"],
 )

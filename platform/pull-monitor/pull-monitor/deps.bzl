@@ -45,13 +45,13 @@ def pull_monitor_dependencies():
 
     go_repository(
         name = "com_github_hashicorp_errwrap",
-        commit = "8a6fb523712970c966eefc6b39ed2c5e74880354", # 1.0.0
+        commit = "8a6fb523712970c966eefc6b39ed2c5e74880354",  # 1.0.0
         importpath = "github.com/hashicorp/errwrap",
     )
 
     go_repository(
         name = "com_github_hashicorp_go_multierror",
-        commit = "886a7fbe3eb1c874d46f623bfa70af45f425b3d1", # 1.0.0
+        commit = "886a7fbe3eb1c874d46f623bfa70af45f425b3d1",  # 1.0.0
         importpath = "github.com/hashicorp/go-multierror",
     )
 

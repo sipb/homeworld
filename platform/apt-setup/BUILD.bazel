@@ -3,19 +3,19 @@ load("//bazel:package.bzl", "homeworld_deb")
 
 substitute(
     name = "homeworld.sources",
-    template = ":homeworld.sources.in",
     kfs = {
         "APT_URL": "//upload:DOWNLOAD_URL",
         "APT_BRANCH": "//upload:BRANCH_NAME",
     },
+    template = ":homeworld.sources.in",
 )
 
 substitute(
     name = "homeworld.pref",
-    template = ":homeworld.pref.in",
     kfs = {
         "HOST_BRANCH": "//upload:DOWNLOAD_URL_HOST",
     },
+    template = ":homeworld.pref.in",
 )
 
 homeworld_deb(

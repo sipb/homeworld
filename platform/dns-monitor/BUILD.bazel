@@ -31,9 +31,9 @@ homeworld_oci(
 
 substitute(
     name = "kubernetes.yaml",
-    template = ":kubernetes.yaml.in",
     kfs = {
         "digest": ":oci.ocidigest",
     },
+    template = ":kubernetes.yaml.in",
     visibility = ["//visibility:public"],
 )

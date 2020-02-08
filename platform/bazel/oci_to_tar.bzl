@@ -18,7 +18,7 @@
 load("@io_bazel_rules_docker//container:layer_tools.bzl", _get_layers = "get_from_target")
 
 def _quote(filename, protect = "="):
-    """Quote the filename, by escaping = by \= and \ by \\"""
+    """Quote the filename, by escaping = by \\= and \\ by \\"""
     return filename.replace("\\", "\\\\").replace(protect, "\\" + protect)
 
 def _impl(ctx):
@@ -60,7 +60,7 @@ def _impl(ctx):
     file_inputs = []
 
     for f_dest_path, target in mapping.items():
-        target_files = [target] # .files.to_list()
+        target_files = [target]  # .files.to_list()
         if len(target_files) != 1:
             fail("Each input must describe exactly one file.", attr = "files")
         file_inputs += target_files

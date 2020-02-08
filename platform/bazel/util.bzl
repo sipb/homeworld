@@ -1,4 +1,3 @@
-
 def escape_inner(s):
     return s.replace("$", "$$").replace("'", "'\"'\"'")
 

@@ -43,14 +43,14 @@ debs = [
 
 debs += oci_pusher(
     name = "oci-pack",
-    packagebase = "homeworld-oci-pack",
     images = ocis,
+    packagebase = "homeworld-oci-pack",
 )
 
 upload(
     name = "upload",
-    new_version_cache = ":new-version-cache",
     debs = debs,
+    new_version_cache = ":new-version-cache",
     visibility = ["//visibility:public"],
 )
 
@@ -72,39 +72,39 @@ exports_files([
 
 genrule(
     name = "apt-branch-rule",
+    srcs = [
+        "BRANCH_NAME",
+        "branches.yaml",
+    ] + ["//upload:" + x for x in glob(["src/*.py"])],
     outs = [
         "DOWNLOAD_URL",
         "DOWNLOAD_URL_HOST",
         "KEYID",
         "SEQID",
     ],
-    srcs = [
-        "BRANCH_NAME",
-        "branches.yaml",
-    ] + ["//upload:" + x for x in glob(["src/*.py"])],
-    tools = [":parse-branch"],
     cmd = "$(location :parse-branch) upload/src/parse.py $(location BRANCH_NAME) $(location branches.yaml) $(location DOWNLOAD_URL) $(location DOWNLOAD_URL_HOST) $(location KEYID) $(location SEQID)",
+    tools = [":parse-branch"],
     visibility = ["//visibility:public"],
 )
 
 genrule(
     name = "keyexport",
-    outs = ["keyring.gpg"],
     srcs = [
         "KEYID",
         "SEQID",
     ],
+    outs = ["keyring.gpg"],
     cmd = "gpg --export -- \"$$(cat '$(location :KEYID)')\" >'$@'",
     visibility = ["//visibility:public"],
 )
 
 genrule(
     name = "keyarmor",
-    outs = ["keyring.asc"],
     srcs = [
         "KEYID",
         "SEQID",
     ],
+    outs = ["keyring.asc"],
     cmd = "gpg --export --armor -- \"$$(cat '$(location :KEYID)')\" >'$@'",
     visibility = ["//visibility:public"],
 )

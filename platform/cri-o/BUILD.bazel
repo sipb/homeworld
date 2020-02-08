@@ -19,7 +19,6 @@ homeworld_deb(
         ":crio.service": "/usr/lib/systemd/system/crio.service",
         ":crio-shutdown.service": "/usr/lib/systemd/system/crio-shutdown.service",
     },
-    package = "homeworld-cri-o",
     depends = [
         "homeworld-cni-plugins",
         "homeworld-oci-sig-policy",
@@ -27,25 +26,26 @@ homeworld_deb(
         "libgpgme11",
         "libostree-1-1",
     ],
+    package = "homeworld-cri-o",
     visibility = ["//visibility:public"],
 )
 
 substitute(
     name = "crio.conf.substituted",
-    template = ":crio.conf.in",
     kfs = {
         "PAUSE_DIGEST": "//cri-o/pause:oci.ocidigest",
     },
+    template = ":crio.conf.in",
 )
 
 build_assert(
     name = "crio.conf",
     src = ":crio.conf.substituted",
-    message = "upstream's default crio.conf has changed; you must merge the changes into crio.conf, "
-            + "and update crio.conf.upstream to be the new upstream version",
     condition = "diff -u $(location @com_github_cri_o_cri_o//:crio.conf) $(location :crio.conf.upstream)",
+    message = "upstream's default crio.conf has changed; you must merge the changes into crio.conf, " +
+              "and update crio.conf.upstream to be the new upstream version",
     deps = [
+        ":crio.conf.upstream",
         "@com_github_cri_o_cri_o//:crio.conf",
-        ":crio.conf.upstream"
     ],
 )

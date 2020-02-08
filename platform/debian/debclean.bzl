@@ -1,4 +1,3 @@
-
 def _escape(s):
     return "'" + s.replace("'", "'\"'\"'") + "'"
 
@@ -33,17 +32,17 @@ _OPTIONS = {
         done
     """],
     "pycache": clean_paths(
-       "/usr/lib/python3.5/unittest/__pycache__",
-       "/usr/lib/python3.5/idlelib/__pycache__",
-       "/usr/lib/python3.5/asyncio/__pycache__",
-       "/usr/lib/python3.5/__pycache__",
+        "/usr/lib/python3.5/unittest/__pycache__",
+        "/usr/lib/python3.5/idlelib/__pycache__",
+        "/usr/lib/python3.5/asyncio/__pycache__",
+        "/usr/lib/python3.5/__pycache__",
     ),
     "resolv_conf": clean_paths(
         "/etc/resolv.conf",
     ),
 }
 
-def debclean(name, partial, clean_opts, visibility=None):
+def debclean(name, partial, clean_opts, visibility = None):
     """Clean out some of the large, host-dependent, or unnecessary files from a debian installation."""
 
     cmds = [
@@ -67,5 +66,5 @@ def debclean(name, partial, clean_opts, visibility=None):
         srcs = [partial],
         local = 1,
         cmd = "\n".join(cmds),
-        visibility = visibility
+        visibility = visibility,
     )

@@ -7,21 +7,21 @@ load("//bazel:gorepo_patchfix.bzl", "go_repository_alt")
 def kubernetes_client_dependencies():
     go_repository_alt(
         name = "io_k8s_apimachinery",
-        commit = "6a84e37a896db9780c75367af8d2ed2bb944022e", # 1.14.1
+        commit = "6a84e37a896db9780c75367af8d2ed2bb944022e",  # 1.14.1
         importpath = "k8s.io/apimachinery",
         build_file_proto_mode = "disable_global",
     )
 
     go_repository(
         name = "io_k8s_client_go",
-        commit = "1a26190bd76a9017e289958b9fba936430aa3704", # 1.14.1
+        commit = "1a26190bd76a9017e289958b9fba936430aa3704",  # 1.14.1
         importpath = "k8s.io/client-go",
         build_file_proto_mode = "disable_global",
     )
 
     go_repository(
         name = "io_k8s_api",
-        commit = "6e4e0e4f393bf5e8bbff570acd13217aa5a770cd", # 1.14.1
+        commit = "6e4e0e4f393bf5e8bbff570acd13217aa5a770cd",  # 1.14.1
         importpath = "k8s.io/api",
         build_file_proto_mode = "disable_global",
     )
@@ -119,7 +119,7 @@ def kubernetes_client_dependencies():
 
     go_repository(
         name = "org_golang_x_text",
-        commit = "f21a4dfb5e38f5895301dc265a8def02365cc3d0", # 0.3.0
+        commit = "f21a4dfb5e38f5895301dc265a8def02365cc3d0",  # 0.3.0
         importpath = "golang.org/x/text",
     )
 

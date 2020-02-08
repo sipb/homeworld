@@ -17,9 +17,9 @@ homeworld_deb(
         ":systemd/keyserver.service": "/usr/lib/systemd/system/keyserver.service",
         ":systemd/keygateway.service": "/usr/lib/systemd/system/keygateway.service",
     },
-    package = "homeworld-keysystem",
     depends = [
         "homeworld-knc",
     ],
+    package = "homeworld-keysystem",
     visibility = ["//visibility:public"],
 )

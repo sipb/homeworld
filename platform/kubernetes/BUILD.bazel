@@ -43,10 +43,10 @@ homeworld_deb(
         # the br_netfilter kernel module is needed for kube-proxy to function correctly
         ":br_netfilter.conf": "/usr/lib/modules-load.d/br_netfilter.conf",
     },
-    package = "homeworld-kubernetes",
     depends = [
         "homeworld-cri-o",
         "homeworld-hyperkube",
     ],
+    package = "homeworld-kubernetes",
     visibility = ["//visibility:public"],
 )

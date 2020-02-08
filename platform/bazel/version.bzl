@@ -1,8 +1,7 @@
-
 def _escape(s):
     return "'" + s.replace("$", "$$").replace("'", "'\"'\"'") + "'"
 
-def _generate(name, tool, arguments, inputs, visibility=None):
+def _generate(name, tool, arguments, inputs, visibility = None):
     native.genrule(
         name = name + "-rule",
         srcs = inputs,
@@ -12,7 +11,7 @@ def _generate(name, tool, arguments, inputs, visibility=None):
         visibility = visibility,
     )
 
-def version_compute(name, package, hashfile, visibility=None):
+def version_compute(name, package, hashfile, visibility = None):
     cmdline = [
         "$(location //:VERSION)",
         "$(location //upload:version-cache)",
@@ -24,12 +23,13 @@ def version_compute(name, package, hashfile, visibility=None):
         tool = "//bazel:version-compute",
         arguments = cmdline,
         inputs = ["//:VERSION", "//upload:version-cache", hashfile],
-        visibility = visibility
+        visibility = visibility,
     )
 
-def hash_compute(name, inputs, strings, visibility=None):
+def hash_compute(name, inputs, strings, visibility = None):
     cmdline = [
-        ("$(location " + input + ")" if input else "--empty") for input in inputs
+        ("$(location " + input + ")" if input else "--empty")
+        for input in inputs
     ] + ["--"] + strings
     _generate(
         name = name,
@@ -39,7 +39,7 @@ def hash_compute(name, inputs, strings, visibility=None):
         visibility = visibility,
     )
 
-def generate_version_cache(name, debs, visibility=None):
+def generate_version_cache(name, debs, visibility = None):
     targets = []
     for artifact in debs:
         targets += [

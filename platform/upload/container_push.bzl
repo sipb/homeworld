@@ -1,7 +1,7 @@
 load("//bazel:package.bzl", "homeworld_deb")
 load("//bazel:oci_to_tar.bzl", "oci_to_tar")
 
-def oci_pusher(name, packagebase, images, visibility=None):
+def oci_pusher(name, packagebase, images, visibility = None):
     depends = [
         "python",
     ]

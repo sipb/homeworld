@@ -10,12 +10,12 @@ homeworld_deb(
         ":docker-registry.yaml": "/etc/homeworld/config/docker-registry.yaml",
         ":docker-registry.service": "/usr/lib/systemd/system/docker-registry.service",
     },
-    package = "homeworld-docker-registry",
     depends = [
         "nginx",
     ],
-    prerm = ":prerm.sh",
+    package = "homeworld-docker-registry",
     postinst = ":postinst.sh",
+    prerm = ":prerm.sh",
     visibility = ["//visibility:public"],
 )
 

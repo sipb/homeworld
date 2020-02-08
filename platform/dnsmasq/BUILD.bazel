@@ -12,14 +12,14 @@ homeworld_oci(
         ":empty": "/var/run",
         ":dnsmasq.conf": "/etc/dnsmasq.conf",
     },
-    deps = [
-        "//debian:debian-micro.tgz",
-    ],
     exec = [
         "/usr/sbin/dnsmasq",
         "--keep-in-foreground",
     ],
     visibility = ["//visibility:public"],
+    deps = [
+        "//debian:debian-micro.tgz",
+    ],
 )
 
 homeworld_oci(
@@ -30,8 +30,8 @@ homeworld_oci(
     data = {
         ":empty": "/etc/k8s/dns/dnsmasq-nanny",
     },
-    oci_dep = ":dnsmasq",
     exec = ["/usr/bin/dnsmasq-nanny"],
+    oci_dep = ":dnsmasq",
     visibility = ["//visibility:public"],
 )
 
@@ -43,11 +43,11 @@ genrule(
 
 substitute(
     name = "kubernetes.yaml",
-    template = ":kubernetes.yaml.in",
     kfs = {
         "kube_dns_main_digest": "//kube-dns:kube-dns-main.ocidigest",
         "kube_dns_sidecar_digest": "//kube-dns:kube-dns-sidecar.ocidigest",
         "dnsmasq_nanny_digest": ":dnsmasq-nanny.ocidigest",
     },
+    template = ":kubernetes.yaml.in",
     visibility = ["//visibility:public"],
 )

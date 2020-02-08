@@ -6,7 +6,7 @@ load("@io_bazel_rules_docker//container:container.bzl", "container_image")
 def _escape(s):
     return "'" + s.replace("'", "'\"'\"'") + "'"
 
-def homeworld_deb(name, package, bin=None, data=None, deps=None, depends=None, prerm=None, postrm=None, preinst=None, postinst=None, visibility=None):
+def homeworld_deb(name, package, bin = None, data = None, deps = None, depends = None, prerm = None, postrm = None, preinst = None, postinst = None, visibility = None):
     pkg_tar(
         name = name + "-contents-bin",
         files = bin or {},
@@ -73,7 +73,7 @@ def homeworld_deb(name, package, bin=None, data=None, deps=None, depends=None, p
         postinst = postinst,
     )
 
-def homeworld_oci(name, bin=None, data=None, deps=None, oci_dep=None, ports=None, exec=None, visibility=None):
+def homeworld_oci(name, bin = None, data = None, deps = None, oci_dep = None, ports = None, exec = None, visibility = None):
     pkg_tar(
         name = name + "-contents-bin",
         files = bin or {},
@@ -109,7 +109,7 @@ def homeworld_oci(name, bin=None, data=None, deps=None, oci_dep=None, ports=None
         visibility = visibility,
     )
 
-def pythonize(name, zip, visibility=None):
+def pythonize(name, zip, visibility = None):
     native.genrule(
         name = name + "-rule",
         srcs = [zip],

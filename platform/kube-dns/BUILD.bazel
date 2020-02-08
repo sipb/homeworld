@@ -3,11 +3,11 @@ load("//bazel:package.bzl", "homeworld_oci")
 
 go_binary(
     name = "kube-dns",
-    visibility = ["//visibility:public"],
     embed = [
         "@com_github_kubernetes_dns//cmd/kube-dns:go_default_library",
     ],
     pure = "on",
+    visibility = ["//visibility:public"],
 )
 
 homeworld_oci(
@@ -21,11 +21,11 @@ homeworld_oci(
 
 go_binary(
     name = "sidecar",
-    visibility = ["//visibility:public"],
     embed = [
         "@com_github_kubernetes_dns//cmd/sidecar:go_default_library",
     ],
     pure = "on",
+    visibility = ["//visibility:public"],
 )
 
 homeworld_oci(

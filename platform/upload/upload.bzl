@@ -1,6 +1,6 @@
 load("@bazel_skylib//lib:paths.bzl", "paths")
 
-def sign(name, data, visibility=None):
+def sign(name, data, visibility = None):
     native.genrule(
         name = name,
         outs = [name + ".asc"],
@@ -9,7 +9,7 @@ def sign(name, data, visibility=None):
         visibility = visibility,
     )
 
-def upload(name, new_version_cache, debs, visibility=None):
+def upload(name, new_version_cache, debs, visibility = None):
     data = []
     args = []
     if debs:

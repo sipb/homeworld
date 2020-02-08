@@ -2,13 +2,17 @@ load("//bazel:package.bzl", "homeworld_oci")
 load(":debian.bzl", "debootstrap")
 
 SNAPSHOT = "20191219T025914Z"
+
 RELEASE = "buster"
 
 debootstrap(
     name = "debian.tgz",
-    release = RELEASE,
-    mirror = "http://snapshot.debian.org/archive/debian/" + SNAPSHOT + "/",
-    variant = "minbase",
+    clean_opts = [
+        "apt_files",
+        "ld_aux",
+        "pycache",
+        "resolv_conf",
+    ],
     extra = [
         "bzip2",
         "curl",
@@ -30,30 +34,21 @@ debootstrap(
         "realpath",
         "wget",
     ],
-    clean_opts = [
-        "apt_files",
-        "ld_aux",
-        "pycache",
-        "resolv_conf",
-    ],
+    mirror = "http://snapshot.debian.org/archive/debian/" + SNAPSHOT + "/",
+    release = RELEASE,
+    variant = "minbase",
     visibility = ["//visibility:public"],
 )
 
 homeworld_oci(
     name = "debian",
-    deps = [":debian.tgz"],
     exec = ["/bin/bash"],
     visibility = ["//visibility:public"],
+    deps = [":debian.tgz"],
 )
 
 debootstrap(
     name = "debian-mini.tgz",
-    release = RELEASE,
-    mirror = "http://snapshot.debian.org/archive/debian/" + SNAPSHOT + "/",
-    variant = "minbase",
-    remove = [
-        "e2fsprogs",
-    ],
     clean_opts = [
         "apt_files",
         "ld_aux",
@@ -61,21 +56,33 @@ debootstrap(
         "locales",
         "resolv_conf",
     ],
+    mirror = "http://snapshot.debian.org/archive/debian/" + SNAPSHOT + "/",
+    release = RELEASE,
+    remove = [
+        "e2fsprogs",
+    ],
+    variant = "minbase",
     visibility = ["//visibility:public"],
 )
 
 homeworld_oci(
     name = "debian-mini",
-    deps = [":debian-mini.tgz"],
     exec = ["/bin/bash"],
     visibility = ["//visibility:public"],
+    deps = [":debian-mini.tgz"],
 )
 
 debootstrap(
     name = "debian-micro.tgz",
-    release = RELEASE,
+    clean_opts = [
+        "apt_files",
+        "ld_aux",
+        "doc_files",
+        "locales",
+        "resolv_conf",
+    ],
     mirror = "http://snapshot.debian.org/archive/debian/" + SNAPSHOT + "/",
-    variant = "minbase",
+    release = RELEASE,
     remove = [
         "e2fsprogs",
         "adduser",
@@ -91,21 +98,15 @@ debootstrap(
         "tzdata",
     ],
     remove_dpkg = True,
-    clean_opts = [
-        "apt_files",
-        "ld_aux",
-        "doc_files",
-        "locales",
-        "resolv_conf",
-    ],
+    variant = "minbase",
     visibility = ["//visibility:public"],
 )
 
 homeworld_oci(
     name = "debian-micro",
-    deps = [":debian-micro.tgz"],
     exec = ["/bin/bash"],
     visibility = ["//visibility:public"],
+    deps = [":debian-micro.tgz"],
 )
 
 exports_files([

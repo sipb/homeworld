@@ -17,7 +17,7 @@ def go_dependencies_early():
 
     git_repository(
         name = "com_google_protobuf",
-        commit = "6a59a2ad1f61d9696092f79b6d74368b4d7970a3", # 3.9.0
+        commit = "6a59a2ad1f61d9696092f79b6d74368b4d7970a3",  # 3.9.0
         remote = "https://github.com/protocolbuffers/protobuf",
         shallow_since = "1558721209 -0700",
     )
