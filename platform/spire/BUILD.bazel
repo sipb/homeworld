@@ -14,7 +14,7 @@ clustered = {
 mappings = {
     "__main__/spire/src": "",
     "__main__/spire/resources": "resources",
-    "__main__/GIT_VERSION": "resources/GIT_VERSION",
+    "__main__/version/GIT_VERSION": "resources/GIT_VERSION",
     "__main__/upload/keyring.gpg": "resources/homeworld-archive-keyring.gpg",
     "__main__/upload/BRANCH_NAME": "resources/APT_BRANCH",
     "__main__/upload/DOWNLOAD_URL": "resources/APT_URL",
@@ -28,7 +28,7 @@ mappings.update({
 zip_file(
     name = "spirezip",
     srcs = [
-        "//:GIT_VERSION",
+        "//version:GIT_VERSION",
         "//upload:BRANCH_NAME",
         "//upload:DOWNLOAD_URL",
         "//upload:keyring.gpg",

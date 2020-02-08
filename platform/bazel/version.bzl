@@ -13,7 +13,7 @@ def _generate(name, tool, arguments, inputs, visibility = None):
 
 def version_compute(name, package, hashfile, visibility = None):
     cmdline = [
-        "$(location //:VERSION)",
+        "$(location //version:VERSION)",
         "$(location //upload:version-cache)",
         _escape(package),
         "$(location " + hashfile + ")",
@@ -22,7 +22,7 @@ def version_compute(name, package, hashfile, visibility = None):
         name = name,
         tool = "//bazel:version-compute",
         arguments = cmdline,
-        inputs = ["//:VERSION", "//upload:version-cache", hashfile],
+        inputs = ["//version:VERSION", "//upload:version-cache", hashfile],
         visibility = visibility,
     )
 
