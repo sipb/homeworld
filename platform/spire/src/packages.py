@@ -8,9 +8,9 @@ import urllib.request
 import urllib.error
 
 import command
+import metadata
 import resource
 import util
-from version import get_apt_url
 
 
 def verify_gpg_signature(data: bytes, signature: bytes, keyring: bytes) -> bool:
@@ -149,7 +149,7 @@ def verified_download_full(package_list: tuple) -> dict:
     """Download all the packages from the specified list from the apt branch, including verifying them.
 
     Returns a mapping of {package_name: (short_filename, package_bytes), ...}"""
-    apt_url = get_apt_url()
+    apt_url = metadata.get_apt_url()
     try:
         verified_info = download_and_verify_package_list(apt_url)
         return {package_name: download_package(package_name, verified_info) for package_name in package_list}

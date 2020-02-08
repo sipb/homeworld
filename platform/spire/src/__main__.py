@@ -12,7 +12,7 @@ import infra
 import keys
 import seq
 import deploy
-import version
+import metadata
 import virt
 
 main_command = command.Mux("invoke a top-level command", {
@@ -32,7 +32,7 @@ main_command = command.Mux("invoke a top-level command", {
     "seq": seq.main_command,
     "deploy": deploy.main_command,
     "virt": virt.main_command,
-    "version": version.main_command
+    "version": metadata.version_command,
 })
 
 

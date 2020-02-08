@@ -3,12 +3,12 @@ import os
 import subprocess
 import tempfile
 
-from version import get_git_version
 import authority
 import command
 import configuration
 import gzip
 import keycrypt
+import metadata
 import packages
 import resource
 import setup
@@ -81,7 +81,7 @@ def gen_iso(iso_image, authorized_key, mode=None):
         preseeded = resource.get_resource("preseed.cfg.in")
         generated_password = util.pwgen(20)
         creation_time = datetime.datetime.now().isoformat()
-        git_hash = get_git_version().encode()
+        git_hash = metadata.get_git_version().encode()
         add_password_to_log(generated_password, creation_time)
         print("generated password added to log")
         preseeded = preseeded.replace(b"{{HASH}}", util.mkpasswd(generated_password))

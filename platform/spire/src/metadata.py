@@ -27,4 +27,4 @@ def display_version():
     print("Apt URL:", apt_url)
 
 
-main_command = display_version
+version_command = display_version
