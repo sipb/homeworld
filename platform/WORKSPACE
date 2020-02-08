@@ -6,6 +6,14 @@ load("//go:deps.bzl", "go_dependencies")
 
 go_dependencies()
 
+load("//python:deps_early.bzl", "python_dependencies_early")
+
+python_dependencies_early()
+
+load("//python:deps.bzl", "python_dependencies")
+
+python_dependencies()
+
 load("//bazel:deps_early.bzl", "bazel_dependencies_early")
 
 bazel_dependencies_early()
