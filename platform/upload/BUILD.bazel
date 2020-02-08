@@ -1,6 +1,7 @@
 load(":upload.bzl", "upload")
 load("//bazel:version.bzl", "generate_version_cache")
 load(":container_push.bzl", "oci_pusher")
+load("//python:resources.bzl", "py_resources")
 
 ocis = {
     "pullcheck": "//pull-monitor/pullcheck:oci",
@@ -106,5 +107,15 @@ genrule(
     ],
     outs = ["keyring.asc"],
     cmd = "gpg --export --armor -- \"$$(cat '$(location :KEYID)')\" >'$@'",
+    visibility = ["//visibility:public"],
+)
+
+py_resources(
+    name = "uploadlib",
+    data = [
+        ":BRANCH_NAME",
+        ":DOWNLOAD_URL",
+        ":keyring.gpg",
+    ],
     visibility = ["//visibility:public"],
 )

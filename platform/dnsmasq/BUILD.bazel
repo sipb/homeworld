@@ -1,5 +1,6 @@
 load("//bazel:package.bzl", "homeworld_oci")
 load("//bazel:substitute.bzl", "substitute")
+load("//python:resources.bzl", "py_resources")
 
 # originally based on https://github.com/kubernetes/dns builds
 
@@ -49,5 +50,11 @@ substitute(
         "dnsmasq_nanny_digest": ":dnsmasq-nanny.ocidigest",
     },
     template = ":kubernetes.yaml.in",
+    visibility = ["//visibility:public"],
+)
+
+py_resources(
+    name = "kubelib",
+    data = [":kubernetes.yaml"],
     visibility = ["//visibility:public"],
 )

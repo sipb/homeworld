@@ -1,3 +1,5 @@
+load("//python:resources.bzl", "py_resources")
+
 exports_files([
     "VERSION",
 ])
@@ -7,5 +9,11 @@ genrule(
     outs = ["GIT_VERSION"],
     cmd = "grep STABLE_GIT_COMMIT bazel-out/stable-status.txt | cut -d ' ' -f 2 >$@",
     stamp = 1,
+    visibility = ["//visibility:public"],
+)
+
+py_resources(
+    name = "versionlib",
+    data = [":GIT_VERSION"],
     visibility = ["//visibility:public"],
 )

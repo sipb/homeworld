@@ -1,6 +1,7 @@
 load("//bazel:package.bzl", "homeworld_oci")
 load("//debian:debian.bzl", "debinstall")
 load("//bazel:substitute.bzl", "substitute")
+load("//python:resources.bzl", "py_resources")
 
 debinstall(
     name = "debian-mini-with-iptables.tgz",
@@ -27,5 +28,11 @@ substitute(
         "digest": ":oci.ocidigest",
     },
     template = ":kubernetes.yaml.in",
+    visibility = ["//visibility:public"],
+)
+
+py_resources(
+    name = "kubelib",
+    data = [":kubernetes.yaml"],
     visibility = ["//visibility:public"],
 )

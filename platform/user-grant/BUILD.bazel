@@ -1,6 +1,7 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 load("//bazel:package.bzl", "homeworld_oci")
 load("//bazel:substitute.bzl", "substitute")
+load("//python:resources.bzl", "py_resources")
 
 go_library(
     name = "go_default_library",
@@ -42,5 +43,11 @@ substitute(
         "digest": ":oci.ocidigest",
     },
     template = ":kubernetes.yaml.in",
+    visibility = ["//visibility:public"],
+)
+
+py_resources(
+    name = "kubelib",
+    data = [":kubernetes.yaml"],
     visibility = ["//visibility:public"],
 )
