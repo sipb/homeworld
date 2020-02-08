@@ -14,7 +14,7 @@ ocis = {
     "user-grant": "//user-grant:oci",
 }
 
-debs = [
+basic_debs = [
     "//apt-setup:package",
     "//auth-monitor:package",
     "//autostart:package",
@@ -41,7 +41,7 @@ debs = [
     "//spire/debian-iso:package",
 ]
 
-debs += oci_pusher(
+debs = basic_debs + oci_pusher(
     name = "oci-pack",
     images = ocis,
     packagebase = "homeworld-oci-pack",

@@ -194,7 +194,7 @@ go_repository_alt = repository_rule(
         "postpatch_cmds": attr.string_list(default = []),
     },
 )
-"""See repository.rst#go-repository for full documentation."""
+# See repository.rst#go-repository for full documentation.
 
 # Copied from @bazel_tools//tools/build_defs/repo:utils.bzl
 def patch(ctx, post):
@@ -283,10 +283,9 @@ go_repository_tools = repository_rule(
     },
     environ = ["TMP"],
 )
-"""go_repository_tools is a synthetic repository used by go_repository.
-
-go_repository depends on two Go binaries: fetch_repo and gazelle. We can't
-build these with Bazel inside a repository rule, and we don't want to manage
-prebuilt binaries, so we build them in here with go build, using whichever
-SDK rules_go is using.
-"""
+# go_repository_tools is a synthetic repository used by go_repository.
+#
+# go_repository depends on two Go binaries: fetch_repo and gazelle. We can't
+# build these with Bazel inside a repository rule, and we don't want to manage
+# prebuilt binaries, so we build them in here with go build, using whichever
+# SDK rules_go is using.
