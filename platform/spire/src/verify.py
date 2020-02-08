@@ -11,7 +11,7 @@ import authority
 import command
 import configuration
 import query
-import resources
+import resource
 import setup
 import ssh
 import util
@@ -148,7 +148,7 @@ def check_online():
 def check_systemd_services():
     "verify that systemd services are healthy and working"
     config = configuration.get_config()
-    servicemap = yaml.safe_load(resources.get_resource("servicemap.yaml"))
+    servicemap = yaml.safe_load(resource.get("//spire/resources:servicemap.yaml"))
     for service in servicemap["services"]:
         name = service["name"]
         kinds = service["kinds"]

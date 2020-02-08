@@ -315,7 +315,12 @@ class OperationsContext(Operations):
 
 
 def main_invoke(command):
-    parser = argparse.ArgumentParser(description="Administrative toolkit for deploying and maintaining Hyades clusters")
+    # we have to hardcode the name "spire" here, because using bazel's py_binary tool for packaging our program into a
+    # zip file means we'll get the name of our __main__.py, rather than the name of the original command invoked.
+    parser = argparse.ArgumentParser(
+        prog="spire",
+        description="Administrative toolkit for deploying and maintaining Hyades clusters",
+    )
     command.configure(["spire"], parser)
     args = parser.parse_args()
     if "argparse_invoke" in args:

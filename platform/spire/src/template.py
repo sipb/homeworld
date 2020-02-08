@@ -1,11 +1,12 @@
-import resource
 import yaml
+
+import resource
 
 
 class Template:
     def __init__(self, filename_or_contents, load=True):
         if load:
-            filename_or_contents = resource.get_resource(filename_or_contents).decode()
+            filename_or_contents = resource.get(filename_or_contents).decode()
         self._template = filename_or_contents.split("\n")
 
     def _visible_lines(self, keys):

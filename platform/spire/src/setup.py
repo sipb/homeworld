@@ -142,7 +142,7 @@ def setup_supervisor_ssh(ops: command.Operations) -> None:
     for node in config.nodes:
         if node.kind != "supervisor":
             continue
-        ssh_config = resource.get_resource("sshd_config")
+        ssh_config = resource.get("//spire/resources:sshd_config")
         ssh_upload_bytes(ops, "upload new ssh configuration to @HOST", node, ssh_config, "/etc/ssh/sshd_config")
         ssh_cmd(ops, "reload ssh configuration on @HOST", node, "systemctl", "restart", "ssh")
         ssh_raw(ops, "shift aside old authorized_keys on @HOST", node,

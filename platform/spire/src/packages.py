@@ -42,11 +42,11 @@ def fetch_url_and_check_hash(url: str, sha256hash: str) -> bytes:
     return data
 
 
-def fetch_signed_url(url: str, signature_url: str, keyring_resource: str) -> bytes:
+def fetch_signed_url(url: str, signature_url: str) -> bytes:
     signature = fetch_url(signature_url)
     data = fetch_url(url)
 
-    keyring = resource.get_resource(keyring_resource)
+    keyring = resource.get("//upload:keyring.gpg")
     if not verify_gpg_signature(data, signature, keyring):
         command.fail("signature verification FAILED on %s!" % url)
 
@@ -91,12 +91,11 @@ def parse_apt_hash_list(section):
     return hashes_by_path
 
 
-def download_and_verify_package_list(baseurl: str, dist: str="homeworld",
-                                     keyring_resource: str="homeworld-archive-keyring.gpg") -> (str, dict):
+def download_and_verify_package_list(baseurl: str, dist: str="homeworld") -> (str, dict):
     baseurl = baseurl.rstrip("/")
     url = baseurl + "/dists/" + dist
 
-    release = fetch_signed_url(url + "/Release", url + "/Release.gpg", keyring_resource)
+    release = fetch_signed_url(url + "/Release", url + "/Release.gpg")
     packages_relpath = "main/binary-amd64/Packages"
 
     kvs = parse_apt_kvs(release.decode())

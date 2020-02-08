@@ -1,0 +1,19 @@
+load("//python:resources.bzl", "py_resources")
+
+py_resources(
+    name = "resourcelib",
+    data = [
+        "isolinux.cfg.serial",
+        "kubeconfig-local.yaml",
+        "netcfg.postinst",
+        "postinstall.sh",
+        "prepartition.sh",
+        "preseed.cfg.in",
+        "prometheus.yaml",
+        "servicemap.yaml",
+        "setup.yaml",
+        "setup-schema.yaml",
+        "sshd_config",
+    ],
+    visibility = ["//visibility:public"],
+)

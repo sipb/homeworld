@@ -43,7 +43,7 @@ def list_passphrases():
 
 
 def mode_serial(includedir, cddir, inclusion):
-    resource.copy_to("isolinux.cfg.serial", os.path.join(cddir, "isolinux.cfg"))
+    resource.extract("//spire/resources:isolinux.cfg.serial", os.path.join(cddir, "isolinux.cfg"))
 
 
 MODES={"serial": mode_serial}
@@ -65,10 +65,15 @@ def gen_iso(iso_image, authorized_key, mode=None):
         inclusion += ["authorized.pub", "keyservertls.pem"]
 
         os.makedirs(os.path.join(d, "var/lib/dpkg/info"))
-        for script in ["postinstall.sh", "prepartition.sh", "var/lib/dpkg/info/netcfg.postinst"]:
-            resource.copy_to(os.path.basename(script), os.path.join(d, script))
-            os.chmod(os.path.join(d, script), 0o755)
-            inclusion.append(script)
+        scripts = {
+            "//spire/resources:postinstall.sh": "postinstall.sh",
+            "//spire/resources:prepartition.sh": "prepartition.sh",
+            "//spire/resources:netcfg.postinst": "var/lib/dpkg/info/netcfg.postinst",
+        }
+        for source, destination in sorted(scripts.items()):
+            resource.extract(source, os.path.join(d, destination))
+            os.chmod(os.path.join(d, destination), 0o755)
+            inclusion.append(destination)
 
         util.writefile(os.path.join(d, "keyserver.domain"), configuration.get_keyserver_domain().encode())
         inclusion.append("keyserver.domain")
@@ -76,9 +81,9 @@ def gen_iso(iso_image, authorized_key, mode=None):
         util.writefile(os.path.join(d, "vlan.txt"), b"%d\n" % config.vlan)
         inclusion.append("vlan.txt")
 
-        resource.copy_to("sshd_config", os.path.join(d, "sshd_config.new"))
+        resource.extract("//spire/resources:sshd_config", os.path.join(d, "sshd_config.new"))
 
-        preseeded = resource.get_resource("preseed.cfg.in")
+        preseeded = resource.get("//spire/resources:preseed.cfg.in")
         generated_password = util.pwgen(20)
         creation_time = datetime.datetime.now().isoformat()
         git_hash = metadata.get_git_version().encode()

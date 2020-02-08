@@ -1,43 +1,32 @@
+load("@rules_python//python:defs.bzl", "py_binary")
 load("//bazel:package.bzl", "homeworld_deb", "pythonize")
-load("//bazel:zip_file.bzl", "zip_file")
 
 # TODO: have a stub test (checking whether spire -h >/dev/null exits successfully) during build
 
-clustered = {
-    "dns-addon.yaml": "//dnsmasq:kubernetes.yaml",
-    "dns-monitor.yaml": "//dns-monitor:kubernetes.yaml",
-    "flannel.yaml": "//flannel:kubernetes.yaml",
-    "flannel-monitor.yaml": "//flannel-monitor:kubernetes.yaml",
-    "user-grant.yaml": "//user-grant:kubernetes.yaml",
-}
-
-mappings = {
-    "__main__/spire/src": "",
-    "__main__/spire/resources": "resources",
-    "__main__/version/GIT_VERSION": "resources/GIT_VERSION",
-    "__main__/upload/keyring.gpg": "resources/homeworld-archive-keyring.gpg",
-    "__main__/upload/BRANCH_NAME": "resources/APT_BRANCH",
-    "__main__/upload/DOWNLOAD_URL": "resources/APT_URL",
-}
-
-mappings.update({
-    "__main__/" + ref.lstrip("/").replace(":", "/"): "resources/clustered/" + name
-    for name, ref in clustered.items()
-})
-
-zip_file(
-    name = "spirezip",
-    srcs = [
-        "//version:GIT_VERSION",
-        "//upload:BRANCH_NAME",
-        "//upload:DOWNLOAD_URL",
-        "//upload:keyring.gpg",
-    ] + glob([
+py_binary(
+    name = "spirepy",
+    srcs = glob([
         "src/*.py",
-        "resources/**/*",
-    ]) + clustered.values(),
-    out = "spire.zip",
-    mappings = mappings,
+    ]),
+    data = [
+        "//dns-monitor:kubelib",
+        "//dnsmasq:kubelib",
+        "//flannel:kubelib",
+        "//flannel-monitor:kubelib",
+        "//spire/resources:resourcelib",
+        "//upload:uploadlib",
+        "//user-grant:kubelib",
+        "//version:versionlib",
+    ],
+    main = "__main__.py",
+)
+
+# py_binary normally doesn't produce an executable zip file as output, so we have to force it to by specifying a
+# filegroup with the output_group option.
+filegroup(
+    name = "spirezip",
+    srcs = [":spirepy"],
+    output_group = "python_zip_file",
 )
 
 pythonize(

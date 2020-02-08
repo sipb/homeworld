@@ -6,7 +6,6 @@ import yaml
 
 import command
 import resource
-import resources
 import template
 import util
 
@@ -46,7 +45,7 @@ class Node:
         return "%s.%s" % (self.hostname, self.main_config.external_domain)
 
 
-SCHEMA = yaml.safe_load(resources.get_resource("setup-schema.yaml"))
+SCHEMA = yaml.safe_load(resource.get("//spire/resources:setup-schema.yaml"))
 
 
 class Config:
@@ -197,7 +196,7 @@ def get_local_kubeconfig() -> str:
              "AUTHORITY-PATH": ca_path,
              "CERT-PATH": cert_path,
              "KEY-PATH": key_path}
-    return template.template("kubeconfig-local.yaml", kconf)
+    return template.template("//spire/resources:kubeconfig-local.yaml", kconf)
 
 
 def get_prometheus_yaml() -> str:
@@ -209,7 +208,7 @@ def get_prometheus_yaml() -> str:
                                               for node in config.nodes if node.kind != "supervisor"),
             "ETCD-TARGETS": "[%s]" % ",".join("'%s.%s:9101'" % (node.hostname, config.external_domain)
                                               for node in config.nodes if node.kind == "master")}
-    return template.template("prometheus.yaml", kcli)
+    return template.template("//spire/resources:prometheus.yaml", kcli)
 
 
 @command.wrap
@@ -218,7 +217,7 @@ def populate() -> None:
     setup_yaml = os.path.join(get_project(create_dir_if_missing=True), "setup.yaml")
     if os.path.exists(setup_yaml):
         command.fail("setup.yaml already exists")
-    resource.copy_to("setup.yaml", setup_yaml)
+    resource.extract("//spire/resources:setup.yaml", setup_yaml)
     print("filled out setup.yaml")
 
 
@@ -265,8 +264,8 @@ def get_kube_spec_vars(extra_kvs: dict=None) -> dict:
     return kvs
 
 
-def get_single_kube_spec(name: str, extra_kvs: dict=None) -> str:
-    templ = resource.get_resource("clustered/%s" % name).decode()
+def get_single_kube_spec(path: str, extra_kvs: dict=None) -> str:
+    templ = resource.get(path).decode()
     return template.yaml_template(templ, get_kube_spec_vars(extra_kvs))
 
 
