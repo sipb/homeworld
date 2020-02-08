@@ -1,6 +1,9 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@io_bazel_rules_docker//repositories:repositories.bzl", container_repositories = "repositories")
 load("@rules_pkg//:deps.bzl", "rules_pkg_dependencies")
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_proto_toolchains")
+load("@com_github_bazelbuild_buildtools//buildifier:deps.bzl", "buildifier_dependencies")
 
 def bazel_dependencies():
     http_archive(
@@ -13,3 +16,7 @@ def bazel_dependencies():
 
     container_repositories()
     rules_pkg_dependencies()
+    protobuf_deps()
+    rules_proto_dependencies()
+    rules_proto_toolchains()
+    buildifier_dependencies()
