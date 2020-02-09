@@ -1,8 +1,14 @@
 #!/bin/bash
 set -e -u
 
-VERSION="20190702+deb10u2"
+VERSION="${1:-}"
 RELEASE="buster"
+
+if [ "$VERSION" = "" ]
+then
+    echo "usage: debian-iso-checksum.sh <version>" 1>&2
+    exit 1
+fi
 
 echo "finding hash for release ${RELEASE} version ${VERSION}:" >&2
 
@@ -29,6 +35,6 @@ echo >&2
 echo "new version block:" >&2
 
 echo >&2
-echo "VERSION = '${VERSION}'"
-echo "RELEASE = '${RELEASE}'"
-echo "MINI_ISO_HASH = '$(grep './netboot/mini.iso' SHA256SUMS | cut -d " " -f 1)'"
+echo "VERSION = \"${VERSION}\""
+echo "RELEASE = \"${RELEASE}\""
+echo "MINI_ISO_HASH = \"$(grep './netboot/mini.iso' SHA256SUMS | cut -d " " -f 1)\""
