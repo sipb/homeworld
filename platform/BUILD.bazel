@@ -13,7 +13,6 @@ buildifier(
         "-function-docstring-header",
         "-module-docstring",
         "-print",
-        "-rule-impl-return",
     ],
     mode = "check",
 )
