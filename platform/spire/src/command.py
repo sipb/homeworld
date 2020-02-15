@@ -43,17 +43,18 @@ class Mux:
         subparsers = parser.add_subparsers()
 
         for component, subcommand in self.mapping.items():
-            doc = inspect.getdoc(subcommand)
-            short_doc = doc.split('\n')[0] if doc else None
             subparser = subparsers.add_parser(
                 component,
-                description=doc,
-                help=short_doc,
+                description=inspect.getdoc(subcommand),
+                help=subcommand.short_doc(),
                 formatter_class=argparse.RawDescriptionHelpFormatter)
             try:
                 subcommand.configure(command + [component], subparser)
             except AttributeError as e:
                 raise Exception("error configuring subcommand {!r}".format(subcommand)) from e
+
+    def short_doc(self):
+        return self.__doc__
 
 
 def add_dry_run_argument(parser: argparse.ArgumentParser, dest: str):
@@ -173,6 +174,10 @@ class Command:
             raise Exception("python argument type not recognized")
         return ' '.join(cl)
 
+    def short_doc(self):
+        doc = inspect.getdoc(self)
+        return doc.split('\n')[0] if doc else None
+
 
 def wrapop(f):
     return functools.update_wrapper(Command(f), f, updated=[])
@@ -201,7 +206,7 @@ class Simple(Command):
         pass
 
     def operate(self, op, *args, **kwargs):
-        op.add_operation(self.__doc__, lambda: self.func(*args, **kwargs),
+        op.add_operation(self.short_doc(), lambda: self.func(*args, **kwargs),
                          self.command(*args, **kwargs))
 
     def invoke(self, aargs):
@@ -238,7 +243,7 @@ class Operations:
     def add_subcommand(self, cmd, *args, **kwargs):
         op = Operations()
         cmd.operate(op, *args, **kwargs)
-        self.add_operation(cmd.__doc__, op, cmd.command(*args, **kwargs))
+        self.add_operation(cmd.short_doc(), op, cmd.command(*args, **kwargs))
 
     @_delegate_to_context
     @contextlib.contextmanager
