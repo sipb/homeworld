@@ -1,0 +1,14 @@
+diff --git tools/build_defs/cmake_script.bzl tools/build_defs/cmake_script.bzl
+index e1b0c13..393368a 100644
+--- tools/build_defs/cmake_script.bzl
++++ tools/build_defs/cmake_script.bzl
+@@ -65,7 +65,7 @@ def create_cmake_script(
+     if not params.cache.get("CMAKE_RANLIB"):
+         params.cache.update({"CMAKE_RANLIB": ""})
+ 
+-    set_env_vars = " ".join([key + "=\"" + params.env[key] + "\"" for key in params.env])
++    set_env_vars = " ".join([key + "='" + params.env[key] + "'" for key in params.env])
+     str_cmake_cache_entries = " ".join(["-D" + key + "=\"" + params.cache[key] + "\"" for key in params.cache])
+     cmake_call = " ".join([
+         set_env_vars,
+

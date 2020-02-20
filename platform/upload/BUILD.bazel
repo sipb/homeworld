@@ -4,7 +4,7 @@ load(":container_push.bzl", "oci_pusher")
 load("//python:resources.bzl", "py_resources")
 
 ocis = {
-    "pullcheck": "//pull-monitor/pullcheck:oci",
+    "ceph": "//ceph:oci",
     "dns-monitor": "//dns-monitor:oci",
     "dnsmasq-nanny": "//dnsmasq:dnsmasq-nanny",
     "flannel": "//flannel:oci",
@@ -12,6 +12,7 @@ ocis = {
     "kube-dns-main": "//kube-dns:kube-dns-main",
     "kube-dns-sidecar": "//kube-dns:kube-dns-sidecar",
     "pause": "//cri-o/pause:oci",
+    "pullcheck": "//pull-monitor/pullcheck:oci",
     "user-grant": "//user-grant:oci",
 }
 

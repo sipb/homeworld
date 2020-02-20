@@ -1,3 +1,16 @@
+
+# ceph
+bc btrfs-progs cmake cpio cryptsetup-bin cython cython3 gdisk git gperf jq libaio-dev libbabeltrace-ctf-dev
+libbabeltrace-dev libblkid-dev libcap-ng-dev libexpat1-dev libgoogle-perftools-dev libibverbs-dev libkeyutils-dev
+libldap2-dev libleveldb-dev liblttng-ust-dev libleveldb-dev liblttng-ust-dev libnl-genl-3-dev libnss3-dev libsnappy-dev libssl-dev
+libtool libudev-dev libxml2-dev lsb-release parted pkg-config python python-all-dev python-cherrypy3 python-nose
+python-pecan python-prettytable python-setuptools python-sphinx python-werkzeug python3-all-dev python3-setuptools
+socat uuid-runtime virtualenv xfslibs-dev xfsprogs xmlstarlet yasm zlib1g-dev librabbitmq-dev libpython-dev
+libcunit1-dev liboath-dev libncurses-dev libcurl4-openssl-dev librdmacm-dev liblz4-dev
+
+# ceph boost deps
+libboost-atomic-dev libboost-chrono-dev libboost-context-dev libboost-coroutine-dev libboost-date-time-dev libboost-iostreams-dev libboost-program-options-dev libboost-python-dev libboost-random-dev libboost-regex-dev libboost-system-dev libboost-thread-dev
+
 # general dependencies
 debhelper
 
