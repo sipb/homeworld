@@ -17,6 +17,7 @@ sudo systemd-nspawn \
      -E PATH="/usr/local/bin:/usr/bin:/bin:/homeworld/deploy-chroot" \
      -E HOMEWORLD_DIR="/cluster" \
      -E HOMEWORLD_DISASTER="/disaster" \
+     --keep-unit \
      --register=no \
      -M "$(basename "$HOMEWORLD_DEPLOY_CHROOT")" \
      --bind "$(pwd)":/homeworld:norbind \
