@@ -13,6 +13,7 @@ ocis = {
     "kube-dns-sidecar": "//kube-dns:kube-dns-sidecar",
     "pause": "//cri-o/pause:oci",
     "pullcheck": "//pull-monitor/pullcheck:oci",
+    "rook": "//rook:oci",
     "user-grant": "//user-grant:oci",
 }
 

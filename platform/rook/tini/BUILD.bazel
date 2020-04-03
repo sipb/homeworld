@@ -1,0 +1,18 @@
+load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
+load("//ceph:unpack.bzl", "unpack_filegroup")
+
+cmake_external(
+    name = "tini-cmake",
+    binaries = [
+        "tini",
+    ],
+    lib_source = "@tini//:source",
+)
+
+unpack_filegroup(
+    src = ":tini-cmake",
+    names = [
+        "tini",
+    ],
+    visibility = ["//visibility:public"],
+)

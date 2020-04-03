@@ -105,6 +105,10 @@ load("//oci-tools:deps.bzl", "oci_tools_dependencies")
 
 oci_tools_dependencies()
 
+load("//rook:deps.bzl", "rook_dependencies")
+
+rook_dependencies()
+
 load("//runc:deps.bzl", "runc_dependencies")
 
 runc_dependencies()
