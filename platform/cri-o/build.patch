@@ -150,7 +150,7 @@ index 3a0a989..9e0efbe 100644
      name = "package-srcs",
 --- a/vendor/golang.org/x/crypto/ed25519/BUILD.bazel	2019-09-29 15:57:46.980000000 -0400
 +++ b/vendor/golang.org/x/crypto/ed25519/BUILD.bazel	2019-09-29 15:36:54.862000000 -0400
-@@ -2,15 +2,9 @@
+@@ -2,12 +2,9 @@
  
  go_library(
      name = "go_default_library",
@@ -162,9 +162,5 @@ index 3a0a989..9e0efbe 100644
      importmap = "github.com/cri-o/cri-o/vendor/golang.org/x/crypto/ed25519",
      importpath = "golang.org/x/crypto/ed25519",
      visibility = ["//visibility:public"],
--    deps = [
--        "//vendor/crypto/ed25519:go_default_library",
--        "//vendor/golang.org/x/crypto/ed25519/internal/edwards25519:go_default_library",
--    ],
-+    deps = ["//vendor/golang.org/x/crypto/ed25519/internal/edwards25519:go_default_library"],
+     deps = ["//vendor/golang.org/x/crypto/ed25519/internal/edwards25519:go_default_library"],
  )
