@@ -78,6 +78,7 @@ prometheus_node_exporter_dependencies()
 
 load("//prometheus-client:deps.bzl", "prometheus_client_dependencies")
 
+# gazelle:repository_macro prometheus-client/deps.bzl%prometheus_client_dependencies
 prometheus_client_dependencies()
 
 load("//pull-monitor/pull-monitor:deps.bzl", "pull_monitor_dependencies")
