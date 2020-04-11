@@ -9,6 +9,7 @@ ocis = {
     "dnsmasq-nanny": "//dnsmasq:dnsmasq-nanny",
     "flannel": "//flannel:oci",
     "flannel-monitor": "//flannel-monitor:oci",
+    "homeworld-website": "//website:oci",
     "kube-dns-main": "//kube-dns:kube-dns-main",
     "kube-dns-sidecar": "//kube-dns:kube-dns-sidecar",
     "pause": "//cri-o/pause:oci",
