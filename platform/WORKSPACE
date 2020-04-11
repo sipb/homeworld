@@ -76,6 +76,10 @@ load("//prometheus-node-exporter:deps.bzl", "prometheus_node_exporter_dependenci
 
 prometheus_node_exporter_dependencies()
 
+load("//prometheus-client:deps.bzl", "prometheus_client_dependencies")
+
+prometheus_client_dependencies()
+
 load("//pull-monitor/pull-monitor:deps.bzl", "pull_monitor_dependencies")
 
 pull_monitor_dependencies()
