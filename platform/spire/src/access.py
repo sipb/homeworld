@@ -234,6 +234,8 @@ def call_etcdctl(params: list, return_result: bool):
 @command.wrap
 def dispatch_etcdctl(*params: str):
     "invoke commands through the etcdctl wrapper"
+    if params and params[0] == '--':
+        params = params[1:]
     call_etcdctl(params, False)
 
 
@@ -257,12 +259,16 @@ def call_kubectl(params, return_result: bool):
 @command.wrap
 def dispatch_kubectl(*params: str):
     "invoke commands through the kubectl wrapper"
+    if params and params[0] == '--':
+        params = params[1:]
     call_kubectl(params, False)
 
 
 @command.wrapop
 def ssh_foreach(ops: command.Operations, node_kind: str, *params: str):
     "invoke commands on every node (or every node of a given kind) in the cluster"
+    if params and params[0] == '--':
+        params = params[1:]
     config = configuration.get_config()
     valid_node_kinds = configuration.Node.VALID_NODE_KINDS
     if not (node_kind == "node" or node_kind == "kube" or node_kind in valid_node_kinds):
