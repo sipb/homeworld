@@ -3,19 +3,19 @@ load("@bazel_gazelle//:deps.bzl", "go_repository")
 def metallb_dependencies():
     go_repository(
         name = "tf_universe_go_metallb",
-        commit = "15d9ed5cce53b457a955f894aa58e7f4856f73d5", # v0.8.3
+        commit = "15d9ed5cce53b457a955f894aa58e7f4856f73d5",  # v0.8.3
         importpath = "go.universe.tf/metallb",
     )
 
     go_repository(
         name = "com_github_go_kit_kit",
-        commit = "150a65a7ec6156b4b640c1fd55f26fd3d475d656", # v0.9.0
+        commit = "150a65a7ec6156b4b640c1fd55f26fd3d475d656",  # v0.9.0
         importpath = "github.com/go-kit/kit",
     )
 
     go_repository(
         name = "com_github_go_logfmt_logfmt",
-        commit = "390ab7935ee28ec6b286364bba9b4dd6410cb3d5", # v0.3.0
+        commit = "390ab7935ee28ec6b286364bba9b4dd6410cb3d5",  # v0.3.0
         importpath = "github.com/go-logfmt/logfmt",
     )
 
@@ -27,7 +27,7 @@ def metallb_dependencies():
 
     go_repository(
         name = "com_github_hashicorp_golang_lru",
-        commit = "20f1fb78b0740ba8c3cb143a61e86ba5c8669768", # v0.5.0
+        commit = "20f1fb78b0740ba8c3cb143a61e86ba5c8669768",  # v0.5.0
         importpath = "github.com/hashicorp/golang-lru",
     )
 

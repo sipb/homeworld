@@ -2,7 +2,6 @@ load("//bazel:package.bzl", "homeworld_oci")
 load("//bazel:substitute.bzl", "substitute")
 load("//python:resources.bzl", "py_resources")
 
-
 # TODO: ldflags:
 # -X go.universe.tf/metallb/internal/version.gitCommit={commit}
 # -X go.universe.tf/metallb/internal/version.gitBranch={branch}
@@ -12,11 +11,11 @@ homeworld_oci(
     bin = {
         "@tf_universe_go_metallb//controller": "/usr/bin/controller",
     },
+    exec = ["/usr/bin/controller"],
+    visibility = ["//visibility:public"],
     deps = [
         "//debian:debian-micro.tgz",
     ],
-    exec = ["/usr/bin/controller"],
-    visibility = ["//visibility:public"],
 )
 
 homeworld_oci(
@@ -24,11 +23,11 @@ homeworld_oci(
     bin = {
         "@tf_universe_go_metallb//speaker": "/usr/bin/speaker",
     },
+    exec = ["/usr/bin/speaker"],
+    visibility = ["//visibility:public"],
     deps = [
         "//debian:debian-micro.tgz",
     ],
-    exec = ["/usr/bin/speaker"],
-    visibility = ["//visibility:public"],
 )
 
 homeworld_oci(
@@ -36,21 +35,21 @@ homeworld_oci(
     bin = {
         "@tf_universe_go_metallb//e2etest-mirror-server": "/usr/bin/mirror",
     },
+    exec = ["/usr/bin/mirror"],
+    visibility = ["//visibility:public"],
     deps = [
         "//debian:debian-micro.tgz",
     ],
-    exec = ["/usr/bin/mirror"],
-    visibility = ["//visibility:public"],
 )
 
 substitute(
     name = "kubernetes.yaml",
-    template = ":kubernetes.yaml.in",
     kfs = {
         "controller_digest": ":controller.ocidigest",
         "speaker_digest": ":speaker.ocidigest",
         "mirror_digest": ":mirror.ocidigest",
     },
+    template = ":kubernetes.yaml.in",
     visibility = ["//visibility:public"],
 )
 

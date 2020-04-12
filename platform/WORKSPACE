@@ -89,6 +89,7 @@ load("//kube-state-metrics:deps.bzl", "kube_state_metrics_dependencies")
 kube_state_metrics_dependencies()
 
 load("//metallb:deps.bzl", "metallb_dependencies")
+
 metallb_dependencies()
 
 load("//oci-tools:deps.bzl", "oci_tools_dependencies")
