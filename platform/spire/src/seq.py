@@ -50,6 +50,7 @@ def sequence_supervisor(ops: command.Operations, skip_verify_keygateway: bool=Fa
     ops.add_command(deploy.launch_dns_addon)
     ops.add_command(deploy.launch_flannel_monitor)
     ops.add_command(deploy.launch_dns_monitor)
+    ops.add_command(deploy.launch_metallb)
 
     if config.user_grant_domain != '':
         ops.add_command(deploy.launch_user_grant)

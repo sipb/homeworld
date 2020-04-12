@@ -11,8 +11,9 @@ py_binary(
     data = [
         "//dns-monitor:kubelib",
         "//dnsmasq:kubelib",
-        "//flannel:kubelib",
         "//flannel-monitor:kubelib",
+        "//flannel:kubelib",
+        "//metallb:kubelib",
         "//spire/resources:resourcelib",
         "//upload:uploadlib",
         "//user-grant:kubelib",
