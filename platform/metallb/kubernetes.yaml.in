@@ -367,3 +367,35 @@ data:
     - name: default
       protocol: layer2
       addresses: {{EXTERNAL_RANGES}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: metallb-controller
+  namespace: metallb-system
+  labels:
+    app: metallb
+spec:
+  selector:
+    app: metallb
+    component: controller
+  ports:
+  - name: metrics
+    port: 7472
+    protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: metallb-speaker
+  namespace: metallb-system
+  labels:
+    app: metallb
+spec:
+  selector:
+    app: metallb
+    component: speaker
+  ports:
+  - name: metrics
+    port: 7472
+    protocol: TCP
