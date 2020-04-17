@@ -126,6 +126,8 @@ def sequence_cluster(ops: command.Operations) -> None:
     else:
         ops.add_operation("verify that user-grant is working properly", iterative_verifier(verify.check_user_grant, 120.0))
 
+    ops.add_command(iterative_verifier(verify.check_website, 120.0))
+
 
 main_command = command.SeqMux("commands about running large sequences of cluster bring-up automatically", {
     "keysystem": sequence_keysystem,
