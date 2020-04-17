@@ -17,6 +17,7 @@ py_binary(
         "//upload:uploadlib",
         "//user-grant:kubelib",
         "//version:versionlib",
+        "//website:kubelib",
     ],
     main = "__main__.py",
 )

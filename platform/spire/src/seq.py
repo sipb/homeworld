@@ -56,6 +56,8 @@ def sequence_supervisor(ops: command.Operations, skip_verify_keygateway: bool=Fa
     else:
         ops.add_operation("skip pre-deploying user-grant (not configured)", lambda: None)
 
+    ops.add_command(deploy.launch_website)
+
     for node in config.nodes:
         if node.kind == 'supervisor':
             ops.add_subcommand(infra.infra_sync, node.hostname)
