@@ -13,7 +13,6 @@ ocis = {
     "kube-dns-sidecar": "//kube-dns:kube-dns-sidecar",
     "metallb-controller": "//metallb:controller",
     "metallb-speaker": "//metallb:speaker",
-    "metallb-mirror": "//metallb:mirror",
     "pause": "//cri-o/pause:oci",
     "user-grant": "//user-grant:oci",
 }
