@@ -30,24 +30,11 @@ homeworld_oci(
     ],
 )
 
-homeworld_oci(
-    name = "mirror",
-    bin = {
-        "@tf_universe_go_metallb//e2etest-mirror-server": "/usr/bin/mirror",
-    },
-    exec = ["/usr/bin/mirror"],
-    visibility = ["//visibility:public"],
-    deps = [
-        "//debian:debian-micro.tgz",
-    ],
-)
-
 substitute(
     name = "kubernetes.yaml",
     kfs = {
         "controller_digest": ":controller.ocidigest",
         "speaker_digest": ":speaker.ocidigest",
-        "mirror_digest": ":mirror.ocidigest",
     },
     template = ":kubernetes.yaml.in",
     visibility = ["//visibility:public"],
