@@ -1,5 +1,5 @@
 status = [
-  "ci/circleci%",
+  "ci/circleci: build",
   "continuous-integration/jenkins/branch",
 ]
 pr_status = [
