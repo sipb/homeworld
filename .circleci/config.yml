@@ -1,5 +1,13 @@
 version: 2.1
 jobs:
+  check-linear:
+    machine:
+      image: ubuntu-1604:201903-01
+    steps:
+      - checkout
+      - run:
+          name: Check git history of branch is linear
+          command: tools/check-linear.sh
   build:
     machine:
       image: ubuntu-1604:201903-01
@@ -34,8 +42,15 @@ jobs:
           command: echo "bazel build //upload --verbose_failures" | HOMEWORLD_CHROOT="$HOME/autobuild-chroot" USER="circleci" ./build-chroot/enter-ci.sh
 workflows:
   version: 2
-  build:
+  workflow:
     jobs:
+      - check-linear:
+          filters:
+            branches:
+              ignore:
+                - staging
+                - trying
+                - master
       - build:
           filters:
             branches:
