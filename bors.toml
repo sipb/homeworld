@@ -1,0 +1,11 @@
+status = [
+  "ci/circleci: build",
+  "continuous-integration/jenkins/branch",
+]
+required_approvals = 1
+timeout_sec = 10800 # three hour timeout
+cut_body_after = "---"
+
+[committer]
+name = "hyades-bors[bot]"
+email = "sipb-hyades@mit.edu"
