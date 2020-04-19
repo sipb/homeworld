@@ -1,0 +1,94 @@
+exit # not quite a script; some parts are interactive.
+
+# Requires nginx setup from jenkins-setup.txt
+# https://github.com/bors-ng/bors-ng#step-1-register-a-new-github-app
+# Dashboard URL: https://hijinks.mit.edu:4002/
+
+wget -q -O - https://packages.erlang-solutions.com/debian/erlang_solutions.asc | apt-key add -
+echo 'deb https://packages.erlang-solutions.com/debian stretch contrib' >/etc/apt/sources.list.d/erlang-solutions.list
+apt-get update
+apt-get install esl-erlang elixir postgresql
+
+
+# use this command to generate random secrets when called for
+</dev/urandom tr -dc 'a-zA-Z0-9' | head -c64
+
+useradd -m -U borsng
+
+sudo -u postgres createuser -P borsng # generate random password
+sudo -u postgres createdb -O borsng borsng
+sudo -u postgres psql -d borsng <<<"CREATE EXTENSION IF NOT EXISTS citext;"
+
+# add this location block to /etc/nginx/sites-available/hijinks
+cat <<EOF
+server {
+  listen 4002 ssl;
+  server_name hijinks.mit.edu;
+
+  # copied from jenkins' server block:
+  ssl_certificate /etc/letsencrypt/live/hijinks.mit.edu/fullchain.pem;
+  ssl_certificate_key /etc/letsencrypt/live/hijinks.mit.edu/privkey.pem;
+  include /etc/letsencrypt/options-ssl-nginx.conf;
+  ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+  ssl_trusted_certificate /etc/letsencrypt/live/hijinks.mit.edu/chain.pem;
+  ssl_stapling on;
+  ssl_stapling_verify on;
+  add_header Strict-Transport-Security "max-age=31536000" always;
+
+  location / {
+    include /etc/nginx/proxy_params;
+    proxy_pass http://localhost:4001/;
+    proxy_redirect default;
+  }
+}
+EOF
+
+cat <<EOF >borsng.service
+[Unit]
+Description=Bors-NG
+After=network.target
+
+[Service]
+Type=simple
+User=borsng
+WorkingDirectory=/home/borsng/bors-ng
+EnvironmentFile=/home/borsng/bors-env
+Restart=on-failure
+ExecStart=/home/borsng/bors-ng/_build/prod/rel/bors/bin/bors start
+ExecStop=/home/borsng/bors-ng/_build/prod/rel/bors/bin/bors stop
+
+[Install]
+WantedBy=multi-user.target
+EOF
+ln -s "$(realpath borsng.service)" /etc/systemd/system
+systemctl enable borsng
+
+
+sudo -iu borsng  # run all remaining commands as borsng
+umask go=
+
+git clone https://github.com/bors-ng/bors-ng.git
+
+cd bors-ng
+mix local.hex --force
+mix deps.get --only prod
+mix local.rebar --force
+MIX_ENV=prod mix compile
+MIX_ENV=prod mix release
+
+cat >~/bors-env <<EOF
+PORT=4001
+MIX_ENV=prod
+SECRET_KEY_BASE=<generate random>
+DATABASE_URL='ecto://borsng:<db password>@localhost/borsng'
+GITHUB_INTEGRATION_ID=<app id>
+GITHUB_INTEGRATION_PEM='<output from "">'
+GITHUB_WEBHOOK_SECRET=<generate random, input to github>
+GITHUB_CLIENT_ID=<from github>
+GITHUB_CLIENT_SECRET=<from github>
+PUBLIC_HOST=localhost
+EOF
+echo "GITHUB_INTEGRATION_PEM='$(base64 -w0 /path/to/file.private-key.pem)'" >>~bors-env
+
+sh -ac '. ~/bors-env && POOL_SIZE=1 mix ecto.migrate'
