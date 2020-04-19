@@ -6,7 +6,7 @@ pr_status = [
   "ci/circleci: check-linear",
 ]
 required_approvals = 1
-timeout_sec = 7200 # two hour timeout
+timeout_sec = 10800 # three hour timeout
 cut_body_after = "---"
 
 [committer]
