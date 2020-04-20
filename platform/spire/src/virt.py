@@ -544,19 +544,21 @@ def qemu_check_nested_virt():
 
 @command.wrapseq
 def auto_install_supervisor(ops: command.Operations, tc: TerminationContext, supervisor: configuration.Node, install_iso: str, cdrom_install: bool=False, debug_qemu=False):
+    'install supervisor node'
     vm = VirtualMachine(supervisor, tc, install_iso, cdrom_install=cdrom_install, debug_qemu=debug_qemu)
     ops.add_operation("install supervisor node (this may take several minutes)", vm.boot_install_supervisor, supervisor)
 
 
 @command.wrapseq
 def auto_launch_supervisor(ops: command.Operations, tc: TerminationContext, supervisor: configuration.Node, debug_qemu=False):
-    # TODO: annotations, so that this can be --dry-run'd
+    'launch supervisor node'
     vm = VirtualMachine(supervisor, tc, debug_qemu=debug_qemu)
     ops.add_operation("start up supervisor node", lambda: vm.boot_launch(autoadd_fingerprint=True))
 
 
 @command.wrapseq
 def auto_install_nodes(ops: command.Operations, tc: TerminationContext, nodes: list, install_iso: str, cdrom_install: bool=False, debug_qemu=False):
+    'install non-supervisor nodes'
     vms = [VirtualMachine(node, tc, install_iso, cdrom_install=cdrom_install, debug_qemu=debug_qemu) for node in nodes]
 
     def boot_install_and_admit_all():
@@ -570,6 +572,7 @@ def auto_install_nodes(ops: command.Operations, tc: TerminationContext, nodes: l
 
 @command.wrapseq
 def auto_launch_nodes(ops: command.Operations, tc: TerminationContext, nodes: list, debug_qemu=False):
+    'launch non-supervisor nodes'
     for node in nodes:
         vm = VirtualMachine(node, tc, debug_qemu=debug_qemu)
         ops.add_operation("start up node {}".format(node), vm.boot_launch)
