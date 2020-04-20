@@ -180,7 +180,10 @@ class Command:
 
 
 def wrapop(f):
-    return functools.update_wrapper(Command(f), f, updated=[])
+    r = functools.update_wrapper(Command(f), f, updated=[])
+    if r.short_doc() is None:
+        raise ValueError('undocumented command {!r}'.format(r))
+    return r
 
 
 class Seq(Command):
@@ -198,7 +201,10 @@ class Seq(Command):
         op(dry_run=aargs.dry_run or aargs.dry_run_outer)
 
 def wrapseq(f):
-    return functools.update_wrapper(Seq(f), f, updated=[])
+    r = functools.update_wrapper(Seq(f), f, updated=[])
+    if r.short_doc() is None:
+        raise ValueError('undocumented command {!r}'.format(r))
+    return r
 
 
 class Simple(Command):
@@ -215,7 +221,10 @@ class Simple(Command):
 
 
 def wrap(f):
-    return functools.update_wrapper(Simple(f), f, updated=[])
+    r = functools.update_wrapper(Simple(f), f, updated=[])
+    if r.short_doc() is None:
+        raise ValueError('undocumented command {!r}'.format(r))
+    return r
 
 
 # Decorator for delegating a function call to self._context if it exists,
@@ -235,6 +244,8 @@ class Operations:
 
     @_delegate_to_context
     def add_operation(self, name: str, callback, command=None):
+        if not name:
+            raise ValueError('unlabelled operation {!r}'.format(callback))
         self._ops.append((name, callback, command))
 
     def add_command(self, cmd, *args, **kwargs):
