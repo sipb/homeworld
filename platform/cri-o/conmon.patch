@@ -1,0 +1,38 @@
+diff --git a/BUILD.bazel b/BUILD.bazel
+new file mode 100644
+index 0000000..94a1f5c
+--- /dev/null
++++ b/BUILD.bazel
+@@ -0,0 +1,24 @@
++# TODO: include -std=c99 in C builds
++
++cc_library(
++    name = "glibinc",
++    hdrs = [":glibobject-include/glibconfig.h"],
++    includes = ["glibobject-include"],
++    linkopts = ["-lglib-2.0"],
++)
++
++cc_binary(
++    name = "conmon",
++    srcs = glob([
++		"src/*.c",
++		"src/*.h",
++    ]),
++    # TODO: get these dynamically, not statically
++    defines = [
++        "VERSION='\"2.0.16-dev\"'",
++        "GIT_COMMIT='\"e34c6d60f06d48d293e747d2b59e601137e650dd\"'",
++    ],
++    deps = [":glibinc"],
++    copts = ["-I/usr/include/glib-2.0"],
++    visibility = ["//visibility:public"],
++)
+diff --git a/glibobject-include b/glibobject-include
+new file mode 120000
+index 0000000..3638b19
+--- /dev/null
++++ b/glibobject-include
+@@ -0,0 +1 @@
++/usr/lib/x86_64-linux-gnu/glib-2.0/include
+\ No newline at end of file
