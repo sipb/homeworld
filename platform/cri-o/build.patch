@@ -1,6 +1,6 @@
 diff --git a/BUILD.bazel b/BUILD.bazel
 new file mode 100644
-index 0000000..bf0a685
+index 000000000..a79f430ae
 --- /dev/null
 +++ b/BUILD.bazel
 @@ -0,0 +1,15 @@
@@ -19,68 +19,8 @@ index 0000000..bf0a685
 +    cmd = "\"$(location //cmd/crio)\" --root=\"/nonexistent\" --runroot \"/nonexistent\" --storage-driver=\"\" --config=\"\" config >\"$@\"",
 +    visibility = ["//visibility:public"],
 +)
-diff --git a/conmon/BUILD.bazel b/conmon/BUILD.bazel
-new file mode 100644
-index 0000000..9b97598
---- /dev/null
-+++ b/conmon/BUILD.bazel
-@@ -0,0 +1,46 @@
-+# TODO: include -std=c99 in C builds
-+
-+genrule(
-+    name = "config.h-genrule",
-+    outs = [":conf/config.h"],
-+    tools = ["//cmd/crio-config"],
-+    cmd = """
-+        REL="$$(realpath "$(location //cmd/crio-config)")"
-+        cd \"$(@D)\"
-+        "$${REL}"
-+    """,
-+)
-+
-+cc_library(
-+    name = "glibinc",
-+    hdrs = [":glibobject-include/glibconfig.h"],
-+    includes = ["glibobject-include"],
-+    linkopts = ["-lglib-2.0"],
-+)
-+
-+cc_library(
-+    name = "configinc",
-+    hdrs = [":conf/config.h"],
-+    includes = ["conf"],
-+)
-+
-+cc_binary(
-+    name = "conmon",
-+    srcs = [
-+        ":conmon.c",
-+        ":cmsg.c",
-+        ":cmsg.h",
-+        ":utils.c",
-+        ":utils.h",
-+        ":ctr_logging.c",
-+        ":ctr_logging.h",
-+    ],
-+    # TODO: get these dynamically, not statically
-+    defines = [
-+        "VERSION='\"1.10.7-dev\"'",
-+        "GIT_COMMIT='\"210d46c717c5dcb6d11302723eb9d20575ee7a78\"'",
-+    ],
-+    deps = [":glibinc", ":configinc"],
-+    copts = ["-I/usr/include/glib-2.0"],
-+    visibility = ["//visibility:public"],
-+)
-diff --git a/conmon/glibobject-include b/conmon/glibobject-include
-new file mode 120000
-index 0000000..3638b19
---- /dev/null
-+++ b/conmon/glibobject-include
-@@ -0,0 +1 @@
-+/usr/lib/x86_64-linux-gnu/glib-2.0/include
-\ No newline at end of file
 diff --git a/vendor/github.com/containers/storage/pkg/devicemapper/BUILD.bazel b/vendor/github.com/containers/storage/pkg/devicemapper/BUILD.bazel
-index bd64ed0..a12b9f5 100644
+index c8f3bf6be..495ea30a4 100644
 --- a/vendor/github.com/containers/storage/pkg/devicemapper/BUILD.bazel
 +++ b/vendor/github.com/containers/storage/pkg/devicemapper/BUILD.bazel
 @@ -12,6 +12,7 @@ go_library(
@@ -92,7 +32,7 @@ index bd64ed0..a12b9f5 100644
      importpath = "github.com/containers/storage/pkg/devicemapper",
      visibility = ["//visibility:public"],
 diff --git a/vendor/github.com/seccomp/libseccomp-golang/BUILD.bazel b/vendor/github.com/seccomp/libseccomp-golang/BUILD.bazel
-index 3a0a989..9e0efbe 100644
+index 6cd7977bd..c51281f0d 100644
 --- a/vendor/github.com/seccomp/libseccomp-golang/BUILD.bazel
 +++ b/vendor/github.com/seccomp/libseccomp-golang/BUILD.bazel
 @@ -7,6 +7,7 @@ go_library(
@@ -103,8 +43,26 @@ index 3a0a989..9e0efbe 100644
      importmap = "github.com/cri-o/cri-o/vendor/github.com/seccomp/libseccomp-golang",
      importpath = "github.com/seccomp/libseccomp-golang",
      visibility = ["//visibility:public"],
---- a/vendor/k8s.io/apimachinery/pkg/util/sets/BUILD	2019-09-29 15:55:01.213000000 -0400
-+++ b/vendor/k8s.io/apimachinery/pkg/util/sets/BUILD	2019-09-29 15:36:54.915000000 -0400
+diff --git a/vendor/golang.org/x/crypto/ed25519/BUILD.bazel b/vendor/golang.org/x/crypto/ed25519/BUILD.bazel
+index 36055b042..1e3c1c9a5 100644
+--- a/vendor/golang.org/x/crypto/ed25519/BUILD.bazel
++++ b/vendor/golang.org/x/crypto/ed25519/BUILD.bazel
+@@ -2,10 +2,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
+ 
+ go_library(
+     name = "go_default_library",
+-    srcs = [
+-        "ed25519.go",
+-        "ed25519_go113.go",
+-    ],
++    srcs = ["ed25519.go"],
+     importmap = "github.com/cri-o/cri-o/vendor/golang.org/x/crypto/ed25519",
+     importpath = "golang.org/x/crypto/ed25519",
+     visibility = ["//visibility:public"],
+diff --git a/vendor/k8s.io/apimachinery/pkg/util/sets/BUILD b/vendor/k8s.io/apimachinery/pkg/util/sets/BUILD
+index 4d61ac5ba..784db97c9 100644
+--- a/vendor/k8s.io/apimachinery/pkg/util/sets/BUILD
++++ b/vendor/k8s.io/apimachinery/pkg/util/sets/BUILD
 @@ -1,6 +1,5 @@
  package(default_visibility = ["//visibility:public"])
  
@@ -112,11 +70,10 @@ index 3a0a989..9e0efbe 100644
  load(
      "@io_bazel_rules_go//go:def.bzl",
      "go_library",
-@@ -19,35 +13,6 @@
-     importmap = "github.com/cri-o/cri-o/vendor/k8s.io/apimachinery/pkg/util/sets",
+@@ -21,35 +20,6 @@ go_library(
      importpath = "k8s.io/apimachinery/pkg/util/sets",
  )
--
+ 
 -# This rule makes all sorts of terrible assumptions that it's running inside k8s.io/kubernetes, even though it's part of k8s.io/apimachinery. :\
 -go_genrule(
 -    name = "set-gen",
@@ -145,22 +102,19 @@ index 3a0a989..9e0efbe 100644
 -        "//vendor/k8s.io/code-generator/cmd/set-gen",
 -    ],
 -)
- 
+-
  filegroup(
      name = "package-srcs",
---- a/vendor/golang.org/x/crypto/ed25519/BUILD.bazel	2019-09-29 15:57:46.980000000 -0400
-+++ b/vendor/golang.org/x/crypto/ed25519/BUILD.bazel	2019-09-29 15:36:54.862000000 -0400
-@@ -2,12 +2,9 @@
+     srcs = glob(["**"]),
+diff --git a/vendor/k8s.io/component-base/metrics/BUILD b/vendor/k8s.io/component-base/metrics/BUILD
+index 06398d377..9feb27b0c 100644
+--- a/vendor/k8s.io/component-base/metrics/BUILD
++++ b/vendor/k8s.io/component-base/metrics/BUILD
+@@ -4,7 +4,6 @@ load(
+     "@io_bazel_rules_go//go:def.bzl",
+     "go_library",
+ )
+-load("//staging/src/k8s.io/component-base/version:def.bzl", "version_x_defs")
  
  go_library(
      name = "go_default_library",
--    srcs = [
--        "ed25519.go",
--        "ed25519_go113.go",
--    ],
-+    srcs = ["ed25519.go"],
-     importmap = "github.com/cri-o/cri-o/vendor/golang.org/x/crypto/ed25519",
-     importpath = "golang.org/x/crypto/ed25519",
-     visibility = ["//visibility:public"],
-     deps = ["//vendor/golang.org/x/crypto/ed25519/internal/edwards25519:go_default_library"],
- )

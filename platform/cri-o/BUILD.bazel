@@ -10,7 +10,7 @@ homeworld_deb(
     name = "package",
     bin = {
         "@com_github_cri_o_cri_o//cmd/crio": "/usr/bin/crio",
-        "@com_github_cri_o_cri_o//conmon": "/usr/libexec/crio/conmon",
+        "@com_github_containers_conmon//:conmon": "/usr/libexec/crio/conmon",
     },
     data = {
         ":crio.conf": "/etc/crio/crio.conf",
