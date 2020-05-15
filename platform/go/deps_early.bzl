@@ -16,6 +16,9 @@ def go_dependencies_early():
         name = "bazel_gazelle",
         urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.21.0/bazel-gazelle-v0.21.0.tar.gz"],
         sha256 = "bfd86b3cbe855d6c16c6fce60d76bd51f5c8dbc9cfcaef7a2bb5c1aafd0710e8",
+        patches = [
+            "//go:0001-allow-gazelle-prepatch.patch",
+        ],
     )
 
     git_repository(

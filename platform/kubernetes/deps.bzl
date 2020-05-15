@@ -1,11 +1,10 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 load("@bazel_gazelle//:deps.bzl", "go_repository")
-load("//bazel:gorepo_patchfix.bzl", "go_repository_alt")
 
 # kubernetes client application (like flannel-monitor) dependencies
 def kubernetes_client_dependencies():
-    go_repository_alt(
+    go_repository(
         name = "io_k8s_apimachinery",
         commit = "6a84e37a896db9780c75367af8d2ed2bb944022e",  # 1.14.1
         importpath = "k8s.io/apimachinery",
