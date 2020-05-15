@@ -1,0 +1,170 @@
+load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
+load("//debian:debian.bzl", "debinstall")
+load("//bazel:package.bzl", "homeworld_oci")
+load("//ceph:unpack.bzl", "basename", "unpack_filegroup")
+
+BINARIES = [
+    "ceph-authtool",
+    "ceph-bluestore-tool",
+    "ceph-conf",
+    "ceph-dencoder",
+    "ceph-mgr",
+    "ceph-mon",
+    "ceph-objectstore-tool",
+    "ceph-osd",
+    "ceph-syn",
+    "rados",
+    "radosgw",
+    "radosgw-admin",
+    "radosgw-es",
+    "radosgw-object-expirer",
+    "radosgw-token",
+    "rbd",
+    "rbd-mirror",
+    "rbd-nbd",
+    "rbd-replay",
+    "rbd-replay-prep",
+]
+
+LIBRARIES = [
+    "libcephfs.so.2",
+    "librados.so.2",
+    "libradosstriper.so.1",
+    "librbd.so.1",
+    "librgw.so.2",
+    "librgw_admin_user.so.0",
+    "ceph/libceph-common.so.0",
+    "ceph/compressor/libceph_lz4.so.2",
+    "ceph/compressor/libceph_snappy.so.2",
+    "ceph/compressor/libceph_zlib.so.2",
+    "ceph/compressor/libceph_zstd.so.2",
+    "ceph/crypto/libceph_crypto_isal.so.1",
+    "ceph/crypto/libceph_crypto_openssl.so",
+    "ceph/erasure-code/libec_clay.so",
+    "ceph/erasure-code/libec_isa.so",
+    "ceph/erasure-code/libec_jerasure.so",
+    "ceph/erasure-code/libec_jerasure_generic.so",
+    "ceph/erasure-code/libec_jerasure_sse3.so",
+    "ceph/erasure-code/libec_jerasure_sse4.so",
+    "ceph/erasure-code/libec_lrc.so",
+    "ceph/erasure-code/libec_shec.so",
+    "ceph/erasure-code/libec_shec_generic.so",
+    "ceph/erasure-code/libec_shec_sse3.so",
+    "ceph/erasure-code/libec_shec_sse4.so",
+    "rados-classes/libcls_cas.so.1",
+    "rados-classes/libcls_hello.so.1",
+    "rados-classes/libcls_journal.so.1",
+    "rados-classes/libcls_kvs.so.1",
+    "rados-classes/libcls_lock.so.1",
+    "rados-classes/libcls_log.so.1",
+    "rados-classes/libcls_lua.so.1",
+    "rados-classes/libcls_numops.so.1",
+    "rados-classes/libcls_otp.so.1",
+    "rados-classes/libcls_rbd.so.1",
+    "rados-classes/libcls_refcount.so.1",
+    "rados-classes/libcls_rgw.so.1",
+    "rados-classes/libcls_sdk.so.1",
+    "rados-classes/libcls_timeindex.so.1",
+    "rados-classes/libcls_user.so.1",
+    "rados-classes/libcls_version.so.1",
+]
+
+cmake_external(
+    name = "ceph",
+    binaries = BINARIES,
+    cache_entries = {
+        "WITH_MANPAGE": "off",
+        "WITH_PYTHON3": "off",
+        "WITH_LTTNG": "off",
+        "WITH_EMBEDDED": "off",
+        "WITH_TESTS": "off",
+        "WITH_CEPHFS": "off",
+        # using system boost shaves off about 25% of the build time in my tests
+        "WITH_SYSTEM_BOOST": "on",
+        "WITH_RADOSGW_BEAST_FRONTEND": "on",
+        "WITH_FUSE": "off",
+        # disabled because the dashboard requires npm, which requires nodeenv,
+        # which requires working pip in a virtualenv, which is not working for
+        # some reason relating to DNS resolution. might be able to be fixed at
+        # a later time.
+        "WITH_MGR_DASHBOARD_FRONTEND": "off",
+    },
+    lib_source = "@ceph//:source",
+    make_commands = [
+        # we cannot just use -j1, because that will take hours, but bazel and
+        # make both trying to run their own multithreading subsystems will
+        # cause conflicts, so we need to make sure that not too many make
+        # threads are used. and we also need to make sure that we never use
+        # less than -j1, even if there's only one processor.
+        #
+        # so we compute the number of processors available, and divide by two
+        # rounding up.
+        #
+        # if this ever accidentally becomes 'make -j' due to the expr commands
+        # failing, then it's going to be terrible and (from experience)
+        # probably hang the entire build machine for several minutes before the
+        # OOM killer gets fed up with Bazel, but I can't come up with a good
+        # way around that, and hopefully this code is correct enough that it
+        # never happens.
+        "N=\"$(expr '(' 1 + $(cut -f 1 </proc/cpuinfo | grep -E '^processor$' | wc -l) ')' / 2)\"; if [ \"$N\" = '' ]; then make -j1; else make -j$N; fi",
+        "make install",
+    ],
+    shared_libraries = LIBRARIES,
+)
+
+unpack_filegroup(
+    src = ":ceph",
+    names = BINARIES + LIBRARIES,
+)
+
+oci_include = {
+    ":" + binary: "/usr/bin/" + binary
+    for binary in BINARIES
+}
+
+oci_include.update({
+    ":" + library: "/usr/lib/" + basename(library)
+    for library in LIBRARIES
+})
+
+homeworld_oci(
+    name = "oci",
+    bin = oci_include,
+    visibility = ["//visibility:public"],
+    deps = [
+        ":debian-for-ceph.tgz",
+    ],
+)
+
+debinstall(
+    name = "debian-for-ceph.tgz",
+    base = "//debian:debian-mini.tgz",
+    packages = [
+        "libaio1",
+        "libbabeltrace1",
+        "libboost-atomic1.67.0",
+        "libboost-chrono1.67.0",
+        "libboost-context1.67.0",
+        "libboost-coroutine1.67.0",
+        "libboost-date-time1.67.0",
+        "libboost-iostreams1.67.0",
+        "libboost-program-options1.67.0",
+        "libboost-python1.67.0",
+        "libboost-random1.67.0",
+        "libboost-regex1.67.0",
+        "libboost-system1.67.0",
+        "libboost-thread1.67.0",
+        "libcurl4",
+        "libexpat1",
+        "libgoogle-perftools4",
+        "libibverbs1",
+        "libleveldb1d",
+        "libncurses6",
+        "libnss3",
+        "liboath0",
+        "libpython2.7",
+        "librabbitmq4",
+        "librdmacm1",
+        "libssl1.1",
+    ],
+)

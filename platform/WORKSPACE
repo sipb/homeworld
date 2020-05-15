@@ -22,6 +22,14 @@ load("//bazel:deps.bzl", "bazel_dependencies")
 
 bazel_dependencies()
 
+load("//ceph:deps_early.bzl", "ceph_dependencies_early")
+
+ceph_dependencies_early()
+
+load("//ceph:deps.bzl", "ceph_dependencies")
+
+ceph_dependencies()
+
 load("//cni-plugins:deps.bzl", "cni_plugins_dependencies")
 
 cni_plugins_dependencies()
@@ -96,6 +104,10 @@ kube_state_metrics_dependencies()
 load("//oci-tools:deps.bzl", "oci_tools_dependencies")
 
 oci_tools_dependencies()
+
+load("//rook:deps.bzl", "rook_dependencies")
+
+rook_dependencies()
 
 load("//runc:deps.bzl", "runc_dependencies")
 

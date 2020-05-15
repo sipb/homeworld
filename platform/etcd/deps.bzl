@@ -1,8 +1,10 @@
 load("@bazel_gazelle//:deps.bzl", "go_repository")
 
 def etcd_dependencies():
+    # WARNING: etcd is pulled in twice! once here, and once as a dependency for Rook!
+    # These are not necessarily the same version, and the other one doesn't use vendored deps!
     go_repository(
-        name = "com_github_coreos_etcd",
+        name = "etcd",
         commit = "d57e8b8d97adfc4a6c224fe116714bf1a1f3beb9",  # 3.3.12
         importpath = "github.com/coreos/etcd",
         build_external = "vendored",

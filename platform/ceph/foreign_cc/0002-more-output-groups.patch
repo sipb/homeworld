@@ -1,0 +1,13 @@
+diff --git tools/build_defs/framework.bzl tools/build_defs/framework.bzl
+index df37124..9f12a59 100644
+--- tools/build_defs/framework.bzl
++++ tools/build_defs/framework.bzl
+@@ -289,7 +289,7 @@ def cc_external_rule_impl(ctx, attrs):
+         lib_dir_name = attrs.out_lib_dir,
+         include_dir_name = attrs.out_include_dir,
+     )
+-    output_groups = _declare_output_groups(installdir_copy.file, outputs.out_binary_files)
++    output_groups = _declare_output_groups(installdir_copy.file, outputs.declared_outputs)
+     wrapped_files = [
+         wrapped_outputs.script_file,
+         wrapped_outputs.log_file,

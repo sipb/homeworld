@@ -1,0 +1,25 @@
+load("//bazel:package.bzl", "homeworld_oci")
+
+homeworld_oci(
+    name = "oci",
+    bin = {
+        "//rook/tini": "/tini",
+        "@com_github_rook_rook//cmd/rook": "/usr/local/bin/rook",
+        "@com_github_rook_rook//cmd/rookflex": "/usr/local/bin/rookflex",
+        "@com_github_rook_rook//images/ceph:toolbox.sh": "/usr/local/bin/toolbox.sh",
+    },
+    data = {
+        "@com_github_rook_rook//cluster/examples/kubernetes/ceph:csi/template": "/etc/ceph-csi",
+        "@com_github_rook_rook//cluster/examples/kubernetes/ceph:monitoring": "/etc/ceph-monitoring",
+        # note: /etc/ceph-csv-templates (which is included in upstream) is not included in this OCI.
+        # this is because building it could be complicated, and it's not necessary if we aren't using
+        # the Operator Lifecycle Manager.
+    },
+    exec = [
+        "/tini",
+        "--",
+        "/usr/local/bin/rook",
+    ],
+    oci_dep = "//ceph:oci",
+    visibility = ["//visibility:public"],
+)

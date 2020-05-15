@@ -12,7 +12,7 @@ load("//bazel:package.bzl", "homeworld_deb")
 go_binary(
     name = "etcd",
     embed = [
-        "@com_github_coreos_etcd//:go_default_library",
+        "@etcd//:go_default_library",
     ],
     #    gc_linkopts = "${GO_LDFLAGS}",
     pure = "on",
@@ -22,7 +22,7 @@ go_binary(
 go_binary(
     name = "etcdctl",
     embed = [
-        "@com_github_coreos_etcd//etcdctl:go_default_library",
+        "@etcd//etcdctl:go_default_library",
     ],
     #    gc_linkopts = "${GO_LDFLAGS}",
     pure = "on",
