@@ -1,8 +1,8 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
 
-VERSION = "20190702+deb10u3"
+VERSION = "20190702+deb10u4"
 RELEASE = "buster"
-MINI_ISO_HASH = "26b6f6f6bcb24c4e59b965d4a2a6c44af5d79381b9230d69a7d4db415ddcb4cd"
+MINI_ISO_HASH = "a749cb499cf4f335d1d4fbffb041353f6e41f5d0681b1d856cb167ed2c27e756"
 
 def debian_iso_dependencies():
     http_file(
