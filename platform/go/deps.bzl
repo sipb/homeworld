@@ -7,7 +7,8 @@ def go_dependencies():
 
     # TODO: stop using binaries built by upstream; use our own
     go_register_toolchains(
-        go_version = "1.12.10",
+        # TODO: might need to bump kubernetes to support this newer version
+        go_version = "1.13.10",
     )
     protobuf_deps()
     gazelle_dependencies()
