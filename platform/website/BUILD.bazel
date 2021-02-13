@@ -1,0 +1,27 @@
+load("//bazel:package.bzl", "homeworld_oci")
+load("//bazel:substitute.bzl", "substitute")
+load("//python:resources.bzl", "py_resources")
+
+homeworld_oci(
+    name = "oci",
+    bin = {
+        "//website/server": "/usr/bin/website-server",
+    },
+    exec = ["/usr/bin/website-server"],
+    visibility = ["//visibility:public"],
+)
+
+substitute(
+    name = "kubernetes.yaml",
+    kfs = {
+        "digest": ":oci.ocidigest",
+    },
+    template = ":kubernetes.yaml.in",
+    visibility = ["//visibility:public"],
+)
+
+py_resources(
+    name = "kubelib",
+    data = [":kubernetes.yaml"],
+    visibility = ["//visibility:public"],
+)

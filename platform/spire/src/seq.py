@@ -56,6 +56,8 @@ def sequence_supervisor(ops: command.Operations, skip_verify_keygateway: bool=Fa
     else:
         ops.add_operation("skip pre-deploying user-grant (not configured)", lambda: None)
 
+    ops.add_command(deploy.launch_website)
+
     for node in config.nodes:
         if node.kind == 'supervisor':
             ops.add_subcommand(infra.infra_sync, node.hostname)
@@ -123,6 +125,8 @@ def sequence_cluster(ops: command.Operations) -> None:
         ops.add_operation("skip verifying user-grant (no client certificate)", lambda: None)
     else:
         ops.add_operation("verify that user-grant is working properly", iterative_verifier(verify.check_user_grant, 120.0))
+
+    ops.add_command(iterative_verifier(verify.check_website, 120.0))
 
 
 main_command = command.SeqMux("commands about running large sequences of cluster bring-up automatically", {

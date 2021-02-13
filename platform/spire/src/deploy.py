@@ -89,10 +89,17 @@ def launch_user_grant(export: bool=False):
     }, export=export)
 
 
+@command.wrap
+def launch_website(export: bool=False):
+    "deploy the specifications to run the self-hosting website"
+    launch_spec("//website:kubernetes.yaml", export=export)
+
+
 main_command = command.Mux("commands to deploy systems onto the kubernetes cluster", {
     "flannel": launch_flannel,
     "flannel-monitor": launch_flannel_monitor,
     "dns-addon": launch_dns_addon,
     "dns-monitor": launch_dns_monitor,
     "user-grant": launch_user_grant,
+    "website": launch_website,
 })

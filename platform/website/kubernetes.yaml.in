@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    app: homeworld-website
+  name: homeworld-website
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: homeworld-website
+  name: homeworld-website
+  namespace: homeworld-website
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: homeworld-website
+  template:
+    metadata:
+      labels:
+        app: homeworld-website
+    spec:
+      containers:
+        - image: homeworld.private/homeworld-website@{digest}
+          name: server
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: homeworld-website
+  name: homeworld-website
+  namespace: homeworld-website
+spec:
+  selector:
+    app: homeworld-website
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
