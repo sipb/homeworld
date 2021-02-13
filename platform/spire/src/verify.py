@@ -60,6 +60,7 @@ def pull_prometheus_query(query, default_value=None):
 
 @command.wrap
 def check_keystatics():
+    "verify the keyserver's static files"
     cluster_conf = query.get_keyurl_data("/static/cluster.conf")
     expected_cluster_conf = configuration.get_cluster_conf()
 
