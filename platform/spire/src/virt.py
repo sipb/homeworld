@@ -549,10 +549,10 @@ def auto_install_supervisor(ops: command.Operations, tc: TerminationContext, sup
 
 
 @command.wrapseq
-def auto_launch_supervisor(ops: command.Operations, tc: TerminationContext, supervisor: configuration.Node, debug_qemu=False):
+def auto_launch_supervisor(ops: command.Operations, tc: TerminationContext, supervisor: configuration.Node, autoadd_fingerprint=False, debug_qemu=False):
     # TODO: annotations, so that this can be --dry-run'd
     vm = VirtualMachine(supervisor, tc, debug_qemu=debug_qemu)
-    ops.add_operation("start up supervisor node", lambda: vm.boot_launch(autoadd_fingerprint=True))
+    ops.add_operation("start up supervisor node", lambda: vm.boot_launch(autoadd_fingerprint=autoadd_fingerprint))
 
 
 @command.wrapseq
@@ -591,7 +591,7 @@ def auto_install(ops: command.Operations, authorized_key=None, persistent: bool=
         with ops.context("termination", TerminationContext()) as tc:
             with ops.context("debug shell", DebugContext(persistent)):
                 ops.add_subcommand(auto_install_supervisor, tc, config.keyserver, iso_path, cdrom_install=cdrom_install, debug_qemu=debug_qemu)
-                ops.add_subcommand(auto_launch_supervisor, tc, config.keyserver, debug_qemu=debug_qemu)
+                ops.add_subcommand(auto_launch_supervisor, tc, config.keyserver, autoadd_fingerprint=True, debug_qemu=debug_qemu)
                 ops.add_subcommand(seq.sequence_supervisor)
 
                 other_nodes = [n for n in config.nodes if n != config.keyserver]
