@@ -135,3 +135,23 @@ scrape_configs:
       regex: (.+)
       target_label: __metrics_path__
       replacement: /api/v1/nodes/${1}/proxy/metrics/cadvisor
+
+  - job_name: 'metallb-controller'
+    scheme: https
+    tls_config:
+      ca_file: /etc/homeworld/authorities/kubernetes.pem
+      cert_file: /etc/homeworld/keys/kubernetes-supervisor.pem
+      key_file: /etc/homeworld/keys/kubernetes-supervisor.key
+    static_configs:
+      - targets: ['{{APISERVER}}:443']
+    metrics_path: '/api/v1/namespaces/metallb-system/services/metallb-controller:metrics/proxy/metrics'
+
+  - job_name: 'metallb-speaker'
+    scheme: https
+    tls_config:
+      ca_file: /etc/homeworld/authorities/kubernetes.pem
+      cert_file: /etc/homeworld/keys/kubernetes-supervisor.pem
+      key_file: /etc/homeworld/keys/kubernetes-supervisor.key
+    static_configs:
+      - targets: ['{{APISERVER}}:443']
+    metrics_path: '/api/v1/namespaces/metallb-system/services/metallb-speaker:metrics/proxy/metrics'

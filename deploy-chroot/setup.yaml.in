@@ -10,9 +10,11 @@ cluster:
 vlan: 612
 
 addresses:
-  cidr-nodes: 10.{x}.0.0/24
+  cidr-nodes: 10.{x}.0.0/23
   cidr-pods: 172.18.0.0/16
   cidr-services: 172.28.0.0/16
+  external-ranges:
+    - 10.{x}.1.0/24
   service-api: 172.28.0.1
   service-dns: 172.28.0.2
 

@@ -50,6 +50,7 @@ def sequence_supervisor(ops: command.Operations, skip_verify_keygateway: bool=Fa
     ops.add_command(deploy.launch_dns_addon)
     ops.add_command(deploy.launch_flannel_monitor)
     ops.add_command(deploy.launch_dns_monitor)
+    ops.add_command(deploy.launch_metallb)
 
     if config.user_grant_domain != '':
         ops.add_command(deploy.launch_user_grant)
@@ -123,6 +124,8 @@ def sequence_cluster(ops: command.Operations) -> None:
         ops.add_operation("skip verifying user-grant (no client certificate)", lambda: None)
     else:
         ops.add_operation("verify that user-grant is working properly", iterative_verifier(verify.check_user_grant, 120.0))
+
+    ops.add_command(iterative_verifier(verify.check_metallb, 120.0))
 
 
 main_command = command.SeqMux("commands about running large sequences of cluster bring-up automatically", {

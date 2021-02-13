@@ -1,0 +1,47 @@
+load("//bazel:package.bzl", "homeworld_oci")
+load("//bazel:substitute.bzl", "substitute")
+load("//python:resources.bzl", "py_resources")
+
+# TODO: ldflags:
+# -X go.universe.tf/metallb/internal/version.gitCommit={commit}
+# -X go.universe.tf/metallb/internal/version.gitBranch={branch}
+
+homeworld_oci(
+    name = "controller",
+    bin = {
+        "@tf_universe_go_metallb//controller": "/usr/bin/controller",
+    },
+    exec = ["/usr/bin/controller"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//debian:debian-micro.tgz",
+    ],
+)
+
+homeworld_oci(
+    name = "speaker",
+    bin = {
+        "@tf_universe_go_metallb//speaker": "/usr/bin/speaker",
+    },
+    exec = ["/usr/bin/speaker"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//debian:debian-micro.tgz",
+    ],
+)
+
+substitute(
+    name = "kubernetes.yaml",
+    kfs = {
+        "controller_digest": ":controller.ocidigest",
+        "speaker_digest": ":speaker.ocidigest",
+    },
+    template = ":kubernetes.yaml.in",
+    visibility = ["//visibility:public"],
+)
+
+py_resources(
+    name = "kubelib",
+    data = [":kubernetes.yaml"],
+    visibility = ["//visibility:public"],
+)

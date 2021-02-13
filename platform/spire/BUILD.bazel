@@ -13,6 +13,7 @@ py_binary(
         "//dnsmasq:kubelib",
         "//flannel:kubelib",
         "//flannel-monitor:kubelib",
+        "//metallb:kubelib",
         "//spire/resources:resourcelib",
         "//upload:uploadlib",
         "//user-grant:kubelib",

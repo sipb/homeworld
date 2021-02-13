@@ -61,6 +61,15 @@ def launch_dns_monitor(export: bool=False):
 
 
 @command.wrap
+def launch_metallb(export: bool=False):
+    "deploy the specifications to run metallb"
+    config = configuration.get_config()
+    launch_spec("//metallb:kubernetes.yaml", {
+        "EXTERNAL_RANGES": [str(x) for x in config.external_ranges],
+    }, export=export)
+
+
+@command.wrap
 def launch_user_grant(export: bool=False):
     "deploy the specifications to run the user grant website"
     config = configuration.get_config()
@@ -94,5 +103,6 @@ main_command = command.Mux("commands to deploy systems onto the kubernetes clust
     "flannel-monitor": launch_flannel_monitor,
     "dns-addon": launch_dns_addon,
     "dns-monitor": launch_dns_monitor,
+    "metallb": launch_metallb,
     "user-grant": launch_user_grant,
 })

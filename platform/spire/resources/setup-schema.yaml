@@ -34,11 +34,15 @@ properties:
         type: string
       cidr-services:
         type: string
+      external-ranges:
+        type: array
+        items:
+          type: string
       service-api:
         type: string
       service-dns:
         type: string
-    required: ["cidr-nodes", "cidr-pods", "cidr-services", "service-api", "service-dns"]
+    required: ["cidr-nodes", "cidr-pods", "cidr-services", "external-ranges", "service-api", "service-dns"]
     additionalProperties: false
   dns-upstreams:
     type: array
