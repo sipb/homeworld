@@ -53,6 +53,26 @@ class Mux:
             except AttributeError as e:
                 raise Exception("error configuring subcommand {!r}".format(subcommand)) from e
 
+        if 'help' not in self.mapping:
+            help_subparser = subparsers.add_parser(
+                'help',
+                description='print help about this command or a subcommnad',
+                help='show this help message and exit')
+            help_subparser.add_argument('subcommand', nargs='?')
+            def help_function(aargs):
+                if aargs.subcommand is None:
+                    parser.print_help()
+                else:
+                    try:
+                        subparser = subparsers.choices[aargs.subcommand]
+                    except KeyError:
+                        print('{}: no such subcommand'.format(aargs.subcommand))
+                        parser.print_help()
+                        return
+                    subparser.print_help()
+            help_subparser.set_defaults(argparse_invoke=help_function,
+                                        argparse_parser=help_subparser)
+
     def short_doc(self):
         return self.__doc__
 
